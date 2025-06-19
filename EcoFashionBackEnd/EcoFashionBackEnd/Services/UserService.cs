@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Writers;
-using EcoFashionBackEnd.Common.Payloads.Requests;
+
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Exceptions;
@@ -9,7 +9,7 @@ using EcoFashionBackEnd.Helpers;
 using EcoFashionBackEnd.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using EcoFashionBackEnd.Dtos.Payment;
+
 using EcoFashionBackEnd.Dtos.User;
 
 namespace EcoFashionBackEnd.Services

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Entities
 {
-    [Table("User")]
+    [Table("Users")]
     public class User
     {
         [Key]
@@ -11,52 +11,33 @@ namespace EcoFashionBackEnd.Entities
         public int UserId { get; set; }
 
         [Required]
-        [MaxLength(255)]
-        public string UserName { get; set; }
-
-        [Required]
-        [MaxLength(100)]
-        public string Password { get; set; }
-
-        public string? OTPCode { get; set; }
-        [Required]
-        [MaxLength(50)]
-        public string FullName { get; set; }
-
-        [Required]
-        [MaxLength(255)]
+        [EmailAddress]
+        [StringLength(100)]
         public string Email { get; set; }
 
-        [MaxLength(100)]
-        public string Gender { get; set; }
-
         [Required]
-        [MaxLength(255)]
-        public string Address { get; set; }
+        public string PasswordHash { get; set; }
 
-        [Required]
-        public DateTime BirthDate { get; set; }
+        [StringLength(100)]
+        public string? FullName { get; set; }
 
-        [Required]
-        [MaxLength(15)]
-        public string PhoneNumber { get; set; }
-
-        public DateTime CreateDate { get; set; }
-
-        public string Status { get; set; }
-
-        [ForeignKey("UserRole")]
-        public int RoleID { get; set; }
+       // [ForeignKey("UserRole")]
+        public int RoleId { get; set; }
         public virtual UserRole UserRole { get; set; }
 
-        [MaxLength(255)]
-        public string? AvatarUrl { get; set; }
+        [Required]
+        [EnumDataType(typeof(UserStatus))]
+        public UserStatus Status { get; set; } = UserStatus.Pending;
 
-        public decimal? Wallet { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
 
-        public bool? IsMember { get; set; }
-
-
-        //public ICollection<Home> Homes { get; set; } = new List<Home>();
+    public enum UserStatus
+    {
+        Pending,
+        Active,
+        Rejected,
+        Inactive
     }
 }

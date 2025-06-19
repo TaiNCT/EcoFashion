@@ -2,6 +2,7 @@
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Helpers;
 using Microsoft.CodeAnalysis;
+using Org.BouncyCastle.Crypto.Generators;
 
 namespace EcoFashionBackEnd.Data
 {
@@ -50,26 +51,76 @@ namespace EcoFashionBackEnd.Data
 
         public async Task TrySeedAsync()
         {
-            // Check if the database is already seeded
-            if (_context.UserRoles.Any() || _context.Homes.Any() || _context.Users.Any())
-            {
-                return; // Database already seeded
-            }
+            if (_context.UserRoles.Any() || _context.Users.Any()) return;
 
-            // Seed UserRoles
-            var adminRole = new UserRole { RoleName = "Admin" };
-            var designerRole = new UserRole { RoleName = "Designer" };
-            var supplierRole = new UserRole { RoleName = "Supplier" };
+            // 1. Tạo các role
+            var adminRole = new UserRole { RoleName = "Admin", Description = "System administrator" };
+            var designerRole = new UserRole { RoleName = "designer", Description = "Fashion designer" };
+            var supplierRole = new UserRole { RoleName = "supplier", Description = "Material supplier" };
+            var customerRole = new UserRole { RoleName = "customer", Description = "Customer user" };
 
-            List<UserRole> userRoles = new()
-            {
-                adminRole,designerRole,supplierRole
-            };
+            await _context.UserRoles.AddRangeAsync(adminRole, designerRole, supplierRole, customerRole);
+            await _context.SaveChangesAsync(); // Save để EF sinh RoleId
+
+            // 2. Tạo user, dùng RoleId
+            var users = new List<User>
+    {
+        new User
+        {
+            Email = "admin@example.com",
+            PasswordHash = SecurityUtil.Hash("admin"),
+            FullName = "Admin User",
+            RoleId = adminRole.RoleId,
+            Status = UserStatus.Active
+        },
+        new User
+        {
+            Email = "designer@example.com",
+            PasswordHash = SecurityUtil.Hash("designer"),
+            FullName = "Designer One",
+            RoleId = designerRole.RoleId,
+            Status = UserStatus.Active
+        },
+        new User
+        {
+            Email = "supplier@example.com",
+            PasswordHash = SecurityUtil.Hash("supplier"),
+            FullName = "Supplier One",
+            RoleId = supplierRole.RoleId,
+            Status = UserStatus.Active
         }
+    };
 
+            await _context.Users.AddRangeAsync(users);
+            await _context.SaveChangesAsync();
 
+            // 3. Lấy lại ID thật của users từ DB
+            var designerUser = await _context.Users.FirstAsync(u => u.Email == "designer@example.com");
+            var supplierUser = await _context.Users.FirstAsync(u => u.Email == "supplier@example.com");
+
+            // 4. Tạo Designer và Supplier profile
+            await _context.Designers.AddAsync(new Designer
+            {
+                UserId = designerUser.UserId,
+                DesignerName = "Designer One",
+                PortfolioUrl = "https://portfolio.designer1.com",
+                Email = "designer1@example.com",
+                Status = "active"
+            });
+
+            await _context.Suppliers.AddAsync(new Supplier
+            {
+                UserId = supplierUser.UserId,
+                SupplierName = "Supplier One",
+                PortfolioUrl = "https://supplier1.com",
+                Email = "supplier1@example.com",
+                Status = "active"
+            });
+
+            await _context.SaveChangesAsync(); // Save hết
+        }
     }
-        
+
         public static class DatabaseInitialiserExtension
     {
         public static async Task InitialiseDatabaseAsync(this WebApplication app)
