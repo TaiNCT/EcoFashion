@@ -21,7 +21,6 @@ namespace EcoFashionBackEnd.Services
         private readonly IRepository<UserRole, int> _userRoleRepository;
         private readonly AppDbContext _dbContext;
 
-        private const decimal MembershipFee = 200000;
 
 
         public UserService(
