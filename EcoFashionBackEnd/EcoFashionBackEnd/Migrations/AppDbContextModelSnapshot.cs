@@ -232,7 +232,6 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Navigation("UserRole");
                 });
-#pragma warning restore 612, 618
         }
     }
 }
