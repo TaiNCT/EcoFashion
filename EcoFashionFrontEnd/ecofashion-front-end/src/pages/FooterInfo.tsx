@@ -27,9 +27,8 @@ function FooterInfo() {
             Eco Fashion - Sustainable fashion platform
           </Typography>
           <Typography variant="body2" sx={{ lineHeight: 1.7 }}>
-            We provide a wide variety of premium sustainable designs and
-            materials care guides to help you make your daily fashion friendly
-            to environment.
+            Thời trang bền vững cho tương lai tốt đẹp hơn. Kết nối các nhà thiết
+            kế, nhà cung cấp và người tiêu dùng có ý thức.
           </Typography>
         </Grid>
 
