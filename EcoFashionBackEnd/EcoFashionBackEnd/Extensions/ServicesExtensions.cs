@@ -51,23 +51,23 @@ public static class ServicesExtensions
 
         services.AddAuthorization();
 
-        //services.AddAuthentication(options =>
-        //{
-        //    //options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        //    //options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        //    //options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        //})
-        //    .AddJwtBearer(options =>
-        //    {
-        //        options.TokenValidationParameters = new TokenValidationParameters()
-        //        {
-        //            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
-        //            ValidateIssuer = false,
-        //            ValidateAudience = false,
-        //            ValidateLifetime = true,
-        //            ValidateIssuerSigningKey = true
-        //        };
-        //    });
+        services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true
+                };
+            });
 
         services.AddDbContext<AppDbContext>(opt =>
         {

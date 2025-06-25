@@ -45,6 +45,10 @@ public class Program
             });
 
 
+            builder.Services.AddCors(option =>
+         option.AddPolicy("CORS", builder =>
+             builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed((host) => true)));
+
             // Add JSON options to handle potential circular references
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
