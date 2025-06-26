@@ -5,7 +5,7 @@ import {
   LinkedIn,
   Email,
 } from "@mui/icons-material";
-import { Box, Grid, IconButton, Link, Typography } from "@mui/material";
+import { Box, IconButton, Link, Typography } from "@mui/material";
 
 function FooterInfo() {
   return (
@@ -20,9 +20,20 @@ function FooterInfo() {
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
       }}
     >
-      <Grid container spacing={4} justifyContent="space-between">
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(3, 1fr)",
+          },
+          gap: 4,
+          justifyContent: "space-between",
+        }}
+      >
         {/* About Us */}
-        <Grid item xs={12} sm={4} md={3}>
+        <Box>
           <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
             Eco Fashion - Sustainable fashion platform
           </Typography>
@@ -31,10 +42,10 @@ function FooterInfo() {
             materials care guides to help you make your daily fashion friendly
             to environment.
           </Typography>
-        </Grid>
+        </Box>
 
         {/* Quick Links */}
-        <Grid item xs={12} sm={4} md={3}>
+        <Box>
           <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
             Quick Links
           </Typography>
@@ -58,10 +69,10 @@ function FooterInfo() {
               </li>
             ))}
           </Box>
-        </Grid>
+        </Box>
 
         {/* Contact Info */}
-        <Grid item xs={12} sm={4} md={3}>
+        <Box>
           <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
             Contact Us
           </Typography>
@@ -70,8 +81,8 @@ function FooterInfo() {
           </Typography>
           <Typography variant="body2">Phone: +123 456 7890</Typography>
           <Typography variant="body2">Email: info@ecofashion.com</Typography>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       {/* Social Media Icons */}
       <Box sx={{ mt: 3, textAlign: "center" }}>

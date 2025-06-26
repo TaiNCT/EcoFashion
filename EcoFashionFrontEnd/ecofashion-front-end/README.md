@@ -1,54 +1,64 @@
-# React + TypeScript + Vite
+# EcoFashion Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern React application for sustainable fashion platform.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🌱 **Modern UI/UX** with Material-UI
+- 🔐 **Authentication System** with JWT
+- 🔄 **API Integration** with ASP.NET Core backend
+- 📱 **Responsive Design** for all devices
+- 🎨 **Beautiful Gradients** and animations
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend**: React 18 + TypeScript + Vite
+- **UI Library**: Material-UI (MUI)
+- **Routing**: React Router DOM
+- **Form Validation**: Formik + Yup
+- **Notifications**: React Toastify
+- **Authentication**: JWT + Google OAuth (Firebase)
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Project Structure
+
+```
+src/
+├── components/         # Reusable components
+│   ├── Navigation.tsx     # Top navigation bar
+│   └── ProtectedRoute.tsx # Route protection
+├── pages/             # Page components
+│   ├── Homepages.tsx     # Landing page
+│   ├── Login.tsx         # Login form
+│   ├── Register.tsx      # Registration form
+│   └── admin/
+│       └── Dashboard.tsx # Admin dashboard
+├── services/          # API and auth services
+│   ├── apiService.ts     # API client
+│   ├── AuthContext.tsx   # Authentication context
+│   └── firebase.ts      # Firebase config
+└── App.tsx           # Main app component
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Environment Variables
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Create `.env.local` for Firebase configuration (optional):
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
 ```
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-domain
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## License
+
+MIT License

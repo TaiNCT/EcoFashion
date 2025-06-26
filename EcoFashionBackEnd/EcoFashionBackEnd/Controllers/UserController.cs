@@ -28,7 +28,7 @@ namespace EcoFashionBackEnd.Controllers
             {
                 // Gọi service để xác thực user
                 var result = await _userService.LoginAsync(request);
-                return Ok(ApiResult<LoginResult>.Succeed(result));
+                return Ok(ApiResult<AuthResponse>.Succeed(result));
             }
             catch (BadRequestException ex)
             {

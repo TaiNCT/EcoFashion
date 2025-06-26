@@ -7,24 +7,123 @@ import {
   Menu,
   MenuItem,
   IconButton,
+  Badge,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { UserAuth } from "../services/AuthContext";
 import { toast } from "react-toastify";
-import HomeIcon from "@mui/icons-material/Home";
-import InfoIcon from "@mui/icons-material/Info";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import ContactMailIcon from "@mui/icons-material/ContactMail";
-import LoginIcon from "@mui/icons-material/Login";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import PersonIcon from "@mui/icons-material/Person";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import PeopleIcon from "@mui/icons-material/People";
 
 export default function Navigation() {
   const { user, logout } = UserAuth();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  // Function để lấy tên hiển thị user
+  const getUserDisplayName = () => {
+    if (!user) return "";
+
+    // Ưu tiên fullName, nếu không có thì lấy phần trước @ của email
+    if (user.fullName && user.fullName.trim() !== "") {
+      return user.fullName;
+    }
+
+    if (user.email) {
+      return user.email.split("@")[0];
+    }
+
+    return "User";
+  };
+
+  // Function để lấy menu items dựa trên role
+  const getMenuItems = () => {
+    if (!user) return [];
+
+    const role = user.role?.toLowerCase();
+
+    switch (role) {
+      case "designer":
+        return [
+          {
+            label: "Hồ Sơ Designer",
+            path: "/designer/profile",
+            icon: (
+              <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
+            label: "Sản Phẩm Cá Nhân",
+            path: "/designer/products",
+            icon: (
+              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+        ];
+
+      case "admin":
+        return [
+          {
+            label: "Bảng Điều Khiển",
+            path: "/admin/dashboard",
+            icon: (
+              <DashboardIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
+            label: "Quản Lý Users",
+            path: "/admin/users",
+            icon: (
+              <PeopleIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+        ];
+
+      case "supplier":
+        return [
+          {
+            label: "Hồ Sơ Nhà Cung Cấp",
+            path: "/supplier/profile",
+            icon: (
+              <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
+            label: "Quản Lý Kho Hàng",
+            path: "/supplier/inventory",
+            icon: (
+              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+        ];
+
+      case "customer":
+      case "user":
+      default:
+        return [
+          {
+            label: "Hồ Sơ Cá Nhân",
+            path: "/profile",
+            icon: (
+              <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
+            label: "Đơn Hàng",
+            path: "/orders",
+            icon: (
+              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+        ];
+    }
+  };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -53,21 +152,25 @@ export default function Navigation() {
     <>
       <AppBar
         position="static"
-        sx={{ bgcolor: "transparent", boxShadow: "none" }}
+        sx={{
+          bgcolor: "white",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          borderBottom: "1px solid #e0e0e0",
+        }}
       >
         <Toolbar
           sx={{
             display: "flex",
             justifyContent: "space-between",
-            p: 3,
-            background: "linear-gradient(to right, #d4e9b4, #f9f4a8)",
-            boxShadow: 3,
-            transition: "background-color 0.3s",
-            "&:hover": {
-              backgroundColor: "#f0f8e2",
-            },
+            alignItems: "center",
+            py: 1.5,
+            px: 4,
+            maxWidth: "1200px",
+            margin: "0 auto",
+            width: "100%",
           }}
         >
+          {/* Logo */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Link
               to="/"
@@ -78,23 +181,15 @@ export default function Navigation() {
                 alignItems: "center",
               }}
             >
-              <HomeIcon
-                sx={{
-                  fontSize: 30,
-                  color: "#3e4b3b",
-                  transition: "color 0.3s, transform 0.3s",
-                  "&:hover": { color: "#2e7d32", transform: "scale(1.1)" },
-                }}
-              />
               <Typography
-                variant="h5"
+                variant="h4"
                 component="h1"
                 sx={{
-                  ml: 1,
-                  fontFamily: "Georgia, serif",
-                  color: "#3e4b3b",
-                  transition: "color 0.3s",
-                  "&:hover": { color: "#2e7d32" },
+                  fontFamily: "Inter, sans-serif",
+                  fontWeight: 700,
+                  color: "#2d3748",
+                  fontSize: "1.75rem",
+                  letterSpacing: "-0.025em",
                 }}
               >
                 EcoFashion
@@ -102,70 +197,73 @@ export default function Navigation() {
             </Link>
           </Box>
 
-          <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
+          {/* Main Navigation */}
+          <Box sx={{ display: "flex", gap: 4, alignItems: "center" }}>
             <Link
-              to="/ourstory"
+              to="/"
               style={{
                 textDecoration: "none",
                 display: "flex",
                 alignItems: "center",
               }}
             >
-              <InfoIcon
-                sx={{
-                  fontSize: 24,
-                  color: "#4b4b4b",
-                  transition: "color 0.3s, transform 0.3s",
-                  "&:hover": {
-                    color: "#ff8a65",
-                    transform: "rotate(15deg) scale(1.1)",
-                  },
-                }}
-              />
               <Typography
-                variant="button"
+                variant="body1"
                 sx={{
-                  color: "#4b4b4b",
-                  ml: 0.5,
-                  "&:hover": { color: "#ff8a65" },
+                  color: "#4a5568",
+                  fontWeight: 500,
+                  fontSize: "0.95rem",
+                  transition: "color 0.2s",
+                  "&:hover": { color: "#2d3748" },
                 }}
               >
-                Our Story
+                Trang Chủ
               </Typography>
             </Link>
 
-            {user && (
-              <Link
-                to="/dashboard"
-                style={{
-                  textDecoration: "none",
-                  display: "flex",
-                  alignItems: "center",
+            <Link
+              to="/shop"
+              style={{
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#4a5568",
+                  fontWeight: 500,
+                  fontSize: "0.95rem",
+                  transition: "color 0.2s",
+                  "&:hover": { color: "#2d3748" },
                 }}
               >
-                <DashboardIcon
-                  sx={{
-                    fontSize: 24,
-                    color: "#4b4b4b",
-                    transition: "color 0.3s, transform 0.3s",
-                    "&:hover": {
-                      color: "#42a5f5",
-                      transform: "rotate(-15deg) scale(1.1)",
-                    },
-                  }}
-                />
-                <Typography
-                  variant="button"
-                  sx={{
-                    color: "#4b4b4b",
-                    ml: 0.5,
-                    "&:hover": { color: "#42a5f5" },
-                  }}
-                >
-                  Dashboard
-                </Typography>
-              </Link>
-            )}
+                Cửa Hàng
+              </Typography>
+            </Link>
+
+            <Link
+              to="/about"
+              style={{
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#4a5568",
+                  fontWeight: 500,
+                  fontSize: "0.95rem",
+                  transition: "color 0.2s",
+                  "&:hover": { color: "#2d3748" },
+                }}
+              >
+                Về Chúng Tôi
+              </Typography>
+            </Link>
 
             <Link
               to="/contact"
@@ -175,94 +273,127 @@ export default function Navigation() {
                 alignItems: "center",
               }}
             >
-              <ContactMailIcon
-                sx={{
-                  fontSize: 24,
-                  color: "#4b4b4b",
-                  transition: "color 0.3s, transform 0.3s",
-                  "&:hover": {
-                    color: "#ffca28",
-                    transform: "rotate(15deg) scale(1.1)",
-                  },
-                }}
-              />
               <Typography
-                variant="button"
+                variant="body1"
                 sx={{
-                  color: "#4b4b4b",
-                  ml: 0.5,
-                  "&:hover": { color: "#ffca28" },
+                  color: "#4a5568",
+                  fontWeight: 500,
+                  fontSize: "0.95rem",
+                  transition: "color 0.2s",
+                  "&:hover": { color: "#2d3748" },
                 }}
               >
-                Contact
+                Liên Hệ
               </Typography>
             </Link>
+          </Box>
+
+          {/* Right Side Actions */}
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            {/* Wishlist Icon */}
+            <IconButton
+              sx={{
+                color: "#4a5568",
+                "&:hover": {
+                  backgroundColor: "rgba(74, 85, 104, 0.1)",
+                  color: "#2d3748",
+                },
+              }}
+            >
+              <Badge badgeContent={0} color="primary">
+                <FavoriteIcon sx={{ fontSize: 24 }} />
+              </Badge>
+            </IconButton>
+
+            {/* Shopping Cart Icon */}
+            <IconButton
+              sx={{
+                color: "#4a5568",
+                "&:hover": {
+                  backgroundColor: "rgba(74, 85, 104, 0.1)",
+                  color: "#2d3748",
+                },
+              }}
+            >
+              <Badge badgeContent={3} color="primary">
+                <ShoppingCartIcon sx={{ fontSize: 24 }} />
+              </Badge>
+            </IconButton>
 
             {/* Authentication Section */}
             {!user ? (
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <Box sx={{ display: "flex", gap: 1, ml: 2 }}>
                 <Button
                   component={Link}
                   to="/login"
                   variant="outlined"
-                  startIcon={<LoginIcon />}
                   sx={{
-                    color: "#4b4b4b",
-                    borderColor: "#4b4b4b",
+                    color: "#4a5568",
+                    borderColor: "#e2e8f0",
                     textTransform: "none",
-                    fontWeight: 600,
-                    borderRadius: 2,
+                    fontWeight: 500,
+                    borderRadius: 1,
+                    px: 3,
+                    py: 1,
+                    fontSize: "0.875rem",
                     "&:hover": {
-                      backgroundColor: "rgba(75, 75, 75, 0.1)",
-                      borderColor: "#2e7d32",
-                      color: "#2e7d32",
+                      backgroundColor: "#f7fafc",
+                      borderColor: "#cbd5e0",
+                      color: "#2d3748",
                     },
                   }}
                 >
-                  Đăng nhập
+                  Đăng Nhập
                 </Button>
                 <Button
                   component={Link}
                   to="/register"
                   variant="contained"
-                  startIcon={<PersonAddIcon />}
                   sx={{
-                    backgroundColor: "#2e7d32",
+                    backgroundColor: "#2d3748",
                     color: "white",
                     textTransform: "none",
-                    fontWeight: 600,
-                    borderRadius: 2,
+                    fontWeight: 500,
+                    borderRadius: 1,
+                    px: 3,
+                    py: 1,
+                    fontSize: "0.875rem",
                     "&:hover": {
-                      backgroundColor: "#1b5e20",
-                      transform: "translateY(-2px)",
+                      backgroundColor: "#1a202c",
                     },
                   }}
                 >
-                  Đăng ký
+                  Đăng Ký
                 </Button>
               </Box>
             ) : (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                {" "}
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, ml: 2 }}
+              >
+                {/* User Name */}
                 <Typography
                   variant="body2"
                   sx={{
-                    color: "#4b4b4b",
-                    fontWeight: 500,
+                    color: "#2d3748",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
                   }}
                 >
-                  Xin chào, {user.name || user.email?.split("@")[0]}
+                  Xin chào, {getUserDisplayName()}
                 </Typography>
+
+                {/* Menu Button */}
                 <IconButton
                   onClick={handleMenuOpen}
                   sx={{
-                    color: "#4b4b4b",
+                    color: "#4a5568",
+                    padding: "4px",
                     "&:hover": {
-                      backgroundColor: "rgba(75, 75, 75, 0.1)",
+                      backgroundColor: "rgba(74, 85, 104, 0.1)",
                     },
                   }}
                 >
-                  <AccountCircleIcon sx={{ fontSize: 28 }} />
+                  <AccountCircleIcon sx={{ fontSize: 24 }} />
                 </IconButton>
                 <Menu
                   anchorEl={anchorEl}
@@ -276,25 +407,37 @@ export default function Navigation() {
                     vertical: "top",
                     horizontal: "right",
                   }}
+                  sx={{
+                    "& .MuiPaper-root": {
+                      boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 2,
+                      mt: 1,
+                    },
+                  }}
                 >
-                  <MenuItem onClick={handleMenuClose}>
-                    <Link
-                      to="/dashboard"
-                      style={{
-                        textDecoration: "none",
-                        color: "inherit",
-                        display: "flex",
-                        alignItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <DashboardIcon sx={{ mr: 1, fontSize: 20 }} />
-                      Dashboard
-                    </Link>
-                  </MenuItem>
+                  {getMenuItems().map((item, index) => (
+                    <MenuItem key={index} onClick={handleMenuClose}>
+                      <Link
+                        to={item.path}
+                        style={{
+                          textDecoration: "none",
+                          color: "inherit",
+                          display: "flex",
+                          alignItems: "center",
+                          width: "100%",
+                        }}
+                      >
+                        {item.icon}
+                        {item.label}
+                      </Link>
+                    </MenuItem>
+                  ))}
                   <MenuItem onClick={handleLogout}>
-                    <LogoutIcon sx={{ mr: 1, fontSize: 20 }} />
-                    Đăng xuất
+                    <LogoutIcon
+                      sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }}
+                    />
+                    Đăng Xuất
                   </MenuItem>
                 </Menu>
               </Box>
