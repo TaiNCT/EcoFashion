@@ -83,6 +83,7 @@ public static class ServicesExtensions
         services.AddScoped<DesignerService>();
         services.AddScoped<SupplierService>();
 
+        services.AddScoped<CustomerService>();
 
         //services.AddScoped<IVnPayService, VnPayService>();
 
