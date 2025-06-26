@@ -47,7 +47,10 @@ public class Program
 
             builder.Services.AddCors(option =>
          option.AddPolicy("CORS", builder =>
-             builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed((host) => true)));
+             builder.WithOrigins("http://localhost:3000", "http://localhost:5173")
+                   .AllowAnyMethod()
+                   .AllowAnyHeader()
+                   .AllowCredentials()));
 
             // Add JSON options to handle potential circular references
             builder.Services.AddControllers().AddJsonOptions(options =>
@@ -80,10 +83,7 @@ public class Program
            
 
             app.UseHttpsRedirection();
-            app.UseCors("ReactApp");
-            app.UseMiddleware<ExceptionMiddleware>();
-
-
+            app.UseCors("CORS");
             app.UseAuthentication();
 
             app.UseAuthorization();
