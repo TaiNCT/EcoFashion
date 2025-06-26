@@ -4,11 +4,12 @@ import {
   Button,
   Icon,
   IconButton,
-  Link,
+  Link as MuiLink,
   Menu,
   MenuItem,
   Toolbar,
   Typography,
+  styled,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useNavigate } from "react-router-dom";
@@ -36,20 +37,43 @@ import profile_picture from "../assets/pictures/example/profile_picture.jpg";
 
 export default function Navigation() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorE2, setAnchorE2] = React.useState<null | HTMLElement>(null);
+
   const open = Boolean(anchorEl);
+  const openShop = Boolean(anchorE2);
+
   const navigate = useNavigate();
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
+  const handleClickShop = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorE2(event.currentTarget);
+  };
+
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleCloseShop = () => {
+    setAnchorE2(null);
   };
 
   const handleGoToDesignerPage = () => {
     handleClose();
     navigate("/designerregister"); // <-- Update to your actual route
   };
+
+  const NavLink = styled(MuiLink)(({ theme }) => ({
+    marginRight: theme.spacing(2),
+    color: theme.palette.text.primary,
+    textDecoration: "none",
+    fontWeight: 500,
+    "&:hover": {
+      color: "rgba(94, 224, 159, 1)",
+    },
+  }));
 
   return (
     <AppBar position="sticky" sx={{ bgcolor: "white", boxShadow: "none" }}>
@@ -65,7 +89,85 @@ export default function Navigation() {
             <img src={logo} alt="EcoFashion Logo" style={{ height: 80 }} />
           </Button>
         </Box>
+        <Box
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            justifyContent: "space-evenly",
+            maxWidth: "100%", // optional: limit width
+          }}
+        >
+          <NavLink href="#home" sx={{ margin: "auto" }}>
+            TRANG CHỦ
+          </NavLink>
+          {/* <Link href="#shop">
+              <Select
+                sx={{
+                  border: "none",
+                  fontSize: 14,
+                  minWidth: 100,
+                  "& fieldset": { border: "none" },
+                }}
+              >
+                <MenuItem value="products">Thời trang</MenuItem>
+                <MenuItem value="material">Vật liệu</MenuItem>
+              </Select>
+            </Link> */}
 
+          <Button
+            id="basic-button"
+            aria-controls={openShop ? "basic-menu" : undefined}
+            aria-haspopup="true"
+            aria-expanded={openShop ? "true" : undefined}
+            onClick={handleClickShop}
+            disableRipple // xoá hiệu ứng ripple
+            disableElevation // xoá đổ bóng nếu có
+            sx={{
+              margin: "auto",
+              textDecoration: "none",
+              color: "black",
+              background: "transparent",
+              boxShadow: "none",
+              "&:hover": {
+                backgroundColor: "transparent", // xoá màu nền khi hover
+                color: "rgba(94, 224, 159, 1)",
+              },
+              "&:focus": {
+                outline: "none", // xoá viền khi focus
+                backgroundColor: "transparent",
+              },
+              "&:active": {
+                backgroundColor: "transparent", // xoá hiệu ứng khi click
+                boxShadow: "none",
+              },
+            }}
+          >
+            Cửa Hàng
+          </Button>
+          <Menu
+            id="basic-menu"
+            anchorEl={anchorE2}
+            open={openShop}
+            onClose={handleCloseShop}
+            slotProps={{
+              list: {
+                "aria-labelledby": "basic-button",
+              },
+            }}
+          >
+            <MenuItem onClick={handleClose}>Thời Trang</MenuItem>
+            <MenuItem onClick={handleClose}>Vật Liệu</MenuItem>
+          </Menu>
+          <NavLink href="#contact" sx={{ margin: "auto" }}>
+            THÔNG TIN
+          </NavLink>
+          <NavLink href="#about" sx={{ margin: "auto" }}>
+            VỀ CHÚNG TÔI
+          </NavLink>
+          <NavLink href="#contact" sx={{ margin: "auto" }}>
+            LIÊN LẠC
+          </NavLink>
+        </Box>
         {/* Search Bar */}
         {/* <Box
           sx={{
