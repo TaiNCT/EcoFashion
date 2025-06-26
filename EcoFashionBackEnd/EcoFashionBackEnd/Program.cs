@@ -46,10 +46,20 @@ public class Program
 
 
             builder.Services.AddCors(option =>
-                option.AddPolicy("CORS", builder =>
-                    builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed((host) => true)));
+         option.AddPolicy("CORS", builder =>
+             builder.WithOrigins("http://localhost:3000", "http://localhost:5173")
+                   .AllowAnyMethod()
+                   .AllowAnyHeader()
+                   .AllowCredentials()));
+
+            // Add JSON options to handle potential circular references
+            builder.Services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+            });
 
             var app = builder.Build();
+
             // Hook into application lifetime events and trigger only application fully started 
             app.Lifetime.ApplicationStarted.Register(async () =>
             {
@@ -68,15 +78,12 @@ public class Program
 
                 app.UseSwagger();
                 app.UseSwaggerUI();
+         
             }
-
-            app.UseCors("CORS");
+           
 
             app.UseHttpsRedirection();
-
-            app.UseMiddleware<ExceptionMiddleware>();
-
-
+            app.UseCors("CORS");
             app.UseAuthentication();
 
             app.UseAuthorization();

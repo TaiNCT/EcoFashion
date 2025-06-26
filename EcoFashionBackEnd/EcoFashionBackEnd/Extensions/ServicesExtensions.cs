@@ -51,23 +51,23 @@ public static class ServicesExtensions
 
         services.AddAuthorization();
 
-        //services.AddAuthentication(options =>
-        //{
-        //    //options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        //    //options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        //    //options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        //})
-        //    .AddJwtBearer(options =>
-        //    {
-        //        options.TokenValidationParameters = new TokenValidationParameters()
-        //        {
-        //            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
-        //            ValidateIssuer = false,
-        //            ValidateAudience = false,
-        //            ValidateLifetime = true,
-        //            ValidateIssuerSigningKey = true
-        //        };
-        //    });
+        services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true
+                };
+            });
 
         services.AddDbContext<AppDbContext>(opt =>
         {
@@ -80,7 +80,10 @@ public static class ServicesExtensions
 
         services.AddScoped<UserService>();
         services.AddScoped<UserRoleService>();
-
+        services.AddScoped<DesignerService>();
+        services.AddScoped<SupplierService>();
+        services.AddScoped<ApplicationService>();
+        services.AddScoped<CustomerService>();
 
         //services.AddScoped<IVnPayService, VnPayService>();
 

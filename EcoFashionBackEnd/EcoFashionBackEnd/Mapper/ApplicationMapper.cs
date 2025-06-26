@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using EcoFashionBackEnd.Common.Payloads.Requests;
+
 //using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Entities;
@@ -11,8 +13,10 @@ namespace EcoFashionBackEnd.Mapper
         {
             CreateMap<User, UserModel>().ReverseMap();
             CreateMap<UserRole, UserRoleModel>().ReverseMap();
-
-            // Home and related entities
+            CreateMap<Supplier, SupplierModel>().ReverseMap();
+            CreateMap<Designer, DesignerModel>().ReverseMap();
+            CreateMap<Application, ApplicationModel>().ReverseMap();
+            CreateMap<Application, ApplicationModel>().ReverseMap();
         }
     }
 }

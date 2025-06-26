@@ -11,6 +11,16 @@ import DesignerRegister from "./pages/DesignerRegister";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 // make sure its top
 import ScrollToTop from "./components/ScrollToTop";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import DesignerProfile from "./pages/designer/DesignerProfile";
+import SupplierProfile from "./pages/supplier/SupplierProfile";
+import CustomerProfile from "./pages/customer/CustomerProfile";
+import Dashboard from "./pages/admin/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthContextProvider } from "./services/AuthContext";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const theme = createTheme({
@@ -19,24 +29,61 @@ function App() {
     },
   });
   return (
-    <div className="app">
-      <ScrollToTop />
-      <Navigation />
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <ThemeProvider theme={theme}>
-              <Homepages />
-            </ThemeProvider>
-          }
-        />
-        <Route path="/ourstory" element={<About />} />
-        <Route path="/detail/:id" element={<FashionDetail />} />
-        <Route path="/designerregister" element={<DesignerRegister />} />
-      </Routes>
-      <FooterInfo />
-    </div>
+    <AuthContextProvider>
+      <div className="app">
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<Homepages />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/detail/:id" element={<FashionDetail />} />
+          <Route path="/designerregister" element={<DesignerRegister />} />
+
+          {/* Designer Routes */}
+          <Route
+            path="/designer/profile"
+            element={
+              <ProtectedRoute allowedRoles={["designer"]}>
+                <DesignerProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Routes */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Supplier Routes */}
+          <Route
+            path="/supplier/profile"
+            element={
+              <ProtectedRoute allowedRoles={["supplier"]}>
+                <SupplierProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Customer Routes */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute allowedRoles={["customer", "user"]}>
+                <CustomerProfile />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+        <FooterInfo />
+        <ToastContainer />
+      </div>
+    </AuthContextProvider>
   );
 }
 

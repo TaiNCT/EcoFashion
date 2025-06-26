@@ -28,10 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Common\Payloads\Requests\" />
-    <Folder Include="Common\Payloads\Responses\" />
     <Folder Include="Migrations\" />
-    <Folder Include="NewFolder\" />
   </ItemGroup>
 
 </Project>

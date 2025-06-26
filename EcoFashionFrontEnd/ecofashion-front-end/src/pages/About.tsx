@@ -1,4 +1,4 @@
-import { Box, Typography, Grid, Paper, Avatar, Button } from "@mui/material";
+import { Box, Typography, Paper, Avatar, Button } from "@mui/material";
 import Typewriter from "typewriter-effect";
 
 const teamMembers = [
@@ -142,9 +142,20 @@ function AboutPage() {
       >
         Meet Our Team
       </Typography>
-      <Grid container spacing={4} justifyContent="center">
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(4, 1fr)",
+          },
+          gap: 4,
+          justifyContent: "center",
+        }}
+      >
         {teamMembers.map((member) => (
-          <Grid key={member.name}>
+          <Box key={member.name}>
             <Paper
               elevation={4}
               sx={{
@@ -188,9 +199,9 @@ function AboutPage() {
                 {member.description}
               </Typography>
             </Paper>
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
 
       {/* Mission Statement Section */}
       <Box
