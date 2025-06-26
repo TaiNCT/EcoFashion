@@ -80,7 +80,7 @@ public static class ServicesExtensions
 
         services.AddScoped<UserService>();
         services.AddScoped<UserRoleService>();
-
+        services.AddScoped<DesignerService>();
         services.AddScoped<SupplierService>();
 
 

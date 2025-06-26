@@ -4,6 +4,7 @@ using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Exceptions;
 using EcoFashionBackEnd.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -113,6 +114,46 @@ namespace EcoFashionBackEnd.Services
             _supplierRepository.Update(existingSupplier);
             await _dbContext.SaveChangesAsync();
             return true;
+        }
+        public async Task<IEnumerable<SupplierModel>> FilterSuppliers(string? supplierName, string? email, string? phoneNumber, string? status)
+        {
+            var query = _supplierRepository.GetAll();
+
+            if (!string.IsNullOrEmpty(supplierName))
+            {
+                query = query.Where(s => s.SupplierName == supplierName);
+            }
+            if (!string.IsNullOrEmpty(email))
+            {
+                query = query.Where(s => s.Email == email);
+            }
+            if (!string.IsNullOrEmpty(phoneNumber))
+            {
+                query = query.Where(s => s.PhoneNumber == phoneNumber);
+            }
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(s => s.Status == status);
+            }
+
+            var result = await query.ToListAsync();
+            return _mapper.Map<List<SupplierModel>>(result);
+        }
+        public async Task<IEnumerable<SupplierModel>> SearchSuppliers(string? keyword)
+        {
+            if (string.IsNullOrEmpty(keyword))
+            {
+                return await GetAllSuppliers(); // Hoặc trả về một danh sách rỗng
+            }
+
+            var query = _supplierRepository.GetAll().Where(s =>
+                (s.SupplierName != null && s.SupplierName.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                (s.Email != null && s.Email.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                (s.PhoneNumber != null && s.PhoneNumber.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            );
+
+            var result = await query.ToListAsync();
+            return _mapper.Map<List<SupplierModel>>(result);
         }
     }
 }
