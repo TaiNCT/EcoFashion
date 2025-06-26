@@ -28,7 +28,7 @@ export default function Register() {
 
   useEffect(() => {
     if (user != null) {
-      navigate("/dashboard");
+      navigate("/");
     }
   }, [user, navigate]);
 
@@ -55,9 +55,8 @@ export default function Register() {
       toast.success("Đăng ký thành công!", {
         position: "top-center",
       });
-      navigate("/dashboard");
+      navigate("/");
     } catch (error: any) {
-      console.log(error.message);
       toast.error(error.message || "Đăng ký thất bại", {
         position: "bottom-center",
       });

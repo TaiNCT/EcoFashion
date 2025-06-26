@@ -12,6 +12,8 @@ using EcoFashionBackEnd.Exceptions;
 using EcoFashionBackEnd.Helpers;
 using EcoFashionBackEnd.Repositories;
 using Microsoft.IdentityModel.Tokens;
+using EcoFashionBackEnd.Settings;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -37,7 +39,7 @@ namespace EcoFashionBackEnd.Services
             _configuration = configuration;
         }
 
-        public async Task<LoginResult> LoginAsync(UserLoginRequest request)
+        public async Task<AuthResponse> LoginAsync(UserLoginRequest request)
         {
             // Tìm user theo email
             var user = await _dbContext.Users
@@ -61,41 +63,33 @@ namespace EcoFashionBackEnd.Services
                 throw new BadRequestException("Tài khoản không hoạt động.");
             }
 
-            // Tạo security token và lưu vào đối tượng kết quả
-            var securityToken = GenerateSecurityToken(user);
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            return new LoginResult
+            IConfiguration configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+            
+            var expiresAt = DateTime.Now.AddDays(7);
+            var jwtKey = configuration["JwtSettings:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
+            var token = user.GenerateJsonWebToken(jwtKey, DateTime.Now);
+            
+            var response = new AuthResponse
             {
-                Authenticated = true,
-                Message = "Đăng nhập thành công",
-                UserId = user.UserId,
-                IsMember = user.UserRole?.RoleName != "customer",
-                Token = securityToken 
-            };
-        }
-
-        private SecurityToken GenerateSecurityToken(User user)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "DefaultSecretKey123456789ABCDEFGHIJKLMNO");
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
+                Token = token,
+                ExpiresAt = expiresAt,
+                User = new UserInfo
                 {
-                    new Claim(ClaimTypes.Name, user.UserId.ToString()),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, user.UserRole?.RoleName ?? "")
-                }),
-                Expires = DateTime.UtcNow.AddDays(7), // Token có hiệu lực 7 ngày
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256Signature)
+                    UserId = user.UserId,
+                    FullName = user.FullName ?? "",
+                    Email = user.Email ?? "",
+                    Phone = user.Phone,
+                    Username = user.Username,
+                    Role = user.UserRole?.RoleName ?? "",
+                    RoleId = user.RoleId,
+                    Status = user.Status.ToString(),
+                    CreatedAt = user.CreatedAt
+                }
             };
 
-            // Trả về SecurityToken thay vì chuỗi token
-            return tokenHandler.CreateToken(tokenDescriptor);
-        }
+            return response;     
+        }     
     }
 }
