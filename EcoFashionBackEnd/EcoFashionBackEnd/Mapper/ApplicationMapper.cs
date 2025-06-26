@@ -14,6 +14,7 @@ namespace EcoFashionBackEnd.Mapper
             CreateMap<User, UserModel>().ReverseMap();
             CreateMap<UserRole, UserRoleModel>().ReverseMap();
             CreateMap<Supplier, SupplierModel>().ReverseMap();
+            CreateMap<Designer, DesignerModel>().ReverseMap();
         }
     }
 }

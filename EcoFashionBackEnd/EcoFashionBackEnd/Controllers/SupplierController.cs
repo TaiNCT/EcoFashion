@@ -71,6 +71,31 @@ namespace EcoFashionBackEnd.Controllers
             }
             return Ok(ApiResult<object>.Succeed("Xóa (vô hiệu hóa) nhà cung cấp thành công."));
         }
+        [HttpGet("Filter")]
+        public async Task<IActionResult> FilterSuppliers(
+    [FromQuery] string? supplierName,
+    [FromQuery] string? email,
+    [FromQuery] string? phoneNumber,
+    [FromQuery] string? status)
+        {
+            var filteredSuppliers = await _supplierService.FilterSuppliers(supplierName, email, phoneNumber, status);
+            return Ok(ApiResult<GetSuppliersResponse>.Succeed(new GetSuppliersResponse
+            {
+                Suppliers = filteredSuppliers
+            }));
+        }
+        [HttpGet("Search")]
+        public async Task<IActionResult> SearchSuppliers([FromQuery] string? keyword)
+        {
+            var searchResults = await _supplierService.SearchSuppliers(keyword);
+            return Ok(ApiResult<GetSuppliersResponse>.Succeed(new GetSuppliersResponse
+            {
+                Suppliers = searchResults
+            }));
+        }
+
+
+
     }
 
 }
