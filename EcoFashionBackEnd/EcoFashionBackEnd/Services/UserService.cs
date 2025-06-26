@@ -94,8 +94,12 @@ namespace EcoFashionBackEnd.Services
                     SecurityAlgorithms.HmacSha256Signature)
             };
 
-            // Trả về SecurityToken thay vì chuỗi token
             return tokenHandler.CreateToken(tokenDescriptor);
+        }
+        public async Task<UserModel?> GetUserById(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            return _mapper.Map<UserModel>(user);
         }
     }
 }

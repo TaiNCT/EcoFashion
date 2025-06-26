@@ -17,8 +17,9 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<User> Users { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<Designer> Designers { get; set; }
+        public DbSet<Application> Applications { get; set; }
+        public DbSet<SavedSupplier> SavedSuppliers { get; set; }
 
-       
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -26,10 +27,11 @@ namespace EcoFashionBackEnd.Entities
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<User>()
-             .HasOne(u => u.UserRole)
-             .WithMany()
-             .HasForeignKey(u => u.RoleId)
-             .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(u => u.UserRole)
+                .WithMany()
+                .HasForeignKey(u => u.RoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // SUPPLIER PROFILE
             modelBuilder.Entity<Supplier>()
                 .HasOne(sp => sp.User)
@@ -44,9 +46,41 @@ namespace EcoFashionBackEnd.Entities
                 .HasForeignKey(dp => dp.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // APPLICATION
+            modelBuilder.Entity<Application>()
+                .HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Application>()
+                .HasOne(a => a.Role)
+                .WithMany()
+                .HasForeignKey(a => a.TargetRoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+          
+            // SAVED SUPPLIER
+            modelBuilder.Entity<SavedSupplier>()
+                .HasOne(ss => ss.Designer)
+                .WithMany()
+                .HasForeignKey(ss => ss.DesignerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SavedSupplier>()
+                .HasOne(ss => ss.Supplier)
+                .WithMany()
+                .HasForeignKey(ss => ss.SupplierId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Optional: ENUM string conversion for UserStatus
             modelBuilder.Entity<User>()
                 .Property(u => u.Status)
+                .HasConversion<string>();
+
+            // Optional: ENUM string conversion for ApplicationStatus
+            modelBuilder.Entity<Application>()
+                .Property(a => a.Status)
                 .HasConversion<string>();
         }
     }

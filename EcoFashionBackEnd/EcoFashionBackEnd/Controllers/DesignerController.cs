@@ -5,6 +5,9 @@ using System;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Common;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -91,5 +94,87 @@ public class DesignerController : ControllerBase
             Designers = searchResults
         }));
     }
+
+    [Authorize]
+    [HttpPost("follow/{supplierId}")]
+    public async Task<IActionResult> ConnectWithSupplier(Guid supplierId)
+    {
+        // Lấy UserId từ claims
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return Unauthorized(ApiResult<GetSuppliersResponse>.Fail("Không thể xác định người dùng."));
+        }
+
+       
+        var designerId = await _designerService.GetDesignerIdByUserId(userId);
+        if (!designerId.HasValue) 
+        {
+            return NotFound(ApiResult<GetSuppliersResponse>.Fail("Không tìm thấy thông tin nhà thiết kế cho người dùng này."));
+        }
+
+        var result = await _designerService.ConnectWithSupplier(designerId.Value, supplierId);
+
+        if (result == null)
+        {
+            return BadRequest(ApiResult<FollowedSupplierResponse>.Fail("Không thể kết nối hoặc nhà cung cấp đã được theo dõi."));
+        }
+
+        return Ok(ApiResult<FollowedSupplierResponse>.Succeed(result));
+    }
+
+    [Authorize]
+    [HttpGet("follow")]
+    public async Task<IActionResult> GetFollowedSuppliers()
+    {
+        // Lấy UserId từ claims 
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return Unauthorized(ApiResult<GetSuppliersResponse>.Fail("Không thể xác định người dùng."));
+        }
+
+        var designerId = await _designerService.GetDesignerIdByUserId(userId);
+        if (designerId == null)
+        {
+            return NotFound(ApiResult<GetSuppliersResponse>.Fail("Không tìm thấy thông tin nhà thiết kế cho người dùng này."));
+        }
+
+        var followedSuppliers = await _designerService.GetFollowedSuppliers(designerId.Value);
+        return Ok(ApiResult<GetSuppliersResponse>.Succeed(new GetSuppliersResponse
+        {
+            Suppliers = followedSuppliers
+        }));
+    }
+
+    [HttpDelete("follow/{supplierId}")]
+    public async Task<IActionResult> RemoveFollowedSupplier(Guid supplierId)
+    {
+        // Lấy UserId từ claims
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
+        }
+
+        // Lấy designerId từ UserId
+        var designerId = await _designerService.GetDesignerIdByUserId(userId);
+        if (!designerId.HasValue)
+        {
+            return NotFound(ApiResult<object>.Fail("Không tìm thấy thông tin nhà thiết kế cho người dùng này."));
+        }
+
+        var isDeleted = await _designerService.RemoveFollowedSupplier(designerId.Value, supplierId);
+
+        if (isDeleted)
+        {
+            return NoContent(); // Trả về mã trạng thái 204 No Content nếu xóa thành công
+        }
+        else
+        {
+            return NotFound(ApiResult<object>.Fail("Không tìm thấy liên kết giữa nhà thiết kế và nhà cung cấp này."));
+        }
+    }
+
 
 }

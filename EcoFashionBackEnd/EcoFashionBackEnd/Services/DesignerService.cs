@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EcoFashionBackEnd.Common.Payloads.Requests;
+using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
@@ -12,15 +13,18 @@ using System.Threading.Tasks;
 public class DesignerService
 {
     private readonly IRepository<Designer, Guid> _designerRepository;
+    private readonly IRepository<Supplier, Guid> _supplierRepository;
     private readonly IMapper _mapper;
     private readonly AppDbContext _dbContext;
 
     public DesignerService(
         IRepository<Designer, Guid> designerRepository,
+        IRepository<Supplier, Guid> supplierRepository,
         IMapper mapper,
         AppDbContext dbContext)
     {
         _designerRepository = designerRepository;
+        _supplierRepository = supplierRepository;
         _mapper = mapper;
         _dbContext = dbContext;
     }
@@ -149,6 +153,92 @@ public class DesignerService
 
         var result = await query.ToListAsync();
         return _mapper.Map<List<DesignerModel>>(result);
+    }
+
+    public async Task<FollowedSupplierResponse?> ConnectWithSupplier(Guid designerId, Guid supplierId)
+    {
+        // Kiểm tra xem designer và supplier có tồn tại không
+        var designerExists = await _designerRepository.GetByIdAsync(designerId);
+        var supplierExists = await _supplierRepository.GetByIdAsync(supplierId);
+
+        if (designerExists == null || supplierExists == null)
+        {
+            return null; // Hoặc throw NotFoundException
+        }
+
+        // Kiểm tra xem liên kết đã tồn tại chưa
+        var existingConnection = await _dbContext.SavedSuppliers
+            .FirstOrDefaultAsync(s => s.DesignerId == designerId && s.SupplierId == supplierId);
+
+        if (existingConnection != null)
+        {
+            return null; // Hoặc throw một exception cho biết đã tồn tại
+        }
+
+        // Tạo mới liên kết
+        var savedSupplier = new SavedSupplier
+        {
+            DesignerId = designerId,
+            SupplierId = supplierId
+        };
+
+        await _dbContext.SavedSuppliers.AddAsync(savedSupplier);
+        var result = await _dbContext.SaveChangesAsync();
+
+        if (result > 0)
+        {
+            // Lấy thông tin nhà cung cấp để trả về response giới hạn
+            var supplier = await _supplierRepository.GetByIdAsync(supplierId);
+            if (supplier != null)
+            {
+                return new FollowedSupplierResponse
+                {
+                    SupplierId = supplier.SupplierId,
+                    SupplierName = supplier.SupplierName,
+                    PortfolioUrl = supplier.PortfolioUrl
+                };
+            }
+        }
+
+        return null; // Lỗi khi tạo liên kết
+    }
+    public async Task<IEnumerable<SupplierModel>> GetFollowedSuppliers(Guid designerId)
+    {
+        var followedSupplierIds = await _dbContext.SavedSuppliers
+            .Where(s => s.DesignerId == designerId)
+            .Select(s => s.SupplierId)
+            .ToListAsync();
+
+        if (followedSupplierIds == null || !followedSupplierIds.Any())
+        {
+            return new List<SupplierModel>(); // Hoặc trả về null tùy theo yêu cầu
+        }
+
+        var suppliers = await _supplierRepository.FindByCondition(s => followedSupplierIds.Contains(s.SupplierId)).ToListAsync();
+        return _mapper.Map<List<SupplierModel>>(suppliers);
+    }
+
+    public async Task<Guid?> GetDesignerIdByUserId(int userId)
+    {
+        var designer = await _dbContext.Designers
+            .FirstOrDefaultAsync(d => d.UserId == userId);
+        return designer?.DesignerId;
+    }
+
+    public async Task<bool> RemoveFollowedSupplier(Guid designerId, Guid supplierId)
+    {
+        var existingConnection = await _dbContext.SavedSuppliers
+            .FirstOrDefaultAsync(s => s.DesignerId == designerId && s.SupplierId == supplierId);
+
+        if (existingConnection == null)
+        {
+            return false; // Không tìm thấy liên kết để xóa
+        }
+
+        _dbContext.SavedSuppliers.Remove(existingConnection);
+        var result = await _dbContext.SaveChangesAsync();
+
+        return result > 0;
     }
 
 }

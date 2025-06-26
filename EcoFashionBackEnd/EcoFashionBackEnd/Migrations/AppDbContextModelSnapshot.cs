@@ -22,6 +22,54 @@ namespace EcoFashionBackEnd.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Application", b =>
+                {
+                    b.Property<int>("ApplicationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ApplicationId"));
+
+                    b.Property<string>("BannerUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IdentificationNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IdentificationPicture")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PorfolioUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SpecializationUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TargetRoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ApplicationId");
+
+                    b.HasIndex("TargetRoleId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Applications");
+                });
+
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Designer", b =>
                 {
                     b.Property<Guid>("DesignerId")
@@ -210,6 +258,46 @@ namespace EcoFashionBackEnd.Migrations
                     b.ToTable("UserRole");
                 });
 
+            modelBuilder.Entity("SavedSupplier", b =>
+                {
+                    b.Property<Guid>("SavedSupplierId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DesignerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("SavedSupplierId");
+
+                    b.HasIndex("DesignerId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.ToTable("Saved_Supplier");
+                });
+
+            modelBuilder.Entity("Application", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.UserRole", "Role")
+                        .WithMany()
+                        .HasForeignKey("TargetRoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EcoFashionBackEnd.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Designer", b =>
                 {
                     b.HasOne("EcoFashionBackEnd.Entities.User", "User")
@@ -241,6 +329,23 @@ namespace EcoFashionBackEnd.Migrations
                         .IsRequired();
 
                     b.Navigation("UserRole");
+                });
+
+            modelBuilder.Entity("SavedSupplier", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.Designer", "Designer")
+                        .WithMany()
+                        .HasForeignKey("DesignerId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Designer");
+
+                    b.Navigation("Supplier");
                 });
 #pragma warning restore 612, 618
         }
