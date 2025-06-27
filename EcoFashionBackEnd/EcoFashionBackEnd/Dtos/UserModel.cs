@@ -8,49 +8,38 @@ namespace EcoFashionBackEnd.Dtos
     {
         public int UserId { get; set; }
 
-        [MaxLength(255)]
-        public string UserName { get; set; }
+        [EmailAddress]
+        [StringLength(100)]
+        public string? Email { get; set; }
 
-        [MaxLength(100)]
-        public string Password { get; set; }
+        [StringLength(10)]
+        public string? Phone { get; set; }
 
-        [MaxLength(50)]
-        public string FullName { get; set; }
+        [StringLength(30, MinimumLength = 8)]
+        public string? Username { get; set; }
 
-        [MaxLength(255)]
-        public string Email { get; set; }
+        [Required]
+        public  string? PasswordHash { get; set; }
 
-        [MaxLength(100)]
-        public string Gender { get; set; }
+        [StringLength(100)]
+        public string? FullName { get; set; }
 
-        public string? OTPCode { get; set; }
+        public int RoleId { get; set; } 
+                                        
 
-        [MaxLength(255)]
-        public string Address { get; set; }
-        public DateTime BirthDate { get; set; }
+        [Required]
+        [EnumDataType(typeof(UserStatus))]
+        public UserStatus Status { get; set; }
 
-        [MaxLength(15)]
-        public string PhoneNumber { get; set; }
-        public DateTime CreateDate { get; set; }
-        public string Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime LastUpdatedAt { get; set; }
+    }
 
-        public int RoleID { get; set; }
-
-        public string RoleName { get; set; }
-
-        [MaxLength(255)]
-        public string AvatarUrl { get; set; }
-
-        public decimal? Wallet { get; set; }
-        public bool? IsMember { get; set; }
-
-        public DateTime? MembershipStartDate { get; set; }
-
-        public DateTime? MembershipEndDate { get; set; }
-
-        public bool? AutoRenewMembership { get; set; }
-
-        [NotMapped]
-        public bool IsActiveMember => IsMember == true && MembershipEndDate >= DateTime.Now;
+    public enum UserStatus
+    {
+        Pending,
+        Active,
+        Rejected,
+        Inactive
     }
 }

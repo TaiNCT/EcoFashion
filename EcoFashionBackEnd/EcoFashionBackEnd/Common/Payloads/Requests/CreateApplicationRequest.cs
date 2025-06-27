@@ -1,8 +1,8 @@
 ﻿namespace EcoFashionBackEnd.Common.Payloads.Requests
 {
-    public class ApplyDesignerRequest
+    public class CreateApplicationRequest
     {
-      //  public int UserId { get; set; } // ID của người dùng đã đăng ký trước đó
+        public int TargetRoleId { get; set; }
         public string? PorfolioUrl { get; set; }
         public string? BannerUrl { get; set; }
         public string? SpecializationUrl { get; set; }

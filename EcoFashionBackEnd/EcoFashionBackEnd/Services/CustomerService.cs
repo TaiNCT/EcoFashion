@@ -42,7 +42,7 @@ namespace EcoFashionBackEnd.Services
                 Email = request.Email,
                 Username = request.Username,
                 Phone = request.Phone,
-                Status = UserStatus.Active,
+               // Status = UserStatus.Active,
                 PasswordHash = SecurityUtil.Hash(request.Password),
                 RoleId = 4,
             };
@@ -84,7 +84,7 @@ namespace EcoFashionBackEnd.Services
         {
             var existingCustomer = await _customerRepository.GetByIdAsync(id);
             if (existingCustomer == null) return false;
-            existingCustomer.Status = UserStatus.Inactive;
+            //existingCustomer.Status = UserStatus.Inactive;
             existingCustomer.LastUpdatedAt = DateTime.UtcNow;
             _customerRepository.Update(existingCustomer);
             await _dbContext.SaveChangesAsync();

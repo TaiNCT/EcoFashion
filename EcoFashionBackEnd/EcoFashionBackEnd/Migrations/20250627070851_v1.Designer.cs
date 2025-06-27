@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250626111638_v1")]
+    [Migration("20250627070851_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -344,7 +344,7 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasOne("EcoFashionBackEnd.Entities.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Designer");
 

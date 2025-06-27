@@ -71,7 +71,7 @@ namespace EcoFashionBackEnd.Entities
                 .HasOne(ss => ss.Supplier)
                 .WithMany()
                 .HasForeignKey(ss => ss.SupplierId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Optional: ENUM string conversion for UserStatus
             modelBuilder.Entity<User>()

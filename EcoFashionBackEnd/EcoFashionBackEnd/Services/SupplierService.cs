@@ -146,10 +146,12 @@ namespace EcoFashionBackEnd.Services
                 return await GetAllSuppliers(); // Hoặc trả về một danh sách rỗng
             }
 
+            var lowerKeyword = keyword.ToLower();
+
             var query = _supplierRepository.GetAll().Where(s =>
-                (s.SupplierName != null && s.SupplierName.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
-                (s.Email != null && s.Email.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
-                (s.PhoneNumber != null && s.PhoneNumber.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                (s.SupplierName != null && s.SupplierName.ToLower().Contains(lowerKeyword)) ||
+                (s.Email != null && s.Email.ToLower().Contains(lowerKeyword)) ||
+                (s.PhoneNumber != null && s.PhoneNumber.ToLower().Contains(lowerKeyword))
             );
 
             var result = await query.ToListAsync();

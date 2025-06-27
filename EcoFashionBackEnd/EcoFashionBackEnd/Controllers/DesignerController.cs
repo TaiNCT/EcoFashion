@@ -168,7 +168,7 @@ public class DesignerController : ControllerBase
 
         if (isDeleted)
         {
-            return NoContent(); // Trả về mã trạng thái 204 No Content nếu xóa thành công
+            return Ok(ApiResult<object>.Succeed("Xóa liên kết thành công.")); 
         }
         else
         {

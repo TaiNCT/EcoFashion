@@ -341,7 +341,7 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasOne("EcoFashionBackEnd.Entities.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Designer");
 
