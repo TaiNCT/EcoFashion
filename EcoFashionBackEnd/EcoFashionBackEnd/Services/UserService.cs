@@ -58,10 +58,10 @@ namespace EcoFashionBackEnd.Services
             }
 
             // Kiểm tra trạng thái tài khoản
-            if (user.Status != UserStatus.Active)
-            {
-                throw new BadRequestException("Tài khoản không hoạt động.");
-            }
+            //if (user.Status != UserStatus.Active)
+            //{
+            //    throw new BadRequestException("Tài khoản không hoạt động.");
+            //}
 
             IConfiguration configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -90,6 +90,11 @@ namespace EcoFashionBackEnd.Services
             };
 
             return response;     
-        }     
+        }
+        public async Task<UserModel?> GetUserById(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            return _mapper.Map<UserModel>(user);
+        }
     }
 }

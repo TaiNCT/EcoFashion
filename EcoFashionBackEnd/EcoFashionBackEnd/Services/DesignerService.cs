@@ -142,13 +142,15 @@ public class DesignerService
     {
         if (string.IsNullOrEmpty(keyword))
         {
-            return await GetAllDesigners(); // Hoặc trả về một danh sách rỗng
+            return await GetAllDesigners(); 
         }
 
+        var lowerKeyword = keyword.ToLower();
+
         var query = _designerRepository.GetAll().Where(d =>
-            (d.DesignerName != null && d.DesignerName.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
-            (d.Email != null && d.Email.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
-            (d.PhoneNumber != null && d.PhoneNumber.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            (d.DesignerName != null && d.DesignerName.ToLower().Contains(lowerKeyword)) ||
+            (d.Email != null && d.Email.ToLower().Contains(lowerKeyword)) ||
+            (d.PhoneNumber != null && d.PhoneNumber.ToLower().Contains(lowerKeyword))
         );
 
         var result = await query.ToListAsync();
@@ -157,25 +159,22 @@ public class DesignerService
 
     public async Task<FollowedSupplierResponse?> ConnectWithSupplier(Guid designerId, Guid supplierId)
     {
-        // Kiểm tra xem designer và supplier có tồn tại không
         var designerExists = await _designerRepository.GetByIdAsync(designerId);
         var supplierExists = await _supplierRepository.GetByIdAsync(supplierId);
 
         if (designerExists == null || supplierExists == null)
         {
-            return null; // Hoặc throw NotFoundException
+            return null; 
         }
 
-        // Kiểm tra xem liên kết đã tồn tại chưa
         var existingConnection = await _dbContext.SavedSuppliers
             .FirstOrDefaultAsync(s => s.DesignerId == designerId && s.SupplierId == supplierId);
 
         if (existingConnection != null)
         {
-            return null; // Hoặc throw một exception cho biết đã tồn tại
+            return null; 
         }
 
-        // Tạo mới liên kết
         var savedSupplier = new SavedSupplier
         {
             DesignerId = designerId,
@@ -187,7 +186,6 @@ public class DesignerService
 
         if (result > 0)
         {
-            // Lấy thông tin nhà cung cấp để trả về response giới hạn
             var supplier = await _supplierRepository.GetByIdAsync(supplierId);
             if (supplier != null)
             {
@@ -200,7 +198,7 @@ public class DesignerService
             }
         }
 
-        return null; // Lỗi khi tạo liên kết
+        return null; 
     }
     public async Task<IEnumerable<SupplierModel>> GetFollowedSuppliers(Guid designerId)
     {
@@ -211,7 +209,7 @@ public class DesignerService
 
         if (followedSupplierIds == null || !followedSupplierIds.Any())
         {
-            return new List<SupplierModel>(); // Hoặc trả về null tùy theo yêu cầu
+            return new List<SupplierModel>(); 
         }
 
         var suppliers = await _supplierRepository.FindByCondition(s => followedSupplierIds.Contains(s.SupplierId)).ToListAsync();

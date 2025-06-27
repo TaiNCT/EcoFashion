@@ -53,16 +53,16 @@ namespace EcoFashionBackEnd.Data
         {
             if (_context.UserRoles.Any() || _context.Users.Any()) return;
 
-            // 1. Tạo các role
+           
             var adminRole = new UserRole { RoleName = "Admin", Description = "System administrator" };
             var designerRole = new UserRole { RoleName = "designer", Description = "Fashion designer" };
             var supplierRole = new UserRole { RoleName = "supplier", Description = "Material supplier" };
             var customerRole = new UserRole { RoleName = "customer", Description = "Customer user" };
 
             await _context.UserRoles.AddRangeAsync(adminRole, designerRole, supplierRole, customerRole);
-            await _context.SaveChangesAsync(); // Save để EF sinh RoleId
+            await _context.SaveChangesAsync(); 
 
-            // 2. Tạo user, dùng RoleId
+            
             var users = new List<User>
     {
         new User
@@ -94,11 +94,11 @@ namespace EcoFashionBackEnd.Data
             await _context.Users.AddRangeAsync(users);
             await _context.SaveChangesAsync();
 
-            // 3. Lấy lại ID thật của users từ DB
+           
             var designerUser = await _context.Users.FirstAsync(u => u.Email == "designer@example.com");
             var supplierUser = await _context.Users.FirstAsync(u => u.Email == "supplier@example.com");
 
-            // 4. Tạo Designer và Supplier profile
+         
             await _context.Designers.AddAsync(new Designer
             {
                 UserId = designerUser.UserId,
@@ -117,11 +117,11 @@ namespace EcoFashionBackEnd.Data
                 Status = "active"
             });
 
-            await _context.SaveChangesAsync(); // Save hết
+            await _context.SaveChangesAsync(); 
         }
     }
 
-        public static class DatabaseInitialiserExtension
+    public static class DatabaseInitialiserExtension
     {
         public static async Task InitialiseDatabaseAsync(this WebApplication app)
         {
