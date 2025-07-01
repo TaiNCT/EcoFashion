@@ -58,6 +58,8 @@ public class Program
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                // Sử dụng camelCase cho JSON API để tương thích với frontend JavaScript/TypeScript
+                options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
 
             var app = builder.Build();

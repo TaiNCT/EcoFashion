@@ -7,10 +7,13 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using EcoFashionBackEnd.Common.Payloads.Responses;
+using EcoFashionBackEnd.Services;
 
-[Route("api/Applications")]
-[ApiController]
-public class ApplicationController : ControllerBase
+namespace EcoFashionBackEnd.Controllers
+{
+    [Route("api/Applications")]
+    [ApiController]
+    public class ApplicationController : ControllerBase
 {
     private readonly ApplicationService _applicationService;
 
@@ -21,6 +24,7 @@ public class ApplicationController : ControllerBase
 
 
 
+    [Authorize]
     [HttpPost("ApplySupplier")]
     public async Task<IActionResult> ApplyAsSupplier([FromBody] ApplySupplierRequest request)
     {
@@ -34,11 +38,12 @@ public class ApplicationController : ControllerBase
         var application = await _applicationService.ApplyAsSupplier(userId, request);
         if (application != null)
         {
-            return CreatedAtAction("GetApplicationById", new { id = application.ApplicationId }, ApiResult<ApplicationModel>.Succeed(application));
+            return Ok(ApiResult<ApplicationModel>.Succeed(application));
         }
         return BadRequest(ApiResult<object>.Fail("Không thể gửi đơn đăng ký trở thành nhà cung cấp."));
     }
 
+    [Authorize]
     [HttpPost("ApplyDesigner")]
     public async Task<IActionResult> ApplyAsDesigner([FromBody] ApplyDesignerRequest request)
     {
@@ -52,7 +57,7 @@ public class ApplicationController : ControllerBase
         var application = await _applicationService.ApplyAsDesigner(userId, request);
         if (application != null)
         {
-            return CreatedAtAction("GetApplicationById", new { id = application.ApplicationId }, ApiResult<ApplicationModel>.Succeed(application));
+            return Ok(ApiResult<ApplicationModel>.Succeed(application));
         }
         return BadRequest(ApiResult<object>.Fail("Không thể gửi đơn đăng ký trở thành nhà thiết kế."));
     }
@@ -70,41 +75,88 @@ public class ApplicationController : ControllerBase
 
 
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllApplications()
     {
-        var applications = await _applicationService.GetAllApplications();
-        return Ok(ApiResult<IEnumerable<ApplicationModel>>.Succeed(applications));
+        try
+        {
+            var applications = await _applicationService.GetAllApplications();
+            return Ok(ApiResult<List<ApplicationModel>>.Succeed(applications.ToList()));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<object>.Fail($"Lỗi khi lấy danh sách đơn đăng ký: {ex.Message}"));
+        }
     }
 
+  
     [Authorize(Roles = "Admin")]
     [HttpPut("{applicationId}/ApproveSupplier")]
     public async Task<IActionResult> ApproveSupplierApplication(int applicationId)
     {
-        var isApproved = await _applicationService.ApproveSupplierApplication(applicationId);
-        if (isApproved)
+        try
         {
-            return Ok(ApiResult<object>.Succeed("Đơn đăng ký nhà cung cấp đã được phê duyệt và hồ sơ nhà cung cấp đã được tạo."));
+            // Lấy AdminId từ claims
+            var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (adminIdClaim == null || !int.TryParse(adminIdClaim.Value, out int adminId))
+            {
+                // Tạm thời sử dụng default admin ID để debug
+                adminId = 1;
+            }
+
+            var isApproved = await _applicationService.ApproveSupplierApplication(applicationId, adminId);
+            if (isApproved)
+            {
+                return Ok(ApiResult<object>.Succeed("Đơn đăng ký nhà cung cấp đã được phê duyệt và hồ sơ nhà cung cấp đã được tạo."));
+            }
+            return BadRequest(ApiResult<object>.Fail("Không thể phê duyệt đơn đăng ký nhà cung cấp hoặc đơn đăng ký không tồn tại."));
         }
-        return BadRequest(ApiResult<object>.Fail("Không thể phê duyệt đơn đăng ký nhà cung cấp hoặc đơn đăng ký không tồn tại."));
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<object>.Fail($"Lỗi khi phê duyệt: {ex.Message}"));
+        }
     }
+
     [Authorize(Roles = "Admin")]
     [HttpPut("{applicationId}/ApproveDesigner")]
     public async Task<IActionResult> ApproveDesignerApplication(int applicationId)
     {
-        var isApproved = await _applicationService.ApproveDesignerApplication(applicationId);
-        if (isApproved)
+        try
         {
-            return Ok(ApiResult<object>.Succeed("Đơn đăng ký nhà thiết kế đã được phê duyệt và hồ sơ nhà thiết kế đã được tạo."));
+            // Lấy AdminId từ claims
+            var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (adminIdClaim == null || !int.TryParse(adminIdClaim.Value, out int adminId))
+            {
+                // Tạm thời sử dụng default admin ID để debug
+                adminId = 1;
+            }
+
+            var isApproved = await _applicationService.ApproveDesignerApplication(applicationId, adminId);
+            if (isApproved)
+            {
+                return Ok(ApiResult<object>.Succeed("Đơn đăng ký nhà thiết kế đã được phê duyệt và hồ sơ nhà thiết kế đã được tạo."));
+            }
+            return BadRequest(ApiResult<object>.Fail("Không thể phê duyệt đơn đăng ký nhà thiết kế hoặc đơn đăng ký không tồn tại."));
         }
-        return BadRequest(ApiResult<object>.Fail("Không thể phê duyệt đơn đăng ký nhà thiết kế hoặc đơn đăng ký không tồn tại."));
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<object>.Fail($"Lỗi khi phê duyệt: {ex.Message}"));
+        }
     }
 
 
     [Authorize(Roles = "Admin")]
     [HttpPut("{applicationId}/Reject")]
-    public async Task<IActionResult> RejectApplication(int applicationId)
+    public async Task<IActionResult> RejectApplication(int applicationId, [FromBody] RejectApplicationRequest request)
     {
-        var isRejected = await _applicationService.RejectApplication(applicationId);
+        // Lấy AdminId từ claims
+        var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (adminIdClaim == null || !int.TryParse(adminIdClaim.Value, out int adminId))
+        {
+            return Unauthorized(ApiResult<object>.Fail("Không thể xác định admin."));
+        }
+
+        var isRejected = await _applicationService.RejectApplication(applicationId, adminId, request.RejectionReason);
         if (isRejected)
         {
             return Ok(ApiResult<object>.Succeed("Đơn đăng ký đã bị từ chối."));
@@ -146,4 +198,27 @@ public class ApplicationController : ControllerBase
             Applications = applications
         }));
     }
+
+    [HttpGet("MyApplications")]
+    [Authorize]
+    public async Task<IActionResult> GetMyApplications()
+    {
+        try
+        {
+            // Lấy UserId từ claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
+            }
+
+            var applications = await _applicationService.GetApplicationsByUserId(userId);
+            return Ok(ApiResult<List<ApplicationModel>>.Succeed(applications.ToList()));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<object>.Fail($"Lỗi khi lấy danh sách đơn đăng ký: {ex.Message}"));
+        }
+    }
+}
 }

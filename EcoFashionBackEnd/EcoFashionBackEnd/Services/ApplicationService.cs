@@ -7,8 +7,10 @@ using EcoFashionBackEnd.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
-public class ApplicationService
+namespace EcoFashionBackEnd.Services
 {
+    public class ApplicationService
+    {
     private readonly IRepository<Application, int> _applicationRepository;
     private readonly IMapper _mapper;
     private readonly UserService _userService;
@@ -41,7 +43,7 @@ public class ApplicationService
         {
             UserId = userId,
             TargetRoleId = 3,
-            PorfolioUrl = request.PorfolioUrl,
+            PortfolioUrl = request.PortfolioUrl,
             BannerUrl = request.BannerUrl,
             SpecializationUrl = request.SpecializationUrl,
             IdentificationNumber = request.IdentificationNumber,
@@ -60,7 +62,7 @@ public class ApplicationService
         {
             UserId = userId,
             TargetRoleId = 2,
-            PorfolioUrl = request.PorfolioUrl,
+            PortfolioUrl = request.PortfolioUrl,
             BannerUrl = request.BannerUrl,
             SpecializationUrl = request.SpecializationUrl,
             IdentificationNumber = request.IdentificationNumber,
@@ -89,7 +91,7 @@ public class ApplicationService
     }
 
  
-    public async Task<bool> ApproveSupplierApplication(int applicationId)
+    public async Task<bool> ApproveSupplierApplication(int applicationId, int adminId)
     {
         var application = await _applicationRepository.GetByIdAsync(applicationId);
         if (application == null || application.Status != ApplicationStatus.pending || application.TargetRoleId != 3)
@@ -97,7 +99,8 @@ public class ApplicationService
             return false;
         }
 
-        var user = await _userService.GetUserById(application.UserId);
+        // Lấy User entity trực tiếp từ database
+        var user = await _dbContext.Users.FindAsync(application.UserId);
         if (user == null) return false;
 
         var supplier = new Supplier
@@ -105,7 +108,7 @@ public class ApplicationService
             SupplierId = Guid.NewGuid(),
             UserId = application.UserId,
             SupplierName = user.FullName, 
-            PortfolioUrl = application.PorfolioUrl,
+            PortfolioUrl = application.PortfolioUrl,
             BannerUrl = application.BannerUrl,
             SpecializationUrl = application.SpecializationUrl,
             IdentificationNumber = application.IdentificationNumber,
@@ -116,13 +119,21 @@ public class ApplicationService
         };
 
         await _supplierRepository.AddAsync(supplier);
-        user.RoleId = 3; // Cập nhật vai trò người dùng
+        
+        // Cập nhật vai trò người dùng
+        user.RoleId = 3; // Supplier role
+        _dbContext.Users.Update(user); // Cập nhật user trong database
+        
         application.Status = ApplicationStatus.approved;
+        application.ProcessedAt = DateTime.UtcNow;
+        application.ProcessedBy = adminId;
+        // TODO: Send notification to user về approval
+        // TODO: Send email confirmation
 
         return await _dbContext.SaveChangesAsync() > 0;
     }
 
-    public async Task<bool> ApproveDesignerApplication(int applicationId)
+    public async Task<bool> ApproveDesignerApplication(int applicationId, int adminId)
     {
         var application = await _applicationRepository.GetByIdAsync(applicationId);
         if (application == null || application.Status != ApplicationStatus.pending || application.TargetRoleId != 2)
@@ -130,7 +141,8 @@ public class ApplicationService
             return false;
         }
 
-        var user = await _userService.GetUserById(application.UserId);
+        // Lấy User entity trực tiếp từ database
+        var user = await _dbContext.Users.FindAsync(application.UserId);
         if (user == null) return false;
 
         var designer = new Designer
@@ -138,7 +150,7 @@ public class ApplicationService
             DesignerId = Guid.NewGuid(),
             UserId = application.UserId,
             DesignerName = user.FullName, // Bạn có thể lấy từ Application hoặc User tùy theo
-            PortfolioUrl = application.PorfolioUrl,
+            PortfolioUrl = application.PortfolioUrl,
             BannerUrl = application.BannerUrl,
             SpecializationUrl = application.SpecializationUrl,
             IdentificationNumber = application.IdentificationNumber,
@@ -149,12 +161,20 @@ public class ApplicationService
         };
 
         await _designerRepository.AddAsync(designer);
-        user.RoleId = 2; // Cập nhật vai trò người dùng
+        
+        // Cập nhật vai trò người dùng
+        user.RoleId = 2; // Designer role
+        _dbContext.Users.Update(user); // Cập nhật user trong database
+        
         application.Status = ApplicationStatus.approved;
+        application.ProcessedAt = DateTime.UtcNow;
+        application.ProcessedBy = adminId;
+        // TODO: Send notification to user về approval
+        // TODO: Send email confirmation
 
         return await _dbContext.SaveChangesAsync() > 0;
     }
-    public async Task<bool> RejectApplication(int applicationId)
+    public async Task<bool> RejectApplication(int applicationId, int adminId, string rejectionReason)
     {
         var application = await _applicationRepository.GetByIdAsync(applicationId);
         if (application == null || application.Status != ApplicationStatus.pending)
@@ -163,6 +183,12 @@ public class ApplicationService
         }
 
         application.Status = ApplicationStatus.rejected;
+        application.ProcessedAt = DateTime.UtcNow;
+        application.ProcessedBy = adminId;
+        application.RejectionReason = rejectionReason;
+        // TODO: Send notification to user về rejection với lý do
+        // TODO: Send email notification
+
         return await _dbContext.SaveChangesAsync() > 0;
     }
 
@@ -214,11 +240,15 @@ public class ApplicationService
             }
             else
             {
-                query = query.Where(a =>
-                    (a.IdentificationNumber != null && a.IdentificationNumber.ToLower().Contains(lowerKeyword)) ||
-                    (a.Note != null && a.Note.ToLower().Contains(lowerKeyword)) ||
-                    (a.User != null && (a.User.FullName != null && a.User.FullName.ToLower().Contains(lowerKeyword)) || (a.User.Email != null && a.User.Email.ToLower().Contains(lowerKeyword)) || (a.User.Username != null && a.User.Username.ToLower().Contains(lowerKeyword)))
-                );
+            query = query.Where(a =>
+                (!string.IsNullOrEmpty(a.IdentificationNumber) && a.IdentificationNumber.ToLower().Contains(lowerKeyword)) ||
+                (!string.IsNullOrEmpty(a.Note) && a.Note.ToLower().Contains(lowerKeyword)) ||
+                (a.User != null && (
+                    (!string.IsNullOrEmpty(a.User.FullName) && a.User.FullName.ToLower().Contains(lowerKeyword)) || 
+                    (!string.IsNullOrEmpty(a.User.Email) && a.User.Email.ToLower().Contains(lowerKeyword)) || 
+                    (!string.IsNullOrEmpty(a.User.Username) && a.User.Username.ToLower().Contains(lowerKeyword))
+                ))
+            );
             }
         }
 
@@ -226,4 +256,17 @@ public class ApplicationService
         return _mapper.Map<List<ApplicationModel>>(applications);
     }
 
+    public async Task<IEnumerable<ApplicationModel>> GetApplicationsByUserId(int userId)
+    {
+        var applications = await _dbContext.Set<Application>()
+            .Include(a => a.User)
+            .Include(a => a.Role)
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync();
+
+        return _mapper.Map<IEnumerable<ApplicationModel>>(applications);
+    }
+
+}
 }

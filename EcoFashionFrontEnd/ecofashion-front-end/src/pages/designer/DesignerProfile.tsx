@@ -10,9 +10,12 @@ import {
   TextField,
   Paper,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import { useState, useEffect } from "react";
-import { UserAuth } from "../../services/AuthContext";
+import { useAuth } from "../../services/user/AuthContext";
+import { useDesignerProfile } from "../../hooks/useDesignerProfile";
+import type { DesignerProfile as DesignerProfileType } from "../../services/api";
 import {
   Edit,
   Save,
@@ -26,80 +29,25 @@ import {
   Work,
   Palette,
 } from "@mui/icons-material";
-import { toast } from "react-toastify";
-
-// Interface cho Designer profile
-interface DesignerProfile {
-  designerId: string;
-  userId: number;
-  designerName: string;
-  portfolioUrl?: string;
-  bannerUrl?: string;
-  specializationUrl?: string;
-  email?: string;
-  phoneNumber?: string;
-  address?: string;
-  taxNumber?: string;
-  identificationNumber?: string;
-  identificationPicture?: string;
-  identificationPictureOwner?: string;
-  status?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
 
 export default function DesignerProfile() {
-  const { user } = UserAuth();
-  const [profile, setProfile] = useState<DesignerProfile | null>(null);
+  const { user } = useAuth();
+  const { profile, loading, saving, error, updateProfile } =
+    useDesignerProfile();
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState<Partial<DesignerProfile>>({});
+  const [formData, setFormData] = useState<Partial<DesignerProfileType>>({});
 
-  // Mock data cho development - trong thực tế sẽ fetch từ API
-  const mockProfile: DesignerProfile = {
-    designerId: "550e8400-e29b-41d4-a716-446655440000",
-    userId: parseInt(String(user?.userId || "0")),
-    designerName: user?.fullName || "Nguyễn Văn Designer",
-    portfolioUrl: "https://portfolio-designer.vercel.app",
-    bannerUrl:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=400&fit=crop",
-    specializationUrl: "https://specialization-fashion.com",
-    email: user?.email || "designer@ecofashion.com",
-    phoneNumber: user?.phone || "+84 987 654 321",
-    address: "123 Đường Thời Trang, Quận 1, TP.HCM",
-    taxNumber: "0312345678",
-    identificationNumber: "025123456789",
-    identificationPicture:
-      "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=250&fit=crop",
-    identificationPictureOwner:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
-    status: "Active",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
+  // Update formData when profile changes
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        setLoading(true);
-        setTimeout(() => {
-          setProfile(mockProfile);
-          setFormData(mockProfile);
-          setLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error("Error loading designer profile:", error);
-        setLoading(false);
-        toast.error("Không thể tải thông tin profile");
-      }
-    };
-
-    if (user?.role === "designer") {
-      loadProfile();
+    if (profile) {
+      setFormData(profile);
     }
-  }, [user]);
+  }, [profile]);
 
-  const handleInputChange = (field: keyof DesignerProfile, value: string) => {
+  const handleInputChange = (
+    field: keyof DesignerProfileType,
+    value: string
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -108,12 +56,10 @@ export default function DesignerProfile() {
 
   const handleSave = async () => {
     try {
-      setProfile({ ...profile, ...formData } as DesignerProfile);
+      await updateProfile(formData);
       setIsEditing(false);
-      toast.success("Cập nhật profile thành công!");
     } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Lỗi khi cập nhật profile");
+      // Error handling is done in the hook
     }
   };
 
@@ -125,21 +71,43 @@ export default function DesignerProfile() {
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Typography variant="h6" textAlign="center">
-          Đang tải thông tin profile...
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "50vh",
+          }}
+        >
+          <CircularProgress size={60} />
+          <Typography variant="h6" sx={{ ml: 2 }}>
+            Đang tải thông tin profile...
+          </Typography>
+        </Box>
       </Container>
     );
   }
 
-  if (!profile) {
+  if (!profile && !loading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Typography variant="h6" textAlign="center" color="error">
-          Không tìm thấy thông tin Designer Profile
-        </Typography>
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="h6" color="error" gutterBottom>
+            {error || "Không tìm thấy thông tin Designer Profile"}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {user?.role !== "designer"
+              ? "Bạn cần có quyền Designer để xem trang này"
+              : "Vui lòng liên hệ admin để tạo profile Designer"}
+          </Typography>
+        </Box>
       </Container>
     );
+  }
+
+  // Don't render main content if profile is null
+  if (!profile) {
+    return null;
   }
 
   return (
@@ -170,16 +138,18 @@ export default function DesignerProfile() {
             <Box sx={{ display: "flex", gap: 1 }}>
               <Button
                 variant="contained"
-                startIcon={<Save />}
+                startIcon={saving ? <CircularProgress size={16} /> : <Save />}
                 onClick={handleSave}
+                disabled={saving}
                 sx={{ bgcolor: "#4caf50", "&:hover": { bgcolor: "#388e3c" } }}
               >
-                Lưu
+                {saving ? "Đang lưu..." : "Lưu"}
               </Button>
               <Button
                 variant="outlined"
                 startIcon={<Cancel />}
                 onClick={handleCancel}
+                disabled={saving}
               >
                 Hủy
               </Button>
@@ -571,12 +541,24 @@ export default function DesignerProfile() {
 
             <Typography variant="body2" color="text.secondary">
               <strong>Ngày tạo:</strong>{" "}
-              {new Date(profile.createdAt).toLocaleDateString("vi-VN")}
+              {new Date(profile.createdAt).toLocaleDateString("vi-VN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </Typography>
             {profile.updatedAt && (
               <Typography variant="body2" color="text.secondary">
                 <strong>Cập nhật lần cuối:</strong>{" "}
-                {new Date(profile.updatedAt).toLocaleDateString("vi-VN")}
+                {new Date(profile.updatedAt).toLocaleDateString("vi-VN", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </Typography>
             )}
           </CardContent>
