@@ -1,4 +1,3 @@
-//example
 import {
   AppBar,
   Avatar,
@@ -11,7 +10,6 @@ import {
   Chip,
   Divider,
   Grid,
-  Icon,
   IconButton,
   LinearProgress,
   Link,

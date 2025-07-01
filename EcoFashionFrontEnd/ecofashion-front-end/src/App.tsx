@@ -6,11 +6,11 @@ import Homepages from "./pages/Homepages";
 import About from "./pages/About";
 import FooterInfo from "./pages/FooterInfo";
 import FashionDetail from "./pages/FashionDetail";
-import DesignerRegister from "./pages/DesignerRegister";
+import DesignerRegister from "./pages/designer/DesignerRegister";
 
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 // make sure its top
-import ScrollToTop from "./components/ScrollToTop";
+
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import DesignerProfile from "./pages/designer/DesignerProfile";
@@ -21,6 +21,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthContextProvider } from "./services/AuthContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import BusinessInfor from "./pages/BusinessInfor";
+import Contact from "./pages/Contact";
 
 function App() {
   const theme = createTheme({
@@ -28,6 +30,7 @@ function App() {
       fontFamily: ["Lato", "sans-serif"].join(","),
     },
   });
+
   return (
     <AuthContextProvider>
       <div className="app">
@@ -39,6 +42,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/detail/:id" element={<FashionDetail />} />
           <Route path="/designerregister" element={<DesignerRegister />} />
+          <Route path="/businessinfor" element={<BusinessInfor />} />
+          <Route path="/contact" element={<Contact />} />
 
           {/* Designer Routes */}
           <Route

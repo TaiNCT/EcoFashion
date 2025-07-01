@@ -27,6 +27,7 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 import React from "react";
 //example
 import profile_picture from "../assets/pictures/example/profile_picture.jpg";
+import { UserAuth } from "../services/AuthContext";
 
 // const StyledInput = styled(InputBase)({
 //   borderRadius: 20,
@@ -60,9 +61,22 @@ export default function Navigation() {
     setAnchorE2(null);
   };
 
-  const handleGoToDesignerPage = () => {
+  const handleAuth = (type: any) => {
     handleClose();
-    navigate("/designerregister"); // <-- Update to your actual route
+    switch (type) {
+      case "register":
+        navigate("/register");
+        break;
+      case "login":
+        navigate("/login");
+        break;
+      case "designerregister":
+        navigate("/designerregister");
+        break;
+      case "desiger-profile":
+        navigate("/designer/profile");
+        break;
+    }
   };
 
   const NavLink = styled(MuiLink)(({ theme }) => ({
@@ -74,6 +88,17 @@ export default function Navigation() {
       color: "rgba(94, 224, 159, 1)",
     },
   }));
+
+  const { user, logout } = UserAuth();
+  const handleLogout = async () => {
+    try {
+      await logout();
+      handleClose(); // Close the menu
+      navigate("/"); // Optional: Redirect to homepage or login
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
     <AppBar position="sticky" sx={{ bgcolor: "white", boxShadow: "none" }}>
@@ -97,23 +122,9 @@ export default function Navigation() {
             maxWidth: "100%", // optional: limit width
           }}
         >
-          <NavLink href="#home" sx={{ margin: "auto" }}>
+          <NavLink href="/" sx={{ margin: "auto" }}>
             TRANG CHỦ
           </NavLink>
-          {/* <Link href="#shop">
-              <Select
-                sx={{
-                  border: "none",
-                  fontSize: 14,
-                  minWidth: 100,
-                  "& fieldset": { border: "none" },
-                }}
-              >
-                <MenuItem value="products">Thời trang</MenuItem>
-                <MenuItem value="material">Vật liệu</MenuItem>
-              </Select>
-            </Link> */}
-
           <Button
             id="basic-button"
             aria-controls={openShop ? "basic-menu" : undefined}
@@ -158,58 +169,16 @@ export default function Navigation() {
             <MenuItem onClick={handleClose}>Thời Trang</MenuItem>
             <MenuItem onClick={handleClose}>Vật Liệu</MenuItem>
           </Menu>
-          <NavLink href="#contact" sx={{ margin: "auto" }}>
-            THÔNG TIN
+          <NavLink href="/businessinfor" sx={{ margin: "auto" }}>
+            THÔNG TIN KINH DOANH
           </NavLink>
-          <NavLink href="#about" sx={{ margin: "auto" }}>
+          <NavLink href="/about" sx={{ margin: "auto" }}>
             VỀ CHÚNG TÔI
           </NavLink>
-          <NavLink href="#contact" sx={{ margin: "auto" }}>
+          <NavLink href="/contact" sx={{ margin: "auto" }}>
             LIÊN LẠC
           </NavLink>
         </Box>
-        {/* Search Bar */}
-        {/* <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            bgcolor: "white",
-            p: 0.5,
-            borderRadius: "20px",
-            width: "60%",
-            border: "1px solid black",
-          }}
-        >
-          <Box
-            sx={{
-              borderRight: "1px solid black",
-              height: "100%",
-            }}
-          >
-            <Select
-              defaultValue="all"
-              sx={{
-                border: "none",
-                fontSize: 14,
-                minWidth: 100,
-                "& fieldset": { border: "none" },
-              }}
-            >
-              <MenuItem value="all">Tất cả</MenuItem>
-              <MenuItem value="products">Thời trang</MenuItem>
-              <MenuItem value="material">Vật liệu</MenuItem>
-            </Select>
-          </Box>
-
-          <StyledInput
-            placeholder="Tìm kiếm.."
-            fullWidth
-            sx={{ border: "none" }}
-          />
-        </Box> */}
-
-        {/* Cart and Auth */}
         <Box
           sx={{
             display: "flex",
@@ -222,131 +191,128 @@ export default function Navigation() {
             <ShoppingCartIcon sx={{ fontSize: 30 }} />
           </IconButton>
           <Box sx={{ display: "flex" }}>
-            <IconButton
-              id="basic-button"
-              aria-controls={open ? "basic-menu" : undefined}
-              aria-haspopup="true"
-              aria-expanded={open ? "true" : undefined}
-              onClick={handleClick}
-              sx={{ color: "#3e4b3b" }}
-            >
-              {/* <AccountCircleIcon sx={{ fontSize: 30 }} /> */}
-              <img
-                src={profile_picture}
-                style={{ height: "60px", width: "60px", borderRadius: "50px" }}
-              />
-            </IconButton>
-            <Typography sx={{ color: "black", margin: "auto" }}>
-              Nguyễn Công Trí
-            </Typography>
+            {user != null ? (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <IconButton
+                  id="basic-button"
+                  aria-controls={open ? "user-menu" : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open ? "true" : undefined}
+                  onClick={handleClick}
+                  sx={{ color: "#3e4b3b" }}
+                >
+                  <img
+                    src={profile_picture}
+                    alt="User avatar"
+                    style={{
+                      height: "50px",
+                      width: "50px",
+                      borderRadius: "50%",
+                    }}
+                  />
+                </IconButton>
+                <Typography sx={{ color: "black" }}>{user.fullName}</Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <IconButton
+                  id="basic-button"
+                  aria-controls={open ? "user-menu" : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open ? "true" : undefined}
+                  onClick={handleClick}
+                  sx={{ color: "#3e4b3b" }}
+                >
+                  <AccountCircleIcon sx={{ fontSize: 30 }} />
+                </IconButton>
+              </Box>
+            )}
           </Box>
-          <Menu
-            id="basic-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            slotProps={{
-              list: {
-                "aria-labelledby": "basic-button",
-              },
-            }}
-          >
-            {/* <MenuItem onClick={handleClose}>
-              <Box sx={{ display: "flex" }}>
-                <Icon>
-                  <LoginIcon />
-                </Icon>
-                <Typography sx={{ padding: "3px" }}>Đăng Nhập</Typography>
-              </Box>
-            </MenuItem>
-            <MenuItem onClick={handleClose}>
-              <Box sx={{ display: "flex" }}>
-                <Icon>
-                  <HowToRegIcon />
-                </Icon>
-                <Typography sx={{ padding: "3px" }}>Đăng Ký</Typography>
-              </Box> 
-            </MenuItem>*/}
-            <MenuItem onClick={handleGoToDesignerPage}>
-              <Box sx={{ display: "flex" }}>
-                <Icon>
-                  <DesignServicesIcon />
-                </Icon>
-                <Typography sx={{ padding: "3px" }}>
-                  Trở Thành Nhà Thiết Kế
-                </Typography>
-              </Box>
-            </MenuItem>
-            <MenuItem onClick={handleClose}>
-              <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
-                <Icon>
-                  <CompostIcon />
-                </Icon>
-                <Typography sx={{ padding: "3px" }}>
-                  Trở Thành Nhà Cung Cấp
-                </Typography>
-              </Box>
-            </MenuItem>
-            <MenuItem onClick={handleClose}>
-              <Box sx={{ display: "flex", width: "100%" }}>
-                <Icon>
-                  <SettingsIcon />
-                </Icon>
-                <Typography sx={{ padding: "3px" }}>Cài Đặt</Typography>
-              </Box>
-            </MenuItem>
-            <MenuItem onClick={handleClose}>
-              <Box sx={{ display: "flex", width: "100%" }}>
-                <Icon>
-                  <LogoutIcon />
-                </Icon>
-                <Typography sx={{ padding: "3px" }}> Đăng Xuất</Typography>
-              </Box>
-            </MenuItem>
-          </Menu>
-          {/* <Box
-            sx={{
-              border: "1px solid rgba(94, 224, 159, 1)",
-              borderRadius: "30px",
-              display: "flex",
-              width: "100%",
-              height: "50px",
-            }}
-          >
-            <Button
-              sx={{
-                color: "rgba(94, 224, 159, 1)",
-                border: "none",
-                flex: 1,
-                "&:active": {
-                  backgroundColor: "rgba(94, 224, 159, 1)",
-                  color: "white",
-                  borderTopLeftRadius: "30px",
-                  borderBottomLeftRadius: "30px",
+
+          {!user ? (
+            <Menu
+              id="basic-menu"
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              slotProps={{
+                list: {
+                  "aria-labelledby": "basic-button",
                 },
               }}
             >
-              Đăng Ký
-            </Button>
-            <Box
-              sx={{
-                width: "1px",
-                backgroundColor: "rgba(94, 224, 159, 1)",
-                height: "100%",
-                alignSelf: "center",
-              }}
-            />
-            <Button
-              sx={{
-                color: "rgba(94, 224, 159, 1)",
-                border: "none",
-                flex: 1,
-                whiteSpace: "nowrap",
+              <MenuItem onClick={() => handleAuth("login")}>
+                <Box sx={{ display: "flex" }}>
+                  <Icon>
+                    <LoginIcon />
+                  </Icon>
+                  <Typography sx={{ padding: "3px" }}>Đăng Nhập</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem onClick={() => handleAuth("register")}>
+                <Box sx={{ display: "flex" }}>
+                  <Icon>
+                    <HowToRegIcon />
+                  </Icon>
+                  <Typography sx={{ padding: "3px" }}>Đăng Ký</Typography>
+                </Box>
+              </MenuItem>
+            </Menu>
+          ) : (
+            <Menu
+              id="basic-menu"
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              slotProps={{
+                list: {
+                  "aria-labelledby": "basic-button",
+                },
               }}
             >
-              Đăng Nhập
-            </Button>
-          </Box> */}
+              {/* <MenuItem onClick={() => handleAuth("designerregister")}> */}
+              <MenuItem onClick={() => handleAuth("desiger-profile")}>
+                <Box sx={{ display: "flex" }}>
+                  <Icon>
+                    <DesignServicesIcon />
+                  </Icon>
+                  {/* <Typography sx={{ padding: "3px" }}>
+                    Trở Thành Nhà Thiết Kế
+                  </Typography> */}
+                  <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem onClick={handleClose}>
+                <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                  <Icon>
+                    <CompostIcon />
+                  </Icon>
+                  {/* <Typography sx={{ padding: "3px" }}>
+                    Trở Thành Nhà Cung Cấp
+                  </Typography> */}
+                  <Typography sx={{ padding: "3px" }}>
+                    Designer DashBoard
+                  </Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem onClick={handleClose}>
+                <Box sx={{ display: "flex", width: "100%" }}>
+                  <Icon>
+                    <SettingsIcon />
+                  </Icon>
+                  <Typography sx={{ padding: "3px" }}>Cài Đặt</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>
+                <Box sx={{ display: "flex", width: "100%" }}>
+                  <Icon>
+                    <LogoutIcon />
+                  </Icon>
+                  <Typography sx={{ padding: "3px" }}> Đăng Xuất</Typography>
+                </Box>
+              </MenuItem>
+            </Menu>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

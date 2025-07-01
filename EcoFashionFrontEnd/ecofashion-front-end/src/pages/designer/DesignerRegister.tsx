@@ -6,14 +6,12 @@ import {
   FormControlLabel,
   FormLabel,
   Grid,
-  Icon,
   IconButton,
   InputAdornment,
   Radio,
   RadioGroup,
   Step,
   StepButton,
-  StepLabel,
   Stepper,
   TextField,
   Typography,
@@ -24,13 +22,17 @@ import InfoIcon from "@mui/icons-material/Info";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
-import id from "../assets/pictures/id.png";
-import idPeople from "../assets/pictures/id_people.png";
+import id from "../../assets/pictures/id.png";
+import idPeople from "../../assets/pictures/id_people.png";
 
 const steps = ["Thông tin Nhà Thiết Kế", "Thông tin định danh", "Hoàn tất"];
 
 export default function DesignerRegister() {
   const [activeStep, setActiveStep] = React.useState(0);
+  //Make It jump to top
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeStep]);
   const [completed, setCompleted] = React.useState<{
     [k: number]: boolean;
   }>({});
@@ -255,7 +257,7 @@ export default function DesignerRegister() {
                       <IconButton>
                         <AddPhotoAlternateIcon fontSize="large" />
                       </IconButton>
-                      <Typography variant="body2" mt={1}>
+                      <Typography variant="body2">
                         Vui lòng cung cấp ảnh chụp cận CCCD/CMND
                       </Typography>
                       <Typography variant="caption">
@@ -337,13 +339,23 @@ export default function DesignerRegister() {
           margin: "30px auto",
         }}
       >
+        <Typography
+          sx={{
+            textAlign: "center",
+            margin: "30px auto",
+            fontSize: "30px",
+            fontWeight: "bold",
+          }}
+        >
+          Đăng ký Nhà Thiết Kế
+        </Typography>
         <Stepper alternativeLabel nonLinear activeStep={activeStep}>
           {steps.map((label, index) => (
             <Step key={label} completed={completed[index]}>
               <StepButton
                 color="inherit"
                 onClick={handleStep(index)}
-                sx={{ borderBottom: "1px solid black" }}
+                sx={{ borderBottom: "1px solid black", marginBottom: "4px" }}
               >
                 {label}
               </StepButton>

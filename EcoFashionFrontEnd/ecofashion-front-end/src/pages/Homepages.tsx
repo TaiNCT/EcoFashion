@@ -1,13 +1,10 @@
-import * as React from "react";
 import {
   AppBar,
   Box,
   Button,
   Grid,
-  Toolbar,
   Typography,
   Stack,
-  Link as MuiLink,
   ListItem,
   List,
   Container,
@@ -19,7 +16,6 @@ import {
   Rating,
   Select,
   MenuItem,
-  Menu,
   Link,
   InputBase,
 } from "@mui/material";
@@ -190,16 +186,6 @@ export const EcoIcon = () => (
   </svg>
 );
 
-const NavLink = styled(MuiLink)(({ theme }) => ({
-  marginRight: theme.spacing(2),
-  color: theme.palette.text.primary,
-  textDecoration: "none",
-  fontWeight: 500,
-  "&:hover": {
-    color: "rgba(94, 224, 159, 1)",
-  },
-}));
-
 const StyledInput = styled(InputBase)({
   borderRadius: 20,
   backgroundColor: "#fff",
@@ -208,14 +194,240 @@ const StyledInput = styled(InputBase)({
 });
 
 export default function Homepage() {
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const NewDesignCard = ({ product }: { product: any }) => (
+    <Card sx={{ width: "20%", m: 1, position: "relative" }}>
+      <Box
+        sx={{
+          p: 1,
+          position: "absolute",
+          top: 8,
+          left: 8,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Chip label="New" color="primary" size="small" sx={{ mb: 1 }} />
+        <Chip
+          icon={<EcoIcon />}
+          label={`${product.recycledPercentage}% Tái Chế`}
+          size="small"
+          sx={{
+            backgroundColor: "rgba(200, 248, 217, 1)",
+            color: "rgba(22, 103, 86, 1)",
+            fontSize: "15px",
+          }}
+        />
+      </Box>
+
+      <IconButton
+        sx={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          zIndex: 1,
+          backgroundColor: "white",
+        }}
+      >
+        <FavoriteBorderIcon />
+      </IconButton>
+
+      <Link href={`/detail/${product.id}`} style={{ justifyContent: "center" }}>
+        <CardMedia
+          component="img"
+          height="240"
+          image={product.image}
+          alt={product.title}
+        />
+      </Link>
+
+      <CardContent
+        sx={{
+          textAlign: "left",
+        }}
+      >
+        <Typography
+          fontWeight="bold"
+          sx={{
+            fontSize: "30px",
+            width: "100%",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {product.title}
+        </Typography>
+        <Typography color="text.secondary">Bởi {product.author}</Typography>
+
+        <Box display="flex" alignItems="center" mt={1}>
+          <Rating value={product.rating} readOnly size="small" />
+          <Typography variant="body2" ml={1}>
+            ({product.rating})
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            mt: 1,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {product.material.map((mat: any, index: any) => (
+            <Chip
+              key={index}
+              label={mat}
+              size="small"
+              sx={{
+                backgroundColor: "rgba(220, 252, 231, 1)",
+                color: "rgba(29, 106, 58, 1)",
+              }}
+            />
+          ))}
+        </Box>
+
+        <Typography fontWeight="bold" mt={1}>
+          {product.price}
+        </Typography>
+
+        <Button
+          variant="contained"
+          fullWidth
+          sx={{
+            mt: 1,
+            backgroundColor: "rgba(22, 163, 74, 1)",
+          }}
+        >
+          <AddToCart />
+          Thêm vào Cart
+        </Button>
+      </CardContent>
+    </Card>
+  );
+  const BestDesignCard = ({ product }: { product: any }) => (
+    <Card sx={{ width: "20%", m: 1, position: "relative" }}>
+      <Box
+        sx={{
+          p: 1,
+          position: "absolute",
+          top: 8,
+          left: 8,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Chip
+          label="Bán Chạy Nhất"
+          size="small"
+          sx={{
+            mb: 1,
+            backgroundColor: "rgba(245, 144, 56, 1)",
+            color: "white",
+          }}
+        />
+        <Chip
+          icon={<EcoIcon />}
+          label={`${product.recycledPercentage}% Tái Chế`}
+          size="small"
+          sx={{
+            backgroundColor: "rgba(200, 248, 217, 1)",
+            color: "rgba(22, 103, 86, 1)",
+            fontSize: "15px",
+          }}
+        />
+      </Box>
+
+      <IconButton
+        sx={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          zIndex: 1,
+          backgroundColor: "white",
+        }}
+      >
+        <FavoriteBorderIcon />
+      </IconButton>
+
+      <Link href={`/detail/${product.id}`} style={{ justifyContent: "center" }}>
+        <CardMedia
+          component="img"
+          height="240"
+          image={product.image}
+          alt={product.title}
+        />
+      </Link>
+
+      <CardContent
+        sx={{
+          textAlign: "left",
+        }}
+      >
+        <Typography
+          fontWeight="bold"
+          sx={{
+            fontSize: "30px",
+            width: "100%",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {product.title}
+        </Typography>
+        <Typography color="text.secondary">Bởi {product.author}</Typography>
+
+        <Box display="flex" alignItems="center" mt={1}>
+          <Rating value={product.rating} readOnly size="small" />
+          <Typography variant="body2" ml={1}>
+            ({product.rating})
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            mt: 1,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {product.material.map((mat: any, index: any) => (
+            <Chip
+              key={index}
+              label={mat}
+              size="small"
+              sx={{
+                backgroundColor: "rgba(220, 252, 231, 1)",
+                color: "rgba(29, 106, 58, 1)",
+              }}
+            />
+          ))}
+        </Box>
+
+        <Typography fontWeight="bold" mt={1}>
+          {product.price}
+        </Typography>
+
+        <Button
+          variant="contained"
+          fullWidth
+          sx={{
+            mt: 1,
+            backgroundColor: "rgba(22, 163, 74, 1)",
+          }}
+        >
+          <AddToCart />
+          Thêm vào Cart
+        </Button>
+      </CardContent>
+    </Card>
+  );
   return (
     <Box sx={{ minHeight: "100vh" }}>
       {/* Nav Bar */}
@@ -633,130 +845,7 @@ export default function Homepage() {
             </IconButton>
 
             {products.map((item, index) => (
-              <Card
-                key={index}
-                sx={{ width: "20%", m: 1, position: "relative" }}
-              >
-                <Box
-                  sx={{
-                    p: 1,
-                    position: "absolute",
-                    top: 8,
-                    left: 8,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Chip
-                    label="New"
-                    color="primary"
-                    size="small"
-                    sx={{ mb: 1 }}
-                  />
-                  <Chip
-                    icon={<EcoIcon />}
-                    label={`${item.recycledPercentage}% Tái Chế`}
-                    size="small"
-                    sx={{
-                      backgroundColor: "rgba(200, 248, 217, 1)",
-                      color: "rgba(22, 103, 86, 1)",
-                      fontSize: "15px",
-                    }}
-                  />
-                </Box>
-
-                <IconButton
-                  sx={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    zIndex: 1,
-                    backgroundColor: "white",
-                  }}
-                >
-                  <FavoriteBorderIcon />
-                </IconButton>
-
-                <Link
-                  href={`/detail/${item.id}`}
-                  style={{ justifyContent: "center" }}
-                >
-                  <CardMedia
-                    component="img"
-                    height="240"
-                    image={item.image}
-                    alt={item.title}
-                  />
-                </Link>
-
-                <CardContent
-                  sx={{
-                    textAlign: "left",
-                  }}
-                >
-                  <Typography
-                    fontWeight="bold"
-                    sx={{
-                      fontSize: "30px",
-                      width: "100%",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Bởi {item.author}
-                  </Typography>
-
-                  <Box display="flex" alignItems="center" mt={1}>
-                    <Rating value={item.rating} readOnly size="small" />
-                    <Typography variant="body2" ml={1}>
-                      ({item.rating})
-                    </Typography>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: 1,
-                      mt: 1,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {item.material.map((mat, index) => (
-                      <Chip
-                        key={index}
-                        label={mat}
-                        size="small"
-                        sx={{
-                          backgroundColor: "rgba(220, 252, 231, 1)",
-                          color: "rgba(29, 106, 58, 1)",
-                        }}
-                      />
-                    ))}
-                  </Box>
-
-                  <Typography fontWeight="bold" mt={1}>
-                    {item.price}
-                  </Typography>
-
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      mt: 1,
-                      backgroundColor: "rgba(22, 163, 74, 1)",
-                    }}
-                  >
-                    <AddToCart />
-                    Thêm vào Cart
-                  </Button>
-                </CardContent>
-              </Card>
+              <NewDesignCard product={item} />
             ))}
 
             <IconButton>
@@ -801,135 +890,8 @@ export default function Homepage() {
             <IconButton>
               <ArrowBackIcon />
             </IconButton>
-
             {products.map((item, index) => (
-              <Card
-                key={index}
-                sx={{ width: "20%", m: 1, position: "relative" }}
-              >
-                <Box
-                  sx={{
-                    p: 1,
-                    position: "absolute",
-                    top: 8,
-                    left: 8,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Chip
-                    label="Bán Chạy Nhất"
-                    size="small"
-                    sx={{
-                      mb: 1,
-                      backgroundColor: "rgba(245, 144, 56, 1)",
-                      color: "white",
-                    }}
-                  />
-                  <Chip
-                    icon={<EcoIcon />}
-                    label={`${item.recycledPercentage}% Tái Chế`}
-                    size="small"
-                    sx={{
-                      backgroundColor: "rgba(200, 248, 217, 1)",
-                      color: "rgba(22, 103, 86, 1)",
-                      fontSize: "15px",
-                    }}
-                  />
-                </Box>
-
-                <IconButton
-                  sx={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    zIndex: 1,
-                    backgroundColor: "white",
-                  }}
-                >
-                  <FavoriteBorderIcon />
-                </IconButton>
-
-                <Link
-                  href={`/detail/${item.id}`}
-                  style={{ justifyContent: "center" }}
-                >
-                  <CardMedia
-                    component="img"
-                    height="240"
-                    image={item.image}
-                    alt={item.title}
-                  />
-                </Link>
-
-                <CardContent
-                  sx={{
-                    textAlign: "left",
-                  }}
-                >
-                  <Typography
-                    fontWeight="bold"
-                    sx={{
-                      fontSize: "30px",
-                      width: "100%",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Bởi {item.author}
-                  </Typography>
-
-                  <Box display="flex" alignItems="center" mt={1}>
-                    <Rating value={item.rating} readOnly size="small" />
-                    <Typography variant="body2" ml={1}>
-                      ({item.rating})
-                    </Typography>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: 1,
-                      mt: 1,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {item.material.map((mat, index) => (
-                      <Chip
-                        key={index}
-                        label={mat}
-                        size="small"
-                        sx={{
-                          backgroundColor: "rgba(220, 252, 231, 1)",
-                          color: "rgba(29, 106, 58, 1)",
-                        }}
-                      />
-                    ))}
-                  </Box>
-
-                  <Typography fontWeight="bold" mt={1}>
-                    {item.price}
-                  </Typography>
-
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      mt: 1,
-                      backgroundColor: "rgba(22, 163, 74, 1)",
-                    }}
-                  >
-                    <AddToCart />
-                    Thêm vào Cart
-                  </Button>
-                </CardContent>
-              </Card>
+              <BestDesignCard product={item} />
             ))}
 
             <IconButton>
@@ -977,130 +939,7 @@ export default function Homepage() {
             </IconButton>
 
             {products.map((item, index) => (
-              <Card
-                key={index}
-                sx={{ width: "20%", m: 1, position: "relative" }}
-              >
-                <Box
-                  sx={{
-                    p: 1,
-                    position: "absolute",
-                    top: 8,
-                    left: 8,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Chip
-                    label="New"
-                    color="primary"
-                    size="small"
-                    sx={{ mb: 1 }}
-                  />
-                  <Chip
-                    icon={<EcoIcon />}
-                    label={`${item.recycledPercentage}% Tái Chế`}
-                    size="small"
-                    sx={{
-                      backgroundColor: "rgba(200, 248, 217, 1)",
-                      color: "rgba(22, 103, 86, 1)",
-                      fontSize: "15px",
-                    }}
-                  />
-                </Box>
-
-                <IconButton
-                  sx={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    zIndex: 1,
-                    backgroundColor: "white",
-                  }}
-                >
-                  <FavoriteBorderIcon />
-                </IconButton>
-
-                <Link
-                  href={`/detail/${item.id}`}
-                  style={{ justifyContent: "center" }}
-                >
-                  <CardMedia
-                    component="img"
-                    height="240"
-                    image={item.image}
-                    alt={item.title}
-                  />
-                </Link>
-
-                <CardContent
-                  sx={{
-                    textAlign: "left",
-                  }}
-                >
-                  <Typography
-                    fontWeight="bold"
-                    sx={{
-                      fontSize: "30px",
-                      width: "100%",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Bởi {item.author}
-                  </Typography>
-
-                  <Box display="flex" alignItems="center" mt={1}>
-                    <Rating value={item.rating} readOnly size="small" />
-                    <Typography variant="body2" ml={1}>
-                      ({item.rating})
-                    </Typography>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: 1,
-                      mt: 1,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {item.material.map((mat, index) => (
-                      <Chip
-                        key={index}
-                        label={mat}
-                        size="small"
-                        sx={{
-                          backgroundColor: "rgba(220, 252, 231, 1)",
-                          color: "rgba(29, 106, 58, 1)",
-                        }}
-                      />
-                    ))}
-                  </Box>
-
-                  <Typography fontWeight="bold" mt={1}>
-                    {item.price} /m
-                  </Typography>
-
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      mt: 1,
-                      backgroundColor: "rgba(22, 163, 74, 1)",
-                    }}
-                  >
-                    <AddToCart />
-                    Thêm vào Cart
-                  </Button>
-                </CardContent>
-              </Card>
+              <NewDesignCard product={item} />
             ))}
 
             <IconButton>
