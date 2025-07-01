@@ -88,6 +88,14 @@ namespace EcoFashionBackEnd.Data
             FullName = "Supplier One",
             RoleId = supplierRole.RoleId,
             Status = UserStatus.Active
+        },
+        new User
+        {
+            Email = "customer@example.com",
+            PasswordHash = SecurityUtil.Hash("customer"),
+            FullName = "Customer One",
+            RoleId = customerRole.RoleId,
+            Status = UserStatus.Active
         }
     };
 

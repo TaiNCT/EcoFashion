@@ -26,9 +26,15 @@ namespace EcoFashionBackEnd.Entities
         [StringLength(100)]
         public string? FullName { get; set; }
 
+        // OTP Fields for email verification
+        [StringLength(6)]
+        public string? OTPCode { get; set; }
+        
+        public DateTime? OTPExpiresAt { get; set; }
+
        // [ForeignKey("UserRole")]
         public int RoleId { get; set; }
-        public virtual UserRole UserRole { get; set; }
+        public virtual UserRole? UserRole { get; set; }
 
         [Required]
         [EnumDataType(typeof(UserStatus))]

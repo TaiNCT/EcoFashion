@@ -45,7 +45,16 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PorfolioUrl")
+                    b.Property<string>("PortfolioUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ProcessedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RejectionReason")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SpecializationUrl")
@@ -209,6 +218,13 @@ namespace EcoFashionBackEnd.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OTPCode")
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
+
+                    b.Property<DateTime?>("OTPExpiresAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PasswordHash")

@@ -8,10 +8,11 @@ import {
   MenuItem,
   IconButton,
   Badge,
+  Divider,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { UserAuth } from "../services/AuthContext";
+import { useAuth } from "../services/user/AuthContext";
 import { toast } from "react-toastify";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -21,9 +22,11 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import PersonIcon from "@mui/icons-material/Person";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import PeopleIcon from "@mui/icons-material/People";
+import BusinessIcon from "@mui/icons-material/Business";
+import PaletteIcon from "@mui/icons-material/Palette";
 
 export default function Navigation() {
-  const { user, logout } = UserAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   // Function để lấy tên hiển thị user
@@ -47,10 +50,11 @@ export default function Navigation() {
     if (!user) return [];
 
     const role = user.role?.toLowerCase();
+    const menuItems = [];
 
     switch (role) {
       case "designer":
-        return [
+        menuItems.push(
           {
             label: "Hồ Sơ Designer",
             path: "/designer/profile",
@@ -64,11 +68,12 @@ export default function Navigation() {
             icon: (
               <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
             ),
-          },
-        ];
+          }
+        );
+        break;
 
       case "admin":
-        return [
+        menuItems.push(
           {
             label: "Bảng Điều Khiển",
             path: "/admin/dashboard",
@@ -77,16 +82,24 @@ export default function Navigation() {
             ),
           },
           {
+            label: "Quản Lý Đơn Đăng Ký",
+            path: "/admin/applications",
+            icon: (
+              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
             label: "Quản Lý Users",
             path: "/admin/users",
             icon: (
               <PeopleIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
             ),
-          },
-        ];
+          }
+        );
+        break;
 
       case "supplier":
-        return [
+        menuItems.push(
           {
             label: "Hồ Sơ Nhà Cung Cấp",
             path: "/supplier/profile",
@@ -100,13 +113,14 @@ export default function Navigation() {
             icon: (
               <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
             ),
-          },
-        ];
+          }
+        );
+        break;
 
       case "customer":
       case "user":
       default:
-        return [
+        menuItems.push(
           {
             label: "Hồ Sơ Cá Nhân",
             path: "/profile",
@@ -120,9 +134,40 @@ export default function Navigation() {
             icon: (
               <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
             ),
-          },
-        ];
+          }
+        );
+        break;
     }
+
+    // Thêm menu "Xem đơn đăng ký" cho tất cả user (trừ admin)
+    if (role !== "admin") {
+      menuItems.push({
+        label: "Xem đơn đăng ký",
+        path: "/my-applications",
+        icon: (
+          <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+        ),
+      });
+    }
+
+    // Thêm menu "Đăng ký tham gia" cho user chưa có role Designer/Supplier
+    if (role !== "designer" && role !== "admin") {
+      menuItems.push({
+        label: "Đăng ký làm Designer",
+        path: "/apply/designer",
+        icon: <PaletteIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />,
+      });
+    }
+
+    if (role !== "supplier" && role !== "admin") {
+      menuItems.push({
+        label: "Đăng ký làm Supplier",
+        path: "/apply/supplier",
+        icon: <BusinessIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />,
+      });
+    }
+
+    return menuItems;
   };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -347,7 +392,7 @@ export default function Navigation() {
                 </Button>
                 <Button
                   component={Link}
-                  to="/register"
+                  to="/signup"
                   variant="contained"
                   sx={{
                     backgroundColor: "#2d3748",
@@ -413,31 +458,73 @@ export default function Navigation() {
                       border: "1px solid #e2e8f0",
                       borderRadius: 2,
                       mt: 1,
+                      minWidth: 200,
                     },
                   }}
                 >
-                  {getMenuItems().map((item, index) => (
-                    <MenuItem key={index} onClick={handleMenuClose}>
-                      <Link
-                        to={item.path}
-                        style={{
-                          textDecoration: "none",
-                          color: "inherit",
-                          display: "flex",
-                          alignItems: "center",
-                          width: "100%",
-                        }}
-                      >
-                        {item.icon}
-                        {item.label}
-                      </Link>
-                    </MenuItem>
-                  ))}
+                  {getMenuItems().map((item, index) => {
+                    const isApplicationMenu = item.path.includes("/apply/");
+                    const applicationMenuStartIndex = getMenuItems().findIndex(
+                      (menuItem) => menuItem.path.includes("/apply/")
+                    );
+
+                    return (
+                      <div key={index}>
+                        {/* Thêm divider trước menu đăng ký */}
+                        {isApplicationMenu &&
+                          index === applicationMenuStartIndex &&
+                          applicationMenuStartIndex > 0 && (
+                            <Divider sx={{ my: 1 }} />
+                          )}
+
+                        <MenuItem
+                          onClick={handleMenuClose}
+                          sx={{
+                            // Style đặc biệt cho menu đăng ký
+                            ...(isApplicationMenu && {
+                              backgroundColor: "#f8f9fa",
+                              "&:hover": {
+                                backgroundColor: "#e9ecef",
+                              },
+                            }),
+                          }}
+                        >
+                          <Link
+                            to={item.path}
+                            style={{
+                              textDecoration: "none",
+                              color: "inherit",
+                              display: "flex",
+                              alignItems: "center",
+                              width: "100%",
+                            }}
+                          >
+                            {item.icon}
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: isApplicationMenu ? 600 : 500,
+                                fontSize: "0.875rem",
+                              }}
+                            >
+                              {item.label}
+                            </Typography>
+                          </Link>
+                        </MenuItem>
+                      </div>
+                    );
+                  })}
+
+                  {/* Divider trước logout */}
+                  <Divider sx={{ my: 1 }} />
+
                   <MenuItem onClick={handleLogout}>
                     <LogoutIcon
                       sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }}
                     />
-                    Đăng Xuất
+                    <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+                      Đăng Xuất
+                    </Typography>
                   </MenuItem>
                 </Menu>
               </Box>

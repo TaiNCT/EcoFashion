@@ -1,4 +1,4 @@
-﻿namespace EcoFashionBackEnd.Dtos.Auth
+﻿namespace EcoFashionBackEnd.Dtos.User
 {
     public class ResendOTPResponse
     {
