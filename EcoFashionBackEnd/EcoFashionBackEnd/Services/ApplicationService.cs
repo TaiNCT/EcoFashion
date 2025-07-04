@@ -17,15 +17,16 @@ namespace EcoFashionBackEnd.Services
     private readonly AppDbContext _dbContext;
     private readonly IRepository<Supplier, Guid> _supplierRepository; 
     private readonly IRepository<Designer, Guid> _designerRepository;
+    private readonly CloudService _cloudService;
 
-
-    public ApplicationService(
+        public ApplicationService(
         IRepository<Application, int> applicationRepository,
         IMapper mapper,
         UserService userService,
         AppDbContext dbContext,
         IRepository<Supplier, Guid> supplierRepository, 
-        IRepository<Designer, Guid> designerRepository) 
+        IRepository<Designer, Guid> designerRepository,
+        CloudService cloudService) 
     {
         _applicationRepository = applicationRepository;
         _mapper = mapper;
@@ -33,49 +34,70 @@ namespace EcoFashionBackEnd.Services
         _dbContext = dbContext;
         _supplierRepository = supplierRepository;
         _designerRepository = designerRepository;
-    }
+        _cloudService = cloudService;
+        }
 
 
 
-    public async Task<ApplicationModel?> ApplyAsSupplier(int userId, ApplySupplierRequest request)
-    {
-        var application = new Application
+        public async Task<ApplicationModel?> ApplyAsSupplier(int userId, ApplySupplierRequest request, IFormFile? identificationPictureFile)
         {
-            UserId = userId,
-            TargetRoleId = 3,
-            PortfolioUrl = request.PortfolioUrl,
-            BannerUrl = request.BannerUrl,
-            SpecializationUrl = request.SpecializationUrl,
-            IdentificationNumber = request.IdentificationNumber,
-            IdentificationPicture = request.IdentificationPicture,
-            Note = request.Note
-        };
+            var application = new Application
+            {
+                UserId = userId,
+                TargetRoleId = 3,
+                PortfolioUrl = request.PortfolioUrl,
+                BannerUrl = request.BannerUrl,
+                SpecializationUrl = request.SpecializationUrl,
+                IdentificationNumber = request.IdentificationNumber,
+                IdentificationPicture = null, // Initialize to null
+                Note = request.Note
+            };
 
-        await _applicationRepository.AddAsync(application);
-        var result = await _dbContext.SaveChangesAsync();
-        return result > 0 ? _mapper.Map<ApplicationModel>(application) : null;
-    }
+            if (identificationPictureFile != null && identificationPictureFile.Length > 0)
+            {
+                var uploadResult = await _cloudService.UploadImageAsync(identificationPictureFile);
+                if (uploadResult?.SecureUrl != null)
+                {
+                    application.IdentificationPicture = uploadResult.SecureUrl.ToString();
+                }
+                // Consider handling upload errors here
+            }
 
-    public async Task<ApplicationModel?> ApplyAsDesigner(int userId, ApplyDesignerRequest request)
-    {
-        var application = new Application
+            await _applicationRepository.AddAsync(application);
+            var result = await _dbContext.SaveChangesAsync();
+            return result > 0 ? _mapper.Map<ApplicationModel>(application) : null;
+        }
+
+        public async Task<ApplicationModel?> ApplyAsDesigner(int userId, ApplyDesignerRequest request, IFormFile? identificationPictureFile)
         {
-            UserId = userId,
-            TargetRoleId = 2,
-            PortfolioUrl = request.PortfolioUrl,
-            BannerUrl = request.BannerUrl,
-            SpecializationUrl = request.SpecializationUrl,
-            IdentificationNumber = request.IdentificationNumber,
-            IdentificationPicture = request.IdentificationPicture,
-            Note = request.Note
-        };
+            var application = new Application
+            {
+                UserId = userId,
+                TargetRoleId = 2,
+                PortfolioUrl = request.PortfolioUrl,
+                BannerUrl = request.BannerUrl,
+                SpecializationUrl = request.SpecializationUrl,
+                IdentificationNumber = request.IdentificationNumber,
+                IdentificationPicture = null, // Initialize to null
+                Note = request.Note
+            };
 
-        await _applicationRepository.AddAsync(application);
-        var result = await _dbContext.SaveChangesAsync();
-        return result > 0 ? _mapper.Map<ApplicationModel>(application) : null;
-    }
+            if (identificationPictureFile != null && identificationPictureFile.Length > 0)
+            {
+                var uploadResult = await _cloudService.UploadImageAsync(identificationPictureFile);
+                if (uploadResult?.SecureUrl != null)
+                {
+                    application.IdentificationPicture = uploadResult.SecureUrl.ToString();
+                }
+                // Consider handling upload errors here
+            }
 
-    public async Task<ApplicationModel?> GetApplicationById(int id)
+            await _applicationRepository.AddAsync(application);
+            var result = await _dbContext.SaveChangesAsync();
+            return result > 0 ? _mapper.Map<ApplicationModel>(application) : null;
+        }
+
+        public async Task<ApplicationModel?> GetApplicationById(int id)
     {
         var application = await _applicationRepository.GetByIdAsync(id);
         return _mapper.Map<ApplicationModel>(application);
