@@ -37,26 +37,22 @@ import { UserAuth } from "../services/AuthContext";
 // });
 
 export default function Navigation() {
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [anchorE2, setAnchorE2] = React.useState<null | HTMLElement>(null);
-
-  const open = Boolean(anchorEl);
-  const openShop = Boolean(anchorE2);
-
   const navigate = useNavigate();
 
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
-
-  const handleClickShop = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorE2(event.currentTarget);
-  };
-
   const handleClose = () => {
     setAnchorEl(null);
   };
 
+  const [anchorE2, setAnchorE2] = React.useState<null | HTMLElement>(null);
+  const openShop = Boolean(anchorE2);
+  const handleClickShop = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorE2(event.currentTarget);
+  };
   const handleCloseShop = () => {
     setAnchorE2(null);
   };
@@ -71,10 +67,13 @@ export default function Navigation() {
         navigate("/login");
         break;
       case "designerregister":
-        navigate("/designerregister");
+        navigate("/designer/register");
         break;
       case "desiger-profile":
         navigate("/designer/profile");
+        break;
+      case "desiger-dashboard":
+        navigate("/designer/dashboard");
         break;
     }
   };
@@ -282,7 +281,7 @@ export default function Navigation() {
                   <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
                 </Box>
               </MenuItem>
-              <MenuItem onClick={handleClose}>
+              <MenuItem onClick={() => handleAuth("desiger-dashboard")}>
                 <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
                   <Icon>
                     <CompostIcon />

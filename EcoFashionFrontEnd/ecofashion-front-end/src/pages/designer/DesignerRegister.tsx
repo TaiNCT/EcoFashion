@@ -33,6 +33,7 @@ export default function DesignerRegister() {
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeStep]);
+
   const [completed, setCompleted] = React.useState<{
     [k: number]: boolean;
   }>({});
@@ -310,7 +311,7 @@ export default function DesignerRegister() {
             <Typography variant="body1" color="textSecondary" mb={4}>
               Hãy chờ EcoFashion duyệt cho bạn nhé!
             </Typography>
-            {/* <Button
+            <Button
               variant="contained"
               sx={{
                 backgroundColor: "green",
@@ -321,10 +322,11 @@ export default function DesignerRegister() {
                 "&:hover": {
                   backgroundColor: "darkgreen",
                 },
+                margin: "auto",
               }}
             >
-              THÊM SẢN PHẨM
-            </Button> */}
+              Trang chủ
+            </Button>
           </Box>
         );
       default:

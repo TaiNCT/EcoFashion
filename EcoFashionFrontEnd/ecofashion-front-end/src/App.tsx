@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import "./App.css";
 import Navigation from "./components/Navigation";
 //Pages
@@ -23,6 +23,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BusinessInfor from "./pages/BusinessInfor";
 import Contact from "./pages/Contact";
+import DesginerDashboared from "./pages/designer/DesignerDashboard";
 
 function App() {
   const theme = createTheme({
@@ -31,26 +32,40 @@ function App() {
     },
   });
 
+  const location = useLocation();
+  // Hide Nav and Footer on these routes
+  const hideLayout = ["/login", "/register"].includes(location.pathname);
   return (
     <AuthContextProvider>
       <div className="app">
-        <Navigation />
+        {!hideLayout && <Navigation />}
         <Routes>
           <Route path="/" element={<Homepages />} />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/detail/:id" element={<FashionDetail />} />
-          <Route path="/designerregister" element={<DesignerRegister />} />
+          <Route path="/designer/register" element={<DesignerRegister />} />
           <Route path="/businessinfor" element={<BusinessInfor />} />
           <Route path="/contact" element={<Contact />} />
 
           {/* Designer Routes */}
+          {/* Designer Profile */}
           <Route
             path="/designer/profile"
             element={
               <ProtectedRoute allowedRoles={["designer"]}>
                 <DesignerProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Designer Dashboard */}
+          <Route
+            path="/designer/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["designer"]}>
+                <DesginerDashboared />
               </ProtectedRoute>
             }
           />
@@ -85,7 +100,7 @@ function App() {
             }
           />
         </Routes>
-        <FooterInfo />
+        {!hideLayout && <FooterInfo />}
         <ToastContainer />
       </div>
     </AuthContextProvider>

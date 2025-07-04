@@ -9,12 +9,20 @@ import {
   Typography,
 } from "@mui/material";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { UserAuth } from "../services/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function BusinessInfor() {
   const [tabIndex, setTabIndex] = useState(0);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+
+    if (tab === "designer") setTabIndex(0);
+    else if (tab === "supplier") setTabIndex(1);
+  }, [location.search]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);

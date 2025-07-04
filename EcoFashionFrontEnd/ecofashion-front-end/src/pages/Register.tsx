@@ -17,6 +17,8 @@ import {
   Container,
 } from "@mui/material";
 import { Visibility, VisibilityOff, Email, Lock } from "@mui/icons-material";
+import RegisterBanner from "../assets/pictures/register.jpg";
+import Logo from "../assets/pictures/logo.png";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -65,15 +67,24 @@ export default function Register() {
     }
   };
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
+
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        height: "100vh",
         background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        backgroundImage: `url(${RegisterBanner})`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: 2,
+        overflowX: "hidden",
       }}
     >
       <Container maxWidth="sm">
@@ -84,7 +95,7 @@ export default function Register() {
             padding: 4,
             backgroundColor: "rgba(255, 255, 255, 0.95)",
             backdropFilter: "blur(10px)",
-            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 1)",
           }}
         >
           <CardContent>
