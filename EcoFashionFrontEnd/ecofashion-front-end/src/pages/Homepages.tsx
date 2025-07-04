@@ -15,12 +15,26 @@ import {
   People,
 } from "@mui/icons-material";
 import ProductCard from "../components/products/ProductCard";
+import ProductsSection from "../components/products/ProductsSection";
+import MaterialsSection from "../components/materials/MaterialsSection";
 import { useHomepage } from "../hooks/useHomepage";
-import { featuredProducts, bestSellerProducts, stats } from "../data/homepageData";
+import {
+  featuredProducts,
+  bestSellerProducts,
+  stats,
+} from "../data/homepageData";
+import { materials } from "../data/materialsData";
+import {
+  getFeaturedProducts,
+  getBestSellerProducts,
+} from "../data/productsData";
 import "./Homepage.css";
 
 export default function Homepages() {
-  const { user, getWelcomeMessage, handleSlideChange, handleAddToCart } = useHomepage();
+  const { user, getWelcomeMessage, handleSlideChange, handleAddToCart } =
+    useHomepage();
+
+  return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f8f9fa" }}>
       {/*  Section */}
       <Box
@@ -321,116 +335,397 @@ export default function Homepages() {
         </Box>
       </Container>
 
+      {/* Materials Section */}
+      <MaterialsSection
+        materials={materials.slice(0, 4)} // Show first 4 materials for homepage
+        onMaterialSelect={(material) => {
+          console.log("Selected material:", material.name);
+          // TODO: Navigate to material detail or open modal
+        }}
+        onViewMore={() => {
+          console.log("View more materials");
+          // TODO: Navigate to materials page
+        }}
+      />
+
       {/* Featured Products Section */}
-      <Container maxWidth="lg" sx={{ mb: 6 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
-        >
-          <Typography variant="h4" component="h2" fontWeight="bold">
-            THỜI TRANG MỚI
-          </Typography>
-          <Box>
-            <IconButton
-              onClick={() => handleSlideChange("prev", 3)}
-            >
-              <ArrowBack />
-            </IconButton>
-            <IconButton
-              onClick={() => handleSlideChange("next", 3)}
-            >
-              <ArrowForward />
-            </IconButton>
-          </Box>
-        </Box>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
-          {featuredProducts.map((product) => (
-            <Box key={product.id} sx={{ flex: "1 1 300px", minWidth: 280 }}>
-              <ProductCard 
-                product={product} 
-                isLoggedIn={!!user}
-                onAddToCart={handleAddToCart}
-              />
-            </Box>
-          ))}
-        </Box>
-        <Box sx={{ textAlign: "center", mt: 3 }}>
-          <Button
-            variant="outlined"
-            size="large"
-            sx={{ color: "#4caf50", borderColor: "#4caf50" }}
-          >
-            XEM THÊM SẢN PHẨM
-          </Button>
-        </Box>
-      </Container>
+      <ProductsSection
+        products={getFeaturedProducts(4)} // Show first 4 featured products for homepage
+        title="SẢN PHẨM NỔI BẬT"
+        onProductSelect={(product) => {
+          console.log("Selected product:", product.name);
+          // TODO: Navigate to product detail or open modal
+        }}
+        onAddToCart={(product) => {
+          console.log("Add to cart:", product.name);
+          // TODO: Add to cart logic
+        }}
+        onToggleFavorite={(product) => {
+          console.log("Toggle favorite:", product.name);
+          // TODO: Toggle favorite logic
+        }}
+        onViewMore={() => {
+          console.log("View more featured products");
+          // TODO: Navigate to featured products page
+        }}
+      />
 
       {/* Best Seller Section */}
-      <Container maxWidth="lg" sx={{ mb: 6 }}>
+      <ProductsSection
+        products={getBestSellerProducts(4)} // Show first 4 best seller products for homepage
+        title="SẢN PHẨM BÁN CHẠY"
+        onProductSelect={(product) => {
+          console.log("Selected product:", product.name);
+          // TODO: Navigate to product detail or open modal
+        }}
+        onAddToCart={(product) => {
+          console.log("Add to cart:", product.name);
+          // TODO: Add to cart logic
+        }}
+        onToggleFavorite={(product) => {
+          console.log("Toggle favorite:", product.name);
+          // TODO: Toggle favorite logic
+        }}
+        onViewMore={() => {
+          console.log("View more best seller products");
+          // TODO: Navigate to best seller products page
+        }}
+      />
+
+      {/* Role Dashboards Section */}
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Box sx={{ textAlign: "center", mb: 5 }}>
+          <Typography
+            variant="overline"
+            sx={{
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              color: "text.secondary",
+              letterSpacing: 1.2,
+            }}
+          >
+            Quick Access
+          </Typography>
+          <Typography
+            variant="h3"
+            component="h2"
+            fontWeight="bold"
+            sx={{ mt: 1, mb: 2 }}
+          >
+            Role Dashboards
+          </Typography>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{ maxWidth: "600px", mx: "auto" }}
+          >
+            Khám phá các góc nhìn khác nhau của nền tảng với quyền truy cập
+            nhanh vào bảng điều khiển theo vai trò cụ thể
+          </Typography>
+        </Box>
+
+        {/* Centered grid layout - giống format ban đầu */}
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(2, 1fr)",
+              md: "repeat(3, 1fr)",
+            },
+            gap: 4,
+            justifyItems: "center", // Căn giữa các grid items
+            maxWidth: "1200px",
+            mx: "auto", // Căn giữa toàn bộ grid container
           }}
         >
-          <Typography variant="h4" component="h2" fontWeight="bold">
-            BÁN CHẠY NHẤT
-          </Typography>
-          <Box>
-            <IconButton>
-              <ArrowBack />
-            </IconButton>
-            <IconButton>
-              <ArrowForward />
-            </IconButton>
-          </Box>
-        </Box>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
-          {bestSellerProducts.map((product) => (
-            <Box key={product.id} sx={{ flex: "1 1 300px", minWidth: 280 }}>
-              <ProductCard 
-                product={product} 
-                isLoggedIn={!!user}
-                onAddToCart={handleAddToCart}
-              />
+          {/* Designer Dashboard Card */}
+          <Card
+            sx={{
+              width: "100%",
+              maxWidth: 350,
+              background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+              color: "white",
+              borderRadius: 3,
+              overflow: "hidden",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+              },
+            }}
+          >
+            <Box sx={{ p: 4 }}>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  borderRadius: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mb: 3,
+                }}
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M7 7H6A2 2 0 0 0 4 9V18A2 2 0 0 0 6 20H15A2 2 0 0 0 17 18V17H20A2 2 0 0 0 22 15V6A2 2 0 0 0 20 4H11A2 2 0 0 0 9 6V7Z"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9 13H13"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9 17H13"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Box>
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
+                Bảng Điều Khiển Nhà Thiết Kế
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 3, opacity: 0.9 }}>
+                Tạo thiết kế bền vững, tìm nguồn nguyên liệu thân thiện với môi
+                trường, và quản lý danh mục sản phẩm của bạn
+              </Typography>
+              <Button
+                variant="text"
+                component={Link}
+                to="/designer/dashboard"
+                sx={{
+                  color: "white",
+                  p: 0,
+                  "&:hover": { bgcolor: "transparent" },
+                }}
+              >
+                Truy Cập Bảng Điều Khiển →
+              </Button>
             </Box>
-          ))}
-        </Box>
-        <Box sx={{ textAlign: "center", mt: 3 }}>
-          <Button
-            variant="outlined"
-            size="large"
-            sx={{ color: "#4caf50", borderColor: "#4caf50" }}
-          >
-            XEM THÊM SẢN PHẨM
-          </Button>
-        </Box>
-      </Container>
+          </Card>
 
-      {/* Materials Section */}
-      <Container maxWidth="lg" sx={{ mb: 6 }}>
-        <Typography
-          variant="h4"
-          component="h2"
-          fontWeight="bold"
-          sx={{ mb: 3 }}
-        >
-          NGUYÊN LIỆU
-        </Typography>
-        <Box sx={{ height: 200, bgcolor: "#e8f5e8", borderRadius: 2, mb: 3 }} />
-        <Box sx={{ textAlign: "center" }}>
+          {/* Supplier Dashboard Card */}
+          <Card
+            sx={{
+              width: "100%",
+              maxWidth: 350,
+              background: "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)",
+              color: "white",
+              borderRadius: 3,
+              overflow: "hidden",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+              },
+            }}
+          >
+            <Box sx={{ p: 4 }}>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  borderRadius: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mb: 3,
+                }}
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M21 8A2 2 0 0 0 19 6H15L13 4H5A2 2 0 0 0 3 6V18A2 2 0 0 0 5 20H19A2 2 0 0 0 21 18V8"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M16 11H18"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M8 11H10"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Box>
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
+                Bảng Điều Khiển Nhà Cung Cấp
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 3, opacity: 0.9 }}>
+                Giới thiệu nguyên liệu tái chế, kết nối với các nhà thiết kế, và
+                quản lý hàng tồn kho của bạn
+              </Typography>
+              <Button
+                variant="text"
+                component={Link}
+                to="/supplier/dashboard"
+                sx={{
+                  color: "white",
+                  p: 0,
+                  "&:hover": { bgcolor: "transparent" },
+                }}
+              >
+                Truy Cập Bảng Điều Khiển →
+              </Button>
+            </Box>
+          </Card>
+
+          {/* Admin Dashboard Card */}
+          <Card
+            sx={{
+              width: "100%",
+              maxWidth: 350,
+              background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+              color: "white",
+              borderRadius: 3,
+              overflow: "hidden",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+              },
+            }}
+          >
+            <Box sx={{ p: 4 }}>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  borderRadius: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mb: 3,
+                }}
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M3 3H21V21H3V3Z"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9 9H15"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9 13H15"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9 17H13"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Box>
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
+                Bảng Điều Khiển Quản Trị Viên
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 3, opacity: 0.9 }}>
+                Quản lý người dùng nền tảng, đánh giá sản phẩm, và giám sát các
+                chỉ số bền vững
+              </Typography>
+              <Button
+                variant="text"
+                component={Link}
+                to="/admin/dashboard"
+                sx={{
+                  color: "white",
+                  p: 0,
+                  "&:hover": { bgcolor: "transparent" },
+                }}
+              >
+                Truy Cập Bảng Điều Khiển →
+              </Button>
+            </Box>
+          </Card>
+        </Box>
+
+        {/* Note and CTA */}
+        <Box sx={{ textAlign: "center", mt: 6 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 4, fontStyle: "italic" }}
+          >
+            Lưu ý: Đây là các bảng điều khiển demo. Trong thực tế, cần có xác
+            thực phù hợp.
+          </Typography>
           <Button
             variant="outlined"
             size="large"
-            sx={{ color: "#4caf50", borderColor: "#4caf50" }}
+            component={Link}
+            to="/signup"
+            endIcon={<ArrowForward />}
+            sx={{
+              color: "#4caf50",
+              borderColor: "#4caf50",
+              px: 4,
+              py: 1.5,
+              borderRadius: 2,
+              fontSize: "1.1rem",
+              fontWeight: 500,
+              "&:hover": {
+                borderColor: "#388e3c",
+                bgcolor: "rgba(76, 175, 80, 0.04)",
+                transform: "translateY(-2px)",
+              },
+              transition: "all 0.2s ease",
+            }}
           >
-            XEM THÊM SẢN PHẨM
+            Tạo Tài Khoản Để Truy Cập Đầy Đủ
           </Button>
         </Box>
       </Container>
