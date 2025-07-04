@@ -10,22 +10,16 @@ Modern React application for sustainable fashion platform.
 - 📱 **Responsive Design** for all devices
 - 🎨 **Beautiful Gradients** and animations
 
-## Tech Stack
+## Frontend structure
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **UI Library**: Material-UI (MUI)
-- **Routing**: React Router DOM
-- **Form Validation**: Formik + Yup
-- **Notifications**: React Toastify
-- **Authentication**: JWT
+ecofashion-front-end/
+├── src/
+│ ├── components/ # Reusable UI components
+│ ├── pages/ # Page components
+│ ├── services/ # API calls & auth
+│ ├── types/ # TypeScript definitions
+│ └── data/ # Static data
 
 ## Available Scripts
 
 - `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-## License
-
-MIT License
