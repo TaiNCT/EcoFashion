@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { UserAuth } from "../services/AuthContext";
+import { useAuth } from "../services/user/AuthContext";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik, Form } from "formik";
@@ -30,7 +30,7 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { user, signIn, googleSignIn } = UserAuth();
+  const { user, signIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -74,20 +74,13 @@ export default function Login() {
   };
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
-    try {
-      await googleSignIn();
-      toast.success("Đăng nhập Google thành công!", {
+    // Demo function - không có chức năng thực tế
+    toast.info(
+      "Chức năng đăng nhập Google sẽ được phát triển trong tương lai!",
+      {
         position: "top-center",
-      });
-      navigate(getRedirectPath());
-    } catch (error: any) {
-      toast.error(error.message || "Đăng nhập Google thất bại", {
-        position: "bottom-center",
-      });
-    } finally {
-      setLoading(false);
-    }
+      }
+    );
   };
   useEffect(() => {
     document.body.style.overflow = "hidden";

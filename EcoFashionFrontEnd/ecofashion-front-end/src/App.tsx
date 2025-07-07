@@ -13,17 +13,23 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Signup from "./pages/Signup";
+import VerifyOTP from "./components/VerifyOTP";
 import DesignerProfile from "./pages/designer/DesignerProfile";
 import SupplierProfile from "./pages/supplier/SupplierProfile";
 import CustomerProfile from "./pages/customer/CustomerProfile";
 import Dashboard from "./pages/admin/Dashboard";
+import ApplicationManagement from "./pages/admin/ApplicationManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthContextProvider } from "./services/AuthContext";
+import { AuthContextProvider } from "./services/user/AuthContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BusinessInfor from "./pages/BusinessInfor";
 import Contact from "./pages/Contact";
 import DesginerDashboared from "./pages/designer/DesignerDashboard";
+import ApplyDesigner from "./pages/apply/ApplyDesigner";
+import ApplySupplier from "./pages/apply/ApplySupplier";
+import MyApplications from "./pages/apply/MyApplications";
 
 function App() {
   const theme = createTheme({
@@ -48,6 +54,36 @@ function App() {
           <Route path="/designer/register" element={<DesignerRegister />} />
           <Route path="/businessinfor" element={<BusinessInfor />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
+
+          {/* Application Routes */}
+          <Route
+            path="/apply/designer"
+            element={
+              <ProtectedRoute allowedRoles={["customer", "user", "supplier"]}>
+                <ApplyDesigner />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/apply/supplier"
+            element={
+              <ProtectedRoute allowedRoles={["customer", "user", "designer"]}>
+                <ApplySupplier />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-applications"
+            element={
+              <ProtectedRoute
+                allowedRoles={["customer", "user", "designer", "supplier"]}
+              >
+                <MyApplications />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Designer Routes */}
           {/* Designer Profile */}
@@ -76,6 +112,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/applications"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ApplicationManagement />
               </ProtectedRoute>
             }
           />

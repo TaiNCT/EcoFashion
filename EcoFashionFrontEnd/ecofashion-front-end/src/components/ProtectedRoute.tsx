@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { UserAuth } from "../services/AuthContext";
+import { useAuth } from "../services/user/AuthContext";
 import { CircularProgress, Box, Typography } from "@mui/material";
 
 interface ProtectedRouteProps {
@@ -12,7 +12,7 @@ export default function ProtectedRoute({
   children,
   allowedRoles,
 }: ProtectedRouteProps) {
-  const { user, loading } = UserAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,7 +40,7 @@ export default function ProtectedRoute({
     );
   }
 
-  // Nếu user null và không loading, điều hướng đến login
+  // Nếu user null và không loading, về trang login
   if (user === null) {
     return null;
   }
