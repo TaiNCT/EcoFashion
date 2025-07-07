@@ -12,7 +12,7 @@ import {
   styled,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/pictures/logo.png";
 //Icon Login
 import DesignServicesIcon from "@mui/icons-material/DesignServices";
@@ -24,7 +24,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LoginIcon from "@mui/icons-material/Login";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 //example
 import profile_picture from "../assets/pictures/example/profile_picture.jpg";
 import { UserAuth } from "../services/AuthContext";
@@ -99,8 +99,33 @@ export default function Navigation() {
     }
   };
 
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!isHome) return;
+
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHome]);
   return (
-    <AppBar position="sticky" sx={{ bgcolor: "white", boxShadow: "none" }}>
+    <AppBar
+      position="fixed"
+      elevation={scrolled || !isHome ? 4 : 0}
+      sx={{
+        backgroundColor: scrolled || !isHome ? "#fff" : "transparent",
+        color: scrolled || !isHome ? "white" : "black",
+        transition: "0.3s",
+        paddingLeft: 3,
+        paddingRight: 3,
+      }}
+    >
       <Toolbar
         disableGutters
         sx={{
@@ -121,7 +146,13 @@ export default function Navigation() {
             maxWidth: "100%", // optional: limit width
           }}
         >
-          <NavLink href="/" sx={{ margin: "auto" }}>
+          <NavLink
+            href="/"
+            sx={{
+              margin: "auto",
+              color: scrolled || !isHome ? "black" : "white",
+            }}
+          >
             TRANG CHỦ
           </NavLink>
           <Button
@@ -135,7 +166,7 @@ export default function Navigation() {
             sx={{
               margin: "auto",
               textDecoration: "none",
-              color: "black",
+              color: scrolled || !isHome ? "black" : "white",
               background: "transparent",
               boxShadow: "none",
               "&:hover": {
@@ -168,13 +199,31 @@ export default function Navigation() {
             <MenuItem onClick={handleClose}>Thời Trang</MenuItem>
             <MenuItem onClick={handleClose}>Vật Liệu</MenuItem>
           </Menu>
-          <NavLink href="/businessinfor" sx={{ margin: "auto" }}>
+          <NavLink
+            href="/businessinfor"
+            sx={{
+              margin: "auto",
+              color: scrolled || !isHome ? "black" : "white",
+            }}
+          >
             THÔNG TIN KINH DOANH
           </NavLink>
-          <NavLink href="/about" sx={{ margin: "auto" }}>
+          <NavLink
+            href="/about"
+            sx={{
+              margin: "auto",
+              color: scrolled || !isHome ? "black" : "white",
+            }}
+          >
             VỀ CHÚNG TÔI
           </NavLink>
-          <NavLink href="/contact" sx={{ margin: "auto" }}>
+          <NavLink
+            href="/contact"
+            sx={{
+              margin: "auto",
+              color: scrolled || !isHome ? "black" : "white",
+            }}
+          >
             LIÊN LẠC
           </NavLink>
         </Box>
@@ -187,7 +236,12 @@ export default function Navigation() {
           }}
         >
           <IconButton sx={{ color: "#3e4b3b" }}>
-            <ShoppingCartIcon sx={{ fontSize: 30 }} />
+            <ShoppingCartIcon
+              sx={{
+                fontSize: 30,
+                color: scrolled || !isHome ? "black" : "white",
+              }}
+            />
           </IconButton>
           <Box sx={{ display: "flex" }}>
             {user != null ? (
@@ -210,7 +264,11 @@ export default function Navigation() {
                     }}
                   />
                 </IconButton>
-                <Typography sx={{ color: "black" }}>{user.fullName}</Typography>
+                <Typography
+                  sx={{ color: scrolled || !isHome ? "black" : "white" }}
+                >
+                  {user.fullName}
+                </Typography>
               </Box>
             ) : (
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -222,7 +280,12 @@ export default function Navigation() {
                   onClick={handleClick}
                   sx={{ color: "#3e4b3b" }}
                 >
-                  <AccountCircleIcon sx={{ fontSize: 30 }} />
+                  <AccountCircleIcon
+                    sx={{
+                      fontSize: 30,
+                      color: scrolled || !isHome ? "black" : "white",
+                    }}
+                  />
                 </IconButton>
               </Box>
             )}
@@ -275,25 +338,77 @@ export default function Navigation() {
                   <Icon>
                     <DesignServicesIcon />
                   </Icon>
-                  {/* <Typography sx={{ padding: "3px" }}>
-                    Trở Thành Nhà Thiết Kế
-                  </Typography> */}
                   <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
                 </Box>
               </MenuItem>
-              <MenuItem onClick={() => handleAuth("desiger-dashboard")}>
-                <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
-                  <Icon>
-                    <CompostIcon />
-                  </Icon>
-                  {/* <Typography sx={{ padding: "3px" }}>
-                    Trở Thành Nhà Cung Cấp
-                  </Typography> */}
-                  <Typography sx={{ padding: "3px" }}>
-                    Designer DashBoard
-                  </Typography>
-                </Box>
-              </MenuItem>
+              {user.roleId === 1 ? (
+                <MenuItem>
+                  <Box
+                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                  >
+                    <Icon>
+                      <CompostIcon />
+                    </Icon>
+                    <Typography sx={{ padding: "3px" }}>
+                      Admin DashBoard
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ) : user.roleId === 2 ? (
+                <MenuItem onClick={() => handleAuth("desiger-dashboard")}>
+                  <Box
+                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                  >
+                    <Icon>
+                      <CompostIcon />
+                    </Icon>
+                    <Typography sx={{ padding: "3px" }}>
+                      Designer DashBoard
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ) : user.roleId === 3 ? (
+                <MenuItem>
+                  <Box
+                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                  >
+                    <Icon>
+                      <CompostIcon />
+                    </Icon>
+                    <Typography sx={{ padding: "3px" }}>
+                      Supplier DashBoard
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ) : (
+                <>
+                  <MenuItem onClick={() => handleAuth("designerregister")}>
+                    <Box
+                      sx={{ display: "flex", borderBottom: "1px solid black" }}
+                    >
+                      <Icon>
+                        <CompostIcon />
+                      </Icon>
+                      <Typography sx={{ padding: "3px" }}>
+                        Đăng Kí Làm Nhà Thiết Kế
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem onClick={() => handleAuth("designerregister")}>
+                    <Box
+                      sx={{ display: "flex", borderBottom: "1px solid black" }}
+                    >
+                      <Icon>
+                        <CompostIcon />
+                      </Icon>
+                      <Typography sx={{ padding: "3px" }}>
+                        Đăng Kí Làm Nhà Cung Cấp
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                </>
+              )}
+
               <MenuItem onClick={handleClose}>
                 <Box sx={{ display: "flex", width: "100%" }}>
                   <Icon>

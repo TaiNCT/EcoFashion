@@ -6,13 +6,15 @@ import {
   CardContent,
   CardMedia,
   Chip,
+  Dialog,
   Grid,
   IconButton,
   Link,
   MenuItem,
-  Pagination,
+  Rating,
   Select,
   Stack,
+  styled,
   Tab,
   Tabs,
   Typography,
@@ -35,6 +37,10 @@ import DrawOutlinedIcon from "@mui/icons-material/DrawOutlined";
 import { EcoIcon } from "../../assets/icons/icon";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import WaterDropIcon from "@mui/icons-material/WaterDrop";
+import AirIcon from "@mui/icons-material/Air";
+import CompostIcon from "@mui/icons-material/Compost";
+import CloseIcon from "@mui/icons-material/Close";
 //Example
 import ao_linen from "../../assets/pictures/example/ao-linen.webp";
 import chan_vay_dap from "../../assets/pictures/example/chan-vay-dap.webp";
@@ -100,7 +106,7 @@ export default function DesignerDashBoard() {
     {
       title: "Tổng Vật Liệu",
       value: "24",
-      subtitle: "Tổng Tất Cả Các Loại Chất Liệ",
+      subtitle: "Tổng Tất Cả Các Loại Chất Liệu",
       icon: <LocalMallOutlinedIcon />,
       color: "success.main",
     },
@@ -126,6 +132,51 @@ export default function DesignerDashBoard() {
       color: "warning.main",
     },
   ];
+  const fashion_stats = [
+    {
+      title: "Tổng Thiết Kế",
+      value: "24",
+      subtitle: "Tất Cả Các Loại Thiết Kế",
+      icon: <LocalMallOutlinedIcon />,
+      color: "success.main",
+    },
+    {
+      title: "Doanh Thu",
+      value: "3.800.000đ",
+      subtitle: "Tổng Số Tiền Đã Thu",
+      icon: <TrendingUpIcon />,
+      color: "info.main",
+    },
+    {
+      title: "Thiết Kế Sắp Hết",
+      value: "24",
+      subtitle: "Thiết Kế Cần Thêm Hàng",
+      icon: <StarIcon />,
+      color: "warning.main",
+    },
+    {
+      title: "Tiết Kiếm Nước",
+      value: "24",
+      subtitle: "Lít / Tổng Tất Cả Sản Phẩm",
+      icon: <WaterDropIcon />,
+      color: "rgba(22, 163, 74, 1)",
+    },
+    {
+      title: "Giảm Khí CO2",
+      value: "18",
+      subtitle: "Kg / Tổng Tất Cả Sản Phẩm",
+      icon: <AirIcon />,
+      color: "rgba(22, 163, 74, 1)",
+    },
+    {
+      title: "Giảm Lượng Rác Thải",
+      value: "32",
+      subtitle: "Tấn / Tổng Tất Cả Sản Phẩm",
+      icon: <CompostIcon />,
+      color: "rgba(22, 163, 74, 1)",
+    },
+  ];
+
   const messages = [
     {
       sender: "EcoTextiles",
@@ -171,8 +222,9 @@ export default function DesignerDashBoard() {
       price: "1.900.000₫",
       rating: 4,
       recycledPercentage: 90,
-      material: ["Vải Cotton", "Vải Linen"],
+      material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
       sale_quantity: 15,
+      status: "Còn Hàng",
     },
     {
       id: 2,
@@ -184,6 +236,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 95,
       material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
       sale_quantity: 15,
+      status: "Hết Hàng",
     },
     {
       id: 3,
@@ -195,6 +248,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 100,
       material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
       sale_quantity: 15,
+      status: "Còn Ít Hàng",
     },
     {
       id: 4,
@@ -206,6 +260,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 100,
       material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
       sale_quantity: 15,
+      status: "Hết Hàng",
     },
     {
       id: 5,
@@ -217,6 +272,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 90,
       material: ["Vải Cotton", "Vải Linen"],
       sale_quantity: 15,
+      status: "Hết Hàng",
     },
     {
       id: 6,
@@ -228,6 +284,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 95,
       material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
       sale_quantity: 15,
+      status: "Hết Hàng",
     },
     {
       id: 7,
@@ -239,6 +296,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 100,
       material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
       sale_quantity: 15,
+      status: "Hết Hàng",
     },
     {
       id: 8,
@@ -250,6 +308,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 100,
       material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
       sale_quantity: 15,
+      status: "Hết Hàng",
     },
     {
       id: 9,
@@ -261,6 +320,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 90,
       material: ["Vải Cotton", "Vải Linen"],
       sale_quantity: 15,
+      status: "Hết Hàng",
     },
     {
       id: 10,
@@ -272,6 +332,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 95,
       material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
       sale_quantity: 15,
+      status: "Còn Hàng",
     },
     {
       id: 11,
@@ -283,6 +344,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 100,
       material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
       sale_quantity: 15,
+      status: "Còn Hàng",
     },
     {
       id: 12,
@@ -294,6 +356,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 100,
       material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
       sale_quantity: 15,
+      status: "Còn Hàng",
     },
     {
       id: 13,
@@ -305,6 +368,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 90,
       material: ["Vải Cotton", "Vải Linen"],
       sale_quantity: 15,
+      status: "Còn Hàng",
     },
     {
       id: 14,
@@ -316,6 +380,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 95,
       material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
       sale_quantity: 15,
+      status: "Còn Hàng",
     },
     {
       id: 15,
@@ -327,6 +392,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 100,
       material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
       sale_quantity: 15,
+      status: "Còn Hàng",
     },
     {
       id: 16,
@@ -338,6 +404,7 @@ export default function DesignerDashBoard() {
       recycledPercentage: 100,
       material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
       sale_quantity: 15,
+      status: "Còn Hàng",
     },
   ];
 
@@ -489,27 +556,107 @@ export default function DesignerDashBoard() {
     </Card>
   );
 
+  const materials = [
+    {
+      id: 1,
+      material: "Cotton Fabric",
+      quantity: "500m",
+      status: "Còn Hàng",
+      supplier: "ABC Textiles Co.",
+      costPerUnit: "3.000đ",
+      totalValue: "1.750.000đ",
+      lastUpdated: "2025-07-01",
+    },
+    {
+      id: 2,
+      material: "Steel Rods",
+      quantity: "200m",
+      status: "Còn Ít Hàng",
+      supplier: "Global Steels Ltd.",
+      costPerUnit: "12.000đ",
+      totalValue: "2.400.000đ",
+      lastUpdated: "2025-06-30",
+    },
+    {
+      id: 3,
+      material: "Plastic Pellets",
+      quantity: "1000m",
+      status: "Còn Hàng",
+      supplier: "PolySource Inc.",
+      costPerUnit: "1.250.000đ",
+      totalValue: "1.250.000đ",
+      lastUpdated: "2025-07-02",
+    },
+    {
+      id: 4,
+      material: "Screws (M5)",
+      quantity: "5000m",
+      status: "Còn Hàng",
+      supplier: "BoltMaster Supplies",
+      costPerUnit: "50.000đ",
+      totalValue: "250.000đ",
+      lastUpdated: "2025-07-02",
+    },
+    {
+      id: 5,
+      material: "Leather Sheets",
+      quantity: "120m",
+      status: "Hết Hàng",
+      supplier: "Urban Leathers Co.",
+      costPerUnit: "7.000đ",
+      totalValue: "840.000đ",
+      lastUpdated: "2025-06-28",
+    },
+    {
+      id: 6,
+      material: "Copper Wire",
+      quantity: "300m",
+      status: "Còn Hàng",
+      supplier: "WireWorks Industries",
+      costPerUnit: "56.000đ",
+      totalValue: "1.680.000đ",
+      lastUpdated: "2025-07-01",
+    },
+    {
+      id: 7,
+      material: "Cardboard Boxes",
+      quantity: "1500m",
+      status: "Còn Hàng",
+      supplier: "PackPro Ltd.",
+      costPerUnit: "40.000đ",
+      totalValue: "600.000đ",
+      lastUpdated: "2025-07-02",
+    },
+    {
+      id: 8,
+      material: "Rubber Seals",
+      quantity: "800m",
+      status: "Còn Ít Hàng",
+      supplier: "SealTech Corp.",
+      costPerUnit: "75.000đ",
+      totalValue: "600.000đ",
+      lastUpdated: "2025-06-29",
+    },
+  ];
+
   const columns: GridColDef<(typeof materials)[number]>[] = [
     { field: "id", headerName: "ID", width: 90 },
     {
       field: "material",
       headerName: "Chất Liệu",
       width: 110,
-      editable: true,
       flex: 1,
     },
     {
       field: "quantity",
       headerName: "Số Lượng",
       width: 110,
-      editable: true,
       flex: 1,
     },
     {
       field: "status",
       headerName: "Trạng Thái",
       width: 110,
-      editable: true,
       renderCell: (params) => {
         let color:
           | "default"
@@ -520,13 +667,13 @@ export default function DesignerDashBoard() {
           | "success"
           | "warning" = "default";
         switch (params.value) {
-          case "In Stock":
+          case "Còn Hàng":
             color = "success";
             break;
-          case "Low Stock":
+          case "Còn Ít Hàng":
             color = "warning";
             break;
-          case "Out of Stock":
+          case "Hết Hàng":
             color = "error";
             break;
           default:
@@ -541,28 +688,24 @@ export default function DesignerDashBoard() {
       field: "supplier",
       headerName: "Nhà Cung Cấp",
       width: 110,
-      editable: true,
       flex: 1,
     },
     {
       field: "costPerUnit",
       headerName: "Giá 1 Mét Vải",
       width: 110,
-      editable: true,
       flex: 1,
     },
     {
       field: "totalValue",
       headerName: "Tổng Tiền Chi",
       width: 110,
-      editable: true,
       flex: 1,
     },
     {
       field: "lastUpdated",
       headerName: "Ngày Cập Nhật",
       width: 150,
-      editable: true,
       flex: 1,
     },
     {
@@ -603,86 +746,182 @@ export default function DesignerDashBoard() {
     },
   ];
 
-  const materials = [
+  const [open, setOpen] = React.useState(false);
+  const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
+
+  const handleClickOpen = (image: string) => {
+    setOpen(true);
+    setSelectedImage(image);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedImage(null);
+  };
+
+  const BootstrapDialog = styled(Dialog)(({ theme }) => ({
+    "& .MuiDialogContent-root": {
+      padding: theme.spacing(2),
+    },
+    "& .MuiDialogActions-root": {
+      padding: theme.spacing(1),
+    },
+  }));
+
+  const fashion_columns: GridColDef<(typeof products)[number]>[] = [
+    { field: "id", headerName: "ID", width: 90 },
     {
-      id: 1,
-      material: "Cotton Fabric",
-      quantity: "500m",
-      status: "In Stock",
-      supplier: "ABC Textiles Co.",
-      costPerUnit: "3.000đ",
-      totalValue: "1.750.000đ",
-      lastUpdated: "2025-07-01",
+      field: "image",
+      headerName: "Sản Phẩm",
+      width: 110,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              height: "100%",
+              width: "100%",
+            }}
+            onClick={() => handleClickOpen(params.row.image)}
+          >
+            <img
+              src={params.row.image}
+              alt="Sản Phẩm"
+              style={{
+                width: 50,
+                height: 50,
+                objectFit: "cover",
+                borderRadius: 8,
+              }}
+            />
+          </Box>
+        );
+      },
     },
     {
-      id: 2,
-      material: "Steel Rods",
-      quantity: "200m",
-      status: "Low Stock",
-      supplier: "Global Steels Ltd.",
-      costPerUnit: "12.000đ",
-      totalValue: "2.400.000đ",
-      lastUpdated: "2025-06-30",
+      field: "title",
+      headerName: "Tên Sản Phảm",
+      width: 110,
+      flex: 1,
     },
     {
-      id: 3,
-      material: "Plastic Pellets",
-      quantity: "1000m",
-      status: "In Stock",
-      supplier: "PolySource Inc.",
-      costPerUnit: "1.250.000đ",
-      totalValue: "1.250.000đ",
-      lastUpdated: "2025-07-02",
+      field: "price",
+      headerName: "Giá",
+      width: 110,
+      flex: 1,
     },
     {
-      id: 4,
-      material: "Screws (M5)",
-      quantity: "5000m",
-      status: "In Stock",
-      supplier: "BoltMaster Supplies",
-      costPerUnit: "50.000đ",
-      totalValue: "250.000đ",
-      lastUpdated: "2025-07-02",
+      field: "status",
+      headerName: "Trạng Thái",
+      width: 110,
+      renderCell: (params) => {
+        let color:
+          | "default"
+          | "primary"
+          | "secondary"
+          | "error"
+          | "info"
+          | "success"
+          | "warning" = "default";
+        switch (params.value) {
+          case "Còn Hàng":
+            color = "success";
+            break;
+          case "Còn Ít Hàng":
+            color = "warning";
+            break;
+          case "Hết Hàng":
+            color = "error";
+            break;
+          default:
+            color = "default";
+        }
+
+        return <Chip label={params.value} color={color} size="small" />;
+      },
+      flex: 1,
     },
     {
-      id: 5,
-      material: "Leather Sheets",
-      quantity: "120m",
-      status: "Out of Stock",
-      supplier: "Urban Leathers Co.",
-      costPerUnit: "7.000đ",
-      totalValue: "840.000đ",
-      lastUpdated: "2025-06-28",
+      field: "rating",
+      headerName: "Đánh Giá",
+      width: 110,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <Rating
+            name="text-feedback"
+            value={params.value}
+            readOnly
+            precision={0.5}
+            emptyIcon={
+              <StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />
+            }
+          />
+        );
+      },
     },
     {
-      id: 6,
-      material: "Copper Wire",
-      quantity: "300m",
-      status: "In Stock",
-      supplier: "WireWorks Industries",
-      costPerUnit: "56.000đ",
-      totalValue: "1.680.000đ",
-      lastUpdated: "2025-07-01",
+      field: "recycledPercentage",
+      headerName: "Tính Tái Chế",
+      width: 110,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <Chip
+            icon={<EcoIcon />}
+            label={`${params.row.recycledPercentage}% Tái Chế`}
+            size="small"
+            sx={{
+              backgroundColor: "rgba(200, 248, 217, 1)",
+              color: "rgba(22, 103, 86, 1)",
+              fontSize: "15px",
+            }}
+          />
+        );
+      },
     },
     {
-      id: 7,
-      material: "Cardboard Boxes",
-      quantity: "1500m",
-      status: "In Stock",
-      supplier: "PackPro Ltd.",
-      costPerUnit: "40.000đ",
-      totalValue: "600.000đ",
-      lastUpdated: "2025-07-02",
+      field: "sale_quantity",
+      headerName: "Bán Được",
+      width: 110,
+      flex: 1,
     },
     {
-      id: 8,
-      material: "Rubber Seals",
-      quantity: "800m",
-      status: "Low Stock",
-      supplier: "SealTech Corp.",
-      costPerUnit: "75.000đ",
-      totalValue: "600.000đ",
-      lastUpdated: "2025-06-29",
+      field: "actions",
+      headerName: "Hành Động",
+      width: 120,
+      sortable: false,
+      filterable: false,
+      headerAlign: "right",
+      disableColumnMenu: true,
+      renderCell: (params) => {
+        const handleEdit = () => {
+          // Replace with your edit logic
+          console.log("Edit item:", params.row);
+        };
+
+        const handleDelete = () => {
+          // Replace with your delete logic
+          console.log("Delete item:", params.row);
+        };
+
+        return (
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
+          >
+            <Stack direction="row" spacing={1}>
+              <IconButton size="small" onClick={handleEdit} color="primary">
+                <EditIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="small" onClick={handleDelete} color="error">
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Stack>
+          </Box>
+        );
+      },
+      flex: 1,
     },
   ];
 
@@ -924,13 +1163,6 @@ export default function DesignerDashBoard() {
                         legend: { position: "top" },
                         title: {
                           display: true,
-                          // text: `Biểu đồ ${
-                          //   range === "week"
-                          //     ? "Tuần"
-                          //     : range === "month"
-                          //     ? "Tháng"
-                          //     : "Năm"
-                          // }`,
                         },
                       },
                     }}
@@ -1043,26 +1275,104 @@ export default function DesignerDashBoard() {
       {/* Tab Sản Phẩm  */}
       {tabIndex === 1 && (
         <Box sx={{ width: "100%" }}>
-          <Grid container spacing={5} sx={{ width: "100%", margin: "20px 0" }}>
-            {displayedProducts.map((product) => (
-              <Grid key={product.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                <DesignCard product={product} />
+          {/* Material Stat */}
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              gap: 3,
+            }}
+          >
+            {fashion_stats.map((item, index) => (
+              <Grid key={index} sx={{ flex: 1, margin: "20px 0" }}>
+                <Card
+                  variant="outlined"
+                  sx={{
+                    borderRadius: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <CardContent
+                    sx={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                    >
+                      <Typography variant="subtitle2" color="text.secondary">
+                        {item.title}
+                      </Typography>
+                      <Avatar
+                        sx={{ bgcolor: item.color, width: 35, height: 35 }}
+                      >
+                        {item.icon}
+                      </Avatar>
+                    </Stack>
+                    <Box>
+                      <Typography variant="h5" fontWeight="bold" mt={1}>
+                        {item.value}
+                      </Typography>
+                      <Typography variant="body2" color="success.main" mt={0.5}>
+                        {item.subtitle}
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
               </Grid>
             ))}
-          </Grid>
-
-          <Box display="flex" sx={{ width: "100%", border: "1px solid black" }}>
-            <Pagination
-              count={Math.ceil(products.length / pageSize)}
-              showFirstButton
-              showLastButton
-              onChange={handlePagination}
-            />
-            {/* <Typography sx={{ mb: 2, margin: "auto 0" }}>
-              {pagination.from + 1} - {Math.min(pagination.to, products.length)}{" "}
-              của {products.length} sản phẩm
-            </Typography> */}
           </Box>
+          {/* Table */}
+          <DataGrid
+            rows={products}
+            columns={fashion_columns}
+            initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 5,
+                },
+              },
+            }}
+            pageSizeOptions={[5]}
+            disableRowSelectionOnClick
+            sx={{
+              width: "100%", // or set a fixed px width like "800px"
+            }}
+          />
+          <BootstrapDialog
+            onClose={handleClose}
+            aria-labelledby="customized-dialog-title"
+            open={open}
+          >
+            <IconButton
+              aria-label="close"
+              onClick={handleClose}
+              sx={(theme) => ({
+                position: "absolute",
+                right: 8,
+                top: 8,
+                color: theme.palette.grey[500],
+              })}
+            >
+              <CloseIcon />
+            </IconButton>
+
+            <img
+              src={selectedImage || ""}
+              alt="Preview"
+              style={{
+                maxWidth: "100%",
+                maxHeight: "80vh",
+                borderRadius: 10,
+              }}
+            />
+          </BootstrapDialog>
         </Box>
       )}
       {/* Tab Vật Liệu*/}

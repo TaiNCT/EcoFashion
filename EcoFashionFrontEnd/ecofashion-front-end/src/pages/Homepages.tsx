@@ -35,6 +35,7 @@ import { UserAuth } from "../services/AuthContext";
 
 //Icon
 import { AddToCart, EcoIcon, FavoriteBorderIcon } from "../assets/icons/icon";
+import { useEffect, useState } from "react";
 
 const products = [
   {
@@ -344,6 +345,18 @@ export default function Homepage() {
     </Card>
   );
   const { user } = UserAuth();
+
+  //Scroll Banner
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   return (
     <Box sx={{ minHeight: "100vh" }}>
       {/* Nav Bar */}
@@ -360,11 +373,20 @@ export default function Homepage() {
         }}
       ></AppBar>
       {/* Banner */}
-      <Box sx={{ position: "relative" }}>
+      <Box
+        sx={{
+          height: scrolled ? "100vh" : "100vh",
+          transition: "height 0.5s ease",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          position: "relative",
+        }}
+      >
         <img
           src={banner}
           alt="EcoFashion Banner"
-          style={{ width: "100%", height: 580, objectFit: "cover" }}
+          style={{ width: "100%", height: "580", objectFit: "cover" }}
         />
         <Box
           sx={{
@@ -375,6 +397,7 @@ export default function Homepage() {
             textAlign: "center",
             color: "white",
             width: "100%",
+            marginTop: "30px",
           }}
         >
           <Box
@@ -450,6 +473,7 @@ export default function Homepage() {
                   textAlign: "center",
                   justifyContent: "center",
                   width: "50%",
+                  marginTop: "30px",
                 }}
               >
                 <Typography

@@ -44,6 +44,9 @@ import { EcoIcon } from "../assets/icons/icon";
 import GRS from "../assets/pictures/certificate/global-recycled-standard-(grs).webp";
 import OEKO from "../assets/pictures/certificate/image-removebg-preview-70.png";
 
+//example
+import Banner from "../assets/pictures/detail.jpg";
+
 const products = [
   {
     id: "1",
@@ -54,7 +57,12 @@ const products = [
     price: "1.900.000₫",
     rating: 4,
     recycledPercentage: 90,
-    material: ["Vải Cotton", "Vải Linen"],
+    material: [
+      { materialName: "Vải Cotton", percentage: 20 },
+      { materialName: "Vải Linen", percentage: 70 },
+      { materialName: "Vải Sợi", percentage: 5 },
+      { materialName: "Vải Nilom", percentage: 5 },
+    ],
   },
   {
     id: "2",
@@ -65,7 +73,10 @@ const products = [
     price: "1.900.000₫",
     rating: 4,
     recycledPercentage: 95,
-    material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
+    material: [
+      { materialName: "Vải Cotton", percentage: 30 },
+      { materialName: "Vải Linen", percentage: 70 },
+    ],
   },
   {
     id: "3",
@@ -76,7 +87,10 @@ const products = [
     price: "1.900.000₫",
     rating: 4,
     recycledPercentage: 100,
-    material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
+    material: [
+      { materialName: "Vải Cotton", percentage: 30 },
+      { materialName: "Vải Linen", percentage: 70 },
+    ],
   },
   {
     id: "4",
@@ -87,7 +101,10 @@ const products = [
     price: "1.900.000₫",
     rating: 4,
     recycledPercentage: 100,
-    material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
+    material: [
+      { materialName: "Vải Cotton", percentage: 30 },
+      { materialName: "Vải Linen", percentage: 70 },
+    ],
   },
 ];
 
@@ -141,6 +158,7 @@ export default function FashionDetail() {
 
   const [size, setSize] = useState("M");
 
+  //Change Image
   const [currentIndex, setCurrentIndex] = useState(0);
   const handlePrev = () => {
     setCurrentIndex((prev) =>
@@ -154,13 +172,30 @@ export default function FashionDetail() {
     );
   };
 
+  //Change Tab
   const [tabIndex, setTabIndex] = useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
+
+  const materialColors = [
+    "success.main",
+    "error.main",
+    "primary.main",
+    "warning.main",
+    "info.main",
+    "secondary.main",
+  ];
+
   return (
-    <Box sx={{ mx: "auto", width: "100%" }}>
+    <Box
+      sx={{
+        mx: "auto",
+        width: "100%",
+        backgroundImage: `url(${Banner})`,
+      }}
+    >
       <AppBar
         position="static"
         elevation={0}
@@ -180,9 +215,9 @@ export default function FashionDetail() {
           <Typography color="text.primary">{product.title}</Typography>
         </Breadcrumbs>
       </AppBar>
-      <Box sx={{ mx: "auto", width: "80%" }}>
+      <Box sx={{ mx: "auto", width: "80%", bgcolor: "#fff" }}>
         {/* Chi Tiết Sản Phẩm */}
-        <Box sx={{ bgcolor: "#fff", py: 6, px: 4, display: "flex" }}>
+        <Box sx={{ py: 2, px: 4, display: "flex" }}>
           {/* Right: Image */}
           <Grid
             sx={{
@@ -256,9 +291,11 @@ export default function FashionDetail() {
           <Grid sx={{ width: "70%" }}>
             <Box sx={{ display: "flex", marginBottom: "10px", width: "100%" }}>
               <Box
-                sx={{ display: "flex", flexDirection: "column", width: "40%" }}
+                sx={{ display: "flex", flexDirection: "column", width: "70%" }}
               >
-                <Typography sx={{ fontSize: "60px", margin: "auto 0" }}>
+                <Typography
+                  sx={{ fontSize: "60px", margin: "auto 0", width: "100%" }}
+                >
                   {product.title}
                 </Typography>
                 <Box sx={{ width: 200, display: "flex", alignItems: "center" }}>
@@ -276,7 +313,7 @@ export default function FashionDetail() {
               </Box>
               <Box
                 sx={{
-                  width: "80%",
+                  width: "30%",
                   margin: "auto",
                   display: "flex", // Dùng flex
                   justifyContent: "flex-end", // Đẩy nội dung sang phải
@@ -340,33 +377,34 @@ export default function FashionDetail() {
               <Typography sx={{ margin: "auto 0", fontSize: "25px" }}>
                 Chất Liệu:
               </Typography>
-              {product.material.map((mat) => (
-                <Box
-                  sx={{
-                    margin: "auto 0",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginLeft: "30px",
-                  }}
-                >
-                  <Typography
+              <Box
+                sx={{
+                  width: "100%",
+                  display: "flex",
+                }}
+              >
+                {product.material.map((mat, index) => (
+                  <Box
+                    key={mat.materialName}
                     sx={{
-                      fontSize: "20px",
-                      fontWeight: "Bold",
+                      width: `${mat.percentage}%`,
+                      border: "2px solid",
+                      borderColor:
+                        materialColors[index % materialColors.length],
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: materialColors[index % materialColors.length],
+                      fontSize: 20,
+                      padding: 2,
+                      fontWeight: "bold",
+                      flex: 1,
                     }}
                   >
-                    {mat}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "20px",
-                      fontWeight: "Bold",
-                    }}
-                  >
-                    10%
-                  </Typography>
-                </Box>
-              ))}
+                    {mat.materialName}: {mat.percentage}%
+                  </Box>
+                ))}{" "}
+              </Box>
             </Box>
 
             {/* Color */}
@@ -446,6 +484,7 @@ export default function FashionDetail() {
             margin: "auto",
             borderTop: "1px solid black",
             borderBottom: "1px solid black",
+            padding: 2,
           }}
         >
           <Grid
@@ -459,8 +498,22 @@ export default function FashionDetail() {
             <Avatar
               sx={{ margin: "auto 10px", height: "80px", width: "80px" }}
             />
-            <Box sx={{ margin: "auto 0", marginLeft: "30px" }}>
-              <Typography sx={{ width: "100%", fontSize: "25px" }}>
+            <Box
+              sx={{
+                margin: "auto ",
+                width: "100%",
+                overflow: "hidden",
+              }}
+            >
+              <Typography
+                sx={{
+                  width: "100%",
+                  fontSize: "25px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {product.author}
               </Typography>
               <Typography sx={{ width: "100%", fontSize: "15px" }}>
@@ -471,7 +524,8 @@ export default function FashionDetail() {
           <Grid
             sx={{
               width: "70%",
-              marginLeft: "30px",
+              paddingLeft: 5,
+              paddingRight: 5,
             }}
           >
             <Box sx={{ width: "100%" }}>
@@ -580,7 +634,7 @@ export default function FashionDetail() {
           {/* Tab Content */}
           {/* Tab Chi tiết Sản Phẩm */}
           {tabIndex === 0 && (
-            <Box sx={{ display: "flex" }}>
+            <Box sx={{ display: "flex", padding: 2 }}>
               {/* Mô Tả */}
               <Grid>
                 <Typography variant="subtitle1" fontWeight="bold">
@@ -751,7 +805,14 @@ export default function FashionDetail() {
                   </Box>
                 </Box>
               </Box>
-              <Box sx={{ display: "flex", width: "100%", margin: "auto" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  width: "100%",
+                  margin: "auto",
+                  padding: 2,
+                }}
+              >
                 {/* Mô Tả */}
                 <Grid sx={{ width: "40%", marginRight: "auto" }}>
                   <Typography variant="subtitle1" fontWeight="bold">
@@ -954,7 +1015,7 @@ export default function FashionDetail() {
           )}
           {/* Tab Vận Chuyển*/}
           {tabIndex === 3 && (
-            <Box sx={{ display: "flex" }}>
+            <Box sx={{ display: "flex", padding: 2 }}>
               {/* Mô Tả */}
               <Grid sx={{ flex: 1 }}>
                 <Typography variant="subtitle1" fontWeight="bold">
@@ -1029,7 +1090,7 @@ export default function FashionDetail() {
         </Box>
 
         {/* Related Products */}
-        <Box sx={{ margin: "30px 0" }}>
+        <Box sx={{ padding: 2 }}>
           <Typography
             variant="h5"
             fontWeight="bold"
@@ -1144,7 +1205,7 @@ export default function FashionDetail() {
                     {item.material.map((mat, index) => (
                       <Chip
                         key={index}
-                        label={mat}
+                        label={mat.materialName}
                         size="small"
                         sx={{
                           backgroundColor: "rgba(220, 252, 231, 1)",
