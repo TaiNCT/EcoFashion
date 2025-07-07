@@ -194,6 +194,7 @@ export default function FashionDetail() {
         mx: "auto",
         width: "100%",
         backgroundImage: `url(${Banner})`,
+        marginTop: "100px",
       }}
     >
       <AppBar

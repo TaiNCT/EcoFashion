@@ -31,7 +31,7 @@ import chan_vay_dap from "../assets/pictures/example/chan-vay-dap.webp";
 import dam_con_trung from "../assets/pictures/example/dam-con-trung.webp";
 
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
-import { UserAuth } from "../services/AuthContext";
+import { useAuth } from "../services/user/AuthContext";
 
 //Icon
 import { AddToCart, EcoIcon, FavoriteBorderIcon } from "../assets/icons/icon";
@@ -344,7 +344,7 @@ export default function Homepage() {
       </CardContent>
     </Card>
   );
-  const { user } = UserAuth();
+  const { user } = useAuth();
 
   //Scroll Banner
   const [scrolled, setScrolled] = useState(false);
@@ -359,23 +359,10 @@ export default function Homepage() {
   }, []);
   return (
     <Box sx={{ minHeight: "100vh" }}>
-      {/* Nav Bar */}
-      <AppBar
-        position="static"
-        elevation={0}
-        sx={{
-          backgroundColor: "white",
-          borderBottom: "1px solid black",
-          borderTop: "1px solid black",
-          margin: "auto",
-          width: "100%",
-          justifyContent: "space-evenly",
-        }}
-      ></AppBar>
       {/* Banner */}
       <Box
         sx={{
-          height: scrolled ? "100vh" : "100vh",
+          height: "90vh",
           transition: "height 0.5s ease",
           display: "flex",
           justifyContent: "center",
@@ -391,13 +378,9 @@ export default function Homepage() {
         <Box
           sx={{
             position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
             textAlign: "center",
             color: "white",
             width: "100%",
-            marginTop: "30px",
           }}
         >
           <Box
@@ -588,6 +571,7 @@ export default function Homepage() {
         sx={{
           backgroundColor: "#f3f3f3",
           padding: "40px 10px",
+          position: "relative",
           backgroundImage: `
           linear-gradient(0deg,
             transparent 24%,

@@ -27,7 +27,7 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 import React, { useEffect, useState } from "react";
 //example
 import profile_picture from "../assets/pictures/example/profile_picture.jpg";
-import { UserAuth } from "../services/AuthContext";
+import { useAuth } from "../services/user/AuthContext";
 
 // const StyledInput = styled(InputBase)({
 //   borderRadius: 20,
@@ -60,8 +60,8 @@ export default function Navigation() {
   const handleAuth = (type: any) => {
     handleClose();
     switch (type) {
-      case "register":
-        navigate("/register");
+      case "signup":
+        navigate("/signup");
         break;
       case "login":
         navigate("/login");
@@ -88,7 +88,7 @@ export default function Navigation() {
     },
   }));
 
-  const { user, logout } = UserAuth();
+  const { user, logout } = useAuth();
   const handleLogout = async () => {
     try {
       await logout();
@@ -116,7 +116,7 @@ export default function Navigation() {
   }, [isHome]);
   return (
     <AppBar
-      position="fixed"
+      position="sticky"
       elevation={scrolled || !isHome ? 4 : 0}
       sx={{
         backgroundColor: scrolled || !isHome ? "#fff" : "transparent",
@@ -311,7 +311,7 @@ export default function Navigation() {
                   <Typography sx={{ padding: "3px" }}>Đăng Nhập</Typography>
                 </Box>
               </MenuItem>
-              <MenuItem onClick={() => handleAuth("register")}>
+              <MenuItem onClick={() => handleAuth("signup")}>
                 <Box sx={{ display: "flex" }}>
                   <Icon>
                     <HowToRegIcon />

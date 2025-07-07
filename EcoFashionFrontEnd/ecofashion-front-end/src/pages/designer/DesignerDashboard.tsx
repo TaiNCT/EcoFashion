@@ -20,7 +20,7 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import { UserAuth } from "../../services/AuthContext";
+import { useAuth } from "../../services/user/AuthContext";
 //Icon
 import AddIcon from "@mui/icons-material/Add";
 import React, { useState } from "react";
@@ -449,7 +449,7 @@ export default function DesignerDashBoard() {
   };
   const chartData = getCurrentData();
 
-  const { user } = UserAuth();
+  const { user } = useAuth();
   //Change Tabs
   const [tabIndex, setTabIndex] = useState(0);
 

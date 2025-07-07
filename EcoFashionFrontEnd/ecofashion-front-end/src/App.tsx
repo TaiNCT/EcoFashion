@@ -12,7 +12,6 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 // make sure its top
 
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Signup from "./pages/Signup";
 import VerifyOTP from "./components/VerifyOTP";
 import DesignerProfile from "./pages/designer/DesignerProfile";
@@ -40,7 +39,7 @@ function App() {
 
   const location = useLocation();
   // Hide Nav and Footer on these routes
-  const hideLayout = ["/login", "/register"].includes(location.pathname);
+  const hideLayout = ["/login", "/signup"].includes(location.pathname);
   return (
     <AuthContextProvider>
       <div className="app">
@@ -49,7 +48,6 @@ function App() {
           <Route path="/" element={<Homepages />} />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/detail/:id" element={<FashionDetail />} />
           <Route path="/designer/register" element={<DesignerRegister />} />
           <Route path="/businessinfor" element={<BusinessInfor />} />

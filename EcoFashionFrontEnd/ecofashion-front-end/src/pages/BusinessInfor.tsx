@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 
 import React, { useEffect, useState } from "react";
-import { UserAuth } from "../services/AuthContext";
+import { useAuth } from "../services/user/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function BusinessInfor() {
@@ -28,7 +28,7 @@ export default function BusinessInfor() {
     setTabIndex(newValue);
   };
 
-  const { user } = UserAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const handleClick = (type: any) => {
     switch (type) {

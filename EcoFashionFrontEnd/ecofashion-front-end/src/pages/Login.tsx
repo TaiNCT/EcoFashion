@@ -355,7 +355,7 @@ export default function Login() {
                   <Typography variant="body2" sx={{ color: "#666" }}>
                     Chưa có tài khoản?{" "}
                     <Link
-                      to="/register"
+                      to="/signup"
                       style={{
                         color: "#4caf50",
                         textDecoration: "none",
