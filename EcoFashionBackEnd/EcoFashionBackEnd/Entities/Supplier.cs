@@ -31,5 +31,8 @@ namespace EcoFashionBackEnd.Entities
         public DateTime? UpdatedAt { get; set; }
 
         public string? Status { get; set; }
+        public ICollection<Material> Materials { get; set; } = new List<Material>();
+        public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+        public ICollection<SupOrder> SupOrders { get; set; } = new List<SupOrder>();
     }
 }

@@ -31,5 +31,14 @@ namespace EcoFashionBackEnd.Entities
         public DateTime? UpdatedAt { get; set; }
 
         public string? Status { get; set; }
+
+        public ICollection<Design> Designs { get; set; } = new List<Design>();
+        public ICollection<DesignerLike> DesignerLikes { get; set; } = new List<DesignerLike>();
+        public ICollection<DesignDraft> DesignDrafts { get; set; } = new List<DesignDraft>();
+        public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+        public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<SavedMaterial> SavedMaterials { get; set; } = new List<SavedMaterial>();
+        public ICollection<SupOrder> SupOrders { get; set; } = new List<SupOrder>();
     }
 }

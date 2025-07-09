@@ -12,7 +12,6 @@ using EcoFashionBackEnd.Middlewares;
 using MailKit;
 using EcoFashionBackEnd.Mapper;
 using EcoFashionBackEnd.Helpers.Photos;
-using EcoFashionBackEnd.Services;
 using EcoFashionBackEnd.Data;
 
 

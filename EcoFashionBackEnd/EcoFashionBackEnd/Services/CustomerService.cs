@@ -23,28 +23,26 @@ namespace EcoFashionBackEnd.Services
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<UserModel>> GetAllCustomers()
+        public Task<IEnumerable<UserModel>> GetAllCustomers()
         {
-            var result = _customerRepository.GetAll().ToList();
-            return _mapper.Map<List<UserModel>>(result);
+            var result =  _customerRepository.GetAll().ToList();
+            return Task.FromResult<IEnumerable<UserModel>>(_mapper.Map<List<UserModel>>(result));
         }
 
         public async Task<int> CreateCustomer(CreateCustomerRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Username) &&
-                string.IsNullOrWhiteSpace(request.Phone) &&
-                string.IsNullOrWhiteSpace(request.Email))
+            if (string.IsNullOrWhiteSpace(request.Email))
             {
-                throw new ArgumentException("At least one of Username, Phone, or Email must be provided.");
+                throw new ArgumentException("Email must be provided.");
             }
             var customer = new User
             {
                 Email = request.Email,
-                Username = request.Username,
                 Phone = request.Phone,
                // Status = UserStatus.Active,
                 PasswordHash = SecurityUtil.Hash(request.Password),
                 RoleId = 4,
+                UserRole = new UserRole { RoleName = "customer", Description = "Customer user" }
             };
 
             await _customerRepository.AddAsync(customer);
@@ -70,7 +68,6 @@ namespace EcoFashionBackEnd.Services
 
             existingCustomer.Email = request.Email ?? existingCustomer.Email;
             existingCustomer.Phone = request.Phone ?? existingCustomer.Phone;
-            existingCustomer.Username = request.Username ?? existingCustomer.Username;
             existingCustomer.FullName = request.FullName ?? existingCustomer.FullName;
             if (!string.IsNullOrEmpty(request.Password))
                 existingCustomer.PasswordHash = SecurityUtil.Hash(request.Password);

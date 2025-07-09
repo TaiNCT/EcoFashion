@@ -8,6 +8,6 @@ namespace EcoFashionBackEnd.Dtos
 
         [Required]
         [StringLength(50)]
-        public string RoleName { get; set; }
+        public required string RoleName { get; set; }
     }
 }

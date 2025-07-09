@@ -16,5 +16,7 @@ namespace EcoFashionBackEnd.Entities
         public string RoleName { get; set; } = string.Empty; // e.g., 'designer', 'supplier'
 
         public string? Description { get; set; } // Optional description
+
+        public ICollection<Application> Applications { get; set; } = new List<Application>();
     }
 }

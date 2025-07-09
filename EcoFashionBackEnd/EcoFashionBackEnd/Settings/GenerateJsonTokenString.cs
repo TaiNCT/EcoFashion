@@ -17,7 +17,6 @@ public static class GenerateJsonTokenString
             new Claim(ClaimTypes.Name, user.FullName ?? ""),
             new Claim(ClaimTypes.Email, user.Email ?? ""),
             new Claim(ClaimTypes.MobilePhone, user.Phone ?? ""),
-            new Claim("username", user.Username ?? ""),
             new Claim(ClaimTypes.Role, user.UserRole?.RoleName ?? ""),
             new Claim("roleId", user.RoleId.ToString()),
             new Claim("status", user.Status.ToString()),

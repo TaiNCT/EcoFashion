@@ -76,7 +76,7 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Applications");
+                    b.ToTable("Applications", (string)null);
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Designer", b =>
@@ -135,7 +135,7 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Designer");
+                    b.ToTable("Designer", (string)null);
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Supplier", b =>
@@ -194,7 +194,7 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Supplier");
+                    b.ToTable("Supplier", (string)null);
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.User", b =>
@@ -250,7 +250,7 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.UserRole", b =>
@@ -271,7 +271,7 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasKey("RoleId");
 
-                    b.ToTable("UserRole");
+                    b.ToTable("UserRole", (string)null);
                 });
 
             modelBuilder.Entity("SavedSupplier", b =>
@@ -292,7 +292,7 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("Saved_Supplier");
+                    b.ToTable("Saved_Supplier", (string)null);
                 });
 
             modelBuilder.Entity("Application", b =>

@@ -1,19 +1,19 @@
-﻿using EcoFashionBackEnd.Entities;
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-[Table("Saved_Supplier")]
-public class SavedSupplier
+namespace EcoFashionBackEnd.Entities
 {
-    [Key]
-    public Guid SavedSupplierId { get; set; } = Guid.NewGuid();
-
-    [ForeignKey("Designer")]
-    public Guid? DesignerId { get; set; }
-    public virtual Designer? Designer { get; set; }
-
-    [ForeignKey("Supplier")]
-    public Guid? SupplierId { get; set; }
-    public virtual Supplier? Supplier { get; set; }
+    [Table("SavedSuppliers")]
+    public class SavedSupplier
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public Guid SavedSupplierId { get; set; }
+        public Guid DesignerId { get; set; }
+        public Guid SupplierId { get; set; }
+        [ForeignKey(nameof(DesignerId))]
+        public Designer Designer { get; set; } = null!;
+        [ForeignKey(nameof(SupplierId))]
+        public Supplier Supplier { get; set; } = null!;
+    }
 }

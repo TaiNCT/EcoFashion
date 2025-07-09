@@ -71,7 +71,8 @@ namespace EcoFashionBackEnd.Data
             PasswordHash = SecurityUtil.Hash("admin"),
             FullName = "Admin User",
             RoleId = adminRole.RoleId,
-            Status = UserStatus.Active
+            Status = UserStatus.Active,
+            UserRole = adminRole,
         },
         new User
         {
@@ -79,7 +80,8 @@ namespace EcoFashionBackEnd.Data
             PasswordHash = SecurityUtil.Hash("designer"),
             FullName = "Designer One",
             RoleId = designerRole.RoleId,
-            Status = UserStatus.Active
+            Status = UserStatus.Active,
+            UserRole = designerRole,
         },
         new User
         {

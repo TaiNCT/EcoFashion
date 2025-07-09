@@ -267,8 +267,7 @@ namespace EcoFashionBackEnd.Services
                 (!string.IsNullOrEmpty(a.Note) && a.Note.ToLower().Contains(lowerKeyword)) ||
                 (a.User != null && (
                     (!string.IsNullOrEmpty(a.User.FullName) && a.User.FullName.ToLower().Contains(lowerKeyword)) || 
-                    (!string.IsNullOrEmpty(a.User.Email) && a.User.Email.ToLower().Contains(lowerKeyword)) || 
-                    (!string.IsNullOrEmpty(a.User.Username) && a.User.Username.ToLower().Contains(lowerKeyword))
+                    (!string.IsNullOrEmpty(a.User.Email) && a.User.Email.ToLower().Contains(lowerKeyword))
                 ))
             );
             }
