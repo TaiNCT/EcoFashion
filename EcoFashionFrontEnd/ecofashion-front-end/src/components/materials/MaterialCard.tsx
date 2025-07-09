@@ -68,7 +68,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ material, onSelect }) => {
   return (
     <Card
       sx={{
-        height: "100%",
+        height: 380,
         display: "flex",
         flexDirection: "column",
         cursor: onSelect ? "pointer" : "default",
@@ -90,7 +90,15 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ material, onSelect }) => {
         sx={{ objectFit: "cover" }}
       />
 
-      <CardContent sx={{ flexGrow: 1, p: 2 }}>
+      <CardContent
+        sx={{
+          flexGrow: 1,
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
         <Box
           sx={{
             display: "flex",
@@ -102,7 +110,14 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ material, onSelect }) => {
           <Typography
             variant="h6"
             component="h3"
-            sx={{ fontWeight: "bold", flex: 1, fontSize: "1rem" }}
+            sx={{
+              fontWeight: "bold",
+              flex: 1,
+              fontSize: "1rem",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
           >
             {material.name}
           </Typography>
@@ -122,7 +137,13 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ material, onSelect }) => {
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ mb: 1.5, fontSize: "0.8rem" }}
+          sx={{
+            mb: 0.5,
+            fontSize: "0.75rem",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
         >
           {material.supplier}
         </Typography>
@@ -131,17 +152,25 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ material, onSelect }) => {
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ mb: 1.5, fontSize: "0.8rem", lineHeight: 1.3 }}
+            sx={{
+              fontSize: "0.75rem",
+              lineHeight: 1.3,
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              mb: 1,
+            }}
           >
             {material.description}
           </Typography>
         )}
 
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <Recycling sx={{ color: "#4caf50", mr: 1, fontSize: 18 }} />
           <Typography
             variant="body2"
-            sx={{ fontWeight: "medium", fontSize: "0.8rem" }}
+            sx={{ fontWeight: 500, fontSize: "0.75rem" }}
           >
             Sustainability: {sustainabilityScore}%
           </Typography>
@@ -152,13 +181,16 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ material, onSelect }) => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 1.5,
+            mb: 1,
           }}
         >
           <Typography
             variant="subtitle1"
-            component="span"
-            sx={{ fontWeight: "bold", color: "#4caf50", fontSize: "0.9rem" }}
+            sx={{
+              fontWeight: "bold",
+              color: "#4caf50",
+              fontSize: "0.85rem",
+            }}
           >
             {material.price}
           </Typography>
@@ -167,12 +199,12 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ material, onSelect }) => {
             label={material.availability}
             color={getAvailabilityColor(material.availability)}
             icon={<LocalShipping sx={{ fontSize: "0.8rem" }} />}
-            sx={{ fontSize: "0.7rem" }}
+            sx={{ fontSize: "0.65rem" }}
           />
         </Box>
 
         {/* Sustainability highlights */}
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: "auto" }}>
           {material.sustainability.recycledContent && (
             <Chip
               size="small"

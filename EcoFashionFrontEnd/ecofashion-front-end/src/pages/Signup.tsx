@@ -26,7 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { authApi } from "../services/api";
 import { toast } from "react-toastify";
 //Image
-import RegisterBanner from "../assets/pictures/register.jpg";
+import RegisterBanner from "../assets/pictures/register/register.jpg";
 // Validation schema
 const validationSchema = yup.object({
   email: yup.string().email("Email không hợp lệ").required("Email là bắt buộc"),

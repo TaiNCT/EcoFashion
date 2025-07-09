@@ -10,31 +10,32 @@ import {
   Toolbar,
   Typography,
   styled,
+  Divider,
 } from "@mui/material";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { useLocation, useNavigate } from "react-router-dom";
-import logo from "../assets/pictures/logo.png";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+//Image
+import logo from "../assets/pictures/homepage/logo.png";
 //Icon Login
 import DesignServicesIcon from "@mui/icons-material/DesignServices";
-import LogoutIcon from "@mui/icons-material/Logout";
-import CompostIcon from "@mui/icons-material/Compost";
 import SettingsIcon from "@mui/icons-material/Settings";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import LogoutIcon from "@mui/icons-material/Logout";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import PersonIcon from "@mui/icons-material/Person";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import PeopleIcon from "@mui/icons-material/People";
+import HandshakeIcon from "@mui/icons-material/Handshake";
+import FeedIcon from "@mui/icons-material/Feed";
 //Icon Register
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LoginIcon from "@mui/icons-material/Login";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 
 import React, { useEffect, useState } from "react";
-//example
-import profile_picture from "../assets/pictures/example/profile_picture.jpg";
-import { useAuth } from "../services/user/AuthContext";
 
-// const StyledInput = styled(InputBase)({
-//   borderRadius: 20,
-//   backgroundColor: "#fff",
-//   border: "1px solid #ccc",
-//   flex: 1,
-// });
+import { useAuth } from "../services/user/AuthContext";
+import { toast } from "react-toastify";
 
 export default function Navigation() {
   const navigate = useNavigate();
@@ -66,15 +67,6 @@ export default function Navigation() {
       case "login":
         navigate("/login");
         break;
-      case "designerregister":
-        navigate("/designer/register");
-        break;
-      case "desiger-profile":
-        navigate("/designer/profile");
-        break;
-      case "desiger-dashboard":
-        navigate("/designer/dashboard");
-        break;
     }
   };
 
@@ -92,11 +84,16 @@ export default function Navigation() {
   const handleLogout = async () => {
     try {
       await logout();
-      handleClose(); // Close the menu
-      navigate("/"); // Optional: Redirect to homepage or login
-    } catch (error) {
-      console.error("Logout failed:", error);
+      navigate("/");
+      toast.success("Đăng xuất thành công!", {
+        position: "top-center",
+      });
+    } catch (error: any) {
+      toast.error("Lỗi khi đăng xuất", {
+        position: "bottom-center",
+      });
     }
+    handleClose();
   };
 
   const location = useLocation();
@@ -114,6 +111,141 @@ export default function Navigation() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isHome]);
+
+  // Function để lấy menu items dựa trên role
+  const getMenuItems = () => {
+    if (!user) return [];
+
+    const role = user.role?.toLowerCase();
+    const menuItems = [];
+
+    switch (role) {
+      case "designer":
+        menuItems.push(
+          {
+            label: "Hồ Sơ Designer",
+            path: "/designer/profile",
+            icon: (
+              <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
+            label: "Sản Phẩm Cá Nhân",
+            path: "/designer/products",
+            icon: (
+              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
+            label: "Bảng Điều Khiển",
+            path: "/designer/dashboard",
+            icon: (
+              <DashboardIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          }
+        );
+        break;
+
+      case "admin":
+        menuItems.push(
+          {
+            label: "Bảng Điều Khiển",
+            path: "/admin/dashboard",
+            icon: (
+              <DashboardIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
+            label: "Quản Lý Đơn Đăng Ký",
+            path: "/admin/applications",
+            icon: (
+              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
+            label: "Quản Lý Users",
+            path: "/admin/users",
+            icon: (
+              <PeopleIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          }
+        );
+        break;
+
+      case "supplier":
+        menuItems.push(
+          {
+            label: "Hồ Sơ Nhà Cung Cấp",
+            path: "/supplier/profile",
+            icon: (
+              <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
+            label: "Quản Lý Kho Hàng",
+            path: "/supplier/inventory",
+            icon: (
+              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          }
+        );
+        break;
+
+      case "customer":
+      case "user":
+      default:
+        menuItems.push(
+          {
+            label: "Hồ Sơ Cá Nhân",
+            path: "/profile",
+            icon: (
+              <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          },
+          {
+            label: "Đơn Hàng",
+            path: "/orders",
+            icon: (
+              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+            ),
+          }
+        );
+        break;
+    }
+    // Thêm menu "Xem đơn đăng ký" cho tất cả user (trừ admin)
+    if (role !== "admin") {
+      menuItems.push({
+        label: "Xem đơn đăng ký",
+        path: "/my-applications",
+        icon: <FeedIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />,
+      });
+    }
+
+    // Thêm menu "Đăng ký tham gia" cho user chưa có role Designer/Supplier
+    if (role !== "designer" && role !== "admin" && role !== "supplier") {
+      menuItems.push({
+        label: "Đăng ký làm Nhà Thiết Kế",
+        path: "/apply/designer",
+        icon: (
+          <DesignServicesIcon
+            sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }}
+          />
+        ),
+      });
+    }
+
+    if (role !== "supplier" && role !== "admin" && role !== "designer") {
+      menuItems.push({
+        label: "Đăng ký làm Nhà Cung Cấp",
+        path: "/apply/supplier",
+        icon: (
+          <HandshakeIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+        ),
+      });
+    }
+
+    return menuItems;
+  };
   return (
     <AppBar
       position="sticky"
@@ -243,6 +375,14 @@ export default function Navigation() {
               }}
             />
           </IconButton>
+          <IconButton sx={{ color: "#3e4b3b" }}>
+            <FavoriteIcon
+              sx={{
+                fontSize: 30,
+                color: scrolled || !isHome ? "black" : "white",
+              }}
+            />
+          </IconButton>
           <Box sx={{ display: "flex" }}>
             {user != null ? (
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -254,13 +394,11 @@ export default function Navigation() {
                   onClick={handleClick}
                   sx={{ color: "#3e4b3b" }}
                 >
-                  <img
-                    src={profile_picture}
-                    alt="User avatar"
-                    style={{
+                  <AccountCircleIcon
+                    sx={{
                       height: "50px",
                       width: "50px",
-                      borderRadius: "50%",
+                      color: scrolled || !isHome ? "black" : "white",
                     }}
                   />
                 </IconButton>
@@ -322,110 +460,202 @@ export default function Navigation() {
             </Menu>
           ) : (
             <Menu
-              id="basic-menu"
               anchorEl={anchorEl}
-              open={open}
+              open={Boolean(anchorEl)}
               onClose={handleClose}
-              slotProps={{
-                list: {
-                  "aria-labelledby": "basic-button",
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              sx={{
+                "& .MuiPaper-root": {
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 2,
+                  mt: 1,
+                  minWidth: 100,
                 },
               }}
             >
-              {/* <MenuItem onClick={() => handleAuth("designerregister")}> */}
-              <MenuItem onClick={() => handleAuth("desiger-profile")}>
-                <Box sx={{ display: "flex" }}>
-                  <Icon>
-                    <DesignServicesIcon />
-                  </Icon>
-                  <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
-                </Box>
-              </MenuItem>
-              {user.roleId === 1 ? (
-                <MenuItem>
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
-                    <Typography sx={{ padding: "3px" }}>
-                      Admin DashBoard
-                    </Typography>
-                  </Box>
-                </MenuItem>
-              ) : user.roleId === 2 ? (
-                <MenuItem onClick={() => handleAuth("desiger-dashboard")}>
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
-                    <Typography sx={{ padding: "3px" }}>
-                      Designer DashBoard
-                    </Typography>
-                  </Box>
-                </MenuItem>
-              ) : user.roleId === 3 ? (
-                <MenuItem>
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
-                    <Typography sx={{ padding: "3px" }}>
-                      Supplier DashBoard
-                    </Typography>
-                  </Box>
-                </MenuItem>
-              ) : (
-                <>
-                  <MenuItem onClick={() => handleAuth("designerregister")}>
-                    <Box
-                      sx={{ display: "flex", borderBottom: "1px solid black" }}
+              {getMenuItems().map((item, index) => {
+                const isApplicationMenu = item.path.includes("/apply/");
+                const applicationMenuStartIndex = getMenuItems().findIndex(
+                  (menuItem) => menuItem.path.includes("/apply/")
+                );
+
+                return (
+                  <div key={index}>
+                    {/* Thêm divider trước menu đăng ký */}
+                    {isApplicationMenu &&
+                      index === applicationMenuStartIndex &&
+                      applicationMenuStartIndex > 0 && (
+                        <Divider sx={{ my: 1 }} />
+                      )}
+
+                    <MenuItem
+                      onClick={handleClose}
+                      sx={{
+                        // Style đặc biệt cho menu đăng ký
+                        ...(isApplicationMenu && {
+                          backgroundColor: "#f8f9fa",
+                          "&:hover": {
+                            backgroundColor: "#e9ecef",
+                          },
+                        }),
+                      }}
                     >
-                      <Icon>
-                        <CompostIcon />
-                      </Icon>
-                      <Typography sx={{ padding: "3px" }}>
-                        Đăng Kí Làm Nhà Thiết Kế
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem onClick={() => handleAuth("designerregister")}>
-                    <Box
-                      sx={{ display: "flex", borderBottom: "1px solid black" }}
-                    >
-                      <Icon>
-                        <CompostIcon />
-                      </Icon>
-                      <Typography sx={{ padding: "3px" }}>
-                        Đăng Kí Làm Nhà Cung Cấp
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                </>
-              )}
+                      <Link
+                        to={item.path}
+                        style={{
+                          textDecoration: "none",
+                          color: "inherit",
+                          display: "flex",
+                          alignItems: "center",
+                          width: "100%",
+                        }}
+                      >
+                        {item.icon}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: isApplicationMenu ? 600 : 500,
+                            fontSize: "0.875rem",
+                          }}
+                        >
+                          {item.label}
+                        </Typography>
+                      </Link>
+                    </MenuItem>
+                  </div>
+                );
+              })}
+              {/* Divider trước logout */}
+              <Divider sx={{ my: 1 }} />
 
               <MenuItem onClick={handleClose}>
-                <Box sx={{ display: "flex", width: "100%" }}>
-                  <Icon>
-                    <SettingsIcon />
-                  </Icon>
-                  <Typography sx={{ padding: "3px" }}>Cài Đặt</Typography>
-                </Box>
+                <SettingsIcon
+                  sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }}
+                />
+                <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+                  Cài Đặt
+                </Typography>
               </MenuItem>
               <MenuItem onClick={handleLogout}>
-                <Box sx={{ display: "flex", width: "100%" }}>
-                  <Icon>
-                    <LogoutIcon />
-                  </Icon>
-                  <Typography sx={{ padding: "3px" }}> Đăng Xuất</Typography>
-                </Box>
+                <LogoutIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
+                <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+                  Đăng Xuất
+                </Typography>
               </MenuItem>
             </Menu>
+            // <Menu
+            //   id="basic-menu"
+            //   anchorEl={anchorEl}
+            //   open={open}
+            //   onClose={handleClose}
+            //   slotProps={{
+            //     list: {
+            //       "aria-labelledby": "basic-button",
+            //     },
+            //   }}
+            // >
+            //   {/* <MenuItem onClick={() => handleAuth("designerregister")}> */}
+            //   <MenuItem onClick={() => handleAuth("desiger-profile")}>
+            //     <Box sx={{ display: "flex" }}>
+            //       <Icon>
+            //         <DesignServicesIcon />
+            //       </Icon>
+            //       <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
+            //     </Box>
+            //   </MenuItem>
+            //   {user.roleId === 1 ? (
+            //     <MenuItem>
+            //       <Box
+            //         sx={{ display: "flex", borderBottom: "1px solid black" }}
+            //       >
+            //         <Icon>
+            //           <CompostIcon />
+            //         </Icon>
+            //         <Typography sx={{ padding: "3px" }}>
+            //           Admin DashBoard
+            //         </Typography>
+            //       </Box>
+            //     </MenuItem>
+            //   ) : user.roleId === 2 ? (
+            //     <MenuItem onClick={() => handleAuth("desiger-dashboard")}>
+            //       <Box
+            //         sx={{ display: "flex", borderBottom: "1px solid black" }}
+            //       >
+            //         <Icon>
+            //           <CompostIcon />
+            //         </Icon>
+            //         <Typography sx={{ padding: "3px" }}>
+            //           Designer DashBoard
+            //         </Typography>
+            //       </Box>
+            //     </MenuItem>
+            //   ) : user.roleId === 3 ? (
+            //     <MenuItem>
+            //       <Box
+            //         sx={{ display: "flex", borderBottom: "1px solid black" }}
+            //       >
+            //         <Icon>
+            //           <CompostIcon />
+            //         </Icon>
+            //         <Typography sx={{ padding: "3px" }}>
+            //           Supplier DashBoard
+            //         </Typography>
+            //       </Box>
+            //     </MenuItem>
+            //   ) : (
+            //     <>
+            //       <MenuItem onClick={() => handleAuth("designerregister")}>
+            //         <Box
+            //           sx={{ display: "flex", borderBottom: "1px solid black" }}
+            //         >
+            //           <Icon>
+            //             <CompostIcon />
+            //           </Icon>
+            //           <Typography sx={{ padding: "3px" }}>
+            //             Đăng Kí Làm Nhà Thiết Kế
+            //           </Typography>
+            //         </Box>
+            //       </MenuItem>
+            //       <MenuItem onClick={() => handleAuth("designerregister")}>
+            //         <Box
+            //           sx={{ display: "flex", borderBottom: "1px solid black" }}
+            //         >
+            //           <Icon>
+            //             <CompostIcon />
+            //           </Icon>
+            //           <Typography sx={{ padding: "3px" }}>
+            //             Đăng Kí Làm Nhà Cung Cấp
+            //           </Typography>
+            //         </Box>
+            //       </MenuItem>
+            //     </>
+            //   )}
+
+            //   <MenuItem onClick={handleClose}>
+            //     <Box sx={{ display: "flex", width: "100%" }}>
+            //       <Icon>
+            //         <SettingsIcon />
+            //       </Icon>
+            //       <Typography sx={{ padding: "3px" }}>Cài Đặt</Typography>
+            //     </Box>
+            //   </MenuItem>
+            //   <MenuItem onClick={handleLogout}>
+            //     <Box sx={{ display: "flex", width: "100%" }}>
+            //       <Icon>
+            //         <LogoutIcon />
+            //       </Icon>
+            //       <Typography sx={{ padding: "3px" }}> Đăng Xuất</Typography>
+            //     </Box>
+            //   </MenuItem>
+            // </Menu>
           )}
         </Box>
       </Toolbar>
