@@ -7,10 +7,11 @@ import {
   Avatar,
   Chip,
   Button,
-  TextField,
   Paper,
   Divider,
   CircularProgress,
+  Grid,
+  TextField,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../services/user/AuthContext";
@@ -23,16 +24,16 @@ import {
   Phone,
   Email,
   LocationOn,
+  Language,
   Business,
   Badge,
   Image,
-  Work,
-  Palette,
+  Verified,
 } from "@mui/icons-material";
 
 export default function DesignerProfile() {
-  const { user } = useAuth();
-  const { profile, loading, saving, error, updateProfile } =
+  const { user, refreshUserFromServer } = useAuth();
+  const { profile, loading, saving, error, updateProfile, refreshProfile } =
     useDesignerProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<DesignerProfileType>>({});
@@ -68,6 +69,17 @@ export default function DesignerProfile() {
     setIsEditing(false);
   };
 
+  const handleRefreshAll = async () => {
+    try {
+      console.log("Refreshing user info from server...");
+      await refreshUserFromServer();
+      console.log("Refreshing designer profile...");
+      await refreshProfile();
+    } catch (error) {
+      console.error("Error refreshing:", error);
+    }
+  };
+
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -97,15 +109,29 @@ export default function DesignerProfile() {
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {user?.role !== "designer"
-              ? "Bạn cần có quyền Designer để xem trang này"
+              ? `Bạn cần có quyền Designer để xem trang này. Role hiện tại: ${user?.role}`
               : "Vui lòng liên hệ admin để tạo profile Designer"}
           </Typography>
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              onClick={handleRefreshAll}
+              sx={{ mr: 2 }}
+            >
+              🔄 Refresh thông tin
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => (window.location.href = "/my-applications")}
+            >
+              📋 Xem đơn đăng ký
+            </Button>
+          </Box>
         </Box>
       </Container>
     );
   }
 
-  // Don't render main content if profile is null
   if (!profile) {
     return null;
   }
@@ -123,7 +149,7 @@ export default function DesignerProfile() {
           }}
         >
           <Typography variant="h4" component="h1" fontWeight="bold">
-            Designer Profile
+            Hồ Sơ Designer Của Tôi
           </Typography>
           {!isEditing ? (
             <Button
@@ -156,215 +182,174 @@ export default function DesignerProfile() {
             </Box>
           )}
         </Box>
-        <Chip
-          label={`Trạng thái: ${profile.status || "Chưa xác định"}`}
-          color={profile.status === "Active" ? "success" : "default"}
-          variant="outlined"
-        />
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Chip
+            label={`Trạng thái: ${profile.status || "Chưa xác định"}`}
+            color={profile.status === "Active" ? "success" : "default"}
+            variant="outlined"
+            icon={<Verified />}
+          />
+          <Chip label="Designer" color="primary" variant="outlined" />
+        </Box>
       </Box>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-        {/* Basic Information */}
-        <Card>
-          <CardContent>
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
-            >
-              <Badge sx={{ mr: 1, color: "#4caf50" }} />
-              Thông tin cơ bản
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-              <Avatar
-                sx={{ width: 80, height: 80, mr: 2, bgcolor: "#4caf50" }}
-                src={profile.bannerUrl}
+      <Grid container spacing={4}>
+        {/* Left Column - Main Info */}
+        <Grid item xs={12} md={8}>
+          {/* Basic Information */}
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: "flex", alignItems: "center" }}
               >
-                {profile.designerName?.charAt(0)}
-              </Avatar>
-              <Box>
-                <Typography variant="h6">{profile.designerName}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Designer ID: {profile.designerId}
-                </Typography>
+                <Badge sx={{ mr: 1, color: "#4caf50" }} />
+                Thông tin cơ bản
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+
+              <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                <Avatar
+                  sx={{ width: 80, height: 80, mr: 3, bgcolor: "#4caf50" }}
+                  src={profile.bannerUrl}
+                >
+                  {profile.designerName?.charAt(0)}
+                </Avatar>
+                <Box>
+                  <Typography variant="h6">
+                    {profile.designerName || user?.fullName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Designer ID: {profile.designerId}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Email: {profile.email || user?.email}
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {isEditing ? (
-                <TextField
-                  fullWidth
-                  label="Tên Designer"
-                  value={formData.designerName || ""}
-                  onChange={(e) =>
-                    handleInputChange("designerName", e.target.value)
-                  }
-                />
-              ) : (
-                <Typography variant="body1">
-                  <strong>Tên:</strong> {profile.designerName}
-                </Typography>
-              )}
-
-              {isEditing ? (
-                <TextField
-                  fullWidth
-                  label="Portfolio URL"
-                  value={formData.portfolioUrl || ""}
-                  onChange={(e) =>
-                    handleInputChange("portfolioUrl", e.target.value)
-                  }
-                />
-              ) : (
-                <Typography
-                  variant="body1"
-                  sx={{ display: "flex", alignItems: "center" }}
-                >
-                  <Work sx={{ mr: 1, color: "#4caf50" }} />
-                  <strong>Portfolio:</strong>&nbsp;
-                  {profile.portfolioUrl ? (
-                    <a
-                      href={profile.portfolioUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {profile.portfolioUrl}
-                    </a>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  {isEditing ? (
+                    <TextField
+                      fullWidth
+                      label="Tên Designer"
+                      value={formData.designerName || ""}
+                      onChange={(e) =>
+                        handleInputChange("designerName", e.target.value)
+                      }
+                    />
                   ) : (
-                    "Chưa cập nhật"
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Tên Designer
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {profile.designerName || "Chưa cập nhật"}
+                      </Typography>
+                    </Box>
                   )}
-                </Typography>
-              )}
+                </Grid>
 
-              {isEditing ? (
-                <TextField
-                  fullWidth
-                  label="Specialization URL"
-                  value={formData.specializationUrl || ""}
-                  onChange={(e) =>
-                    handleInputChange("specializationUrl", e.target.value)
-                  }
-                />
-              ) : (
-                <Typography
-                  variant="body1"
-                  sx={{ display: "flex", alignItems: "center" }}
-                >
-                  <Palette sx={{ mr: 1, color: "#4caf50" }} />
-                  <strong>Chuyên môn:</strong>&nbsp;
-                  {profile.specializationUrl ? (
-                    <a
-                      href={profile.specializationUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Xem chuyên môn
-                    </a>
+                <Grid item xs={12} md={6}>
+                  {isEditing ? (
+                    <TextField
+                      fullWidth
+                      label="Số điện thoại"
+                      value={formData.phoneNumber || ""}
+                      onChange={(e) =>
+                        handleInputChange("phoneNumber", e.target.value)
+                      }
+                    />
                   ) : (
-                    "Chưa cập nhật"
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Số điện thoại
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {profile.phoneNumber || "Chưa cập nhật"}
+                      </Typography>
+                    </Box>
                   )}
-                </Typography>
-              )}
-            </Box>
-          </CardContent>
-        </Card>
+                </Grid>
 
-        {/* Contact Information */}
-        <Card>
-          <CardContent>
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
-            >
-              <Email sx={{ mr: 1, color: "#4caf50" }} />
-              Thông tin liên hệ
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
+                <Grid item xs={12}>
+                  {isEditing ? (
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      label="Địa chỉ"
+                      value={formData.address || ""}
+                      onChange={(e) =>
+                        handleInputChange("address", e.target.value)
+                      }
+                    />
+                  ) : (
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Địa chỉ
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {profile.address || "Chưa cập nhật"}
+                      </Typography>
+                    </Box>
+                  )}
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {isEditing ? (
-                <TextField
-                  fullWidth
-                  label="Email"
-                  value={formData.email || ""}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                />
-              ) : (
-                <Typography
-                  variant="body1"
-                  sx={{ display: "flex", alignItems: "center" }}
-                >
-                  <Email sx={{ mr: 1, color: "#4caf50" }} />
-                  <strong>Email:</strong>&nbsp;
-                  {profile.email || "Chưa cập nhật"}
-                </Typography>
-              )}
+          {/* Portfolio & Business */}
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: "flex", alignItems: "center" }}
+              >
+                <Language sx={{ mr: 1, color: "#4caf50" }} />
+                Portfolio & Kinh doanh
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
 
-              {isEditing ? (
-                <TextField
-                  fullWidth
-                  label="Số điện thoại"
-                  value={formData.phoneNumber || ""}
-                  onChange={(e) =>
-                    handleInputChange("phoneNumber", e.target.value)
-                  }
-                />
-              ) : (
-                <Typography
-                  variant="body1"
-                  sx={{ display: "flex", alignItems: "center" }}
-                >
-                  <Phone sx={{ mr: 1, color: "#4caf50" }} />
-                  <strong>Điện thoại:</strong>&nbsp;
-                  {profile.phoneNumber || "Chưa cập nhật"}
-                </Typography>
-              )}
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  {isEditing ? (
+                    <TextField
+                      fullWidth
+                      label="Portfolio URL"
+                      value={formData.portfolioUrl || ""}
+                      onChange={(e) =>
+                        handleInputChange("portfolioUrl", e.target.value)
+                      }
+                    />
+                  ) : (
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Portfolio URL
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {profile.portfolioUrl ? (
+                          <a
+                            href={profile.portfolioUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "#4caf50" }}
+                          >
+                            {profile.portfolioUrl}
+                          </a>
+                        ) : (
+                          "Chưa cập nhật"
+                        )}
+                      </Typography>
+                    </Box>
+                  )}
+                </Grid>
 
-              {isEditing ? (
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Địa chỉ"
-                  value={formData.address || ""}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                />
-              ) : (
-                <Typography
-                  variant="body1"
-                  sx={{ display: "flex", alignItems: "flex-start" }}
-                >
-                  <LocationOn sx={{ mr: 1, color: "#4caf50", mt: 0.5 }} />
-                  <Box>
-                    <strong>Địa chỉ:</strong>
-                    <br />
-                    {profile.address || "Chưa cập nhật"}
-                  </Box>
-                </Typography>
-              )}
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Business Information */}
-        <Card>
-          <CardContent>
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
-            >
-              <Business sx={{ mr: 1, color: "#4caf50" }} />
-              Thông tin kinh doanh
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <Box sx={{ flex: 1 }}>
+                <Grid item xs={12} md={6}>
                   {isEditing ? (
                     <TextField
                       fullWidth
@@ -375,195 +360,206 @@ export default function DesignerProfile() {
                       }
                     />
                   ) : (
-                    <Typography variant="body1">
-                      <strong>Mã số thuế:</strong>{" "}
-                      {profile.taxNumber || "Chưa cập nhật"}
-                    </Typography>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Mã số thuế
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {profile.taxNumber || "Chưa cập nhật"}
+                      </Typography>
+                    </Box>
                   )}
-                </Box>
-                <Box sx={{ flex: 1 }}>
+                </Grid>
+
+                <Grid item xs={12}>
                   {isEditing ? (
                     <TextField
                       fullWidth
-                      label="Số CMND/CCCD"
-                      value={formData.identificationNumber || ""}
+                      label="Chuyên môn URL"
+                      value={formData.specializationUrl || ""}
                       onChange={(e) =>
-                        handleInputChange(
-                          "identificationNumber",
-                          e.target.value
-                        )
+                        handleInputChange("specializationUrl", e.target.value)
                       }
                     />
                   ) : (
-                    <Typography variant="body1">
-                      <strong>Số CMND/CCCD:</strong>{" "}
-                      {profile.identificationNumber || "Chưa cập nhật"}
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Documents */}
-        <Card>
-          <CardContent>
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
-            >
-              <Image sx={{ mr: 1, color: "#4caf50" }} />
-              Hồ sơ giấy tờ
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-              <Box sx={{ flex: 1, minWidth: 250 }}>
-                <Paper sx={{ p: 2, textAlign: "center" }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Ảnh CMND/CCCD
-                  </Typography>
-                  {profile.identificationPicture ? (
                     <Box>
-                      <img
-                        src={profile.identificationPicture}
-                        alt="CMND/CCCD"
-                        style={{
-                          maxWidth: "100%",
-                          height: "150px",
-                          objectFit: "cover",
-                        }}
-                      />
-                      {isEditing && (
-                        <TextField
-                          fullWidth
-                          label="URL ảnh CMND/CCCD"
-                          value={formData.identificationPicture || ""}
-                          onChange={(e) =>
-                            handleInputChange(
-                              "identificationPicture",
-                              e.target.value
-                            )
-                          }
-                          sx={{ mt: 1 }}
-                        />
-                      )}
-                    </Box>
-                  ) : (
-                    <Box sx={{ py: 4, color: "text.secondary" }}>
-                      <Image sx={{ fontSize: 40 }} />
-                      <Typography>Chưa tải lên</Typography>
-                      {isEditing && (
-                        <TextField
-                          fullWidth
-                          label="URL ảnh CMND/CCCD"
-                          value={formData.identificationPicture || ""}
-                          onChange={(e) =>
-                            handleInputChange(
-                              "identificationPicture",
-                              e.target.value
-                            )
-                          }
-                          sx={{ mt: 1 }}
-                        />
-                      )}
+                      <Typography variant="body2" color="text.secondary">
+                        Chuyên môn URL
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {profile.specializationUrl ? (
+                          <a
+                            href={profile.specializationUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "#4caf50" }}
+                          >
+                            Xem chuyên môn
+                          </a>
+                        ) : (
+                          "Chưa cập nhật"
+                        )}
+                      </Typography>
                     </Box>
                   )}
-                </Paper>
-              </Box>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
 
-              <Box sx={{ flex: 1, minWidth: 250 }}>
-                <Paper sx={{ p: 2, textAlign: "center" }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Ảnh chủ sở hữu
-                  </Typography>
-                  {profile.identificationPictureOwner ? (
-                    <Box>
-                      <img
-                        src={profile.identificationPictureOwner}
-                        alt="Chủ sở hữu"
-                        style={{
-                          maxWidth: "100%",
-                          height: "150px",
-                          objectFit: "cover",
-                        }}
-                      />
-                      {isEditing && (
-                        <TextField
-                          fullWidth
-                          label="URL ảnh chủ sở hữu"
-                          value={formData.identificationPictureOwner || ""}
-                          onChange={(e) =>
-                            handleInputChange(
-                              "identificationPictureOwner",
-                              e.target.value
-                            )
-                          }
-                          sx={{ mt: 1 }}
-                        />
-                      )}
-                    </Box>
-                  ) : (
-                    <Box sx={{ py: 4, color: "text.secondary" }}>
-                      <Image sx={{ fontSize: 40 }} />
-                      <Typography>Chưa tải lên</Typography>
-                      {isEditing && (
-                        <TextField
-                          fullWidth
-                          label="URL ảnh chủ sở hữu"
-                          value={formData.identificationPictureOwner || ""}
-                          onChange={(e) =>
-                            handleInputChange(
-                              "identificationPictureOwner",
-                              e.target.value
-                            )
-                          }
-                          sx={{ mt: 1 }}
-                        />
-                      )}
-                    </Box>
-                  )}
-                </Paper>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Timeline */}
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Lịch sử hoạt động
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            <Typography variant="body2" color="text.secondary">
-              <strong>Ngày tạo:</strong>{" "}
-              {new Date(profile.createdAt).toLocaleDateString("vi-VN", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </Typography>
-            {profile.updatedAt && (
-              <Typography variant="body2" color="text.secondary">
-                <strong>Cập nhật lần cuối:</strong>{" "}
-                {new Date(profile.updatedAt).toLocaleDateString("vi-VN", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+        {/* Right Column - CCCD & Identity */}
+        <Grid item xs={12} md={4}>
+          {/* Identity Verification */}
+          <Card>
+            <CardContent>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: "flex", alignItems: "center" }}
+              >
+                <Image sx={{ mr: 1, color: "#4caf50" }} />
+                Xác minh danh tính
               </Typography>
-            )}
-          </CardContent>
-        </Card>
-      </Box>
+              <Divider sx={{ mb: 3 }} />
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Số CMND/CCCD
+                </Typography>
+                {isEditing ? (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    value={formData.identificationNumber || ""}
+                    onChange={(e) =>
+                      handleInputChange("identificationNumber", e.target.value)
+                    }
+                  />
+                ) : (
+                  <Typography variant="body1" fontWeight="medium">
+                    {profile.identificationNumber || "Chưa cập nhật"}
+                  </Typography>
+                )}
+              </Box>
+
+              {/* CCCD Front Image */}
+              <Paper sx={{ p: 2, mb: 3, textAlign: "center" }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Ảnh CMND/CCCD (Mặt trước)
+                </Typography>
+                {profile.identificationPicture ? (
+                  <Box>
+                    <img
+                      src={profile.identificationPicture}
+                      alt="CMND/CCCD mặt trước"
+                      style={{
+                        maxWidth: "100%",
+                        height: "120px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                      }}
+                    />
+                  </Box>
+                ) : (
+                  <Box sx={{ py: 3, color: "text.secondary" }}>
+                    <Image sx={{ fontSize: 40, mb: 1 }} />
+                    <Typography variant="body2">Chưa tải lên</Typography>
+                  </Box>
+                )}
+                {isEditing && (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="URL ảnh CCCD"
+                    value={formData.identificationPicture || ""}
+                    onChange={(e) =>
+                      handleInputChange("identificationPicture", e.target.value)
+                    }
+                    sx={{ mt: 1 }}
+                  />
+                )}
+              </Paper>
+
+              {/* CCCD Owner Image */}
+              <Paper sx={{ p: 2, textAlign: "center" }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Ảnh chụp cùng CMND/CCCD
+                </Typography>
+                {profile.identificationPictureOwner ? (
+                  <Box>
+                    <img
+                      src={profile.identificationPictureOwner}
+                      alt="Ảnh chụp cùng CCCD"
+                      style={{
+                        maxWidth: "100%",
+                        height: "120px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                      }}
+                    />
+                  </Box>
+                ) : (
+                  <Box sx={{ py: 3, color: "text.secondary" }}>
+                    <Image sx={{ fontSize: 40, mb: 1 }} />
+                    <Typography variant="body2">Chưa tải lên</Typography>
+                  </Box>
+                )}
+                {isEditing && (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="URL ảnh chụp cùng CCCD"
+                    value={formData.identificationPictureOwner || ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "identificationPictureOwner",
+                        e.target.value
+                      )
+                    }
+                    sx={{ mt: 1 }}
+                  />
+                )}
+              </Paper>
+            </CardContent>
+          </Card>
+
+          {/* Activity Timeline */}
+          <Card sx={{ mt: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Lịch sử hoạt động
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Ngày tạo:</strong>{" "}
+                  {new Date(profile.createdAt).toLocaleDateString("vi-VN", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </Typography>
+                {profile.updatedAt && (
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Cập nhật lần cuối:</strong>{" "}
+                    {new Date(profile.updatedAt).toLocaleDateString("vi-VN", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </Typography>
+                )}
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Trạng thái:</strong>{" "}
+                  {profile.status || "Chưa xác định"}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Container>
   );
 }

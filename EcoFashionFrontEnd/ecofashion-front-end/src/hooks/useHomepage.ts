@@ -34,9 +34,8 @@ export const useHomepage = () => {
   );
 
   // Handle add to cart
-  const handleAddToCart = useCallback((productId: number) => {
+  const handleAddToCart = useCallback((_productId: number) => {
     // TODO: Implement add to cart logic
-    console.log("Adding product to cart:", productId);
   }, []);
 
   return {

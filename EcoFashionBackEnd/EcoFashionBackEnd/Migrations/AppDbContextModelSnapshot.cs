@@ -30,7 +30,16 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ApplicationId"));
 
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("BannerUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Certificates")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -42,7 +51,19 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("IdentificationPicture")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("IdentificationPictureOwner")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsIdentificationVerified")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PortfolioFiles")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PortfolioUrl")
@@ -57,6 +78,9 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("RejectionReason")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SocialLinks")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SpecializationUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -66,6 +90,9 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Property<int>("TargetRoleId")
                         .HasColumnType("int");
+
+                    b.Property<string>("TaxNumber")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -88,7 +115,16 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("BannerUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Certificates")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -113,8 +149,17 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PortfolioFiles")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PortfolioUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Rating")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("ReviewCount")
+                        .HasColumnType("int");
 
                     b.Property<string>("SpecializationUrl")
                         .HasColumnType("nvarchar(max)");
@@ -147,7 +192,16 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("BannerUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Certificates")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -168,8 +222,17 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PortfolioFiles")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PortfolioUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Rating")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("ReviewCount")
+                        .HasColumnType("int");
 
                     b.Property<string>("SpecializationUrl")
                         .HasColumnType("nvarchar(max)");

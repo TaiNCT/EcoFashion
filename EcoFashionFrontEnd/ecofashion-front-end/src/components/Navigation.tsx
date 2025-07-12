@@ -19,6 +19,7 @@ import DesignServicesIcon from "@mui/icons-material/DesignServices";
 import LogoutIcon from "@mui/icons-material/Logout";
 import CompostIcon from "@mui/icons-material/Compost";
 import SettingsIcon from "@mui/icons-material/Settings";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 //Icon Register
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LoginIcon from "@mui/icons-material/Login";
@@ -43,6 +44,7 @@ export default function Navigation() {
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
+    // Remove automatic refresh to prevent logout issues
   };
   const handleClose = () => {
     setAnchorEl(null);
@@ -57,8 +59,21 @@ export default function Navigation() {
     setAnchorE2(null);
   };
 
+  const [anchorE3, setAnchorE3] = React.useState<null | HTMLElement>(null);
+  const openExplore = Boolean(anchorE3);
+  const handleClickExplore = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorE3(event.currentTarget);
+  };
+  const handleCloseExplore = () => {
+    setAnchorE3(null);
+  };
+
   const handleAuth = (type: any) => {
     handleClose();
+    
+    // Get current user role for profile navigation
+    const userRole = user?.role?.toLowerCase();
+    
     switch (type) {
       case "signup":
         navigate("/signup");
@@ -67,13 +82,43 @@ export default function Navigation() {
         navigate("/login");
         break;
       case "designerregister":
-        navigate("/designer/register");
+        navigate("/apply/designer");
+        break;
+      case "supplierregister":
+        navigate("/apply/supplier");
         break;
       case "desiger-profile":
-        navigate("/designer/profile");
+        // Navigate based on user role
+        if (userRole === "designer") {
+          navigate("/designer/profile");
+        } else if (userRole === "supplier") {
+          navigate("/supplier/profile");
+        } else if (userRole === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/profile"); // Customer profile
+        }
         break;
       case "desiger-dashboard":
         navigate("/designer/dashboard");
+        break;
+      case "admin-dashboard":
+        navigate("/admin/dashboard");
+        break;
+      case "admin-applications":
+        navigate("/admin/applications");
+        break;
+      case "supplier-profile":
+        navigate("/supplier/profile");
+        break;
+      case "my-applications":
+        navigate("/my-applications");
+        break;
+      case "explore-designers":
+        navigate("/explore/designers");
+        break;
+      case "explore-suppliers":
+        navigate("/explore/suppliers");
         break;
     }
   };
@@ -88,7 +133,10 @@ export default function Navigation() {
     },
   }));
 
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUserFromServer } = useAuth();
+  
+
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -196,8 +244,57 @@ export default function Navigation() {
               },
             }}
           >
-            <MenuItem onClick={handleClose}>Thời Trang</MenuItem>
-            <MenuItem onClick={handleClose}>Vật Liệu</MenuItem>
+            <MenuItem onClick={handleCloseShop}>Thời Trang</MenuItem>
+            <MenuItem onClick={handleCloseShop}>Vật Liệu</MenuItem>
+          </Menu>
+          
+          <Button
+            id="explore-button"
+            aria-controls={openExplore ? "explore-menu" : undefined}
+            aria-haspopup="true"
+            aria-expanded={openExplore ? "true" : undefined}
+            onClick={handleClickExplore}
+            disableRipple
+            disableElevation
+            sx={{
+              margin: "auto",
+              textDecoration: "none",
+              color: scrolled || !isHome ? "black" : "white",
+              background: "transparent",
+              boxShadow: "none",
+              "&:hover": {
+                backgroundColor: "transparent",
+                color: "rgba(94, 224, 159, 1)",
+              },
+              "&:focus": {
+                outline: "none",
+                backgroundColor: "transparent",
+              },
+              "&:active": {
+                backgroundColor: "transparent",
+                boxShadow: "none",
+              },
+            }}
+          >
+            Khám Phá
+          </Button>
+          <Menu
+            id="explore-menu"
+            anchorEl={anchorE3}
+            open={openExplore}
+            onClose={handleCloseExplore}
+            slotProps={{
+              list: {
+                "aria-labelledby": "explore-button",
+              },
+            }}
+          >
+            <MenuItem onClick={() => { handleCloseExplore(); handleAuth("explore-designers"); }}>
+              Nhà Thiết Kế
+            </MenuItem>
+            <MenuItem onClick={() => { handleCloseExplore(); handleAuth("explore-suppliers"); }}>
+              Nhà Cung Cấp
+            </MenuItem>
           </Menu>
           <NavLink
             href="/businessinfor"
@@ -244,7 +341,7 @@ export default function Navigation() {
             />
           </IconButton>
           <Box sx={{ display: "flex" }}>
-            {user != null ? (
+            {user ? (
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <IconButton
                   id="basic-button"
@@ -254,39 +351,62 @@ export default function Navigation() {
                   onClick={handleClick}
                   sx={{ color: "#3e4b3b" }}
                 >
-                  <img
-                    src={profile_picture}
-                    alt="User avatar"
-                    style={{
-                      height: "50px",
-                      width: "50px",
-                      borderRadius: "50%",
-                    }}
-                  />
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt="User Avatar"
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        backgroundColor: "#4caf50",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: 16,
+                      }}
+                    >
+                      {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.email ? user.email.charAt(0).toUpperCase() : "U"}
+                    </Box>
+                  )}
                 </IconButton>
                 <Typography
-                  sx={{ color: scrolled || !isHome ? "black" : "white" }}
+                  sx={{ 
+                    color: scrolled || !isHome ? "black" : "white",
+                    fontWeight: 500
+                  }}
                 >
-                  {user.fullName}
+                  {user.fullName || user.email}
                 </Typography>
               </Box>
             ) : (
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <IconButton
-                  id="basic-button"
-                  aria-controls={open ? "user-menu" : undefined}
-                  aria-haspopup="true"
-                  aria-expanded={open ? "true" : undefined}
-                  onClick={handleClick}
-                  sx={{ color: "#3e4b3b" }}
+                <Button
+                  onClick={() => navigate("/login")}
+                  sx={{
+                    color: scrolled || !isHome ? "black" : "white",
+                    border: 1,
+                    borderColor: scrolled || !isHome ? "black" : "white",
+                    "&:hover": {
+                      backgroundColor: "rgba(94, 224, 159, 0.1)",
+                      borderColor: "rgba(94, 224, 159, 1)",
+                      color: "rgba(94, 224, 159, 1)",
+                    },
+                  }}
                 >
-                  <AccountCircleIcon
-                    sx={{
-                      fontSize: 30,
-                      color: scrolled || !isHome ? "black" : "white",
-                    }}
-                  />
-                </IconButton>
+                  Đăng Nhập
+                </Button>
               </Box>
             )}
           </Box>
@@ -332,89 +452,114 @@ export default function Navigation() {
                 },
               }}
             >
-              {/* <MenuItem onClick={() => handleAuth("designerregister")}> */}
+              {/* User Profile Link */}
               <MenuItem onClick={() => handleAuth("desiger-profile")}>
                 <Box sx={{ display: "flex" }}>
                   <Icon>
                     <DesignServicesIcon />
                   </Icon>
-                  <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
+                  <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
                 </Box>
               </MenuItem>
-              {user.roleId === 1 ? (
-                <MenuItem>
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
+
+              {/* Role-specific Menu Items */}
+              {user.role?.toLowerCase() === "admin" && [
+                <MenuItem key="admin-dashboard" onClick={() => handleAuth("admin-dashboard")}>
+                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
                     <Icon>
                       <CompostIcon />
                     </Icon>
                     <Typography sx={{ padding: "3px" }}>
-                      Admin DashBoard
+                      Quản Trị Hệ Thống
+                    </Typography>
+                  </Box>
+                </MenuItem>,
+                <MenuItem key="admin-applications" onClick={() => handleAuth("admin-applications")}>
+                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                    <Icon>
+                      <AssignmentIcon />
+                    </Icon>
+                    <Typography sx={{ padding: "3px" }}>
+                      Quản Lý Đơn Đăng Ký
                     </Typography>
                   </Box>
                 </MenuItem>
-              ) : user.roleId === 2 ? (
+              ]}
+
+              {user.role?.toLowerCase() === "designer" && (
                 <MenuItem onClick={() => handleAuth("desiger-dashboard")}>
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
+                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
                     <Icon>
                       <CompostIcon />
                     </Icon>
                     <Typography sx={{ padding: "3px" }}>
-                      Designer DashBoard
+                      Designer Dashboard
                     </Typography>
                   </Box>
                 </MenuItem>
-              ) : user.roleId === 3 ? (
-                <MenuItem>
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
-                    <Typography sx={{ padding: "3px" }}>
-                      Supplier DashBoard
-                    </Typography>
-                  </Box>
-                </MenuItem>
-              ) : (
-                <>
-                  <MenuItem onClick={() => handleAuth("designerregister")}>
-                    <Box
-                      sx={{ display: "flex", borderBottom: "1px solid black" }}
-                    >
-                      <Icon>
-                        <CompostIcon />
-                      </Icon>
-                      <Typography sx={{ padding: "3px" }}>
-                        Đăng Kí Làm Nhà Thiết Kế
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem onClick={() => handleAuth("designerregister")}>
-                    <Box
-                      sx={{ display: "flex", borderBottom: "1px solid black" }}
-                    >
-                      <Icon>
-                        <CompostIcon />
-                      </Icon>
-                      <Typography sx={{ padding: "3px" }}>
-                        Đăng Kí Làm Nhà Cung Cấp
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                </>
               )}
 
+              {user.role?.toLowerCase() === "supplier" && (
+                <MenuItem onClick={() => handleAuth("supplier-profile")}>
+                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                    <Icon>
+                      <CompostIcon />
+                    </Icon>
+                    <Typography sx={{ padding: "3px" }}>
+                      Supplier Dashboard
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              )}
+
+              {/* Show application menus for customers/users who can still apply */}
+              {(user.role?.toLowerCase() === "customer" || user.role?.toLowerCase() === "user") && [
+                <MenuItem key="apply-designer" onClick={() => handleAuth("designerregister")}>
+                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                    <Icon>
+                      <CompostIcon />
+                    </Icon>
+                    <Typography sx={{ padding: "3px" }}>
+                      Đăng Ký Làm Nhà Thiết Kế
+                    </Typography>
+                  </Box>
+                </MenuItem>,
+                <MenuItem key="apply-supplier" onClick={() => handleAuth("supplierregister")}>
+                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                    <Icon>
+                      <CompostIcon />
+                    </Icon>
+                    <Typography sx={{ padding: "3px" }}>
+                      Đăng Ký Làm Nhà Cung Cấp
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ]}
+
+              {/* Show "My Applications" for users who might have pending applications */}
+              {(user.role?.toLowerCase() === "customer" || 
+                user.role?.toLowerCase() === "user" || 
+                user.role?.toLowerCase() === "designer" || 
+                user.role?.toLowerCase() === "supplier") && (
+                <MenuItem onClick={() => handleAuth("my-applications")}>
+                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                    <Icon>
+                      <DesignServicesIcon />
+                    </Icon>
+                    <Typography sx={{ padding: "3px" }}>
+                      Đơn Đăng Ký Của Tôi
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              )}
+
+              {/* Common Menu Items */}
               <MenuItem onClick={handleClose}>
                 <Box sx={{ display: "flex", width: "100%" }}>
                   <Icon>
                     <SettingsIcon />
                   </Icon>
-                  <Typography sx={{ padding: "3px" }}>Cài Đặt</Typography>
+                  <Typography sx={{ padding: "3px" }}>Cài Đặt</Typography>
                 </Box>
               </MenuItem>
               <MenuItem onClick={handleLogout}>
@@ -422,7 +567,7 @@ export default function Navigation() {
                   <Icon>
                     <LogoutIcon />
                   </Icon>
-                  <Typography sx={{ padding: "3px" }}> Đăng Xuất</Typography>
+                  <Typography sx={{ padding: "3px" }}> Đăng Xuất</Typography>
                 </Box>
               </MenuItem>
             </Menu>

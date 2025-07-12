@@ -357,6 +357,8 @@ export default function Homepage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+
   return (
     <Box sx={{ minHeight: "100vh" }}>
       {/* Banner */}

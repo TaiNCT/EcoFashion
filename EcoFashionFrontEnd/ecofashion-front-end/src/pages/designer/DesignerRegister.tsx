@@ -89,12 +89,34 @@ export default function DesignerRegister() {
     idType: "CCCD",
     idNumber: "",
     fullName: "",
+    email: "",
+    phoneNumber: "",
+    address: "",
+    designerName: "",
+    portfolioUrl: "",
+    portfolioFiles: [], // array of File
+    bannerUrl: "",
+    specializationUrl: "",
+    taxNumber: "",
+    certificates: "",
+    identificationPicture: null,
+    identificationPictureOwner: "",
     accepted: false,
   });
 
   const handleChange = (field: any) => (event: any) => {
     setForm({ ...form, [field]: event.target.value });
   };
+
+  const handleFileChange =
+    (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!event.target.files) return;
+      if (field === "portfolioFiles") {
+        setForm({ ...form, portfolioFiles: Array.from(event.target.files) });
+      } else {
+        setForm({ ...form, [field]: event.target.files[0] });
+      }
+    };
 
   const handleCheckboxChange = (event: any) => {
     setForm({ ...form, accepted: event.target.checked });
@@ -109,39 +131,93 @@ export default function DesignerRegister() {
               fullWidth
               label="Tên Nhà Thiết Kế"
               placeholder="Nhập vào"
-              helperText="0/30"
               margin="normal"
+              value={form.designerName}
+              onChange={handleChange("designerName")}
             />
-
             <TextField
               fullWidth
               label="Email"
               placeholder="Nhập vào"
               margin="normal"
+              value={form.email}
+              onChange={handleChange("email")}
             />
-
             <TextField
               fullWidth
               label="Số điện thoại"
               placeholder="Nhập vào"
               margin="normal"
+              value={form.phoneNumber}
+              onChange={handleChange("phoneNumber")}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">+84</InputAdornment>
                 ),
               }}
             />
-
-            <Grid container spacing={2} mt={1}>
-              <Grid>
-                <TextField fullWidth placeholder="Nhập vào" />
-              </Grid>
-              <Grid sx={{ margin: "auto 0" }}>
-                <Button variant="outlined" fullWidth>
-                  Gửi
-                </Button>
-              </Grid>
-            </Grid>
+            <TextField
+              fullWidth
+              label="Địa chỉ"
+              placeholder="Nhập vào"
+              margin="normal"
+              value={form.address}
+              onChange={handleChange("address")}
+            />
+            <TextField
+              fullWidth
+              label="Portfolio URL"
+              placeholder="Nhập vào"
+              margin="normal"
+              value={form.portfolioUrl}
+              onChange={handleChange("portfolioUrl")}
+            />
+            <Button variant="outlined" component="label" sx={{ mt: 2, mb: 1 }}>
+              Upload Portfolio Files
+              <input
+                type="file"
+                multiple
+                hidden
+                onChange={handleFileChange("portfolioFiles")}
+              />
+            </Button>
+            {form.portfolioFiles && form.portfolioFiles.length > 0 && (
+              <Typography variant="body2" color="textSecondary">
+                {form.portfolioFiles.length} file(s) selected
+              </Typography>
+            )}
+            <TextField
+              fullWidth
+              label="Banner URL"
+              placeholder="Nhập vào"
+              margin="normal"
+              value={form.bannerUrl}
+              onChange={handleChange("bannerUrl")}
+            />
+            <TextField
+              fullWidth
+              label="Chuyên môn (Specialization URL)"
+              placeholder="Nhập vào"
+              margin="normal"
+              value={form.specializationUrl}
+              onChange={handleChange("specializationUrl")}
+            />
+            <TextField
+              fullWidth
+              label="Mã số thuế (Tax Number)"
+              placeholder="Nhập vào"
+              margin="normal"
+              value={form.taxNumber}
+              onChange={handleChange("taxNumber")}
+            />
+            <TextField
+              fullWidth
+              label="Chứng chỉ/Giải thưởng (Certificates)"
+              placeholder="Nhập vào, cách nhau bởi dấu phẩy"
+              margin="normal"
+              value={form.certificates}
+              onChange={handleChange("certificates")}
+            />
           </Box>
         );
       case 1:
@@ -202,7 +278,15 @@ export default function DesignerRegister() {
                 inputProps={{ maxLength: 100 }}
                 value={form.fullName}
                 onChange={handleChange("fullName")}
-                sx={{ mb: 4 }}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                label="Chủ sở hữu ảnh định danh"
+                placeholder="Nhập tên chủ sở hữu ảnh"
+                value={form.identificationPictureOwner}
+                onChange={handleChange("identificationPictureOwner")}
+                sx={{ mb: 2 }}
               />
 
               <Grid container spacing={2} mb={2}>
