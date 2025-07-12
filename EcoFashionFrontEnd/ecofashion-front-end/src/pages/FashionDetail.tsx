@@ -24,9 +24,7 @@ import {
   Typography,
 } from "@mui/material";
 import Tab from "@mui/material/Tab";
-import ao_linen from "../assets/pictures/example/ao-linen.webp";
-import chan_vay_dap from "../assets/pictures/example/chan-vay-dap.webp";
-import dam_con_trung from "../assets/pictures/example/dam-con-trung.webp";
+
 import {
   AddToCart,
   ArrowBackIcon,
@@ -45,66 +43,360 @@ import GRS from "../assets/pictures/certificate/global-recycled-standard-(grs).w
 import OEKO from "../assets/pictures/certificate/image-removebg-preview-70.png";
 
 //example
-import Banner from "../assets/pictures/detail.jpg";
+import Banner from "../assets/pictures/detail/detail.jpg";
 
-const products = [
+//example
+import ao_linen from "../assets/pictures/example/ao-linen.webp";
+import chan_vay_dap from "../assets/pictures/example/chan-vay-dap.webp";
+import dam_con_trung from "../assets/pictures/example/dam-con-trung.webp";
+import type { Fashion } from "../types/Fashion";
+import FashionsSection from "../components/fashion/FashionsSection";
+
+const products: Fashion[] = [
   {
-    id: "1",
-    title: "Áo Linen",
-    author: "Nguyễn Công Trí",
-    image: ao_linen, // replace with actual image paths\
+    id: 1,
+    name: "Áo thun Organic Cotton",
+    category: "clothing",
+    brand: "EcoWear",
+    image: ao_linen,
     images: [ao_linen, dam_con_trung, chan_vay_dap],
-    price: "1.900.000₫",
-    rating: 4,
-    recycledPercentage: 90,
-    material: [
-      { materialName: "Vải Cotton", percentage: 20 },
-      { materialName: "Vải Linen", percentage: 70 },
-      { materialName: "Vải Sợi", percentage: 5 },
-      { materialName: "Vải Nilom", percentage: 5 },
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
     ],
+    price: {
+      current: 450000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 18,
   },
   {
-    id: "2",
-    title: "Chân Váy Đắp",
-    author: "Nguyễn Công Trí",
+    id: 2,
+    name: "Chân Váy Đắp",
+    brand: "Nguyễn Công Trí",
+    category: "clothing",
     image: chan_vay_dap,
-    images: [chan_vay_dap, dam_con_trung, ao_linen],
-    price: "1.900.000₫",
-    rating: 4,
-    recycledPercentage: 95,
-    material: [
-      { materialName: "Vải Cotton", percentage: 30 },
-      { materialName: "Vải Linen", percentage: 70 },
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
     ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 18,
   },
   {
-    id: "3",
-    title: "Đầm Côn Trùng",
-    author: "Nguyễn Công Trí",
+    id: 3,
+    name: "Đầm Côn Trùng",
+    brand: "Nguyễn Công Trí",
+    category: "clothing",
     image: dam_con_trung,
-    images: [dam_con_trung, chan_vay_dap, ao_linen],
-    price: "1.900.000₫",
-    rating: 4,
-    recycledPercentage: 100,
-    material: [
-      { materialName: "Vải Cotton", percentage: 30 },
-      { materialName: "Vải Linen", percentage: 70 },
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
     ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 18,
   },
   {
-    id: "4",
-    title: "Đầm Côn Trùng",
-    author: "Nguyễn Công Trí",
+    id: 4,
+    name: "Đầm Côn Trùng",
+    brand: "Nguyễn Công Trí",
+    category: "clothing",
     image: dam_con_trung,
-    images: [dam_con_trung, dam_con_trung, dam_con_trung, ao_linen],
-    price: "1.900.000₫",
-    rating: 4,
-    recycledPercentage: 100,
-    material: [
-      { materialName: "Vải Cotton", percentage: 30 },
-      { materialName: "Vải Linen", percentage: 70 },
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
     ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 18,
+  },
+];
+const bestSellerProducts: Fashion[] = [
+  {
+    id: 1,
+    name: "Áo thun Organic Cotton",
+    category: "clothing",
+    brand: "EcoWear",
+    image: ao_linen,
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: true,
+    isNew: false,
+    discountPercentage: 18,
+  },
+  {
+    id: 2,
+    name: "Chân Váy Đắp",
+    brand: "Nguyễn Công Trí",
+    category: "clothing",
+    image: chan_vay_dap,
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: true,
+    isNew: false,
+    discountPercentage: 18,
+  },
+  {
+    id: 3,
+    name: "Đầm Côn Trùng",
+    brand: "Nguyễn Công Trí",
+    category: "clothing",
+    image: dam_con_trung,
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: true,
+    isNew: false,
+    discountPercentage: 18,
+  },
+  {
+    id: 4,
+    name: "Đầm Côn Trùng",
+    brand: "Nguyễn Công Trí",
+    category: "clothing",
+    image: dam_con_trung,
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: true,
+    isNew: false,
+    discountPercentage: 18,
   },
 ];
 
@@ -143,7 +435,7 @@ const ratingData = [
 
 export default function FashionDetail() {
   const { id } = useParams(); // lấy id từ URL
-  const product = products.find((p) => p.id === id);
+  const product = products.find((p) => p.id === Number(id));
   // const [mainImage, setMainImage] = useState(
   //   products.find((p) => p.id === id)?.image
   // );
@@ -161,15 +453,14 @@ export default function FashionDetail() {
   //Change Image
   const [currentIndex, setCurrentIndex] = useState(0);
   const handlePrev = () => {
-    setCurrentIndex((prev) =>
-      prev === 0 ? product.images.length - 1 : prev - 1
-    );
-  };
+    const images = product.images ?? [];
+    if (!images || images.length === 0) return;
 
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
   const handleNext = () => {
-    setCurrentIndex((prev) =>
-      prev === product.images.length - 1 ? 0 : prev + 1
-    );
+    const images = product.images ?? [];
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   //Change Tab
@@ -188,13 +479,21 @@ export default function FashionDetail() {
     "secondary.main",
   ];
 
+  const formatPrice = (price: Fashion["price"]) => {
+    const formatted = new Intl.NumberFormat("vi-VN").format(price.current);
+    return `${formatted}₫`;
+  };
+  const formatOriginalPrice = (price: Fashion["price"]) => {
+    if (!price.original) return null;
+    const formatted = new Intl.NumberFormat("vi-VN").format(price.original);
+    return `${formatted}₫`;
+  };
   return (
     <Box
       sx={{
         mx: "auto",
         width: "100%",
         backgroundImage: `url(${Banner})`,
-        marginTop: "100px",
       }}
     >
       <AppBar
@@ -213,7 +512,7 @@ export default function FashionDetail() {
           <Link underline="hover" color="inherit" href="/shop">
             Cửa Hàng
           </Link>
-          <Typography color="text.primary">{product.title}</Typography>
+          <Typography color="text.primary">{product.name}</Typography>
         </Breadcrumbs>
       </AppBar>
       <Box sx={{ mx: "auto", width: "80%", bgcolor: "#fff" }}>
@@ -230,8 +529,8 @@ export default function FashionDetail() {
             <Box sx={{ position: "relative", marginBottom: 2 }}>
               <Box
                 component="img"
-                src={product.images[currentIndex]}
-                alt={product.title}
+                src={product.images?.[currentIndex] ?? ""}
+                alt={product.name}
                 sx={{
                   width: "100%",
                   borderRadius: 2,
@@ -265,7 +564,7 @@ export default function FashionDetail() {
               </IconButton>
             </Box>
             <Box sx={{ display: "flex", gap: 1 }}>
-              {product.images.slice(0, 3).map((img, index) => (
+              {product.images?.slice(0, 3).map((img, index) => (
                 <Box
                   key={index}
                   component="img"
@@ -297,31 +596,33 @@ export default function FashionDetail() {
                 <Typography
                   sx={{ fontSize: "60px", margin: "auto 0", width: "100%" }}
                 >
-                  {product.title}
+                  {product.name}
                 </Typography>
                 <Box sx={{ width: 200, display: "flex", alignItems: "center" }}>
                   <Rating
                     name="text-feedback"
-                    value={product.rating}
+                    value={product.rating.average}
                     readOnly
                     precision={0.5}
                     emptyIcon={
                       <StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />
                     }
                   />
-                  <Box sx={{ ml: 2, fontSize: "20px" }}>{product.rating}</Box>
+                  <Box sx={{ ml: 2, fontSize: "20px" }}>
+                    {product.rating.count}
+                  </Box>
                 </Box>
               </Box>
               <Box
                 sx={{
-                  width: "30%",
+                  width: "40%",
                   margin: "auto",
                   display: "flex", // Dùng flex
                   justifyContent: "flex-end", // Đẩy nội dung sang phải
                 }}
               >
                 <IconButton>
-                  <FavoriteBorderIcon />
+                  <FavoriteBorderIcon sx={{ fontSize: "40px" }} />
                 </IconButton>
               </Box>
             </Box>
@@ -339,12 +640,12 @@ export default function FashionDetail() {
                     paddingLeft: "20px",
                   }}
                 >
-                  P0001
+                  P{product.id}
                 </Typography>
               </Box>
               <Chip
                 icon={<EcoIcon />}
-                label={`${product.recycledPercentage}% Tái Chế`}
+                label={`${product.sustainability}% Tái Chế`}
                 size="small"
                 sx={{
                   backgroundColor: "rgba(200, 248, 217, 1)",
@@ -356,19 +657,57 @@ export default function FashionDetail() {
               />
             </Box>
             <Box sx={{ display: "flex", width: "100%" }}>
-              <Typography sx={{ margin: "auto 0", fontSize: "25px" }}>
+              <Typography
+                sx={{ margin: "auto 0", fontSize: "25px", marginRight: "10px" }}
+              >
                 Giá:
               </Typography>
-              <Typography
-                sx={{
-                  margin: "auto 0",
-                  fontSize: "30px",
-                  fontWeight: "bold",
-                  paddingLeft: "20px",
-                }}
-              >
-                {product.price}
-              </Typography>
+              {!product.price.original && (
+                <Typography
+                  component="div"
+                  sx={{
+                    fontWeight: "bold",
+                    margin: "auto 0",
+                    fontSize: "30px",
+                  }}
+                >
+                  {formatPrice(product.price)}
+                </Typography>
+              )}
+              {product.price.original && (
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Typography
+                    component="div"
+                    sx={{ fontWeight: "bold", fontSize: "30px" }}
+                  >
+                    {formatPrice(product.price)}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      textDecoration: "line-through",
+                      color: "text.secondary",
+                      fontSize: "25px",
+                      marginLeft: "5px",
+                    }}
+                  >
+                    {formatOriginalPrice(product.price)}
+                  </Typography>
+                  {product.discountPercentage &&
+                    product.discountPercentage > 0 && (
+                      <Chip
+                        label={`-${product.discountPercentage}%`}
+                        size="small"
+                        sx={{
+                          bgcolor: "#f44336",
+                          color: "white",
+                          fontWeight: "bold",
+                          marginLeft: "5px",
+                        }}
+                      />
+                    )}
+                </Box>
+              )}
             </Box>
 
             {/* Material */}
@@ -384,11 +723,11 @@ export default function FashionDetail() {
                   display: "flex",
                 }}
               >
-                {product.material.map((mat, index) => (
+                {product.materials.map((mat, index) => (
                   <Box
-                    key={mat.materialName}
+                    key={mat.name}
                     sx={{
-                      width: `${mat.percentage}%`,
+                      width: `${mat.percentageUse}%`,
                       border: "2px solid",
                       borderColor:
                         materialColors[index % materialColors.length],
@@ -402,7 +741,7 @@ export default function FashionDetail() {
                       flex: 1,
                     }}
                   >
-                    {mat.materialName}: {mat.percentage}%
+                    {mat.name}: {mat.percentageUse}%
                   </Box>
                 ))}{" "}
               </Box>
@@ -515,7 +854,7 @@ export default function FashionDetail() {
                   whiteSpace: "nowrap",
                 }}
               >
-                {product.author}
+                {product.brand}
               </Typography>
               <Typography sx={{ width: "100%", fontSize: "15px" }}>
                 Online 3 phút trước
@@ -910,7 +1249,7 @@ export default function FashionDetail() {
                     >
                       <Rating
                         name="text-feedback"
-                        value={product.rating}
+                        value={product.rating.average}
                         readOnly
                         precision={0.5}
                         emptyIcon={
@@ -921,7 +1260,7 @@ export default function FashionDetail() {
                         }
                       />
                       <Box sx={{ ml: 2, fontSize: "20px" }}>
-                        {product.rating}
+                        {product.rating.count}
                       </Box>
                     </Box>
                   </Box>
@@ -1091,155 +1430,26 @@ export default function FashionDetail() {
         </Box>
 
         {/* Related Products */}
-        <Box sx={{ padding: 2 }}>
-          <Typography
-            variant="h5"
-            fontWeight="bold"
-            gutterBottom
-            sx={{ float: "left", textDecoration: "underline" }}
-          >
-            Sản Phẩm Liên Quan
-          </Typography>
-
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              margin: "auto",
-              width: "100%",
-              justifyContent: "center",
-            }}
-          >
-            <IconButton>
-              <ArrowBackIcon />
-            </IconButton>
-
-            {products.map((item, index) => (
-              <Card
-                key={index}
-                sx={{ width: "20%", m: 1, position: "relative" }}
-              >
-                <Box
-                  sx={{
-                    p: 1,
-                    position: "absolute",
-                    top: 8,
-                    left: 8,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Chip
-                    icon={<EcoIcon />}
-                    label={`${item.recycledPercentage}% Tái Chế`}
-                    size="small"
-                    sx={{
-                      backgroundColor: "rgba(200, 248, 217, 1)",
-                      color: "rgba(22, 103, 86, 1)",
-                      fontSize: "15px",
-                    }}
-                  />
-                </Box>
-
-                <IconButton
-                  sx={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    zIndex: 1,
-                    backgroundColor: "white",
-                  }}
-                >
-                  <FavoriteBorderIcon />
-                </IconButton>
-
-                <Link
-                  href={`/detail/${item.id}`}
-                  style={{ justifyContent: "center" }}
-                >
-                  <CardMedia
-                    component="img"
-                    height="240"
-                    image={item.image}
-                    alt={item.title}
-                  />
-                </Link>
-
-                <CardContent
-                  sx={{
-                    textAlign: "left",
-                  }}
-                >
-                  <Typography
-                    fontWeight="bold"
-                    sx={{
-                      fontSize: "30px",
-                      width: "100%",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Bởi {item.author}
-                  </Typography>
-
-                  <Box display="flex" alignItems="center" mt={1}>
-                    <Rating value={item.rating} readOnly size="small" />
-                    <Typography variant="body2" ml={1}>
-                      ({item.rating})
-                    </Typography>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: 1,
-                      mt: 1,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {item.material.map((mat, index) => (
-                      <Chip
-                        key={index}
-                        label={mat.materialName}
-                        size="small"
-                        sx={{
-                          backgroundColor: "rgba(220, 252, 231, 1)",
-                          color: "rgba(29, 106, 58, 1)",
-                        }}
-                      />
-                    ))}
-                  </Box>
-
-                  <Typography fontWeight="bold" mt={1}>
-                    {item.price}
-                  </Typography>
-
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      mt: 1,
-                      backgroundColor: "rgba(22, 163, 74, 1)",
-                    }}
-                  >
-                    <AddToCart />
-                    Thêm vào Cart
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-
-            <IconButton>
-              <ArrowForwardIcon />
-            </IconButton>
-          </Box>
-        </Box>
+        <FashionsSection
+          products={products}
+          title="SẢN PHẨM NỔI BẬT"
+          onProductSelect={(product) => {
+            console.log("Selected product:", product.name);
+            // TODO: Navigate to product detail or open modal
+          }}
+          onAddToCart={(product) => {
+            console.log("Add to cart:", product.name);
+            // TODO: Add to cart logic
+          }}
+          onToggleFavorite={(product) => {
+            console.log("Toggle favorite:", product.name);
+            // TODO: Toggle favorite logic
+          }}
+          onViewMore={() => {
+            console.log("View more featured products");
+            // TODO: Navigate to featured products page
+          }}
+        />
       </Box>
     </Box>
   );

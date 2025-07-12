@@ -86,7 +86,8 @@ public static class ServicesExtensions
         services.AddScoped<CustomerService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<CloudService>();
-
+     
+        services.AddScoped<DesignService>();
 
         //services.AddScoped<IVnPayService, VnPayService>();
 

@@ -140,12 +140,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
     >
       {/* Badges */}
       <Box sx={{ position: "absolute", top: 8, left: 8, zIndex: 1 }}>
-        {product.isNew && (
+        {product.isNew && !product.isBestSeller && (
           <Chip
             label="MỚI"
             size="small"
             sx={{
-              mb: 0.5,
               bgcolor: "#e91e63",
               color: "white",
               fontWeight: "bold",
@@ -153,7 +152,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }}
           />
         )}
-        {product.isBestSeller && (
+        {product.isBestSeller && !product.isNew && (
           <Chip
             label="BÁN CHẠY"
             size="small"

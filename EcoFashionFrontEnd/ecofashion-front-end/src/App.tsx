@@ -1,16 +1,15 @@
 import { Route, Routes, useLocation } from "react-router-dom";
 import "./App.css";
 import Navigation from "./components/Navigation";
+import "react-toastify/dist/ReactToastify.css";
+
 //Pages
 import Homepages from "./pages/Homepages";
+import Homepages2 from "./pages/Homepage2";
+
 import About from "./pages/About";
 import FooterInfo from "./pages/FooterInfo";
 import FashionDetail from "./pages/FashionDetail";
-import DesignerRegister from "./pages/designer/DesignerRegister";
-
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-// make sure its top
-
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import VerifyOTP from "./components/VerifyOTP";
@@ -22,7 +21,6 @@ import ApplicationManagement from "./pages/admin/ApplicationManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthContextProvider } from "./services/user/AuthContext";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import BusinessInfor from "./pages/BusinessInfor";
 import Contact from "./pages/Contact";
 import DesginerDashboared from "./pages/designer/DesignerDashboard";
@@ -35,12 +33,13 @@ import ExploreSuppliers from "./pages/explore/ExploreSuppliers";
 import SupplierLandingPage from "./pages/explore/SupplierLandingPage";
 import TestAuth from "./pages/TestAuth";
 
+// import { createTheme } from "@mui/material/styles";
 function App() {
-  const theme = createTheme({
-    typography: {
-      fontFamily: ["Lato", "sans-serif"].join(","),
-    },
-  });
+  // const theme = createTheme({
+  //   typography: {
+  //     fontFamily: ["Lato", "sans-serif"].join(","),
+  //   },
+  // });
 
   const location = useLocation();
   // Hide Nav and Footer on these routes
@@ -51,13 +50,12 @@ function App() {
         {!hideLayout && <Navigation />}
         <Routes>
           <Route path="/" element={<Homepages />} />
+          <Route path="/Homepage2" element={<Homepages2 />} />
+
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/detail/:id" element={<FashionDetail />} />
-          
-          {/* OLD ROUTE - Redirect to new application system */}
           <Route path="/designer/register" element={<DesignerRegister />} />
-          
           <Route path="/businessinfor" element={<BusinessInfor />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/signup" element={<Signup />} />

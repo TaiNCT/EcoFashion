@@ -49,7 +49,7 @@ const MaterialsSection: React.FC<MaterialsSectionProps> = ({
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mb: 6 }}>
+    <Container maxWidth="lg" sx={{ paddingTop: 2 }}>
       <Typography variant="h4" component="h2" fontWeight="bold" sx={{ mb: 3 }}>
         {title}
       </Typography>

@@ -20,8 +20,8 @@ import {
 import { Image, Visibility, VisibilityOff } from "@mui/icons-material";
 
 //Image
-import LoginBanner from "../assets/pictures/login1.jpg";
-import Logo from "../assets/pictures/logo.png";
+import LoginBanner from "../assets/pictures/login/login1.jpg";
+import Logo from "../assets/pictures/homepage/logo.png";
 //Icon
 import GoogleIcon from "@mui/icons-material/Google";
 
