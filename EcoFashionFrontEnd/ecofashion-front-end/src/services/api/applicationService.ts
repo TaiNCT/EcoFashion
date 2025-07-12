@@ -1,20 +1,46 @@
 import apiClient, { handleApiResponse } from "./baseApi";
 
 export interface ApplyDesignerRequest {
-  portfolioUrl: string;
-  bannerUrl?: string;
+  // Profile images for landing page
+  avatarFile?: File; // Ảnh đại diện
+  bannerFile?: File; // Ảnh banner/cover
+
+  portfolioUrl?: string;
+  portfolioFiles?: File[]; // Multiple portfolio files
+  bannerUrl?: string; // URL trực tiếp (nếu không upload file)
   specializationUrl?: string;
+  certificates?: string; // CSV or JSON string
+  taxNumber?: string;
+  address?: string;
+  identificationPictureOwner?: string;
+
+  // Social media links as JSON string
+  socialLinks?: string; // {"instagram": "url", "behance": "url", "facebook": "url"}
+
   identificationNumber: string;
-  identificationPicture: string;
+  identificationPictureFile?: File; // File upload thay vì URL
   note?: string;
 }
 
 export interface ApplySupplierRequest {
+  // Profile images for landing page
+  avatarFile?: File; // Ảnh đại diện
+  bannerFile?: File; // Ảnh banner/cover
+
   portfolioUrl?: string;
-  bannerUrl?: string;
+  portfolioFiles?: File[]; // Multiple portfolio files
+  bannerUrl?: string; // URL trực tiếp (nếu không upload file)
   specializationUrl?: string;
+  certificates?: string; // CSV or JSON string
+  taxNumber?: string;
+  address?: string;
+  identificationPictureOwner?: string;
+
+  // Social media links as JSON string
+  socialLinks?: string; // {"instagram": "url", "behance": "url", "facebook": "url"}
+
   identificationNumber: string;
-  identificationPicture: string;
+  identificationPictureFile?: File; // File upload thay vì URL
   note?: string;
 }
 
@@ -22,17 +48,38 @@ export interface ApplicationModel {
   applicationId: number;
   userId: number;
   targetRoleId: number;
+
+  // Portfolio & Profile Images
+  avatarUrl?: string;
   portfolioUrl?: string;
+  portfolioFiles?: string; // JSON array of file urls
   bannerUrl?: string;
   specializationUrl?: string;
+  certificates?: string;
+  taxNumber?: string;
+  address?: string;
+  identificationPictureOwner?: string;
+
+  // Social Media
+  socialLinks?: string; // JSON object of social media links
+
+  // Identification / Xác minh
   identificationNumber?: string;
   identificationPicture?: string;
-  note?: string;
+  isIdentificationVerified?: boolean;
+
+  //Tracking
   createdAt: string;
   processedAt?: string;
+
+  // Kết quả xử lý
   processedBy?: number;
   rejectionReason?: string;
+  note?: string;
+
   status: "pending" | "approved" | "rejected";
+
+  // Navigation properties
   user?: {
     userId: number;
     fullName?: string;
@@ -41,6 +88,11 @@ export interface ApplicationModel {
   role?: {
     roleId: number;
     roleName: string;
+  };
+  processedByUser?: {
+    userId: number;
+    fullName?: string;
+    email?: string;
   };
 }
 
@@ -51,15 +103,69 @@ export interface ApiResult<T> {
 }
 
 class ApplicationService {
-  private readonly API_BASE = "/Applications";
+  private readonly API_BASE = "Applications";
+
+  /**
+   * Helper method to create FormData for file upload
+   */
+  private createFormData(
+    request: ApplyDesignerRequest | ApplySupplierRequest
+  ): FormData {
+    const formData = new FormData();
+
+    // Profile images
+    if (request.avatarFile) {
+      formData.append("AvatarFile", request.avatarFile);
+    }
+    if (request.bannerFile) {
+      formData.append("BannerFile", request.bannerFile);
+    }
+
+    // Portfolio files (multiple)
+    if (request.portfolioFiles && request.portfolioFiles.length > 0) {
+      request.portfolioFiles.forEach((file) => {
+        formData.append("PortfolioFiles", file);
+      });
+    }
+
+    // Identification file
+    if (request.identificationPictureFile) {
+      formData.append(
+        "IdentificationPictureFile",
+        request.identificationPictureFile
+      );
+    }
+
+    // Text fields
+    if (request.portfolioUrl)
+      formData.append("PortfolioUrl", request.portfolioUrl);
+    if (request.bannerUrl) formData.append("BannerUrl", request.bannerUrl);
+    if (request.specializationUrl)
+      formData.append("SpecializationUrl", request.specializationUrl);
+    if (request.socialLinks)
+      formData.append("SocialLinks", request.socialLinks);
+    if (request.identificationNumber)
+      formData.append("IdentificationNumber", request.identificationNumber);
+    if (request.note) formData.append("Note", request.note);
+
+    return formData;
+  }
 
   // User đăng ký làm Designer
   async applyAsDesigner(
     request: ApplyDesignerRequest
   ): Promise<ApplicationModel> {
+    const formData = this.createFormData(request);
+
     const response = await apiClient.post<any>(
       `${this.API_BASE}/ApplyDesigner`,
-      request
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        timeout: 1200000, // 20 minutes for file upload
+      }
     );
     return handleApiResponse<ApplicationModel>(response);
   }
@@ -68,9 +174,17 @@ class ApplicationService {
   async applyAsSupplier(
     request: ApplySupplierRequest
   ): Promise<ApplicationModel> {
+    const formData = this.createFormData(request);
+
     const response = await apiClient.post<any>(
       `${this.API_BASE}/ApplySupplier`,
-      request
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        timeout: 1200000, // 20 minutes for file upload
+      }
     );
     return handleApiResponse<ApplicationModel>(response);
   }

@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react-swc";
 export default defineConfig({
   plugins: [react()],
   server: {
+    port: 5173, // Cố định port 5173
     // Cấu hình để kết nối với HTTPS backend
     proxy: {
       "/api": {

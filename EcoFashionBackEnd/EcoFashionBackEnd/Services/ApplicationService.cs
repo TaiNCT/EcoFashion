@@ -6,6 +6,7 @@ using EcoFashionBackEnd.Repositories;
 using EcoFashionBackEnd.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -37,30 +38,113 @@ namespace EcoFashionBackEnd.Services
         _cloudService = cloudService;
         }
 
+        /// <summary>
+        /// Upload single image file and return URL
+        /// </summary>
+        private async Task<string?> UploadSingleImageAsync(IFormFile? imageFile)
+        {
+            if (imageFile == null || imageFile.Length <= 0)
+                return null;
 
+            try
+            {
+                var uploadResult = await _cloudService.UploadImageAsync(imageFile);
+                return uploadResult?.SecureUrl?.ToString();
+            }
+            catch (Exception)
+            {
+                // Log error but don't fail the entire application process
+                return null; // Return null instead of throwing
+            }
+        }
+
+        
+        /// Upload multiple portfolio files and return JSON array of URLs
+        private async Task<string?> UploadPortfolioFilesAsync(List<IFormFile>? portfolioFiles)
+{
+    if (portfolioFiles == null || portfolioFiles.Count == 0)
+        return null;
+
+    var uploadedUrls = new List<string>();
+
+    foreach (var file in portfolioFiles)
+    {
+        if (file == null || file.Length == 0)
+            continue;
+
+        try
+        {
+            var uploadResult = await _cloudService.UploadImageAsync(file);
+            if (!string.IsNullOrWhiteSpace(uploadResult?.SecureUrl?.ToString()))
+            {
+                uploadedUrls.Add(uploadResult.SecureUrl.ToString());
+            }
+        }
+        catch (Exception)
+        {
+            // Ghi log nếu cần, hoặc dùng ILogger
+            Console.WriteLine($"❌ Upload failed for file '{file.FileName}'");
+            // Optional: continue; // đã mặc định
+        }
+    }
+
+    return uploadedUrls.Count > 0
+        ? JsonSerializer.Serialize(uploadedUrls)
+        : null;
+}
+ 
+        private async Task<ApplicationModel> MapApplicationModelAsync(Application application)
+        {
+            var model = _mapper.Map<ApplicationModel>(application);
+            if (application.ProcessedBy.HasValue)
+            {
+                model.ProcessedByUser = await _userService.GetUserById(application.ProcessedBy.Value);
+            }
+            return model;
+        }
 
         public async Task<ApplicationModel?> ApplyAsSupplier(int userId, ApplySupplierRequest request, IFormFile? identificationPictureFile)
         {
+            // Upload profile images
+            var avatarUrl = await UploadSingleImageAsync(request.AvatarFile);
+            var bannerUrl = await UploadSingleImageAsync(request.BannerFile);
+            var portfolioFilesJson = await UploadPortfolioFilesAsync(request.PortfolioFiles);
+
             var application = new Application
             {
                 UserId = userId,
                 TargetRoleId = 3,
+                AvatarUrl = avatarUrl,
                 PortfolioUrl = request.PortfolioUrl,
-                BannerUrl = request.BannerUrl,
+                PortfolioFiles = portfolioFilesJson,
+                BannerUrl = bannerUrl ?? request.BannerUrl,
                 SpecializationUrl = request.SpecializationUrl,
+                SocialLinks = request.SocialLinks,
                 IdentificationNumber = request.IdentificationNumber,
-                IdentificationPicture = null, // Initialize to null
-                Note = request.Note
+                IdentificationPicture = null,
+                IsIdentificationVerified = false,
+                Note = request.Note,
+                PhoneNumber = request.PhoneNumber,
+                Address = request.Address,
+                TaxNumber = request.TaxNumber,
+                IdentificationPictureOwner = request.IdentificationPictureOwner,
+                Certificates = request.Certificates
             };
 
             if (identificationPictureFile != null && identificationPictureFile.Length > 0)
             {
-                var uploadResult = await _cloudService.UploadImageAsync(identificationPictureFile);
-                if (uploadResult?.SecureUrl != null)
+                try
                 {
-                    application.IdentificationPicture = uploadResult.SecureUrl.ToString();
+                    var uploadResult = await _cloudService.UploadImageAsync(identificationPictureFile);
+                    if (uploadResult?.SecureUrl != null)
+                    {
+                        application.IdentificationPicture = uploadResult.SecureUrl.ToString();
+                    }
                 }
-                // Consider handling upload errors here
+                catch (Exception)
+                {
+                    // Log error but don't fail the application
+                }
             }
 
             await _applicationRepository.AddAsync(application);
@@ -70,26 +154,48 @@ namespace EcoFashionBackEnd.Services
 
         public async Task<ApplicationModel?> ApplyAsDesigner(int userId, ApplyDesignerRequest request, IFormFile? identificationPictureFile)
         {
+            // Upload profile images
+            var avatarUrl = await UploadSingleImageAsync(request.AvatarFile);
+            var bannerUrl = await UploadSingleImageAsync(request.BannerFile);
+            var portfolioFilesJson = await UploadPortfolioFilesAsync(request.PortfolioFiles);
+
+            string? Normalize(string? value) => string.IsNullOrEmpty(value) ? null : value.Trim();
+
             var application = new Application
             {
                 UserId = userId,
                 TargetRoleId = 2,
-                PortfolioUrl = request.PortfolioUrl,
-                BannerUrl = request.BannerUrl,
-                SpecializationUrl = request.SpecializationUrl,
-                IdentificationNumber = request.IdentificationNumber,
-                IdentificationPicture = null, // Initialize to null
-                Note = request.Note
+                AvatarUrl = avatarUrl,
+                PortfolioUrl = Normalize(request.PortfolioUrl),
+                PortfolioFiles = Normalize(portfolioFilesJson),
+                BannerUrl = bannerUrl ?? Normalize(request.BannerUrl),
+                SpecializationUrl = Normalize(request.SpecializationUrl),
+                SocialLinks = Normalize(request.SocialLinks),
+                IdentificationNumber = Normalize(request.IdentificationNumber),
+                IdentificationPicture = null,
+                IsIdentificationVerified = false,
+                Note = Normalize(request.Note),
+                PhoneNumber = Normalize(request.PhoneNumber),
+                Address = Normalize(request.Address),
+                TaxNumber = Normalize(request.TaxNumber),
+                IdentificationPictureOwner = Normalize(request.IdentificationPictureOwner),
+                Certificates = Normalize(request.Certificates)
             };
 
             if (identificationPictureFile != null && identificationPictureFile.Length > 0)
             {
-                var uploadResult = await _cloudService.UploadImageAsync(identificationPictureFile);
-                if (uploadResult?.SecureUrl != null)
+                try
                 {
-                    application.IdentificationPicture = uploadResult.SecureUrl.ToString();
+                    var uploadResult = await _cloudService.UploadImageAsync(identificationPictureFile);
+                    if (uploadResult?.SecureUrl != null)
+                    {
+                        application.IdentificationPicture = uploadResult.SecureUrl.ToString();
+                    }
                 }
-                // Consider handling upload errors here
+                catch (Exception)
+                {
+                    // Log error but don't fail the application
+                }
             }
 
             await _applicationRepository.AddAsync(application);
@@ -98,19 +204,25 @@ namespace EcoFashionBackEnd.Services
         }
 
         public async Task<ApplicationModel?> GetApplicationById(int id)
-    {
-        var application = await _applicationRepository.GetByIdAsync(id);
-        return _mapper.Map<ApplicationModel>(application);
-    }
+        {
+            var application = await _applicationRepository.GetByIdAsync(id);
+            if (application == null) return null;
+            return await MapApplicationModelAsync(application);
+        }
 
-    public async Task<IEnumerable<ApplicationModel>> GetAllApplications()
-    {
-        var applications = await _applicationRepository.GetAll()
-            .Include(a => a.User)
-            .Include(a => a.Role)
-            .ToListAsync();
-        return _mapper.Map<List<ApplicationModel>>(applications);
-    }
+        public async Task<IEnumerable<ApplicationModel>> GetAllApplications()
+        {
+            var applications = await _applicationRepository.GetAll()
+                .Include(a => a.User)
+                .Include(a => a.Role)
+                .ToListAsync();
+            var result = new List<ApplicationModel>();
+            foreach (var app in applications)
+            {
+                result.Add(await MapApplicationModelAsync(app));
+            }
+            return result;
+        }
 
  
     public async Task<bool> ApproveSupplierApplication(int applicationId, int adminId)
@@ -129,13 +241,21 @@ namespace EcoFashionBackEnd.Services
         {
             SupplierId = Guid.NewGuid(),
             UserId = application.UserId,
-            SupplierName = user.FullName, 
+            SupplierName = user.FullName,
+            AvatarUrl = application.AvatarUrl,
             PortfolioUrl = application.PortfolioUrl,
+            PortfolioFiles = application.PortfolioFiles,
             BannerUrl = application.BannerUrl,
             SpecializationUrl = application.SpecializationUrl,
+            Bio = application.Note,
+            Email = user.Email,
+            PhoneNumber = application.PhoneNumber,
+            Address = application.Address,
+            TaxNumber = application.TaxNumber,
             IdentificationNumber = application.IdentificationNumber,
             IdentificationPicture = application.IdentificationPicture,
-            IdentificationPictureOwner = "", 
+            IdentificationPictureOwner = application.IdentificationPictureOwner,
+            Certificates = application.Certificates,
             CreatedAt = DateTime.UtcNow,
             Status = "Active"
         };
@@ -149,6 +269,7 @@ namespace EcoFashionBackEnd.Services
         application.Status = ApplicationStatus.approved;
         application.ProcessedAt = DateTime.UtcNow;
         application.ProcessedBy = adminId;
+        application.IsIdentificationVerified = true; // Mark as verified when approved
         // TODO: Send notification to user về approval
         // TODO: Send email confirmation
 
@@ -171,13 +292,22 @@ namespace EcoFashionBackEnd.Services
         {
             DesignerId = Guid.NewGuid(),
             UserId = application.UserId,
-            DesignerName = user.FullName, // Bạn có thể lấy từ Application hoặc User tùy theo
+            DesignerName = user.FullName,
+            AvatarUrl = application.AvatarUrl,
             PortfolioUrl = application.PortfolioUrl,
+            PortfolioFiles = application.PortfolioFiles,
             BannerUrl = application.BannerUrl,
             SpecializationUrl = application.SpecializationUrl,
+            Bio = application.Note, // Nếu Application có trường Bio hoặc Note
+            Email = user.Email,
+
+            // PhoneNumber và Address không có trong User, chỉ lấy nếu Application có và Designer có
+            // Nếu Designer entity có các trường này, giữ lại, còn không thì bỏ
+            // TaxNumber = null, // Nếu Application có trường này thì lấy, không thì null
             IdentificationNumber = application.IdentificationNumber,
             IdentificationPicture = application.IdentificationPicture,
-            IdentificationPictureOwner = "", 
+            IdentificationPictureOwner = "",
+            // Certificates = null, // Nếu Application có trường này thì lấy, không thì null
             CreatedAt = DateTime.UtcNow,
             Status = "Active"
         };
@@ -191,6 +321,7 @@ namespace EcoFashionBackEnd.Services
         application.Status = ApplicationStatus.approved;
         application.ProcessedAt = DateTime.UtcNow;
         application.ProcessedBy = adminId;
+        application.IsIdentificationVerified = true; // Mark as verified when approved
         // TODO: Send notification to user về approval
         // TODO: Send email confirmation
 

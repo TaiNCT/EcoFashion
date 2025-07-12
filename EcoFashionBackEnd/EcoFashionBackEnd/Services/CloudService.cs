@@ -26,9 +26,9 @@ namespace EcoFashionBackEnd.Services
         public async Task<ImageUploadResult> UploadImageAsync(IFormFile file)
         {
             if (file == null || file.Length == 0 ||
-                (file.ContentType != "image/png" && file.ContentType != "image/jpeg"))
+                (file.ContentType != "image/png" && file.ContentType != "image/jpeg" && file.ContentType != "image/jpg"))
             {
-                throw new BadRequestException("File is null, empty, or not in PNG or JPEG format.");
+                throw new BadRequestException("File is null, empty, or not in JPG,PNG or JPEG format.");
             }
 
             using (var stream = file.OpenReadStream())

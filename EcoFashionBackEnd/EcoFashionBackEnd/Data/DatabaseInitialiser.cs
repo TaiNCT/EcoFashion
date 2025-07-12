@@ -1,5 +1,6 @@
 ﻿using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Helpers;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace EcoFashionBackEnd.Data
@@ -13,7 +14,7 @@ namespace EcoFashionBackEnd.Data
 
     public class DatabaseInitialiser : IDataaseInitialiser
     {
-        public readonly AppDbContext _context;
+        private readonly AppDbContext _context;
 
         public DatabaseInitialiser(AppDbContext context)
         {
@@ -24,12 +25,11 @@ namespace EcoFashionBackEnd.Data
         {
             try
             {
-                // Migration Database - Create database if it does not exist
                 await _context.Database.MigrateAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("Migration error: " + ex.Message);
                 throw;
             }
         }
@@ -42,7 +42,7 @@ namespace EcoFashionBackEnd.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("Seed error: " + ex.Message);
                 throw;
             }
         }
@@ -52,7 +52,8 @@ namespace EcoFashionBackEnd.Data
             if (_context.UserRoles.Any() || _context.Users.Any() || _context.DesignsColors.Any() || _context.DesignsSizes.Any() || _context.DesignTypes.Any() || _context.Designs.Any() || _context.Images.Any() || _context.DesignImages.Any()) return;
 
 
-            var adminRole = new UserRole { RoleName = "Admin", Description = "System administrator" };
+            // Roles
+            var adminRole = new UserRole { RoleName = "admin", Description = "System administrator" };
             var designerRole = new UserRole { RoleName = "designer", Description = "Fashion designer" };
             var supplierRole = new UserRole { RoleName = "supplier", Description = "Material supplier" };
             var customerRole = new UserRole { RoleName = "customer", Description = "Customer user" };
@@ -60,68 +61,81 @@ namespace EcoFashionBackEnd.Data
             await _context.UserRoles.AddRangeAsync(adminRole, designerRole, supplierRole, customerRole);
             await _context.SaveChangesAsync();
 
-
+            // Users
             var users = new List<User>
-    {
-            new User
             {
-                Email = "admin@example.com",
-                PasswordHash = SecurityUtil.Hash("admin"),
-                FullName = "Admin User",
-                RoleId = adminRole.RoleId,
-                Status = UserStatus.Active
-            },
-            new User
-            {
-                Email = "designer@example.com",
-                PasswordHash = SecurityUtil.Hash("designer"),
-                FullName = "Designer One",
-                RoleId = designerRole.RoleId,
-                Status = UserStatus.Active
-            },
-            new User
-            {
-                Email = "supplier@example.com",
-                PasswordHash = SecurityUtil.Hash("supplier"),
-                FullName = "Supplier One",
-                RoleId = supplierRole.RoleId,
-                Status = UserStatus.Active
-            },
-            new User
-            {
-                Email = "customer@example.com",
-                PasswordHash = SecurityUtil.Hash("customer"),
-                FullName = "Customer One",
-                RoleId = customerRole.RoleId,
-                Status = UserStatus.Active
-            }
-        };
+                new User { Email = "admin@example.com", PasswordHash = SecurityUtil.Hash("admin"), FullName = "Admin User", RoleId = adminRole.RoleId, Status = UserStatus.Active },
+                new User { Email = "designer@example.com", PasswordHash = SecurityUtil.Hash("designer"), FullName = "Designer One", RoleId = designerRole.RoleId, Status = UserStatus.Active },
+                new User { Email = "supplier@example.com", PasswordHash = SecurityUtil.Hash("supplier"), FullName = "Supplier One", RoleId = supplierRole.RoleId, Status = UserStatus.Active },
+                new User { Email = "customer@example.com", PasswordHash = SecurityUtil.Hash("customer"), FullName = "Customer One", RoleId = customerRole.RoleId, Status = UserStatus.Active }
+            };
 
             await _context.Users.AddRangeAsync(users);
             await _context.SaveChangesAsync();
 
-
             var designerUser = await _context.Users.FirstAsync(u => u.Email == "designer@example.com");
             var supplierUser = await _context.Users.FirstAsync(u => u.Email == "supplier@example.com");
 
-
-            var designer = await _context.Designers.AddAsync(new Designer
+            // Designer
+            var designer = new Designer
             {
                 UserId = designerUser.UserId,
                 DesignerName = "Designer One",
-                PortfolioUrl = "https://portfolio.designer.com",
+                Bio = "Nhà thiết kế đam mê thời trang bền vững và nghệ thuật tự nhiên.",
+                AvatarUrl = "https://images.unsplash.com/photo-1520975942700-142f2ec151b4?w=300",
+                BannerUrl = "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=1200",
+                PortfolioUrl = "https://portfolio.designer1.com",
+                PortfolioFiles = JsonSerializer.Serialize(new[]
+                {
+                    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
+                    "https://images.unsplash.com/photo-1601238729536-bb5aa59e3253?w=400"
+                }),
+                Certificates = JsonSerializer.Serialize(new[]
+                {
+                    "Eco Fashion Award 2023",
+                    "Top 10 Sustainable Designers"
+                }),
                 Email = "designer1@example.com",
-                Status = "active"
-            });
+                PhoneNumber = "0123456789",
+                Address = "123 Eco Street, HCMC",
+                TaxNumber = "TAX123456",
+                IdentificationNumber = "ID123456789",
+                IdentificationPicture = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=300",
+                IdentificationPictureOwner = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
+                Status = "active",
+                CreatedAt = DateTime.UtcNow
+            };
+            await _context.Designers.AddAsync(designer);
             await _context.SaveChangesAsync();
 
+            // Supplier
             await _context.Suppliers.AddAsync(new Supplier
             {
                 UserId = supplierUser.UserId,
                 SupplierName = "Supplier One",
-                PortfolioUrl = "https://supplier.com",
+                Bio = "Chuyên cung cấp chất liệu thời trang thân thiện với môi trường.",
+                AvatarUrl = "https://images.unsplash.com/photo-1482062364825-616fd23b8fc1?w=300",
+                BannerUrl = "https://images.unsplash.com/photo-1505904267569-95f62b13c71c?w=1200",
+                PortfolioUrl = "https://supplier1.com",
+                PortfolioFiles = JsonSerializer.Serialize(new[]
+                {
+                    "https://images.unsplash.com/photo-1542060748-10c28b62716e?w=400",
+                    "https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=400"
+                }),
+                Certificates = JsonSerializer.Serialize(new[]
+                {
+                    "Green Supplier Certificate",
+                    "Eco Material Excellence"
+                }),
                 Email = "supplier1@example.com",
-                Status = "active"
+                PhoneNumber = "0987654321",
+                Address = "456 Green Lane, HCMC",
+                TaxNumber = "TAXSUP123",
+                IdentificationNumber = "SUPID987654321",
+                IdentificationPicture = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=300",
+                IdentificationPictureOwner = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
+                Status = "active",
+                CreatedAt = DateTime.UtcNow
             });
 
             await _context.SaveChangesAsync();
@@ -158,7 +172,7 @@ namespace EcoFashionBackEnd.Data
             // Seed a Design
             var design = new Design
             {
-                DesignerId = designer.Entity.DesignerId,
+                DesignerId = designer.DesignerId,
                 Name = "Sample T-Shirt",
                 Description = "A basic sample t-shirt.",
                 RecycledPercentage = 50.0f,
@@ -176,8 +190,8 @@ namespace EcoFashionBackEnd.Data
             // Seed Images
             var images = new List<Image>
             {
-                new Image { ImageUrl = "https://example.com/image1.jpg" },
-                new Image { ImageUrl = "https://example.com/image2.jpg" }
+                new Image { ImageUrl = "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400" },
+                new Image { ImageUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400" }
             };
             await _context.Images.AddRangeAsync(images);
             await _context.SaveChangesAsync();
@@ -197,13 +211,9 @@ namespace EcoFashionBackEnd.Data
     {
         public static async Task InitialiseDatabaseAsync(this WebApplication app)
         {
-            // Create IServiceScope to resolve service scope
             using var scope = app.Services.CreateScope();
             var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitialiser>();
-
             await initializer.InitialiseAsync();
-
-            // Try to seeding data
             await initializer.SeedAsync();
         }
     }

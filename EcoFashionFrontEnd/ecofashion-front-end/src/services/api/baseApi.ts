@@ -3,10 +3,9 @@ import axios from "axios";
 import type { AxiosResponse } from "axios";
 
 // Determine API base URL based on environment
-// In development, use localhost; in production, use the same URL
 const API_BASE_URL = import.meta.env.DEV
   ? "http://localhost:5148/api"
-  : "http://localhost:5148/api";
+  : import.meta.env.VITE_API_URL || "https://your-production-api.com/api";
 
 // Create axios instance with common config
 export const apiClient = axios.create({
@@ -27,9 +26,12 @@ apiClient.interceptors.request.use(
 
     // Log all requests in dev mode
     if (import.meta.env.DEV) {
-      console.debug(
-        `API Request: ${config.method?.toUpperCase()} ${config.url}`
-      );
+      console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
+        headers: config.headers,
+        data: config.data instanceof FormData ? "FormData" : config.data,
+        hasToken: !!token,
+        tokenStart: token?.substring(0, 20) + "..."
+      });
     }
 
     return config;
@@ -42,30 +44,39 @@ apiClient.interceptors.request.use(
 
 // Response interceptor
 apiClient.interceptors.response.use(
-  (response: AxiosResponse) => {
+    (response: AxiosResponse) => {
     // Log responses in dev mode
     if (import.meta.env.DEV) {
-      console.debug(
-        `API Response: ${response.config.method?.toUpperCase()} ${
-          response.config.url
-        } - ${response.status}`
-      );
+      console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`, response.data);
     }
     return response;
   },
   (error) => {
     // Handle common errors
     if (error.response?.status === 401) {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("tokenExpiresAt");
-      localStorage.removeItem("userInfo");
-      window.location.href = "/login";
+      // Check if this is a legitimate auth failure vs missing authorization
+      const errorMessage = error.response?.data?.ErrorMessage || error.response?.data?.message || "";
+      
+      // Only auto-logout for actual token expiration, not missing authorization
+      if (errorMessage.toLowerCase().includes("token") || 
+          errorMessage.toLowerCase().includes("expired") ||
+          errorMessage.toLowerCase().includes("invalid token")) {
+        console.warn("Token expired, logging out");
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("tokenExpiresAt");
+        localStorage.removeItem("userInfo");
+        window.location.href = "/login";
+      } else {
+        // For other 401 errors (like missing authorization), just log but don't logout
+        console.warn("Authorization error but keeping user logged in:", errorMessage);
+      }
     }
 
-    console.error("❌ Response Error:", {
+    console.error("❌ API Error:", {
       status: error.response?.status,
-      message: error.response?.data?.message,
+      message: error.response?.data?.message || error.message,
       url: error.config?.url,
+      error: error
     });
 
     return Promise.reject(error);
@@ -128,9 +139,13 @@ export const handleApiResponse = <T>(
     }
   }
 
+  // Handle array response directly (common for list endpoints)
+  if (Array.isArray(data)) {
+    return data as T;
+  }
+
   // Direct data (for cases where response is directly the data)
-  if (typeof data === "object" && data !== null && !Array.isArray(data)) {
-    // If response doesn't have success/Success wrapper, assume it's direct data
+  if (typeof data === "object" && data !== null) {
     return data as T;
   }
 
