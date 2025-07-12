@@ -9,12 +9,12 @@ namespace EcoFashionBackEnd.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int MaterialId { get; set; }
-        public int TypeId { get; set; }
-        public Guid SupplierId { get; set; }
+        public required int TypeId { get; set; }
+        public required Guid SupplierId { get; set; }
         [ForeignKey(nameof(TypeId))]
-        public required MaterialType MaterialType { get; set; }
+        public MaterialType MaterialType { get; set; } = null!;
         [ForeignKey(nameof(SupplierId))]
-        public required Supplier Supplier { get; set; }
+        public Supplier Supplier { get; set; } = null!;
         [Required]
         public required string MaterialName { get; set; }
         public string? MaterialDescription { get; set; }

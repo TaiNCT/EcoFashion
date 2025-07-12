@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using EcoFashionBackEnd.Dtos;
+using EcoFashionBackEnd.Dtos.Material;
+using EcoFashionBackEnd.Dtos.MaterialType;
 using EcoFashionBackEnd.Entities;
 
 namespace EcoFashionBackEnd.Mapper
@@ -12,7 +14,10 @@ namespace EcoFashionBackEnd.Mapper
             CreateMap<UserRole, UserRoleModel>().ReverseMap();
             CreateMap<Supplier, SupplierModel>().ReverseMap();
             CreateMap<Designer, DesignerModel>().ReverseMap();
-            
+            CreateMap<MaterialType, MaterialTypeModel>().ReverseMap();
+            CreateMap<MaterialTypeRequest, MaterialType>();
+            CreateMap<Material,  MaterialModel>().ReverseMap();
+            CreateMap<MaterialRequest,  Material>();
             // Application mapping với enum conversion
             CreateMap<Application, ApplicationModel>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));

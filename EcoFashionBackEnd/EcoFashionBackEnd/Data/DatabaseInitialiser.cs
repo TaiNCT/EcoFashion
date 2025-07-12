@@ -64,42 +64,50 @@ namespace EcoFashionBackEnd.Data
 
             
             var users = new List<User>
-    {
-        new User
-        {
-            Email = "admin@example.com",
-            PasswordHash = SecurityUtil.Hash("admin"),
-            FullName = "Admin User",
-            RoleId = adminRole.RoleId,
-            Status = UserStatus.Active
-        },
-        new User
-        {
-            Email = "designer@example.com",
-            PasswordHash = SecurityUtil.Hash("designer"),
-            FullName = "Designer One",
-            RoleId = designerRole.RoleId,
-            Status = UserStatus.Active
-        },
-        new User
-        {
-            Email = "supplier@example.com",
-            PasswordHash = SecurityUtil.Hash("supplier"),
-            FullName = "Supplier One",
-            RoleId = supplierRole.RoleId,
-            Status = UserStatus.Active
-        },
-        new User
-        {
-            Email = "customer@example.com",
-            PasswordHash = SecurityUtil.Hash("customer"),
-            FullName = "Customer One",
-            RoleId = customerRole.RoleId,
-            Status = UserStatus.Active
-        }
-    };
-
+            {
+                new User
+                {
+                    Email = "admin@example.com",
+                    PasswordHash = SecurityUtil.Hash("admin"),
+                    FullName = "Admin User",
+                    RoleId = adminRole.RoleId,
+                    Status = UserStatus.Active
+                },
+                new User
+                {
+                    Email = "designer@example.com",
+                    PasswordHash = SecurityUtil.Hash("designer"),
+                    FullName = "Designer One",
+                    RoleId = designerRole.RoleId,
+                    Status = UserStatus.Active
+                },
+                new User
+                {
+                    Email = "supplier@example.com",
+                    PasswordHash = SecurityUtil.Hash("supplier"),
+                    FullName = "Supplier One",
+                    RoleId = supplierRole.RoleId,
+                    Status = UserStatus.Active
+                },
+                new User
+                {
+                    Email = "customer@example.com",
+                    PasswordHash = SecurityUtil.Hash("customer"),
+                    FullName = "Customer One",
+                    RoleId = customerRole.RoleId,
+                    Status = UserStatus.Active
+                }
+            };
             await _context.Users.AddRangeAsync(users);
+
+            var materialTypes = new List<MaterialType> {
+                new MaterialType { Name = "Tơ tầm" },
+                new MaterialType { Name = "Vải lanh"},
+                new MaterialType { Name = "Vải gai dầu"},
+                new MaterialType { Name = "Len tự nhiên"},
+            };
+            await _context.MaterialTypes.AddRangeAsync(materialTypes);
+
             await _context.SaveChangesAsync();
 
            
@@ -125,6 +133,13 @@ namespace EcoFashionBackEnd.Data
                 Status = "active"
             });
 
+            var materialType = await _context.MaterialTypes.FirstAsync();
+            var supplier = await _context.Suppliers.FirstAsync();
+            await _context.Materials.AddAsync(new Material
+                { MaterialName = "Vải tơ nến Phượng Thúy",
+                TypeId = materialType.TypeId,
+                SupplierId = supplier.SupplierId,
+            });
             await _context.SaveChangesAsync(); 
         }
     }

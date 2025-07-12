@@ -12,7 +12,6 @@ using EcoFashionBackEnd.Middlewares;
 using MailKit;
 using EcoFashionBackEnd.Mapper;
 using EcoFashionBackEnd.Helpers.Photos;
-using EcoFashionBackEnd.Services;
 using EcoFashionBackEnd.Data;
 
 
@@ -84,6 +83,8 @@ public static class ServicesExtensions
         services.AddScoped<SupplierService>();
         services.AddScoped<ApplicationService>();
         services.AddScoped<CustomerService>();
+        services.AddScoped<MaterialService>();
+        services.AddScoped<MaterialTypeService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<CloudService>();
 

@@ -1,12 +1,7 @@
-﻿using EcoFashionBackEnd.Entities;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-
-namespace EcoFashionBackEnd.Dtos
+﻿namespace EcoFashionBackEnd.Dtos.Material
 {
-    public class MaterialModel
+    public class MaterialRequest
     {
-        public int MaterialId { get; set; }
         public int TypeId { get; set; }
         public Guid SupplierId { get; set; }
         public required string MaterialName { get; set; }
