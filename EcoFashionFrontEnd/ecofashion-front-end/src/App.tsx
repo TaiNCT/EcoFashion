@@ -55,12 +55,12 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/detail/:id" element={<FashionDetail />} />
-          <Route path="/designer/register" element={<DesignerRegister />} />
+
           <Route path="/businessinfor" element={<BusinessInfor />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
-          
+
           {/* TEST ROUTE - Remove in production */}
           <Route path="/test-auth" element={<TestAuth />} />
 
@@ -93,7 +93,7 @@ function App() {
           />
 
           {/* Designer Routes */}
-          
+
           <Route
             path="/designer/profile"
             element={
@@ -105,9 +105,15 @@ function App() {
 
           {/* EXPLORE ROUTES - Public access */}
           <Route path="/explore/designers" element={<ExploreDesigners />} />
-          <Route path="/explore/designers/:id" element={<DesignerLandingPage />} />
+          <Route
+            path="/explore/designers/:id"
+            element={<DesignerLandingPage />}
+          />
           <Route path="/explore/suppliers" element={<ExploreSuppliers />} />
-          <Route path="/explore/suppliers/:id" element={<SupplierLandingPage />} />
+          <Route
+            path="/explore/suppliers/:id"
+            element={<SupplierLandingPage />}
+          />
 
           {/* Designer Dashboard */}
           <Route

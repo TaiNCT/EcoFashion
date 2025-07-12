@@ -18,25 +18,22 @@ import logo from "../assets/pictures/homepage/logo.png";
 //Icon Login
 import DesignServicesIcon from "@mui/icons-material/DesignServices";
 import SettingsIcon from "@mui/icons-material/Settings";
-<<<<<<< HEAD
 import AssignmentIcon from "@mui/icons-material/Assignment";
-=======
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import LogoutIcon from "@mui/icons-material/Logout";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import PersonIcon from "@mui/icons-material/Person";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import PeopleIcon from "@mui/icons-material/People";
-import HandshakeIcon from "@mui/icons-material/Handshake";
-import FeedIcon from "@mui/icons-material/Feed";
->>>>>>> main
 //Icon Register
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LoginIcon from "@mui/icons-material/Login";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import PersonIcon from "@mui/icons-material/Person";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PeopleIcon from "@mui/icons-material/People";
+import FeedIcon from "@mui/icons-material/Feed";
+import HandshakeIcon from "@mui/icons-material/Handshake";
+import CompostIcon from "@mui/icons-material/Compost";
+import LogoutIcon from "@mui/icons-material/Logout";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 
 import { useAuth } from "../services/user/AuthContext";
 import { toast } from "react-toastify";
@@ -44,7 +41,7 @@ import { toast } from "react-toastify";
 export default function Navigation() {
   const navigate = useNavigate();
 
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -54,7 +51,7 @@ export default function Navigation() {
     setAnchorEl(null);
   };
 
-  const [anchorE2, setAnchorE2] = React.useState<null | HTMLElement>(null);
+  const [anchorE2, setAnchorE2] = useState<null | HTMLElement>(null);
   const openShop = Boolean(anchorE2);
   const handleClickShop = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorE2(event.currentTarget);
@@ -63,7 +60,7 @@ export default function Navigation() {
     setAnchorE2(null);
   };
 
-  const [anchorE3, setAnchorE3] = React.useState<null | HTMLElement>(null);
+  const [anchorE3, setAnchorE3] = useState<null | HTMLElement>(null);
   const openExplore = Boolean(anchorE3);
   const handleClickExplore = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorE3(event.currentTarget);
@@ -74,10 +71,10 @@ export default function Navigation() {
 
   const handleAuth = (type: any) => {
     handleClose();
-    
+
     // Get current user role for profile navigation
     const userRole = user?.role?.toLowerCase();
-    
+
     switch (type) {
       case "signup":
         navigate("/signup");
@@ -85,7 +82,6 @@ export default function Navigation() {
       case "login":
         navigate("/login");
         break;
-<<<<<<< HEAD
       case "designerregister":
         navigate("/apply/designer");
         break;
@@ -125,8 +121,6 @@ export default function Navigation() {
       case "explore-suppliers":
         navigate("/explore/suppliers");
         break;
-=======
->>>>>>> main
     }
   };
 
@@ -141,8 +135,6 @@ export default function Navigation() {
   }));
 
   const { user, logout, refreshUserFromServer } = useAuth();
-  
-
 
   const handleLogout = async () => {
     try {
@@ -394,7 +386,7 @@ export default function Navigation() {
             <MenuItem onClick={handleCloseShop}>Thời Trang</MenuItem>
             <MenuItem onClick={handleCloseShop}>Vật Liệu</MenuItem>
           </Menu>
-          
+
           <Button
             id="explore-button"
             aria-controls={openExplore ? "explore-menu" : undefined}
@@ -436,10 +428,20 @@ export default function Navigation() {
               },
             }}
           >
-            <MenuItem onClick={() => { handleCloseExplore(); handleAuth("explore-designers"); }}>
+            <MenuItem
+              onClick={() => {
+                handleCloseExplore();
+                handleAuth("explore-designers");
+              }}
+            >
               Nhà Thiết Kế
             </MenuItem>
-            <MenuItem onClick={() => { handleCloseExplore(); handleAuth("explore-suppliers"); }}>
+            <MenuItem
+              onClick={() => {
+                handleCloseExplore();
+                handleAuth("explore-suppliers");
+              }}
+            >
               Nhà Cung Cấp
             </MenuItem>
           </Menu>
@@ -506,7 +508,6 @@ export default function Navigation() {
                   onClick={handleClick}
                   sx={{ color: "#3e4b3b" }}
                 >
-<<<<<<< HEAD
                   {user.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
@@ -533,23 +534,18 @@ export default function Navigation() {
                         fontSize: 16,
                       }}
                     >
-                      {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.email ? user.email.charAt(0).toUpperCase() : "U"}
+                      {user.fullName
+                        ? user.fullName.charAt(0).toUpperCase()
+                        : user.email
+                        ? user.email.charAt(0).toUpperCase()
+                        : "U"}
                     </Box>
                   )}
-=======
-                  <AccountCircleIcon
-                    sx={{
-                      height: "50px",
-                      width: "50px",
-                      color: scrolled || !isHome ? "black" : "white",
-                    }}
-                  />
->>>>>>> main
                 </IconButton>
                 <Typography
-                  sx={{ 
+                  sx={{
                     color: scrolled || !isHome ? "black" : "white",
-                    fontWeight: 500
+                    fontWeight: 500,
                   }}
                 >
                   {user.fullName || user.email}
@@ -628,7 +624,6 @@ export default function Navigation() {
                 },
               }}
             >
-<<<<<<< HEAD
               {/* User Profile Link */}
               <MenuItem onClick={() => handleAuth("desiger-profile")}>
                 <Box sx={{ display: "flex" }}>
@@ -641,8 +636,13 @@ export default function Navigation() {
 
               {/* Role-specific Menu Items */}
               {user.role?.toLowerCase() === "admin" && [
-                <MenuItem key="admin-dashboard" onClick={() => handleAuth("admin-dashboard")}>
-                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                <MenuItem
+                  key="admin-dashboard"
+                  onClick={() => handleAuth("admin-dashboard")}
+                >
+                  <Box
+                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                  >
                     <Icon>
                       <CompostIcon />
                     </Icon>
@@ -651,8 +651,13 @@ export default function Navigation() {
                     </Typography>
                   </Box>
                 </MenuItem>,
-                <MenuItem key="admin-applications" onClick={() => handleAuth("admin-applications")}>
-                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                <MenuItem
+                  key="admin-applications"
+                  onClick={() => handleAuth("admin-applications")}
+                >
+                  <Box
+                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                  >
                     <Icon>
                       <AssignmentIcon />
                     </Icon>
@@ -660,12 +665,14 @@ export default function Navigation() {
                       Quản Lý Đơn Đăng Ký
                     </Typography>
                   </Box>
-                </MenuItem>
+                </MenuItem>,
               ]}
 
               {user.role?.toLowerCase() === "designer" && (
                 <MenuItem onClick={() => handleAuth("desiger-dashboard")}>
-                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                  <Box
+                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                  >
                     <Icon>
                       <CompostIcon />
                     </Icon>
@@ -675,66 +682,12 @@ export default function Navigation() {
                   </Box>
                 </MenuItem>
               )}
-=======
-              {getMenuItems().map((item, index) => {
-                const isApplicationMenu = item.path.includes("/apply/");
-                const applicationMenuStartIndex = getMenuItems().findIndex(
-                  (menuItem) => menuItem.path.includes("/apply/")
-                );
-
-                return (
-                  <div key={index}>
-                    {/* Thêm divider trước menu đăng ký */}
-                    {isApplicationMenu &&
-                      index === applicationMenuStartIndex &&
-                      applicationMenuStartIndex > 0 && (
-                        <Divider sx={{ my: 1 }} />
-                      )}
-
-                    <MenuItem
-                      onClick={handleClose}
-                      sx={{
-                        // Style đặc biệt cho menu đăng ký
-                        ...(isApplicationMenu && {
-                          backgroundColor: "#f8f9fa",
-                          "&:hover": {
-                            backgroundColor: "#e9ecef",
-                          },
-                        }),
-                      }}
-                    >
-                      <Link
-                        to={item.path}
-                        style={{
-                          textDecoration: "none",
-                          color: "inherit",
-                          display: "flex",
-                          alignItems: "center",
-                          width: "100%",
-                        }}
-                      >
-                        {item.icon}
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontWeight: isApplicationMenu ? 600 : 500,
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          {item.label}
-                        </Typography>
-                      </Link>
-                    </MenuItem>
-                  </div>
-                );
-              })}
-              {/* Divider trước logout */}
-              <Divider sx={{ my: 1 }} />
->>>>>>> main
 
               {user.role?.toLowerCase() === "supplier" && (
                 <MenuItem onClick={() => handleAuth("supplier-profile")}>
-                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                  <Box
+                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                  >
                     <Icon>
                       <CompostIcon />
                     </Icon>
@@ -746,9 +699,15 @@ export default function Navigation() {
               )}
 
               {/* Show application menus for customers/users who can still apply */}
-              {(user.role?.toLowerCase() === "customer" || user.role?.toLowerCase() === "user") && [
-                <MenuItem key="apply-designer" onClick={() => handleAuth("designerregister")}>
-                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+              {(user.role?.toLowerCase() === "customer" ||
+                user.role?.toLowerCase() === "user") && [
+                <MenuItem
+                  key="apply-designer"
+                  onClick={() => handleAuth("designerregister")}
+                >
+                  <Box
+                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                  >
                     <Icon>
                       <CompostIcon />
                     </Icon>
@@ -757,8 +716,13 @@ export default function Navigation() {
                     </Typography>
                   </Box>
                 </MenuItem>,
-                <MenuItem key="apply-supplier" onClick={() => handleAuth("supplierregister")}>
-                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                <MenuItem
+                  key="apply-supplier"
+                  onClick={() => handleAuth("supplierregister")}
+                >
+                  <Box
+                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                  >
                     <Icon>
                       <CompostIcon />
                     </Icon>
@@ -766,16 +730,18 @@ export default function Navigation() {
                       Đăng Ký Làm Nhà Cung Cấp
                     </Typography>
                   </Box>
-                </MenuItem>
+                </MenuItem>,
               ]}
 
               {/* Show "My Applications" for users who might have pending applications */}
-              {(user.role?.toLowerCase() === "customer" || 
-                user.role?.toLowerCase() === "user" || 
-                user.role?.toLowerCase() === "designer" || 
+              {(user.role?.toLowerCase() === "customer" ||
+                user.role?.toLowerCase() === "user" ||
+                user.role?.toLowerCase() === "designer" ||
                 user.role?.toLowerCase() === "supplier") && (
                 <MenuItem onClick={() => handleAuth("my-applications")}>
-                  <Box sx={{ display: "flex", borderBottom: "1px solid black" }}>
+                  <Box
+                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                  >
                     <Icon>
                       <DesignServicesIcon />
                     </Icon>
@@ -788,7 +754,6 @@ export default function Navigation() {
 
               {/* Common Menu Items */}
               <MenuItem onClick={handleClose}>
-<<<<<<< HEAD
                 <Box sx={{ display: "flex", width: "100%" }}>
                   <Icon>
                     <SettingsIcon />
@@ -803,20 +768,6 @@ export default function Navigation() {
                   </Icon>
                   <Typography sx={{ padding: "3px" }}> Đăng Xuất</Typography>
                 </Box>
-=======
-                <SettingsIcon
-                  sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }}
-                />
-                <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
-                  Cài Đặt
-                </Typography>
-              </MenuItem>
-              <MenuItem onClick={handleLogout}>
-                <LogoutIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-                <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
-                  Đăng Xuất
-                </Typography>
->>>>>>> main
               </MenuItem>
             </Menu>
             // <Menu
