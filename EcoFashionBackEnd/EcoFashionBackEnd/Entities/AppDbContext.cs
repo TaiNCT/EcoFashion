@@ -20,6 +20,9 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Application> Applications { get; set; }
         public DbSet<SavedSupplier> SavedSuppliers { get; set; }
 
+        public DbSet<Material> Materials { get; set; }
+        public DbSet<MaterialType> MaterialTypes { get; set; }
+
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -82,6 +85,18 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<Application>()
                 .Property(a => a.Status)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<Material>()
+                .HasOne(m => m.Supplier).WithMany(s => s.Materials)
+                .HasForeignKey(m => m.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Material>()
+                .HasOne(m => m.MaterialType).WithMany(mt => mt.Materials)
+                .HasForeignKey(m => m.TypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Material>()
+                .Property(m => m.PricePerUnit)
+                .HasPrecision(18, 2);
         }
     }
 }
