@@ -5,11 +5,10 @@ import "react-toastify/dist/ReactToastify.css";
 
 //Pages
 import Homepages from "./pages/Homepages";
-import Homepages2 from "./pages/Homepage2";
 
 import About from "./pages/About";
 import FooterInfo from "./pages/FooterInfo";
-import FashionDetail from "./pages/FashionDetail";
+import DesignDetail from "./pages/design/DesignDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import VerifyOTP from "./components/VerifyOTP";
@@ -33,6 +32,7 @@ import ExploreSuppliers from "./pages/explore/ExploreSuppliers";
 import SupplierLandingPage from "./pages/explore/SupplierLandingPage";
 import TestAuth from "./pages/TestAuth";
 
+import DesingBrandProfile from "./pages/design/DesignBrandProfile";
 // import { createTheme } from "@mui/material/styles";
 function App() {
   // const theme = createTheme({
@@ -44,18 +44,18 @@ function App() {
   const location = useLocation();
   // Hide Nav and Footer on these routes
   const hideLayout = ["/login", "/signup"].includes(location.pathname);
+
   return (
     <AuthContextProvider>
       <div className="app">
         {!hideLayout && <Navigation />}
         <Routes>
           <Route path="/" element={<Homepages />} />
-          <Route path="/Homepage2" element={<Homepages2 />} />
-
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/detail/:id" element={<FashionDetail />} />
+          {/* <Route path="/detail2/:id" element={<FashionDetail />} /> */}
 
+          <Route path="/detail/:id" element={<DesignDetail />} />
           <Route path="/businessinfor" element={<BusinessInfor />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/signup" element={<Signup />} />
@@ -65,6 +65,8 @@ function App() {
           <Route path="/test-auth" element={<TestAuth />} />
 
           {/* NEW APPLICATION ROUTES - Updated multi-step forms */}
+          <Route path="/brand/:id" element={<DesingBrandProfile />} />
+          {/* Application Routes */}
           <Route
             path="/apply/designer"
             element={

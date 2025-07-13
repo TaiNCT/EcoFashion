@@ -1,0 +1,1088 @@
+import { useParams } from "react-router-dom";
+import type { Fashion } from "../../types/Fashion";
+import {
+  AppBar,
+  Avatar,
+  Box,
+  Button,
+  Container,
+  Grid,
+  Paper,
+  Stack,
+  styled,
+  Toolbar,
+  Typography,
+  Link,
+  Menu,
+  Divider,
+  InputBase,
+  IconButton,
+  Card,
+  CardContent,
+  CardMedia,
+  Rating,
+  Select,
+  MenuItem,
+  ListItemText,
+  ListItemIcon,
+} from "@mui/material";
+//example
+import ao_linen from "../../assets/pictures/example/ao-linen.webp";
+import chan_vay_dap from "../../assets/pictures/example/chan-vay-dap.webp";
+import dam_con_trung from "../../assets/pictures/example/dam-con-trung.webp";
+import brand_banner from "../../assets/pictures/example/brand-banner.jpg";
+import linen from "../../assets/pictures/example/linen.webp";
+import nylon from "../../assets/pictures/example/nylon.webp";
+import denim from "../../assets/pictures/example/denim.jpg";
+import cotton from "../../assets/pictures/example/cotton.webp";
+import polyester from "../../assets/pictures/example/Polyester.jpg";
+
+import { GridSearchIcon } from "@mui/x-data-grid";
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowBackIos,
+  ArrowForwardIos,
+  CheckCircleOutline,
+} from "@mui/icons-material";
+import StarIcon from "@mui/icons-material/Star";
+import DesignsSection from "./DesignsSection";
+const products: Fashion[] = [
+  {
+    id: 1,
+    name: "Áo thun Organic Cotton",
+    category: "clothing",
+    brand: { id: 1, name: "EcoWear" },
+    image: ao_linen,
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 18,
+  },
+  {
+    id: 2,
+    name: "Chân Váy Đắp",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
+    category: "clothing",
+    image: chan_vay_dap,
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 18,
+  },
+  {
+    id: 3,
+    name: "Đầm Côn Trùng",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
+    category: "clothing",
+    image: dam_con_trung,
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 18,
+  },
+  {
+    id: 4,
+    name: "Đầm Côn Trùng",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
+    category: "clothing",
+    image: dam_con_trung,
+    images: [ao_linen, dam_con_trung, chan_vay_dap],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 18,
+  },
+  {
+    id: 5,
+    name: "Quần jeans tái chế",
+    category: "clothing",
+    brand: { id: 2, name: "GreenStyle" },
+    sustainability: 78,
+    materials: [
+      { name: "Vải denim tái chế", percentageUse: 80 },
+      { name: "Spandex", percentageUse: 20 },
+    ],
+    price: { current: 620000, currency: "VND" },
+    sizes: ["S", "M", "L", "XL"],
+    colors: ["Xanh Đậm", "Xám", "Đen"],
+    availability: "in-stock",
+    rating: { average: 4.5, count: 96 },
+    description: "Quần jeans thân thiện với môi trường, độ co giãn tốt và bền.",
+    features: ["Vải tái chế", "Co giãn", "Chống nhăn"],
+    isFeatured: false,
+    isBestSeller: true,
+    isNew: false,
+    discountPercentage: 10,
+    image: dam_con_trung,
+    images: [dam_con_trung, ao_linen, chan_vay_dap],
+  },
+  {
+    id: 6,
+    name: "Đầm vải lanh mùa hè",
+    category: "clothing",
+    brand: { id: 3, name: "NatureWear" },
+    sustainability: 92,
+    materials: [{ name: "Lanh", percentageUse: 100 }],
+    price: { current: 720000, currency: "VND" },
+    sizes: ["S", "M", "L"],
+    colors: ["Kem", "Hồng Nhạt"],
+    availability: "in-stock",
+    rating: { average: 4.7, count: 212 },
+    description: "Đầm nhẹ nhàng, thoáng mát, phù hợp cho thời tiết nóng bức.",
+    features: ["Chống tia UV", "Thoáng mát", "Thiết kế nữ tính"],
+    isFeatured: true,
+    isBestSeller: true,
+    isNew: true,
+    discountPercentage: 20,
+    image: chan_vay_dap,
+    images: [chan_vay_dap, ao_linen],
+  },
+  {
+    id: 7,
+    name: "Áo khoác PET tái chế",
+    category: "clothing",
+    brand: { id: 4, name: "RecycleFit" },
+    sustainability: 88,
+    materials: [{ name: "Polyester tái chế (PET)", percentageUse: 100 }],
+    price: { current: 890000, currency: "VND" },
+    sizes: ["M", "L", "XL"],
+    colors: ["Xanh Lá", "Đen"],
+    availability: "in-stock",
+    rating: { average: 4.2, count: 68 },
+    description: "Áo khoác chắn gió từ chai nhựa tái chế, nhẹ và bền.",
+    features: ["Chống gió", "Chống nước nhẹ", "Bền"],
+    isFeatured: false,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 15,
+    image: ao_linen,
+    images: [ao_linen, dam_con_trung],
+  },
+  {
+    id: 8,
+    name: "Chân váy đắp chéo",
+    category: "clothing",
+    brand: { id: 1, name: "EcoWear" },
+    sustainability: 81,
+    materials: [
+      { name: "Cotton hữu cơ", percentageUse: 60 },
+      { name: "Hemp", percentageUse: 40 },
+    ],
+    price: { current: 510000, currency: "VND" },
+    sizes: ["XS", "S", "M", "L"],
+    colors: ["Be", "Xanh Rêu"],
+    availability: "in-stock",
+    rating: { average: 4.6, count: 143 },
+    description: "Chân váy đắp nhẹ nhàng, phong cách thanh lịch, dễ kết hợp.",
+    features: ["Cotton hữu cơ", "Thiết kế đa năng"],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: false,
+    discountPercentage: 12,
+    image: chan_vay_dap,
+    images: [chan_vay_dap, ao_linen],
+  },
+  {
+    id: 9,
+    name: "Áo sơ mi Hemp thoáng khí",
+    category: "clothing",
+    brand: { id: 2, name: "GreenStyle" },
+    sustainability: 90,
+    materials: [{ name: "Hemp", percentageUse: 100 }],
+    price: { current: 640000, currency: "VND" },
+    sizes: ["S", "M", "L", "XL"],
+    colors: ["Trắng", "Xanh Nhạt"],
+    availability: "in-stock",
+    rating: { average: 4.8, count: 119 },
+    description: "Áo sơ mi chất liệu hemp mát mẻ và cực kỳ thoải mái.",
+    features: ["Thoáng khí", "Thấm hút mồ hôi tốt", "Thân thiện môi trường"],
+    isFeatured: false,
+    isBestSeller: true,
+    isNew: false,
+    discountPercentage: 0,
+    image: dam_con_trung,
+    images: [dam_con_trung, ao_linen],
+  },
+  {
+    id: 10,
+    name: "Quần short thể thao tái chế",
+    category: "clothing",
+    brand: { id: 3, name: "NatureWear" },
+    sustainability: 86,
+    materials: [
+      { name: "Polyester tái chế", percentageUse: 90 },
+      { name: "Spandex", percentageUse: 10 },
+    ],
+    price: { current: 370000, currency: "VND" },
+    sizes: ["S", "M", "L"],
+    colors: ["Xám", "Xanh Dương"],
+    availability: "in-stock",
+    rating: { average: 4.1, count: 55 },
+    description: "Quần short nhẹ, thoáng khí, lý tưởng cho vận động hàng ngày.",
+    features: ["Thân thiện môi trường", "Co giãn", "Thoáng khí"],
+    isFeatured: false,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 5,
+    image: ao_linen,
+    images: [ao_linen, chan_vay_dap],
+  },
+  {
+    id: 11,
+    name: "Đồ bộ ngủ Bamboo",
+    category: "clothing",
+    brand: { id: 5, name: "SoftEarth" },
+    sustainability: 95,
+    materials: [{ name: "Sợi tre", percentageUse: 100 }],
+    price: { current: 560000, currency: "VND" },
+    sizes: ["M", "L", "XL"],
+    colors: ["Hồng", "Kem", "Xám"],
+    availability: "in-stock",
+    rating: { average: 4.9, count: 189 },
+    description:
+      "Chất liệu bamboo cực kỳ mềm mại, thoáng mát, lý tưởng cho giấc ngủ.",
+    features: ["Siêu mềm", "Kháng khuẩn", "Tự phân hủy sinh học"],
+    isFeatured: true,
+    isBestSeller: true,
+    isNew: true,
+    discountPercentage: 25,
+    image: dam_con_trung,
+    images: [dam_con_trung, chan_vay_dap],
+  },
+  {
+    id: 12,
+    name: "Áo croptop tái chế",
+    category: "clothing",
+    brand: { id: 1, name: "EcoWear" },
+    sustainability: 84,
+    materials: [
+      { name: "Cotton tái chế", percentageUse: 70 },
+      { name: "Polyester", percentageUse: 30 },
+    ],
+    price: { current: 330000, currency: "VND" },
+    sizes: ["XS", "S", "M"],
+    colors: ["Tím", "Hồng"],
+    availability: "in-stock",
+    rating: { average: 4.3, count: 74 },
+    description: "Phong cách trẻ trung, cá tính, thích hợp cho mùa hè.",
+    features: ["Nhẹ", "Bền màu", "Thân thiện môi trường"],
+    isFeatured: false,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 8,
+    image: ao_linen,
+    images: [ao_linen, dam_con_trung],
+  },
+  {
+    id: 13,
+    name: "Áo khoác gió không thấm nước",
+    category: "clothing",
+    brand: { id: 4, name: "RecycleFit" },
+    sustainability: 80,
+    materials: [{ name: "Nylon tái chế", percentageUse: 100 }],
+    price: { current: 950000, currency: "VND" },
+    sizes: ["M", "L", "XL"],
+    colors: ["Xám", "Xanh Đậm"],
+    availability: "in-stock",
+    rating: { average: 4.6, count: 101 },
+    description: "Áo khoác nhẹ, chống thấm, lý tưởng cho thời tiết ẩm ướt.",
+    features: ["Chống thấm", "Có mũ trùm", "Dễ vệ sinh"],
+    isFeatured: true,
+    isBestSeller: true,
+    isNew: false,
+    discountPercentage: 18,
+    image: chan_vay_dap,
+    images: [chan_vay_dap, ao_linen],
+  },
+  {
+    id: 14,
+    name: "Áo hai dây Organic",
+    category: "clothing",
+    brand: { id: 5, name: "SoftEarth" },
+    sustainability: 91,
+    materials: [{ name: "Cotton hữu cơ", percentageUse: 100 }],
+    price: { current: 290000, currency: "VND" },
+    sizes: ["XS", "S", "M"],
+    colors: ["Trắng", "Nâu", "Hồng"],
+    availability: "in-stock",
+    rating: { average: 4.4, count: 87 },
+    description: "Áo hai dây nhẹ nhàng, thoáng mát, phù hợp thời tiết nóng.",
+    features: ["Cotton hữu cơ", "Thoáng khí", "Dễ phối đồ"],
+    isFeatured: false,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 10,
+    image: ao_linen,
+    images: [ao_linen, dam_con_trung],
+  },
+  {
+    id: 15,
+    name: "Set đồ công sở tái chế",
+    category: "clothing",
+    brand: { id: 2, name: "GreenStyle" },
+    sustainability: 89,
+    materials: [
+      { name: "Vải tái chế", percentageUse: 85 },
+      { name: "Polyamide", percentageUse: 15 },
+    ],
+    price: { current: 1250000, currency: "VND" },
+    sizes: ["S", "M", "L", "XL"],
+    colors: ["Đen", "Xám", "Xanh Navy"],
+    availability: "in-stock",
+    rating: { average: 4.5, count: 132 },
+    description: "Trang phục công sở sang trọng, thân thiện với môi trường.",
+    features: ["Thiết kế thanh lịch", "Co giãn nhẹ", "Chống nhăn"],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: false,
+    discountPercentage: 22,
+    image: dam_con_trung,
+    images: [dam_con_trung, ao_linen, chan_vay_dap],
+  },
+];
+
+const sustainabilityItems = [
+  {
+    image: linen,
+    amount: "200m",
+    material: "vải linen",
+  },
+  {
+    image: nylon,
+    amount: "200m",
+    material: "vải nylon",
+  },
+  {
+    image: cotton,
+    amount: "200m",
+    material: "vải cotton",
+  },
+  {
+    image: denim,
+    amount: "200m",
+    material: "vải denim",
+  },
+  {
+    image: polyester,
+    amount: "200m",
+    material: "vải polyester",
+  },
+  {
+    image: polyester,
+    amount: "200m",
+    material: "vải polyester2",
+  },
+];
+const reviews = [
+  {
+    name: "Sarah M.",
+    date: "May 10, 2025",
+    rating: 5,
+    comment:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+  },
+  {
+    name: "Michael T.",
+    date: "April 28, 2025",
+    rating: 5,
+    comment:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+  },
+  {
+    name: "Jessica L.",
+    date: "April 15, 2025",
+    rating: 4,
+    comment:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+  },
+  {
+    name: "Jessica L.",
+    date: "April 15, 2025",
+    rating: 4,
+    comment:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+  },
+  {
+    name: "Jessica L.",
+    date: "April 15, 2025",
+    rating: 4,
+    comment:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+  },
+  // Add more reviews as needed
+];
+export default function DesingBrandProfile() {
+  const { id } = useParams(); // lấy id từ URL
+  const brand = products.find((p) => p.brand.id === Number(id));
+  //Scroll TO Anchor
+  const handleScroll = (id: string) => {
+    const element = document.getElementById(id);
+    const navbarHeight =
+      document.querySelector(".MuiAppBar-root")?.clientHeight || 0;
+
+    if (element) {
+      const y =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+  //Change image
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isAtStart, setIsAtStart] = useState(true);
+  const [isAtEnd, setIsAtEnd] = useState(false);
+
+  const handleScroll2 = () => {
+    const el = scrollRef.current;
+    if (el) {
+      setIsAtStart(el.scrollLeft === 0);
+      setIsAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1); // small margin for rounding errors
+    }
+  };
+
+  const scroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const cardWidth = 400;
+    const gap = 16;
+    const scrollAmount = cardWidth + gap;
+
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    const nextScrollLeft =
+      direction === "left"
+        ? Math.max(el.scrollLeft - scrollAmount, 0)
+        : Math.min(el.scrollLeft + scrollAmount, maxScroll);
+
+    el.scrollTo({
+      left: nextScrollLeft,
+      behavior: "smooth",
+    });
+  };
+
+  useEffect(() => {
+    handleScroll2(); // initialize scroll state
+    const el = scrollRef.current;
+    if (el) el.addEventListener("scroll", handleScroll2);
+    return () => {
+      if (el) el.removeEventListener("scroll", handleScroll2);
+    };
+  }, []);
+
+  //
+  //Change image
+  const [startIndex, setStartIndex] = useState(0);
+  const visibleCount = 4;
+
+  const handlePrev = () => {
+    setStartIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleNext = () => {
+    setStartIndex((prev) =>
+      Math.min(prev + 1, Math.max(0, sustainabilityItems.length - visibleCount))
+    );
+  };
+  const visibleItems = sustainabilityItems.slice(
+    startIndex,
+    startIndex + visibleCount
+  );
+
+  return (
+    <Box width={"100%"}>
+      {/* Banner */}
+      <Box
+        sx={{
+          backgroundImage: `url(${brand_banner})`, // replace with actual image path
+          backgroundSize: "cover",
+          height: "50vh",
+        }}
+      />
+      {/* Profile Section */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          margin: "auto",
+          width: "95%",
+        }}
+      >
+        <Grid
+          sx={{
+            width: "40%",
+            margin: "10px",
+            borderRight: "3px solid rgba(0, 0, 0, 0.1)",
+            display: "flex",
+          }}
+        >
+          <Avatar
+            sx={{ margin: "auto 10px", height: "100px", width: "100px" }}
+          />
+          <Box
+            sx={{
+              margin: "auto",
+              width: "100%",
+              overflow: "hidden",
+              marginLeft: "30px",
+            }}
+          >
+            <Typography
+              sx={{
+                width: "100%",
+                fontSize: "30px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {brand?.brand.name}
+            </Typography>
+
+            <Typography
+              sx={{ width: "100%", fontSize: "15px", opacity: "50%" }}
+            >
+              Online 3 phút trước
+            </Typography>
+            <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+              <Button variant="outlined">+ Theo dõi</Button>
+              <Button variant="outlined">Chat</Button>
+            </Stack>
+          </Box>
+        </Grid>
+        <Grid
+          sx={{
+            width: "70%",
+            paddingLeft: 5,
+            paddingRight: 5,
+          }}
+        >
+          <Box sx={{ width: "100%" }}>
+            <Grid
+              container
+              rowSpacing={1}
+              columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+            >
+              <Grid size={6}>
+                <Box sx={{ display: "flex", width: "100%" }}>
+                  <Typography
+                    sx={{
+                      marginRight: "auto",
+                      opacity: "50%",
+                      fontSize: "20px",
+                    }}
+                  >
+                    Đánh Giá:
+                  </Typography>
+                  <Typography sx={{ fontSize: "20px" }}>80k</Typography>
+                </Box>
+              </Grid>
+              <Grid size={6}>
+                <Box sx={{ display: "flex", width: "100%" }}>
+                  <Typography
+                    sx={{
+                      marginRight: "auto",
+                      opacity: "50%",
+                      fontSize: "20px",
+                    }}
+                  >
+                    Tham Gia:
+                  </Typography>
+                  <Typography sx={{ fontSize: "20px" }}>4 năm trước</Typography>
+                </Box>
+              </Grid>
+              <Grid size={6}>
+                <Box sx={{ display: "flex", width: "100%" }}>
+                  <Typography
+                    sx={{
+                      marginRight: "auto",
+                      opacity: "50%",
+                      fontSize: "20px",
+                    }}
+                  >
+                    Sản Phẩm:
+                  </Typography>
+                  <Typography sx={{ fontSize: "20px" }}>800</Typography>
+                </Box>
+              </Grid>
+              <Grid size={6}>
+                <Box sx={{ display: "flex", width: "100%" }}>
+                  <Typography
+                    sx={{
+                      marginRight: "auto",
+                      opacity: "50%",
+                      fontSize: "20px",
+                    }}
+                  >
+                    Người Theo Dõi:
+                  </Typography>
+                  <Typography sx={{ fontSize: "20px" }}>100k</Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        </Grid>
+      </Box>
+      <Divider />
+      {/* Description */}
+      <Box
+        sx={{
+          width: "95%",
+          margin: "auto",
+          padding: "10px 0",
+        }}
+      >
+        <Typography sx={{ fontSize: "20px", fontWeight: "bold" }}>
+          Giới Thiệu
+        </Typography>
+        <Typography sx={{ fontSize: "18px", marginLeft: "20px" }}>
+          Nguyễn Công Trí là một trong những nhà thiết kế thời trang hàng đầu
+          Việt Nam, được biết đến với phong cách sáng tạo độc đáo và tinh tế.
+          Anh là người sáng lập thương hiệu thời trang cao cấp mang tên mình và
+          đã ghi dấu ấn trên nhiều sàn diễn quốc tế như Tokyo Fashion Week, New
+          York Fashion Week. Với khả năng kết hợp hài hòa giữa yếu tố truyền
+          thống và hiện đại, các thiết kế của Nguyễn Công Trí không chỉ tôn vinh
+          vẻ đẹp của người phụ nữ Việt mà còn chinh phục giới mộ điệu thời trang
+          toàn cầu.
+        </Typography>
+      </Box>
+      <Divider />
+      {/* Sustainability */}
+      <Box sx={{ paddingBottom: 3 }}>
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          gutterBottom
+          sx={{ marginLeft: "30px" }}
+        >
+          Tính bền vững
+        </Typography>
+        {/* Scroll */}
+        <Box
+          sx={{
+            width: "100%",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              width: "90%",
+              margin: "auto",
+            }}
+          >
+            <IconButton onClick={() => scroll("left")} disabled={isAtStart}>
+              <ArrowBackIos />
+            </IconButton>
+
+            <Box
+              ref={scrollRef}
+              sx={{
+                display: "flex", // keep flex for horizontal scroll
+                overflowX: "auto",
+                scrollBehavior: "smooth",
+                gap: 2,
+                width: "100%",
+                mx: "auto",
+                "&::-webkit-scrollbar": { display: "none" },
+              }}
+            >
+              {sustainabilityItems.map((item, index) => (
+                <Grid
+                  key={index}
+                  sx={{
+                    width: 400,
+                    height: 250,
+                    backgroundImage: `url(${item.image})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    position: "relative",
+                    flexShrink: 0,
+                    borderRadius: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      bgcolor: "rgba(255,255,255,0.8)",
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      textAlign: "center",
+                      p: 2,
+                      borderRadius: 2,
+                      width: "50%",
+                    }}
+                  >
+                    <Typography variant="body1">Đã tái sử dụng</Typography>
+                    <Typography variant="h4" fontWeight="bold">
+                      {item.amount}
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
+                      {item.material}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Box>
+            <IconButton onClick={() => scroll("right")} disabled={isAtEnd}>
+              <ArrowForwardIos />
+            </IconButton>
+          </Box>
+        </Box>
+        {/* Navigation */}
+      </Box>
+      <Divider />
+      {/* Nav Bar */}
+      <AppBar
+        position="sticky"
+        elevation={0}
+        sx={{
+          backgroundColor: "white",
+          color: "black",
+          width: "100%",
+          borderTop: "1px solid black",
+          borderBottom: "1px solid black",
+        }}
+      >
+        <Box sx={{ display: "flex", padding: 3 }}>
+          <Stack direction="row" spacing={2}>
+            <Button
+              color="inherit"
+              onClick={() => handleScroll("items")}
+              sx={{
+                fontSize: "1rem",
+              }}
+            >
+              Sản Phẩm
+            </Button>
+            <Button
+              color="inherit"
+              onClick={() => handleScroll("reviews")}
+              sx={{
+                fontSize: "1rem",
+              }}
+            >
+              Đánh giá
+            </Button>
+            <Button
+              color="inherit"
+              onClick={() => handleScroll("about")}
+              sx={{
+                fontSize: "1rem",
+              }}
+            >
+              Thông Tin Khác
+            </Button>
+            <Button
+              color="inherit"
+              onClick={() => handleScroll("policies")}
+              sx={{
+                fontSize: "1rem",
+              }}
+            >
+              Qui Định
+            </Button>
+          </Stack>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              width: "30%",
+              height: 48,
+              bgcolor: "#eaeaea",
+              borderRadius: "999px",
+              boxShadow: 1,
+              marginLeft: "auto",
+            }}
+          >
+            <InputBase
+              fullWidth
+              placeholder="Tìm kiếm..."
+              sx={{
+                fontSize: "1rem",
+                mx: 2,
+              }}
+            />
+            <IconButton
+              sx={{
+                borderRadius: "0px 999px 999px 0px",
+                color: "black",
+                height: "100%",
+                width: 48,
+                "&:hover": {
+                  bgcolor: "darkgreen",
+                  color: "white",
+                },
+              }}
+            >
+              <GridSearchIcon />
+            </IconButton>
+          </Box>
+        </Box>
+      </AppBar>
+      {/* Section */}
+      <Box sx={{ width: "100%" }}>
+        {/* Sản Phẩm */}
+        <Box id="items" sx={{ minHeight: "100vh", p: 3, display: "flex" }}>
+          <Box flex={1}>
+            <Typography variant="h4">Phân Loại</Typography>
+          </Box>
+          <Divider orientation="vertical" flexItem />
+          <Box flex={5} sx={{ margin: "auto 30px" }}>
+            <DesignsSection products={products} id={"items"} />
+          </Box>
+        </Box>
+        <Divider />
+        {/* Đánh Giá */}
+        <Box id="reviews" sx={{ p: 3, display: "flex" }}>
+          <Typography variant="h4" flex={1}>
+            Đánh giá
+          </Typography>
+          <Box flex={4} sx={{ display: "flex" }}>
+            <Box sx={{ width: "100%" }}>
+              <Box
+                sx={{
+                  maxHeight: 500,
+                  overflowY: "auto",
+                  p: 2,
+                  border: "1px solid #eee",
+                  borderRadius: 2,
+                }}
+              >
+                {reviews.map((review, index) => (
+                  <Box key={index} mb={2}>
+                    <Typography fontWeight="bold">{review.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {review.date}
+                    </Typography>
+                    <Box
+                      sx={{
+                        width: 200,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Rating
+                        name="text-feedback"
+                        value={review.rating}
+                        readOnly
+                        precision={0.5}
+                        emptyIcon={
+                          <StarIcon
+                            style={{ opacity: 0.55 }}
+                            fontSize="inherit"
+                          />
+                        }
+                      />
+                      <Box sx={{ ml: 2, fontSize: "20px" }}>
+                        {review.rating}
+                      </Box>
+                    </Box>
+                    <Typography>{review.comment}</Typography>
+                    {index < reviews.length - 1 && (
+                      <Divider sx={{ mt: 2, mb: 2 }} />
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+        <Divider />
+        {/* Thông Tin Khác */}
+        <Box id="about" sx={{ p: 3, mt: 0 }}>
+          <Typography variant="h5" sx={{ marginBottom: "30px" }}>
+            Thông Tin Khác
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "50%",
+            }}
+          >
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Typography variant="caption">Đơn Hàng Thành Công</Typography>
+              <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
+                900
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Typography variant="caption">Năm Gia Nhập EcoFashion</Typography>
+              <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
+                2024
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+        <Divider />
+        {/* Qui Định */}
+        <Box
+          id="policies"
+          sx={{ p: 3, paddingBottom: 10, scrollMarginTop: "70px" }}
+        >
+          <Typography variant="h5"> Qui Định Thanh Toán</Typography>
+          <Box sx={{ px: 4, py: 2 }}>
+            {/* Payment Section */}
+            <Box display="flex" alignItems="flex-start" gap={4}>
+              <Box>
+                <Typography variant="body1" fontWeight="medium">
+                  Thanh Toán Bằng
+                </Typography>
+                <Box display="flex" gap={1} mt={1}>
+                  <CardMedia
+                    component="img"
+                    alt="Visa"
+                    image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTlp4qW2M8xPofmuZHwEfGi9mNMWUG0zs53A&s"
+                    sx={{ height: 100, width: "auto" }}
+                  />
+                </Box>
+              </Box>
+
+              {/* Divider */}
+              <Divider orientation="vertical" flexItem />
+
+              {/* Return Policy */}
+              <Box>
+                <Typography variant="body1" fontWeight="bold">
+                  Trả Hàng
+                </Typography>
+                <Typography variant="body2" mt={1}>
+                  Xem chi tiết tại sản phẩm bạn mua.
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  );
+}

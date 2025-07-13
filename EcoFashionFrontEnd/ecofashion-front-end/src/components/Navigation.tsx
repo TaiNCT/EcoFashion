@@ -12,7 +12,7 @@ import {
   styled,
   Divider,
 } from "@mui/material";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, matchPath, useLocation, useNavigate } from "react-router-dom";
 //Image
 import logo from "../assets/pictures/homepage/logo.png";
 //Icon Login
@@ -301,9 +301,11 @@ export default function Navigation() {
 
     return menuItems;
   };
+  // Hide Nav static on these routes
+  const staticLayout = matchPath("/brand/:id", location.pathname);
   return (
     <AppBar
-      position="sticky"
+      position={staticLayout ? "static" : "sticky"}
       elevation={scrolled || !isHome ? 4 : 0}
       sx={{
         backgroundColor: scrolled || !isHome ? "#fff" : "transparent",
@@ -322,7 +324,7 @@ export default function Navigation() {
         {/* Logo */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Button href="/">
-            <img src={logo} alt="EcoFashion Logo" style={{ height: 80 }} />
+            <img src={logo} alt="EcoFashion Logo" style={{ height: 60 }} />
           </Button>
         </Box>
         <Box
@@ -330,7 +332,7 @@ export default function Navigation() {
             flexGrow: 1,
             display: "flex",
             justifyContent: "space-evenly",
-            maxWidth: "100%", // optional: limit width
+            maxWidth: "70%", // optional: limit width
           }}
         >
           <NavLink
@@ -382,6 +384,7 @@ export default function Navigation() {
                 "aria-labelledby": "basic-button",
               },
             }}
+            disableScrollLock
           >
             <MenuItem onClick={handleCloseShop}>Thời Trang</MenuItem>
             <MenuItem onClick={handleCloseShop}>Vật Liệu</MenuItem>

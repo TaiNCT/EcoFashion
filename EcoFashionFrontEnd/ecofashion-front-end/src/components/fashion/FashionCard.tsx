@@ -124,7 +124,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
   return (
     <Card
       sx={{
-        width: "30%",
+        width: "100%",
         height: "100%",
         position: "relative",
         "&:hover": {
@@ -134,6 +134,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
         },
       }}
     >
+      {/* Product Tag */}
       <Box
         sx={{
           p: 1,
@@ -173,7 +174,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
           }}
         />
       </Box>
-
+      {/* Favorite */}
       <IconButton
         sx={{
           position: "absolute",
@@ -185,7 +186,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
       >
         <FavoriteBorderOutlined />
       </IconButton>
-
+      {/* Product Image */}
       <Link href={`/detail/${product.id}`} style={{ justifyContent: "center" }}>
         <CardMedia
           component="img"
@@ -194,7 +195,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
           alt={product.name}
         />
       </Link>
-
+      {/* Content */}
       <CardContent
         sx={{
           textAlign: "left",
@@ -220,9 +221,10 @@ const FashionCard: React.FC<FashionCardProps> = ({
             }}
           />
           <Typography variant="caption" color="text.secondary">
-            {product.brand}
+            {product.brand.name}
           </Typography>
         </Box>
+        {/* Design Name */}
         <Typography
           fontWeight="bold"
           sx={{
@@ -235,7 +237,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
         >
           {product.name}
         </Typography>
-
+        {/* Rating */}
         <Box display="flex" alignItems="center">
           <Rating
             value={Math.round(product.rating.average)}
@@ -246,7 +248,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
             ({product.rating.count})
           </Typography>
         </Box>
-
+        {/* Design Price */}
         <Box
           sx={{
             mb: 1,
@@ -257,9 +259,13 @@ const FashionCard: React.FC<FashionCardProps> = ({
         >
           {!product.price.original && (
             <Typography
-              variant="h4"
               component="div"
-              sx={{ fontWeight: "bold", color: "#2e7d32", margin: "auto 0" }}
+              sx={{
+                fontWeight: "bold",
+                color: "#2e7d32",
+                margin: "auto 0",
+                fontSize: "28px",
+              }}
             >
               {formatPrice(product.price)}
             </Typography>
@@ -286,7 +292,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
             </Box>
           )}
         </Box>
-
+        {/* Material */}
         <Box
           sx={{
             display: "flex",
@@ -309,6 +315,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
             />
           ))}
         </Box>
+        {/* Available */}
         <Box sx={{ margin: "10px 0" }}>
           <Chip
             label={getAvailabilityText(product.availability)}
@@ -317,6 +324,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
             icon={<LocalShipping sx={{ fontSize: 16 }} />}
           />
         </Box>
+        {/* Add To Cart */}
         <Button
           variant="contained"
           fullWidth
