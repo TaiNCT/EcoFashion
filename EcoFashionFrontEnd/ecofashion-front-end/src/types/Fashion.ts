@@ -2,13 +2,16 @@ export interface Fashion {
   id: number;
   name: string;
   category: "clothing" | "accessories" | "footwear" | "bags" | "home";
-  brand: string;
+  brand:  {
+    id: number;
+    name: string;
+  };
   image: string;
   images?: string[]; // Additional images for gallery
   sustainability: number;
   materials: {
-  name: string;
-  percentageUse: number;
+    name: string;
+    percentageUse: number;
   }[];
   price: {
     current: number;

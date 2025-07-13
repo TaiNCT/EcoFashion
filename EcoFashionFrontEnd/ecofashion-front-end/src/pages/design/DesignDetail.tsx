@@ -29,7 +29,7 @@ import {
   AddToCart,
   ArrowBackIcon,
   ArrowForwardIcon,
-} from "../assets/icons/icon";
+} from "../../assets/icons/icon";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 // Icon
@@ -37,27 +37,28 @@ import StarIcon from "@mui/icons-material/Star";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import { EcoIcon } from "../assets/icons/icon";
+import { EcoIcon } from "../../assets/icons/icon";
 //Certificate
-import GRS from "../assets/pictures/certificate/global-recycled-standard-(grs).webp";
-import OEKO from "../assets/pictures/certificate/image-removebg-preview-70.png";
+import GRS from "../../assets/pictures/certificate/global-recycled-standard-(grs).webp";
+import OEKO from "../../assets/pictures/certificate/image-removebg-preview-70.png";
 
 //example
-import Banner from "../assets/pictures/detail/detail.jpg";
+import Banner from "../../assets/pictures/detail/detail.jpg";
 
 //example
-import ao_linen from "../assets/pictures/example/ao-linen.webp";
-import chan_vay_dap from "../assets/pictures/example/chan-vay-dap.webp";
-import dam_con_trung from "../assets/pictures/example/dam-con-trung.webp";
-import type { Fashion } from "../types/Fashion";
-import FashionsSection from "../components/fashion/FashionsSection";
-
+import ao_linen from "../../assets/pictures/example/ao-linen.webp";
+import chan_vay_dap from "../../assets/pictures/example/chan-vay-dap.webp";
+import dam_con_trung from "../../assets/pictures/example/dam-con-trung.webp";
+import type { Fashion } from "../../types/Fashion";
+import FashionsSection from "../../components/fashion/FashionsSection";
+import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
+import { desktopOS, valueFormatter } from "./webUsageStats";
 const products: Fashion[] = [
   {
     id: 1,
     name: "Áo thun Organic Cotton",
     category: "clothing",
-    brand: "EcoWear",
+    brand: { id: 1, name: "EcoWear" },
     image: ao_linen,
     images: [ao_linen, dam_con_trung, chan_vay_dap],
     sustainability: 85,
@@ -98,7 +99,7 @@ const products: Fashion[] = [
   {
     id: 2,
     name: "Chân Váy Đắp",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: chan_vay_dap,
     images: [ao_linen, dam_con_trung, chan_vay_dap],
@@ -141,7 +142,7 @@ const products: Fashion[] = [
   {
     id: 3,
     name: "Đầm Côn Trùng",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: dam_con_trung,
     images: [ao_linen, dam_con_trung, chan_vay_dap],
@@ -184,7 +185,7 @@ const products: Fashion[] = [
   {
     id: 4,
     name: "Đầm Côn Trùng",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: dam_con_trung,
     images: [ao_linen, dam_con_trung, chan_vay_dap],
@@ -230,7 +231,7 @@ const bestSellerProducts: Fashion[] = [
     id: 1,
     name: "Áo thun Organic Cotton",
     category: "clothing",
-    brand: "EcoWear",
+    brand: { id: 1, name: "EcoWear" },
     image: ao_linen,
     images: [ao_linen, dam_con_trung, chan_vay_dap],
     sustainability: 85,
@@ -272,7 +273,7 @@ const bestSellerProducts: Fashion[] = [
   {
     id: 2,
     name: "Chân Váy Đắp",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: chan_vay_dap,
     images: [ao_linen, dam_con_trung, chan_vay_dap],
@@ -315,7 +316,7 @@ const bestSellerProducts: Fashion[] = [
   {
     id: 3,
     name: "Đầm Côn Trùng",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: dam_con_trung,
     images: [ao_linen, dam_con_trung, chan_vay_dap],
@@ -358,7 +359,7 @@ const bestSellerProducts: Fashion[] = [
   {
     id: 4,
     name: "Đầm Côn Trùng",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: dam_con_trung,
     images: [ao_linen, dam_con_trung, chan_vay_dap],
@@ -433,7 +434,7 @@ const ratingData = [
   { star: 1, value: 1 },
 ];
 
-export default function FashionDetail() {
+export default function DesignDetail() {
   const { id } = useParams(); // lấy id từ URL
   const product = products.find((p) => p.id === Number(id));
   // const [mainImage, setMainImage] = useState(
@@ -488,6 +489,15 @@ export default function FashionDetail() {
     const formatted = new Intl.NumberFormat("vi-VN").format(price.original);
     return `${formatted}₫`;
   };
+  //Chart
+  const sizeChart = {
+    width: 200,
+    height: 200,
+  };
+  const data = {
+    data: [desktopOS],
+    valueFormatter,
+  };
   return (
     <Box
       sx={{
@@ -515,13 +525,13 @@ export default function FashionDetail() {
           <Typography color="text.primary">{product.name}</Typography>
         </Breadcrumbs>
       </AppBar>
-      <Box sx={{ mx: "auto", width: "80%", bgcolor: "#fff" }}>
+      <Box sx={{ mx: "auto", width: "70%", bgcolor: "#fff" }}>
         {/* Chi Tiết Sản Phẩm */}
         <Box sx={{ py: 2, px: 4, display: "flex" }}>
           {/* Right: Image */}
           <Grid
             sx={{
-              width: "30%",
+              width: "50%",
               marginRight: "50px",
             }}
           >
@@ -588,17 +598,19 @@ export default function FashionDetail() {
           </Grid>
 
           {/* Right: Product Info */}
-          <Grid sx={{ width: "70%" }}>
+          <Grid sx={{ width: "50%" }}>
             <Box sx={{ display: "flex", marginBottom: "10px", width: "100%" }}>
               <Box
-                sx={{ display: "flex", flexDirection: "column", width: "70%" }}
+                sx={{ display: "flex", flexDirection: "column", width: "100%" }}
               >
                 <Typography
-                  sx={{ fontSize: "60px", margin: "auto 0", width: "100%" }}
+                  sx={{ fontSize: "30px", margin: "auto 0", width: "100%" }}
                 >
                   {product.name}
                 </Typography>
-                <Box sx={{ width: 200, display: "flex", alignItems: "center" }}>
+                <Box
+                  sx={{ width: "30%", display: "flex", alignItems: "center" }}
+                >
                   <Rating
                     name="text-feedback"
                     value={product.rating.average}
@@ -615,27 +627,27 @@ export default function FashionDetail() {
               </Box>
               <Box
                 sx={{
-                  width: "40%",
+                  width: "30%",
                   margin: "auto",
                   display: "flex", // Dùng flex
                   justifyContent: "flex-end", // Đẩy nội dung sang phải
                 }}
               >
                 <IconButton>
-                  <FavoriteBorderIcon sx={{ fontSize: "40px" }} />
+                  <FavoriteBorderIcon sx={{ fontSize: "35px" }} />
                 </IconButton>
               </Box>
             </Box>
 
             <Box sx={{ display: "flex", width: "100%" }}>
               <Box sx={{ display: "flex", width: "100%" }}>
-                <Typography sx={{ margin: "auto 0", fontSize: "25px" }}>
+                <Typography sx={{ margin: "auto 0", fontSize: "20px" }}>
                   Mã Sản Phẩm:
                 </Typography>
                 <Typography
                   sx={{
                     margin: "auto 0",
-                    fontSize: "30px",
+                    fontSize: "20px",
                     fontWeight: "bold",
                     paddingLeft: "20px",
                   }}
@@ -658,7 +670,7 @@ export default function FashionDetail() {
             </Box>
             <Box sx={{ display: "flex", width: "100%" }}>
               <Typography
-                sx={{ margin: "auto 0", fontSize: "25px", marginRight: "10px" }}
+                sx={{ margin: "auto 0", fontSize: "20px", marginRight: "10px" }}
               >
                 Giá:
               </Typography>
@@ -668,7 +680,7 @@ export default function FashionDetail() {
                   sx={{
                     fontWeight: "bold",
                     margin: "auto 0",
-                    fontSize: "30px",
+                    fontSize: "20px",
                   }}
                 >
                   {formatPrice(product.price)}
@@ -714,13 +726,12 @@ export default function FashionDetail() {
             <Box
               sx={{ display: "flex", width: "100%", flexDirection: "column" }}
             >
-              <Typography sx={{ margin: "auto 0", fontSize: "25px" }}>
+              <Typography sx={{ margin: "auto 0", fontSize: "20px" }}>
                 Chất Liệu:
               </Typography>
               <Box
                 sx={{
                   width: "100%",
-                  display: "flex",
                 }}
               >
                 {product.materials.map((mat, index) => (
@@ -728,7 +739,6 @@ export default function FashionDetail() {
                     key={mat.name}
                     sx={{
                       width: `${mat.percentageUse}%`,
-                      border: "2px solid",
                       borderColor:
                         materialColors[index % materialColors.length],
                       display: "flex",
@@ -743,8 +753,24 @@ export default function FashionDetail() {
                   >
                     {mat.name}: {mat.percentageUse}%
                   </Box>
-                ))}{" "}
-              </Box>
+                ))}
+              </Box>{" "}
+              <PieChart
+                series={[
+                  {
+                    arcLabel: (item) => `${item.value}%`,
+                    arcLabelMinAngle: 35,
+                    arcLabelRadius: "60%",
+                    ...data,
+                  },
+                ]}
+                sx={{
+                  [`& .${pieArcLabelClasses.root}`]: {
+                    fontWeight: "bold",
+                  },
+                }}
+                {...sizeChart}
+              />
             </Box>
 
             {/* Color */}
@@ -835,9 +861,15 @@ export default function FashionDetail() {
               display: "flex",
             }}
           >
-            <Avatar
-              sx={{ margin: "auto 10px", height: "80px", width: "80px" }}
-            />
+            <IconButton
+              disableRipple
+              href={`/brand/${product.brand.id}`}
+              sx={{ textDecoration: "none" }}
+            >
+              <Avatar
+                sx={{ margin: "auto 10px", height: "80px", width: "80px" }}
+              />
+            </IconButton>
             <Box
               sx={{
                 margin: "auto ",
@@ -845,17 +877,22 @@ export default function FashionDetail() {
                 overflow: "hidden",
               }}
             >
-              <Typography
-                sx={{
-                  width: "100%",
-                  fontSize: "25px",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
+              <Link
+                href={`/brand/${product.brand.id}`}
+                sx={{ textDecoration: "none", color: "black" }}
               >
-                {product.brand}
-              </Typography>
+                <Typography
+                  sx={{
+                    width: "100%",
+                    fontSize: "25px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {product.brand.name}
+                </Typography>{" "}
+              </Link>
               <Typography sx={{ width: "100%", fontSize: "15px" }}>
                 Online 3 phút trước
               </Typography>
