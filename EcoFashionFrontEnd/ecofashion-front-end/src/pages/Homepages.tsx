@@ -596,7 +596,7 @@ export default function Homepage() {
       {/* Banner */}
       <Box
         sx={{
-          height: "90vh",
+          height: "100vh",
           transition: "height 0.5s ease",
           display: "flex",
           justifyContent: "center",

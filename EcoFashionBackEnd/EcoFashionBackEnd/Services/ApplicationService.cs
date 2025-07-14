@@ -166,20 +166,20 @@ namespace EcoFashionBackEnd.Services
                 UserId = userId,
                 TargetRoleId = 2,
                 AvatarUrl = avatarUrl,
-                PortfolioUrl = Normalize(request.PortfolioUrl),
-                PortfolioFiles = Normalize(portfolioFilesJson),
-                BannerUrl = bannerUrl ?? Normalize(request.BannerUrl),
-                SpecializationUrl = Normalize(request.SpecializationUrl),
-                SocialLinks = Normalize(request.SocialLinks),
-                IdentificationNumber = Normalize(request.IdentificationNumber),
+                PortfolioUrl = request.PortfolioUrl,
+                PortfolioFiles = portfolioFilesJson,
+                BannerUrl = bannerUrl ?? request.BannerUrl,
+                SpecializationUrl = request.SpecializationUrl,
+                SocialLinks = request.SocialLinks,
+                IdentificationNumber = request.IdentificationNumber,
                 IdentificationPicture = null,
                 IsIdentificationVerified = false,
-                Note = Normalize(request.Note),
-                PhoneNumber = Normalize(request.PhoneNumber),
-                Address = Normalize(request.Address),
-                TaxNumber = Normalize(request.TaxNumber),
-                IdentificationPictureOwner = Normalize(request.IdentificationPictureOwner),
-                Certificates = Normalize(request.Certificates)
+                Note = request.Note,
+                PhoneNumber = request.PhoneNumber,
+                Address = request.Address,
+                TaxNumber = request.TaxNumber,
+                IdentificationPictureOwner = request.IdentificationPictureOwner,
+                Certificates = request.Certificates
             };
 
             if (identificationPictureFile != null && identificationPictureFile.Length > 0)
@@ -276,74 +276,80 @@ namespace EcoFashionBackEnd.Services
         return await _dbContext.SaveChangesAsync() > 0;
     }
 
-    public async Task<bool> ApproveDesignerApplication(int applicationId, int adminId)
-    {
-        var application = await _applicationRepository.GetByIdAsync(applicationId);
-        if (application == null || application.Status != ApplicationStatus.pending || application.TargetRoleId != 2)
+   public async Task<bool> ApproveDesignerApplication(int applicationId, int adminId)
         {
-            return false;
+            var application = await _applicationRepository.GetByIdAsync(applicationId);
+            if (application == null || application.Status != ApplicationStatus.pending || application.TargetRoleId != 2)
+            {
+                return false;
+            }
+
+            // Lấy User entity trực tiếp từ database
+            var user = await _dbContext.Users.FindAsync(application.UserId);
+            if (user == null) return false;
+
+            var designer = new Designer
+            {
+                DesignerId = Guid.NewGuid(),
+                UserId = application.UserId,
+                DesignerName = user.FullName,
+                AvatarUrl = application.AvatarUrl,
+                PortfolioUrl = application.PortfolioUrl,
+                PortfolioFiles = application.PortfolioFiles,
+                BannerUrl = application.BannerUrl,
+                SpecializationUrl = application.SpecializationUrl,
+                Bio = application.Note, // Nếu Application có trường Bio hoặc Note
+                Email = user.Email,
+
+                // Address ; TaxNumber ; Certificates ; IdentificationNumber ; IdentificationPicture ; IdentificationPictureOwner
+                PhoneNumber = application.PhoneNumber,
+                Address = application.Address,
+                TaxNumber = application.TaxNumber,
+                IdentificationPictureOwner = application.IdentificationPictureOwner,
+                Certificates = application.Certificates,
+
+                IdentificationNumber = application.IdentificationNumber,
+                IdentificationPicture = application.IdentificationPicture,
+
+                // Certificates = null, // Nếu Application có trường này thì lấy, không thì null
+                CreatedAt = DateTime.UtcNow,
+                Status = "Active"
+            };
+
+            await _designerRepository.AddAsync(designer);
+
+            // Cập nhật vai trò người dùng
+            user.RoleId = 2; // Designer role
+            _dbContext.Users.Update(user); // Cập nhật user trong database
+
+            application.Status = ApplicationStatus.approved;
+            application.ProcessedAt = DateTime.UtcNow;
+            application.ProcessedBy = adminId;
+            application.IsIdentificationVerified = true; // Mark as verified when approved
+                                                         // TODO: Send notification to user về approval
+                                                         // TODO: Send email confirmation
+
+            return await _dbContext.SaveChangesAsync() > 0;
+        }
+        public async Task<bool> RejectApplication(int applicationId, int adminId, string rejectionReason)
+        {
+            var application = await _applicationRepository.GetByIdAsync(applicationId);
+            if (application == null || application.Status != ApplicationStatus.pending)
+            {
+                return false;
+            }
+
+            application.Status = ApplicationStatus.rejected;
+            application.ProcessedAt = DateTime.UtcNow;
+            application.ProcessedBy = adminId;
+            application.RejectionReason = rejectionReason;
+            // TODO: Send notification to user về rejection với lý do
+            // TODO: Send email notification
+
+            return await _dbContext.SaveChangesAsync() > 0;
         }
 
-        // Lấy User entity trực tiếp từ database
-        var user = await _dbContext.Users.FindAsync(application.UserId);
-        if (user == null) return false;
-
-        var designer = new Designer
-        {
-            DesignerId = Guid.NewGuid(),
-            UserId = application.UserId,
-            DesignerName = user.FullName,
-            AvatarUrl = application.AvatarUrl,
-            PortfolioUrl = application.PortfolioUrl,
-            PortfolioFiles = application.PortfolioFiles,
-            BannerUrl = application.BannerUrl,
-            SpecializationUrl = application.SpecializationUrl,
-            Bio = application.Note, // Nếu Application có trường Bio hoặc Note
-            Email = user.Email,
-
-            // PhoneNumber và Address không có trong User, chỉ lấy nếu Application có và Designer có
-            // Nếu Designer entity có các trường này, giữ lại, còn không thì bỏ
-            // TaxNumber = null, // Nếu Application có trường này thì lấy, không thì null
-            IdentificationNumber = application.IdentificationNumber,
-            IdentificationPicture = application.IdentificationPicture,
-            IdentificationPictureOwner = "",
-            // Certificates = null, // Nếu Application có trường này thì lấy, không thì null
-            CreatedAt = DateTime.UtcNow,
-            Status = "Active"
-        };
-
-        await _designerRepository.AddAsync(designer);
-        
-        // Cập nhật vai trò người dùng
-        user.RoleId = 2; // Designer role
-        _dbContext.Users.Update(user); // Cập nhật user trong database
-        
-        application.Status = ApplicationStatus.approved;
-        application.ProcessedAt = DateTime.UtcNow;
-        application.ProcessedBy = adminId;
-        application.IsIdentificationVerified = true; // Mark as verified when approved
-        // TODO: Send notification to user về approval
-        // TODO: Send email confirmation
-
-        return await _dbContext.SaveChangesAsync() > 0;
-    }
-    public async Task<bool> RejectApplication(int applicationId, int adminId, string rejectionReason)
-    {
-        var application = await _applicationRepository.GetByIdAsync(applicationId);
-        if (application == null || application.Status != ApplicationStatus.pending)
-        {
-            return false;
-        }
-
-        application.Status = ApplicationStatus.rejected;
-        application.ProcessedAt = DateTime.UtcNow;
-        application.ProcessedBy = adminId;
-        application.RejectionReason = rejectionReason;
-        // TODO: Send notification to user về rejection với lý do
-        // TODO: Send email notification
-
-        return await _dbContext.SaveChangesAsync() > 0;
-    }
+    
 
 
     public async Task<IEnumerable<ApplicationModel>> FilterApplications(ApplicationStatus? status, int? targetRoleId, DateTime? createdFrom, DateTime? createdTo)
