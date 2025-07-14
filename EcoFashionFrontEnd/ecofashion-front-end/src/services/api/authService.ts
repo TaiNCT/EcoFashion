@@ -35,6 +35,7 @@ export interface User {
   roleId: number;
   status: string;
   createdAt: string;
+  avatarUrl?: string;
 }
 
 export interface AuthResponse {
@@ -209,6 +210,23 @@ export class AuthService {
    */
   static getToken(): string | null {
     return localStorage.getItem("authToken");
+  }
+
+  /**
+   * Refresh current user profile from server
+   */
+  static async refreshUserProfile(): Promise<User> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<User>>("/User/profile");
+      const userProfile = handleApiResponse(response);
+
+      // Update localStorage with fresh user data
+      localStorage.setItem("userInfo", JSON.stringify(userProfile));
+
+      return userProfile;
+    } catch (error) {
+      return handleApiError(error);
+    }
   }
 }
 

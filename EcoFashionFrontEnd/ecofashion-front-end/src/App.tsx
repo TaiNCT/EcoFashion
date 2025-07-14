@@ -26,6 +26,12 @@ import DesginerDashboared from "./pages/designer/DesignerDashboard";
 import ApplyDesigner from "./pages/apply/ApplyDesigner";
 import ApplySupplier from "./pages/apply/ApplySupplier";
 import MyApplications from "./pages/apply/MyApplications";
+import ExploreDesigners from "./pages/explore/ExploreDesigners";
+import DesignerLandingPage from "./pages/explore/DesignerLandingPage";
+import ExploreSuppliers from "./pages/explore/ExploreSuppliers";
+import SupplierLandingPage from "./pages/explore/SupplierLandingPage";
+import TestAuth from "./pages/TestAuth";
+
 import DesingBrandProfile from "./pages/design/DesignBrandProfile";
 // import { createTheme } from "@mui/material/styles";
 function App() {
@@ -47,11 +53,18 @@ function App() {
           <Route path="/" element={<Homepages />} />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
+          {/* <Route path="/detail2/:id" element={<FashionDetail />} /> */}
+
           <Route path="/detail/:id" element={<DesignDetail />} />
           <Route path="/businessinfor" element={<BusinessInfor />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
+
+          {/* TEST ROUTE - Remove in production */}
+          <Route path="/test-auth" element={<TestAuth />} />
+
+          {/* NEW APPLICATION ROUTES - Updated multi-step forms */}
           <Route path="/brand/:id" element={<DesingBrandProfile />} />
           {/* Application Routes */}
           <Route
@@ -82,7 +95,7 @@ function App() {
           />
 
           {/* Designer Routes */}
-          {/* Designer Profile */}
+
           <Route
             path="/designer/profile"
             element={
@@ -90,6 +103,18 @@ function App() {
                 <DesignerProfile />
               </ProtectedRoute>
             }
+          />
+
+          {/* EXPLORE ROUTES - Public access */}
+          <Route path="/explore/designers" element={<ExploreDesigners />} />
+          <Route
+            path="/explore/designers/:id"
+            element={<DesignerLandingPage />}
+          />
+          <Route path="/explore/suppliers" element={<ExploreSuppliers />} />
+          <Route
+            path="/explore/suppliers/:id"
+            element={<SupplierLandingPage />}
           />
 
           {/* Designer Dashboard */}

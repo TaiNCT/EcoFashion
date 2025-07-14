@@ -167,8 +167,6 @@ export const useProducts = (
       await DemoUtils.simulateApiDelay(800);
 
       // In a real app, this would refetch from the API
-      // For demo, we just simulate success
-      console.log("Products refetched successfully (demo)");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch products");
     } finally {
@@ -189,8 +187,6 @@ export const useProducts = (
 
     const timeoutId = setTimeout(() => {
       // This could trigger additional filtering logic
-      // For demo purposes, we just log the current state
-      console.log("Auto-filter triggered:", { filter, searchQuery, sort });
     }, 300);
 
     return () => clearTimeout(timeoutId);

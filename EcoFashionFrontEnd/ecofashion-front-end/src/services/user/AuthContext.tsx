@@ -28,6 +28,7 @@ interface AuthContextType {
   // Token utilities
   isTokenValid: () => boolean;
   refreshUserFromStorage: () => void;
+  refreshUserFromServer: () => Promise<void>;
 }
 
 const UserContext = createContext<AuthContextType | undefined>(undefined);
@@ -177,6 +178,32 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     }
   };
 
+  // Refresh user from server
+  const refreshUserFromServer = async (): Promise<void> => {
+    try {
+      if (!isTokenValid()) {
+        console.warn("Token is invalid, skipping refresh");
+        return;
+      }
+
+      console.log("🔄 Refreshing user from server...");
+      const freshUser = await AuthService.refreshUserProfile();
+      console.log("✅ User refreshed successfully:", freshUser);
+      setUser(freshUser);
+    } catch (error: any) {
+      console.error("❌ Error refreshing user from server:", error);
+      
+      // Only logout on 401 (unauthorized), not on other errors
+      if (error.message?.includes('401') || error.status === 401) {
+        console.warn("Token expired or unauthorized, logging out");
+        await logout();
+      } else {
+        // For other errors (404, 500, etc.), just log but don't logout
+        console.warn("Refresh failed but keeping user logged in:", error.message);
+      }
+    }
+  };
+
   const value: AuthContextType = {
     user,
     createUser,
@@ -185,6 +212,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     loading,
     isTokenValid,
     refreshUserFromStorage,
+    refreshUserFromServer,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

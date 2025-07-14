@@ -31,11 +31,143 @@ namespace EcoFashionBackEnd.Services
             _dbContext = dbContext;
         }
 
-    public async Task<IEnumerable<DesignerModel>> GetAllDesigners()
-    {
-        var result = await _designerRepository.GetAll().ToListAsync();
-        return _mapper.Map<List<DesignerModel>>(result);
-    }
+        // Landing Pages Methods - Public APIs
+
+        /// <summary>
+        /// Get public designers for listing page (with pagination)
+        /// </summary>
+        public async Task<List<DesignerSummaryModel>> GetPublicDesigners(int page = 1, int pageSize = 12)
+        {
+            var query = _designerRepository.GetAll().Include(d => d.User);
+
+            var designers = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return designers.Select(d => new DesignerSummaryModel
+            {
+                DesignerId = d.DesignerId,
+                DesignerName = d.DesignerName,
+                AvatarUrl = d.AvatarUrl,
+                Bio = d.Bio,
+                BannerUrl = d.BannerUrl,
+                Rating = d.Rating,
+                ReviewCount = d.ReviewCount,
+                CreatedAt = d.CreatedAt
+            }).ToList();
+        }
+
+        /// <summary>
+        /// Get designer public profile for landing page
+        /// </summary>
+        public async Task<DesignerPublicModel?> GetDesignerPublicProfile(Guid id)
+        {
+            var designer = await _designerRepository.GetAll().Include(d => d.User).FirstOrDefaultAsync(d => d.DesignerId == id && d.Status == "Active");
+
+            if (designer == null) return null;
+
+            return new DesignerPublicModel
+            {
+                DesignerId = designer.DesignerId,
+                DesignerName = designer.DesignerName,
+                AvatarUrl = designer.AvatarUrl,
+                Bio = designer.Bio,
+                SpecializationUrl = designer.SpecializationUrl,
+                PortfolioUrl = designer.PortfolioUrl,
+                PortfolioFiles = designer.PortfolioFiles,
+                BannerUrl = designer.BannerUrl,
+                Email = designer.Email, // Có thể ẩn tùy business logic
+                PhoneNumber = designer.PhoneNumber, // Có thể ẩn tùy business logic
+                Address = designer.Address,
+                Rating = designer.Rating,
+                ReviewCount = designer.ReviewCount,
+                Certificates = designer.Certificates,
+                CreatedAt = designer.CreatedAt,
+                UserFullName = designer.User?.FullName
+            };
+        }
+
+        /// <summary>
+        /// Search public designers by keyword
+        /// </summary>
+        public async Task<List<DesignerSummaryModel>> SearchPublicDesigners(string? keyword, int page = 1, int pageSize = 12)
+        {
+            IQueryable<Designer> query = _designerRepository.GetAll().Include(d => d.User);
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                var lowerKeyword = keyword.ToLower();
+                query = query.Where(d =>
+                    (d.DesignerName != null && d.DesignerName.ToLower().Contains(lowerKeyword)) ||
+                    (d.Bio != null && d.Bio.ToLower().Contains(lowerKeyword)) ||
+                    (d.User != null && d.User.FullName != null && d.User.FullName.ToLower().Contains(lowerKeyword))
+                );
+            }
+            var designers = await query
+                .OrderByDescending(d => d.Rating ?? 0)
+                .ThenByDescending(d => d.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            return designers.Select(d => new DesignerSummaryModel
+            {
+                DesignerId = d.DesignerId,
+                DesignerName = d.DesignerName,
+                AvatarUrl = d.AvatarUrl,
+                Bio = d.Bio,
+                BannerUrl = d.BannerUrl,
+                Rating = d.Rating,
+                ReviewCount = d.ReviewCount,
+                CreatedAt = d.CreatedAt
+            }).ToList();
+        }
+
+        /// <summary>
+        /// Get featured designers for homepage (top rated/newest)
+        /// </summary>
+        public async Task<List<DesignerSummaryModel>> GetFeaturedDesigners(int count = 6)
+        {
+            var designers = await _designerRepository.GetAll()
+                .Include(d => d.User)
+                .Where(d => d.Status == "Active")
+                .OrderByDescending(d => d.Rating ?? 0)
+                .ThenByDescending(d => d.ReviewCount ?? 0)
+                .ThenByDescending(d => d.CreatedAt)
+                .Take(count)
+                .ToListAsync();
+            return designers.Select(d => new DesignerSummaryModel
+            {
+                DesignerId = d.DesignerId,
+                DesignerName = d.DesignerName,
+                AvatarUrl = d.AvatarUrl,
+                Bio = d.Bio,
+                BannerUrl = d.BannerUrl,
+                Rating = d.Rating,
+                ReviewCount = d.ReviewCount,
+                CreatedAt = d.CreatedAt
+            }).ToList();
+        }
+
+        /// <summary>
+        /// Get designer full profile (for authenticated user - owner/admin)
+        /// </summary>
+        public async Task<DesignerModel?> GetDesignerFullProfile(Guid id)
+        {
+            var designer = await _designerRepository.GetAll()
+                .Include(d => d.User)
+                .FirstOrDefaultAsync(d => d.DesignerId == id);
+            return designer != null ? _mapper.Map<DesignerModel>(designer) : null;
+        }
+
+        // Existing Admin/Management Methods
+
+        public async Task<IEnumerable<DesignerModel>> GetAllDesigners()
+        {
+            var result = await _designerRepository.GetAll()
+                .Include(d => d.User)
+                .ToListAsync();
+            return _mapper.Map<List<DesignerModel>>(result);
+        }
 
         public async Task<Guid> CreateDesigner(CreateDesignerRequest request)
         {
@@ -44,7 +176,9 @@ namespace EcoFashionBackEnd.Services
                 DesignerId = Guid.NewGuid(),
                 UserId = request.UserId,
                 DesignerName = request.DesignerName,
+                AvatarUrl = request.AvatarUrl,
                 PortfolioUrl = request.PortfolioUrl,
+                PortfolioFiles = request.PortfolioFiles,
                 BannerUrl = request.BannerUrl,
                 SpecializationUrl = request.SpecializationUrl,
                 Email = request.Email,
@@ -54,6 +188,7 @@ namespace EcoFashionBackEnd.Services
                 IdentificationNumber = request.IdentificationNumber,
                 IdentificationPicture = request.IdentificationPicture,
                 IdentificationPictureOwner = request.IdentificationPictureOwner,
+                Certificates = request.Certificates,
                 CreatedAt = DateTime.UtcNow,
                 Status = "Active"
             };
@@ -71,9 +206,13 @@ namespace EcoFashionBackEnd.Services
 
         public async Task<DesignerModel?> GetDesignerById(Guid id)
         {
-            var designer = await _designerRepository.GetByIdAsync(id);
+            var designer = await _designerRepository.GetAll()
+                .Include(d => d.User)
+                .FirstOrDefaultAsync(d => d.DesignerId == id);
             return _mapper.Map<DesignerModel>(designer);
         }
+
+
 
         public async Task<bool> UpdateDesigner(Guid id, UpdateDesignerRequest request)
         {
@@ -84,7 +223,9 @@ namespace EcoFashionBackEnd.Services
             }
 
             existingDesigner.DesignerName = request.DesignerName ?? existingDesigner.DesignerName;
+            existingDesigner.AvatarUrl = request.AvatarUrl ?? existingDesigner.AvatarUrl;
             existingDesigner.PortfolioUrl = request.PortfolioUrl ?? existingDesigner.PortfolioUrl;
+            existingDesigner.PortfolioFiles = request.PortfolioFiles ?? existingDesigner.PortfolioFiles;
             existingDesigner.BannerUrl = request.BannerUrl ?? existingDesigner.BannerUrl;
             existingDesigner.SpecializationUrl = request.SpecializationUrl ?? existingDesigner.SpecializationUrl;
             existingDesigner.Email = request.Email ?? existingDesigner.Email;
@@ -94,6 +235,7 @@ namespace EcoFashionBackEnd.Services
             existingDesigner.IdentificationNumber = request.IdentificationNumber ?? existingDesigner.IdentificationNumber;
             existingDesigner.IdentificationPicture = request.IdentificationPicture ?? existingDesigner.IdentificationPicture;
             existingDesigner.IdentificationPictureOwner = request.IdentificationPictureOwner ?? existingDesigner.IdentificationPictureOwner;
+            existingDesigner.Certificates = request.Certificates ?? existingDesigner.Certificates;
             existingDesigner.UpdatedAt = DateTime.UtcNow;
 
             _designerRepository.Update(existingDesigner);
@@ -115,10 +257,10 @@ namespace EcoFashionBackEnd.Services
             await _dbContext.SaveChangesAsync();
             return true;
         }
+
         public async Task<IEnumerable<DesignerModel>> FilterDesigners(string? designerName, string? email, string? phoneNumber, string? status)
         {
-            var query = _designerRepository.GetAll();
-
+            IQueryable<Designer> query = _designerRepository.GetAll().Include(d => d.User);
             if (!string.IsNullOrEmpty(designerName))
             {
                 query = query.Where(d => d.DesignerName == designerName);
@@ -135,7 +277,6 @@ namespace EcoFashionBackEnd.Services
             {
                 query = query.Where(d => d.Status == status);
             }
-
             var result = await query.ToListAsync();
             return _mapper.Map<List<DesignerModel>>(result);
         }
@@ -146,18 +287,19 @@ namespace EcoFashionBackEnd.Services
             {
                 return await GetAllDesigners(); 
             }
-
             var lowerKeyword = keyword.ToLower();
-
-            var query = _designerRepository.GetAll().Where(d =>
-                (d.DesignerName != null && d.DesignerName.ToLower().Contains(lowerKeyword)) ||
-                (d.Email != null && d.Email.ToLower().Contains(lowerKeyword)) ||
-                (d.PhoneNumber != null && d.PhoneNumber.ToLower().Contains(lowerKeyword))
-            );
-
-            var result = await query.ToListAsync();
+            var result = await _designerRepository.GetAll()
+                .Include(d => d.User)
+                .Where(d =>
+                    (d.DesignerName != null && d.DesignerName.ToLower().Contains(lowerKeyword)) ||
+                    (d.Email != null && d.Email.ToLower().Contains(lowerKeyword)) ||
+                    (d.PhoneNumber != null && d.PhoneNumber.ToLower().Contains(lowerKeyword))
+                )
+                .ToListAsync();
             return _mapper.Map<List<DesignerModel>>(result);
         }
+
+        // Supplier Connection Methods
 
         public async Task<FollowedSupplierResponse?> ConnectWithSupplier(Guid designerId, Guid supplierId)
         {
@@ -200,46 +342,41 @@ namespace EcoFashionBackEnd.Services
                 }
             }
 
-            return null; 
+            return null;
         }
+
         public async Task<IEnumerable<SupplierModel>> GetFollowedSuppliers(Guid designerId)
         {
-            var followedSupplierIds = await _dbContext.SavedSuppliers
-                .Where(s => s.DesignerId == designerId)
-                .Select(s => s.SupplierId)
+            var followedSuppliers = await _dbContext.SavedSuppliers
+                .Where(ss => ss.DesignerId == designerId)
+                .Include(ss => ss.Supplier)
+                .ThenInclude(s => s.User)
+                .Select(ss => ss.Supplier)
                 .ToListAsync();
 
-            if (followedSupplierIds == null || !followedSupplierIds.Any())
-            {
-                return new List<SupplierModel>(); 
-            }
-
-            var suppliers = await _supplierRepository.FindByCondition(s => followedSupplierIds.Contains(s.SupplierId)).ToListAsync();
-            return _mapper.Map<List<SupplierModel>>(suppliers);
+            return _mapper.Map<List<SupplierModel>>(followedSuppliers);
         }
 
         public async Task<Guid?> GetDesignerIdByUserId(int userId)
         {
-            var designer = await _dbContext.Designers
+            var designer = await _designerRepository.GetAll()
                 .FirstOrDefaultAsync(d => d.UserId == userId);
             return designer?.DesignerId;
         }
 
         public async Task<bool> RemoveFollowedSupplier(Guid designerId, Guid supplierId)
         {
-            var existingConnection = await _dbContext.SavedSuppliers
-                .FirstOrDefaultAsync(s => s.DesignerId == designerId && s.SupplierId == supplierId);
+            var savedSupplier = await _dbContext.SavedSuppliers
+                .FirstOrDefaultAsync(ss => ss.DesignerId == designerId && ss.SupplierId == supplierId);
 
-            if (existingConnection == null)
+            if (savedSupplier == null)
             {
-                return false; // Không tìm thấy liên kết để xóa
+                return false;
             }
 
-            _dbContext.SavedSuppliers.Remove(existingConnection);
+            _dbContext.SavedSuppliers.Remove(savedSupplier);
             var result = await _dbContext.SaveChangesAsync();
-
             return result > 0;
         }
-
     }
 }

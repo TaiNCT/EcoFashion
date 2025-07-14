@@ -41,6 +41,7 @@ namespace EcoFashionBackEnd.Controllers
             return BadRequest(ApiResult<object>.Fail("Không thể gửi đơn đăng ký trở thành nhà cung cấp."));
         }
 
+        [Authorize]
         [HttpPost("ApplyDesigner")]
         public async Task<IActionResult> ApplyAsDesigner([FromForm] ApplyDesignerRequest request)
         {
@@ -71,7 +72,7 @@ namespace EcoFashionBackEnd.Controllers
 
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAllApplications()
         {
             try
@@ -86,7 +87,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "admin")]
         [HttpPut("{applicationId}/ApproveSupplier")]
         public async Task<IActionResult> ApproveSupplierApplication(int applicationId)
         {
@@ -113,7 +114,7 @@ namespace EcoFashionBackEnd.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "admin")]
         [HttpPut("{applicationId}/ApproveDesigner")]
         public async Task<IActionResult> ApproveDesignerApplication(int applicationId)
         {
@@ -141,7 +142,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "admin")]
         [HttpPut("{applicationId}/Reject")]
         public async Task<IActionResult> RejectApplication(int applicationId, [FromBody] RejectApplicationRequest request)
         {
@@ -161,6 +162,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
         [HttpGet("Filter")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> FilterApplications(
         [FromQuery] string? status, // Thay ApplicationStatus? bằng string?
         [FromQuery] int? targetRoleId,
@@ -186,6 +188,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
         [HttpGet("Search")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> SearchApplications([FromQuery] string? keyword)
         {
             var applications = await _applicationService.SearchApplications(keyword);

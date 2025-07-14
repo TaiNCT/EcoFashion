@@ -25,9 +25,21 @@ import PaletteIcon from "@mui/icons-material/Palette";
 import BusinessIcon from "@mui/icons-material/Business";
 
 export default function MyApplications() {
-  const { user } = useAuth();
+  const { user, refreshUserFromServer } = useAuth();
   const [applications, setApplications] = useState<ApplicationModel[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Nếu user đã là designer hoặc supplier thì chỉ hiển thị thông báo
+  if (user?.role?.toLowerCase() === "designer" || user?.role?.toLowerCase() === "supplier") {
+    return (
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Alert severity="info">
+          Bạn đã là {user.role === "designer" ? "Designer" : "Supplier"}.<br />
+          Không còn đơn đăng ký nào cần theo dõi.
+        </Alert>
+      </Container>
+    );
+  }
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -35,6 +47,22 @@ export default function MyApplications() {
         setLoading(true);
         const data = await applicationService.getMyApplications();
         setApplications(data);
+        
+        // Check if any application was recently approved and refresh user info
+        const recentlyApproved = data.find(app => 
+          app.status === "approved" && 
+          app.processedAt &&
+          new Date(app.processedAt).getTime() > Date.now() - 24 * 60 * 60 * 1000 // Last 24 hours
+        );
+        
+        if (recentlyApproved) {
+          console.log("🎉 Found recently approved application, refreshing user info");
+          try {
+            await refreshUserFromServer();
+          } catch (error) {
+            console.warn("Failed to refresh user after approval:", error);
+          }
+        }
       } catch (error: any) {
         console.error("Error fetching applications:", error);
         toast.error(error.message || "Lỗi khi tải danh sách đơn đăng ký", {
@@ -48,7 +76,7 @@ export default function MyApplications() {
     if (user) {
       fetchApplications();
     }
-  }, [user]);
+  }, [user, refreshUserFromServer]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -264,9 +292,13 @@ export default function MyApplications() {
                   {application.status === "approved" && (
                     <Alert severity="success" sx={{ mt: 2 }}>
                       <Typography variant="body1">
-                        🎉 Chúc mừng! Đơn đăng ký của bạn đã được phê duyệt. Bạn
-                        hiện đã là {getRoleName(application.targetRoleId)} và có
-                        thể sử dụng các tính năng mới.
+                        🎉 Chúc mừng! Đơn đăng ký của bạn đã được phê duyệt.
+                        {application.processedByUser?.fullName
+                          ? ` Đơn của bạn đã được duyệt bởi: ${application.processedByUser.fullName}`
+                          : application.processedBy
+                            ? ` Đơn của bạn đã được duyệt bởi admin ID: ${application.processedBy}`
+                            : ""}
+                        Bạn hiện đã là {getRoleName(application.targetRoleId)} và có thể sử dụng các tính năng mới.
                       </Typography>
                     </Alert>
                   )}
