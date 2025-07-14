@@ -592,7 +592,7 @@ export default function Homepage() {
       {/* Banner */}
       <Box
         sx={{
-          height: "90vh",
+          height: "100vh",
           transition: "height 0.5s ease",
           display: "flex",
           justifyContent: "center",
@@ -611,6 +611,7 @@ export default function Homepage() {
             textAlign: "center",
             color: "white",
             width: "100%",
+            marginBottom: "100px",
           }}
         >
           <Box
@@ -618,6 +619,7 @@ export default function Homepage() {
               width: "60%",
               backgroundColor: "rgba(145, 136, 136, 0.42)",
               margin: "auto",
+              padding: 3,
             }}
           >
             <Typography variant="h2" fontWeight="bold" gutterBottom>

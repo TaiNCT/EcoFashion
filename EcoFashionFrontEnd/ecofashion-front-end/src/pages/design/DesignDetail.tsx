@@ -52,7 +52,7 @@ import dam_con_trung from "../../assets/pictures/example/dam-con-trung.webp";
 import type { Fashion } from "../../types/Fashion";
 import FashionsSection from "../../components/fashion/FashionsSection";
 import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
-import { desktopOS, valueFormatter } from "./webUsageStats";
+
 const products: Fashion[] = [
   {
     id: 1,
@@ -494,10 +494,11 @@ export default function DesignDetail() {
     width: 200,
     height: 200,
   };
-  const data = {
-    data: [desktopOS],
-    valueFormatter,
-  };
+
+  const materialData = products[0].materials.map((mat) => ({
+    label: mat.name,
+    value: mat.percentageUse,
+  }));
   return (
     <Box
       sx={{
@@ -729,7 +730,7 @@ export default function DesignDetail() {
               <Typography sx={{ margin: "auto 0", fontSize: "20px" }}>
                 Chất Liệu:
               </Typography>
-              <Box
+              {/* <Box
                 sx={{
                   width: "100%",
                 }}
@@ -754,14 +755,14 @@ export default function DesignDetail() {
                     {mat.name}: {mat.percentageUse}%
                   </Box>
                 ))}
-              </Box>{" "}
+              </Box> */}
               <PieChart
                 series={[
                   {
                     arcLabel: (item) => `${item.value}%`,
                     arcLabelMinAngle: 35,
                     arcLabelRadius: "60%",
-                    ...data,
+                    data: materialData,
                   },
                 ]}
                 sx={{
@@ -1011,7 +1012,7 @@ export default function DesignDetail() {
           {/* Tab Content */}
           {/* Tab Chi tiết Sản Phẩm */}
           {tabIndex === 0 && (
-            <Box sx={{ display: "flex", padding: 2 }}>
+            <Box sx={{ display: "flex", padding: 4, paddingTop: 0 }}>
               {/* Mô Tả */}
               <Grid>
                 <Typography variant="subtitle1" fontWeight="bold">
@@ -1078,7 +1079,13 @@ export default function DesignDetail() {
                   minHeight: 200,
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginLeft: 2,
+                  }}
+                >
                   <EcoIcon />
                   <Typography variant="h6" fontWeight="bold">
                     Tác Động Môi Trường
@@ -1187,7 +1194,7 @@ export default function DesignDetail() {
                   display: "flex",
                   width: "100%",
                   margin: "auto",
-                  padding: 2,
+                  padding: 3,
                 }}
               >
                 {/* Mô Tả */}
@@ -1392,7 +1399,7 @@ export default function DesignDetail() {
           )}
           {/* Tab Vận Chuyển*/}
           {tabIndex === 3 && (
-            <Box sx={{ display: "flex", padding: 2 }}>
+            <Box sx={{ display: "flex", padding: 4, paddingTop: 0 }}>
               {/* Mô Tả */}
               <Grid sx={{ flex: 1 }}>
                 <Typography variant="subtitle1" fontWeight="bold">

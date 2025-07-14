@@ -12,7 +12,6 @@ import {
   Link,
 } from "@mui/material";
 
-import type { Product } from "../../types/Product";
 import { AddToCart, EcoIcon } from "../../assets/icons/icon";
 import type { Fashion } from "../../types/Fashion";
 import { FavoriteBorderOutlined, LocalShipping } from "@mui/icons-material";

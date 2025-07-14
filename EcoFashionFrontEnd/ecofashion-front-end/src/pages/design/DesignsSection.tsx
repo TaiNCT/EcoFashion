@@ -1,22 +1,15 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Box,
   Container,
   Typography,
-  Button,
-  IconButton,
   Grid,
   Pagination,
-  Card,
-  Link,
-  CardMedia,
-  CardContent,
   Select,
   MenuItem,
 } from "@mui/material";
 import FashionCard from "../../components/fashion/FashionCard";
 import type { Fashion } from "../../types/Fashion";
-import { ArrowBack, ArrowForward } from "@mui/icons-material";
 interface ProductsSectionProps {
   products: Fashion[];
   id?: any;
@@ -84,45 +77,6 @@ const DesignsSection: React.FC<ProductsSectionProps> = ({
 
   return (
     <Box sx={{ width: "100%", textAlign: "center" }}>
-      <Box sx={{ width: "100%", display: "flex", margin: "10px 0" }}>
-        <Typography variant="h4">Thời Trang</Typography>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            height: 48,
-            bgcolor: "transparent",
-            borderRadius: "999px",
-            marginLeft: "auto",
-
-            float: "right",
-          }}
-        >
-          <Typography>
-            Sắp xếp theo:
-            <Select
-              defaultValue="all"
-              sx={{
-                border: "none",
-                fontSize: 14,
-                minWidth: 100,
-                "& fieldset": { border: "none" },
-              }}
-              MenuProps={{
-                disableScrollLock: true,
-              }}
-            >
-              <MenuItem value="all" sx={{ width: "100%" }}>
-                Tất cả
-              </MenuItem>
-              <MenuItem value="recent">Mới Đây</MenuItem>
-              <MenuItem value="material">Vật liệu</MenuItem>
-              <MenuItem value="lowest">Giá Thấp Tới Cao</MenuItem>
-              <MenuItem value="highest">Giá Cao Tới Thấp</MenuItem>
-            </Select>
-          </Typography>
-        </Box>
-      </Box>
       <Grid container spacing={2}>
         {paginatedProducts.map((product) => (
           <Grid key={product.id} size={3}>

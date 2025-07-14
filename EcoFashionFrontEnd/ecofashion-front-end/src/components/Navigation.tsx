@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { Link, matchPath, useLocation, useNavigate } from "react-router-dom";
 //Image
-import logo from "../assets/pictures/homepage/logo.png";
+import logo from "../assets/pictures/homepage/logo2.png";
 //Icon Login
 import DesignServicesIcon from "@mui/icons-material/DesignServices";
 import SettingsIcon from "@mui/icons-material/Settings";

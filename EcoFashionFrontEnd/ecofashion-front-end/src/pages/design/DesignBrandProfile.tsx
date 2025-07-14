@@ -5,26 +5,23 @@ import {
   Avatar,
   Box,
   Button,
-  Container,
   Grid,
-  Paper,
   Stack,
-  styled,
-  Toolbar,
   Typography,
   Link,
-  Menu,
   Divider,
   InputBase,
   IconButton,
-  Card,
-  CardContent,
   CardMedia,
   Rating,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
   Select,
   MenuItem,
-  ListItemText,
-  ListItemIcon,
 } from "@mui/material";
 //example
 import ao_linen from "../../assets/pictures/example/ao-linen.webp";
@@ -37,13 +34,9 @@ import denim from "../../assets/pictures/example/denim.jpg";
 import cotton from "../../assets/pictures/example/cotton.webp";
 import polyester from "../../assets/pictures/example/Polyester.jpg";
 
-import { GridSearchIcon } from "@mui/x-data-grid";
-import { useEffect, useRef, useState } from "react";
-import {
-  ArrowBackIos,
-  ArrowForwardIos,
-  CheckCircleOutline,
-} from "@mui/icons-material";
+import { GridExpandMoreIcon, GridSearchIcon } from "@mui/x-data-grid";
+import React, { useEffect, useRef, useState } from "react";
+import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import StarIcon from "@mui/icons-material/Star";
 import DesignsSection from "./DesignsSection";
 const products: Fashion[] = [
@@ -600,20 +593,117 @@ export default function DesingBrandProfile() {
   const [startIndex, setStartIndex] = useState(0);
   const visibleCount = 4;
 
-  const handlePrev = () => {
-    setStartIndex((prev) => Math.max(prev - 1, 0));
-  };
+  // const handlePrev = () => {
+  //   setStartIndex((prev) => Math.max(prev - 1, 0));
+  // };
 
-  const handleNext = () => {
-    setStartIndex((prev) =>
-      Math.min(prev + 1, Math.max(0, sustainabilityItems.length - visibleCount))
-    );
-  };
-  const visibleItems = sustainabilityItems.slice(
-    startIndex,
-    startIndex + visibleCount
+  // const handleNext = () => {
+  //   setStartIndex((prev) =>
+  //     Math.min(prev + 1, Math.max(0, sustainabilityItems.length - visibleCount))
+  //   );
+  // };
+  // const visibleItems = sustainabilityItems.slice(
+  //   startIndex,
+  //   startIndex + visibleCount
+  // );
+
+  //filter
+  const colorCounts: Record<string, number> = {};
+
+  products.forEach((product: any) => {
+    product.colors.forEach((color: string) => {
+      colorCounts[color] = (colorCounts[color] || 0) + 1;
+    });
+  });
+
+  const dynamicColorFilterOptions = Object.entries(colorCounts).map(
+    ([label, count]) => ({
+      label,
+      count,
+    })
   );
 
+  const colorToHex = (colorName: string): string => {
+    const colors: Record<string, string> = {
+      Đen: "#000000",
+      Trắng: "#ffffff",
+      "Xanh lá": "#2ecc40",
+      Nâu: "#8B4513",
+      "Xanh Navy": "#001f3f",
+      "Xanh Rêu": "#556b2f",
+      Xám: "#808080",
+      Be: "#f5f5dc",
+      Tím: "#800080",
+      Hồng: "#ff69b4",
+      "Hồng Nhạt": "#ffe4e1",
+      Kem: "#fdf5e6",
+      "Xanh Nhạt": "#add8e6",
+      "Xanh Dương": "#0074D9",
+      "Xanh Đậm": "#003366",
+    };
+    return colors[colorName] || "#ccc"; // fallback
+  };
+
+  const filterOptions = {
+    Loại: [
+      { label: "Áo", count: 24 },
+      { label: "Quần", count: 14 },
+      { label: "Đầm", count: 19 },
+      { label: "Váy", count: 19 },
+    ],
+
+    "Chất Liệu": [
+      { label: "Cotton", count: 36 },
+      { label: "Linen", count: 28 },
+      { label: "Tencel", count: 15 },
+      { label: "Recycled Polyester", count: 11 },
+    ],
+  };
+  //filter by color
+  const [showSorted, setShowSorted] = useState(false);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [activeColors, setActiveColors] = useState<string[]>([]);
+  const handleColorChange = (color: string) => {
+    setSelectedColors((prev) =>
+      prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
+    );
+  };
+  const filteredProducts = products.filter((product: any) => {
+    if (activeColors.length === 0) return true;
+    return product.colors.some((color: string) => activeColors.includes(color));
+  });
+  const previewFilteredProducts = products.filter((product: any) => {
+    if (selectedColors.length === 0) return true;
+    return product.colors.some((color: string) =>
+      selectedColors.includes(color)
+    );
+  });
+
+  //Sort product
+  const [sortType, setSortType] = useState<
+    "all" | "recent" | "lowest" | "highest"
+  >("all");
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (!showSorted) return 0; // don't sort until button is clicked
+
+    switch (sortType) {
+      case "lowest":
+        return a.price.current - b.price.current;
+      case "highest":
+        return b.price.current - a.price.current;
+      case "recent":
+        return b.id - a.id;
+      default:
+        return 0;
+    }
+  });
+  //Xóa filter
+  const handleClearAll = () => {
+    setSelectedColors([]); // Reset color selections
+    setShowSorted(false); // Hide filtered result
+    setActiveColors([]); // Clear applied filter if you use one
+    handleScroll("items");
+  };
   return (
     <Box width={"100%"}>
       {/* Banner */}
@@ -630,7 +720,7 @@ export default function DesingBrandProfile() {
           display: "flex",
           alignItems: "center",
           margin: "auto",
-          width: "95%",
+          width: "90%",
         }}
       >
         <Grid
@@ -752,7 +842,7 @@ export default function DesingBrandProfile() {
       {/* Description */}
       <Box
         sx={{
-          width: "95%",
+          width: "90%",
           margin: "auto",
           padding: "10px 0",
         }}
@@ -773,15 +863,7 @@ export default function DesingBrandProfile() {
       </Box>
       <Divider />
       {/* Sustainability */}
-      <Box sx={{ paddingBottom: 3 }}>
-        <Typography
-          variant="h6"
-          fontWeight="bold"
-          gutterBottom
-          sx={{ marginLeft: "30px" }}
-        >
-          Tính bền vững
-        </Typography>
+      <Box sx={{ width: "90%", margin: "auto", padding: 2 }}>
         {/* Scroll */}
         <Box
           sx={{
@@ -793,7 +875,7 @@ export default function DesingBrandProfile() {
               display: "flex",
               alignItems: "center",
               gap: 1,
-              width: "90%",
+              width: "100%",
               margin: "auto",
             }}
           >
@@ -817,7 +899,7 @@ export default function DesingBrandProfile() {
                 <Grid
                   key={index}
                   sx={{
-                    width: 400,
+                    width: 410,
                     height: 250,
                     backgroundImage: `url(${item.image})`,
                     backgroundSize: "cover",
@@ -868,11 +950,11 @@ export default function DesingBrandProfile() {
           backgroundColor: "white",
           color: "black",
           width: "100%",
-          borderTop: "1px solid black",
+
           borderBottom: "1px solid black",
         }}
       >
-        <Box sx={{ display: "flex", padding: 3 }}>
+        <Box sx={{ display: "flex", padding: 2 }}>
           <Stack direction="row" spacing={2}>
             <Button
               color="inherit"
@@ -949,15 +1031,174 @@ export default function DesingBrandProfile() {
         </Box>
       </AppBar>
       {/* Section */}
-      <Box sx={{ width: "100%" }}>
-        {/* Sản Phẩm */}
+      <Box sx={{ width: "90%", margin: "auto" }}>
+        {/*Danh sách Sản Phẩm */}
         <Box id="items" sx={{ minHeight: "100vh", p: 3, display: "flex" }}>
-          <Box flex={1}>
-            <Typography variant="h4">Phân Loại</Typography>
+          {/* Filter */}
+          <Box flex={1} sx={{ textAlign: "left" }}>
+            <Box sx={{ width: 300, padding: 3 }}>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                marginBottom={"30px"}
+              >
+                <Typography variant="h6" fontWeight="bold">
+                  Phân Loại
+                </Typography>
+                <Link
+                  onClick={handleClearAll}
+                  underline="hover"
+                  sx={{ cursor: "pointer", fontSize: 14 }}
+                >
+                  Xóa lựa chọn
+                </Link>
+              </Box>
+
+              {/* Filter Sections */}
+              <Accordion
+                disableGutters
+                elevation={0}
+                sx={{ boxShadow: "none" }}
+              >
+                <AccordionSummary expandIcon={<GridExpandMoreIcon />}>
+                  <Typography fontSize={16}>Màu Sắc</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <FormGroup>
+                    {dynamicColorFilterOptions.map((item, index) => (
+                      <FormControlLabel
+                        key={index}
+                        control={
+                          <Checkbox
+                            checked={selectedColors.includes(item.label)}
+                            onChange={() => handleColorChange(item.label)}
+                          />
+                        }
+                        label={
+                          <Box display="flex" alignItems="center">
+                            <Box
+                              sx={{
+                                width: 14,
+                                height: 14,
+                                borderRadius: "50%",
+                                backgroundColor: colorToHex(item.label),
+                                border: "1px solid #ccc",
+                                mr: 1,
+                              }}
+                            />
+                            {`${item.label} (${item.count})`}
+                          </Box>
+                        }
+                        sx={{ mb: 0.5, alignItems: "center" }}
+                      />
+                    ))}
+                  </FormGroup>
+                </AccordionDetails>
+              </Accordion>
+              <Divider />
+              {Object.entries(filterOptions).map(([title, options]) => (
+                <React.Fragment key={title}>
+                  <Accordion
+                    disableGutters
+                    elevation={0}
+                    sx={{ boxShadow: "none" }}
+                  >
+                    <AccordionSummary expandIcon={<GridExpandMoreIcon />}>
+                      <Typography fontSize={16}>{title}</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <FormGroup>
+                        {options.map((item, index) => (
+                          <FormControlLabel
+                            key={index}
+                            control={<Checkbox />}
+                            label={`${item.label} (${item.count})`}
+                            sx={{ mb: 0.5, alignItems: "center" }}
+                          />
+                        ))}
+                      </FormGroup>
+                    </AccordionDetails>
+                  </Accordion>
+                  <Divider />
+                </React.Fragment>
+              ))}
+              {/* Bottom Button */}
+              <Box mt={6}>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  fullWidth
+                  sx={{
+                    color: "black",
+                    fontWeight: "bold",
+                    "&:hover": {
+                      bgcolor: "#333",
+                      color: "white",
+                    },
+                  }}
+                  onClick={() => {
+                    setActiveColors(selectedColors); // apply filter
+                    setShowSorted(true);
+                    handleScroll("items");
+                  }}
+                >
+                  {selectedColors.length > 0
+                    ? `Xem ${previewFilteredProducts.length} sản phẩm`
+                    : "Xem Tất Cả Sản Phẩm"}
+                </Button>
+              </Box>
+            </Box>
           </Box>
           <Divider orientation="vertical" flexItem />
-          <Box flex={5} sx={{ margin: "auto 30px" }}>
-            <DesignsSection products={products} id={"items"} />
+          {/* Sản Phẩm */}
+          <Box flex={5} sx={{ margin: "0 30px", minHeight: "500px" }}>
+            <Box sx={{ width: "100%", display: "flex", margin: "10px 0" }}>
+              <Typography variant="h4" fontWeight="bold">
+                Thời Trang
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  height: 48,
+                  bgcolor: "transparent",
+                  borderRadius: "999px",
+                  marginLeft: "auto",
+
+                  float: "right",
+                }}
+              >
+                <Typography>
+                  Sắp xếp theo:
+                  <Select
+                    value={sortType}
+                    sx={{
+                      border: "none",
+                      fontSize: 14,
+                      minWidth: 100,
+                      "& fieldset": { border: "none" },
+                    }}
+                    MenuProps={{
+                      disableScrollLock: true,
+                    }}
+                    onChange={(e) => {
+                      setSortType(e.target.value);
+                      setShowSorted(true);
+                    }}
+                  >
+                    <MenuItem value="all" sx={{ width: "100%" }}>
+                      Tất cả
+                    </MenuItem>
+                    <MenuItem value="recent">Mới Đây</MenuItem>
+                    <MenuItem value="material">Vật liệu</MenuItem>
+                    <MenuItem value="lowest">Giá Thấp Tới Cao</MenuItem>
+                    <MenuItem value="highest">Giá Cao Tới Thấp</MenuItem>
+                  </Select>
+                </Typography>
+              </Box>
+            </Box>
+            <DesignsSection products={sortedProducts} id={"items"} />
           </Box>
         </Box>
         <Divider />
