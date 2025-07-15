@@ -3,7 +3,6 @@
     public class MaterialRequest
     {
         public int TypeId { get; set; }
-        public Guid SupplierId { get; set; }
         public required string MaterialName { get; set; }
         public string? MaterialDescription { get; set; }
         public double? SustainabilityScore { get; set; }

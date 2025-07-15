@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using static System.Net.Mime.MediaTypeNames;
-using System.Composition;
 
 namespace EcoFashionBackEnd.Entities
 {
@@ -22,7 +20,13 @@ namespace EcoFashionBackEnd.Entities
 
         public DbSet<Material> Materials { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
-
+        public DbSet<DesignDraft> DesignDrafts { get; set; }
+        public DbSet<DraftMaterial> DraftMaterials { get; set; }
+        public DbSet<MaterialSustainability> MaterialSustainabilities { get; set; }
+        public DbSet<SavedMaterial> SavedMaterials { get; set; }
+        public DbSet<MaterialImage> MaterialImages { get; set; }
+        public DbSet<Image> Images { get; set; }
+        public DbSet<SustainabilityCriteria> SustainabilityCriterias { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -97,6 +101,80 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<Material>()
                 .Property(m => m.PricePerUnit)
                 .HasPrecision(18, 2);
+            modelBuilder.Entity<Material>()
+                .Property(m => m.RecycledPercentage)
+                .HasPrecision(5, 2);
+            modelBuilder.Entity<Material>()
+                .Property(m => m.SustainabilityScore)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<MaterialSustainability>()
+                .HasKey(ms => new { ms.MaterialId, ms.SustainabilityCriteriaId });
+            modelBuilder.Entity<MaterialSustainability>()
+                .HasOne(ms => ms.Material)
+                .WithMany(m => m.MaterialSustainabilities)
+                .HasForeignKey(ms => ms.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MaterialSustainability>()
+                .HasOne(ms => ms.SustainabilityCriteria)
+                .WithMany(sc => sc.MaterialSustainabilities)
+                .HasForeignKey(ms => ms.SustainabilityCriteriaId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<MaterialSustainability>()
+                .Property(ms => ms.Value)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<SavedMaterial>()
+                .HasOne(sm => sm.Material)
+                .WithMany(m => m.SavedMaterials)
+                .HasForeignKey(sm => sm.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SavedMaterial>()
+                .HasOne(sm => sm.Designer)
+                .WithMany(d => d.SavedMaterials)
+                .HasForeignKey(sm => sm.DesignerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DesignDraft>()
+                .HasOne(dd => dd.Designer)
+                .WithMany(d => d.DesignDrafts)
+                .HasForeignKey(dd => dd.DesignerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<DesignDraft>()
+                .Property(dd => dd.Type)
+                .HasConversion<string>();
+            modelBuilder.Entity<DesignDraft>()
+                .Property(dd => dd.RecycledPercentage)
+                .HasPrecision(5,2);
+
+            modelBuilder.Entity<DraftMaterial>()
+                .HasKey(dm => new { dm.DesignDraftId, dm.MaterialId });
+            modelBuilder.Entity<DraftMaterial>()
+                .HasOne(dm => dm.DesignDraft)
+                .WithMany(dd => dd.DraftMaterials)
+                .HasForeignKey(dm => dm.DesignDraftId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<DraftMaterial>()
+                .HasOne(dm => dm.Material)
+                .WithMany(m => m.DraftMaterials)
+                .HasForeignKey(dm => dm.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<DraftMaterial>()
+                .Property(dm => dm.PercentageUsed)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<MaterialImage>()
+                .HasKey(mi => new { mi.MaterialId, mi.ImageId });
+            modelBuilder.Entity<MaterialImage>()
+                .HasOne(mi => mi.Material)
+                .WithMany(m => m.MaterialImages)
+                .HasForeignKey(mi => mi.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MaterialImage>()
+                .HasOne(mi => mi.Image)
+                .WithMany(i => i.MaterialImages)
+                .HasForeignKey(mi => mi.ImageId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

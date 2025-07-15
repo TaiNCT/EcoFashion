@@ -9,7 +9,6 @@ namespace EcoFashionBackEnd.Services
     public class MaterialService
     {
         private readonly IRepository<Material,int> _materialRepository;
-        private readonly IRepository<Supplier,int> _supplierRepository;
         private readonly IMapper _mapper;
         private readonly AppDbContext _dbContext;
         public MaterialService (IRepository<Material,int> materialRepository,
@@ -18,7 +17,6 @@ namespace EcoFashionBackEnd.Services
             IMapper mapper)
         {
             _materialRepository = materialRepository;
-            _supplierRepository = supplierRepository;
             _mapper = mapper;
             _dbContext = dbContext;
         }
@@ -34,32 +32,47 @@ namespace EcoFashionBackEnd.Services
             var materials = await _materialRepository.GetAll().ToListAsync();
             return _mapper.Map<List<MaterialModel>>(materials);
         }
-        public async Task<MaterialModel> CreateMaterialAsync(MaterialRequest request)
+        public async Task<MaterialModel> CreateMaterialAsync(int userId, MaterialRequest request)
         {
+            var supplier = await _dbContext.Suppliers
+                .FirstOrDefaultAsync(s => s.UserId == userId);
+            if (supplier == null)
+                throw new ArgumentException("Người dùng không phải là nhà cung cấp");
             var material = _mapper.Map<Material>(request);
+            material.SupplierId = supplier.SupplierId;
             await _materialRepository.AddAsync(material);
             await _dbContext.SaveChangesAsync();
             return _mapper.Map<MaterialModel>(material);
         }
-        public async Task<MaterialModel?> UpdateMaterialAsync(int id, MaterialRequest model)
+        public async Task<MaterialModel?> UpdateMaterialAsync(int userId, int materialId, MaterialRequest model)
         {
-            var material = await _materialRepository.GetByIdAsync(id);
+            var supplier = await _dbContext.Suppliers
+                .FirstOrDefaultAsync(s => s.UserId == userId);
+            if (supplier == null)
+                throw new ArgumentException("Người dùng không phải là nhà cung cấp");
+            var material = await _materialRepository.GetByIdAsync(materialId);
             if (material == null)
                 return null;
-
+            if (material.SupplierId != supplier.SupplierId)
+                throw new ArgumentException("Bạn không có quyền sửa vật liệu này");
             _mapper.Map(model, material);
             _materialRepository.Update(material);
             await _dbContext.SaveChangesAsync();
 
             return _mapper.Map<MaterialModel>(material);
         }
-        public async Task<bool> DeleteMaterialAsync(int id)
+        public async Task<bool> DeleteMaterialAsync(int userId, int materialId)
         {
-            var material = await _materialRepository.GetByIdAsync(id);
+            var supplier = await _dbContext.Suppliers
+                .FirstOrDefaultAsync(s => s.UserId == userId);
+            if (supplier == null)
+                throw new ArgumentException("Người dùng không phải là nhà cung cấp");
+            var material = await _materialRepository.GetByIdAsync(materialId);
             if (material == null)
                 return false;
-
-            _materialRepository.Remove(id);
+            if (material.SupplierId != supplier.SupplierId)
+                throw new ArgumentException("Bạn không có quyền xóa vật liệu này");
+            _materialRepository.Remove(materialId);
             await _dbContext.SaveChangesAsync();
             return true;
         }

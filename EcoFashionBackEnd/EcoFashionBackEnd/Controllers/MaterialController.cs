@@ -2,6 +2,8 @@
 using EcoFashionBackEnd.Dtos.Material;
 using EcoFashionBackEnd.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace EcoFashionBackEnd.Controllers
 {
@@ -42,15 +44,21 @@ namespace EcoFashionBackEnd.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResult<object>.Fail("Dữ liệu không hợp lệ"));
-
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+                return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
             try
             {
-                var material = await _materialService.CreateMaterialAsync(request);
+                var material = await _materialService.CreateMaterialAsync(userId, request);
                 return Ok(ApiResult<MaterialModel>.Succeed(material));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<object>.Fail(ex.Message));
             }
             catch (Exception ex)
             {
-                return BadRequest(ApiResult<object>.Fail($"Lỗi khi tạo vật liệu: {ex.Message}"));
+                return StatusCode(500,ApiResult<object>.Fail("Lỗi hệ thống: " + ex.Message));
             }
         }
 
@@ -59,35 +67,46 @@ namespace EcoFashionBackEnd.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResult<object>.Fail("Dữ liệu không hợp lệ"));
-
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+                return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
             try
             {
-                var material = await _materialService.UpdateMaterialAsync(id, model);
+                var material = await _materialService.UpdateMaterialAsync(userId, id, model);
                 if (material == null)
                     return NotFound(ApiResult<object>.Fail("Không tìm thấy vật liệu cần cập nhật"));
 
                 return Ok(ApiResult<MaterialModel>.Succeed(material));
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<object>.Fail(ex.Message));
+            }
             catch (Exception ex)
             {
-                return BadRequest(ApiResult<object>.Fail($"Lỗi khi cập nhật vật liệu: {ex.Message}"));
+                return StatusCode(500, ApiResult<object>.Fail("Lỗi hệ thống: " + ex.Message));
             }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMaterial(int id)
         {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+                return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
             try
             {
-                var deleted = await _materialService.DeleteMaterialAsync(id);
+                var deleted = await _materialService.DeleteMaterialAsync(userId, id);
                 if (!deleted)
                     return NotFound(ApiResult<object>.Fail("Không tìm thấy vật liệu cần xóa"));
 
                 return Ok(ApiResult<object>.Succeed("Xóa vật liệu thành công"));
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<object>.Fail(ex.Message));
+            }
             catch (Exception ex)
             {
-                return BadRequest(ApiResult<object>.Fail($"Lỗi khi xóa vật liệu: {ex.Message}"));
+                return StatusCode(500, ApiResult<object>.Fail("Lỗi hệ thống: " + ex.Message));
             }
         }
     }
