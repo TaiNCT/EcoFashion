@@ -16,8 +16,8 @@ export interface SupplierModel {
   address?: string;
   taxNumber?: string;
   identificationNumber?: string;
-  identificationPicture?: string;
-  identificationPictureOwner?: string;
+  identificationPictureFront?: string;
+  identificationPictureBack?: string;
   status?: string;
   createdAt: string;
   updatedAt?: string;

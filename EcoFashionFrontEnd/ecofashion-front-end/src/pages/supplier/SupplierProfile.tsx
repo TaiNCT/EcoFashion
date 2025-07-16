@@ -1,3 +1,10 @@
+// Utility function to fallback image URL safely
+function safeImageUrl(
+  url?: string,
+  fallback: string = "/assets/default-image.jpg"
+): string {
+  return typeof url === "string" && url.trim() ? url : fallback;
+}
 import {
   Box,
   Container,
@@ -34,6 +41,7 @@ import {
   Cancel,
 } from "@mui/icons-material";
 import { EcoIcon } from "../../assets/icons/icon";
+import logo from "../../assets/pictures/homepage/logo.png";
 
 export default function SupplierProfile() {
   const [loading, setLoading] = useState(true);
@@ -127,10 +135,10 @@ export default function SupplierProfile() {
       <Box
         sx={{
           height: 300,
-          backgroundImage: `url(${
-            supplierData.bannerUrl ||
-            "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=300&fit=crop"
-          })`,
+          backgroundImage: `url(${safeImageUrl(
+            supplierData.bannerUrl,
+            "/assets/default-banner.jpg"
+          )})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           position: "relative",
@@ -152,19 +160,25 @@ export default function SupplierProfile() {
         <Container maxWidth="lg" sx={{ position: "relative", pb: 3 }}>
           <Box sx={{ display: "flex", alignItems: "flex-end", gap: 3 }}>
             <Avatar
-              src={supplierData.avatarUrl}
-              sx={{
-                width: 120,
-                height: 120,
-                border: "4px solid white",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+              sx={{ width: 80, height: 80, mr: 3, bgcolor: "#4caf50" }}
+              src={safeImageUrl(
+                supplierData.avatarUrl,
+                "/assets/default-avatar.png"
+              )}
+              imgProps={{
+                onError: (e: any) => {
+                  if (
+                    e.currentTarget.src !==
+                    window.location.origin + "/assets/default-avatar.png"
+                  ) {
+                    e.currentTarget.src = "/assets/default-avatar.png";
+                  }
+                },
               }}
             >
-              {(
-                supplierData.supplierName ||
-                supplierData.user?.fullName ||
-                "S"
-              ).charAt(0)}
+              {!supplierData.avatarUrl
+                ? supplierData.supplierName?.charAt(0)
+                : null}
             </Avatar>
             <Box sx={{ color: "white", flex: 1 }}>
               <Typography variant="h4" fontWeight="bold" gutterBottom>
@@ -256,7 +270,7 @@ export default function SupplierProfile() {
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Grid container spacing={4}>
           {/* Left Column - Main Info */}
-          <Grid item xs={12} md={8}>
+          <Grid>
             {/* Bio Section */}
             <Card sx={{ mb: 3 }}>
               <CardContent>
@@ -354,7 +368,7 @@ export default function SupplierProfile() {
           </Grid>
 
           {/* Right Column - Contact & Business Info */}
-          <Grid item xs={12} md={4}>
+          <Grid>
             {/* Contact Info */}
             <Card sx={{ mb: 3 }}>
               <CardContent>
@@ -448,21 +462,24 @@ export default function SupplierProfile() {
             )}
 
             {/* Identity Images */}
-            {(supplierData.identificationPicture ||
-              supplierData.identificationPictureOwner) && (
+            {(supplierData.identificationPictureFront ||
+              supplierData.identificationPictureBack) && (
               <Card sx={{ mb: 3 }}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    Ảnh xác minh danh tính
+                    Xác minh danh tính
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
-                  {supplierData.identificationPicture && (
-                    <Box sx={{ mb: 2, textAlign: "center" }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Ảnh CMND/CCCD (Mặt trước)
-                      </Typography>
+                  <Box sx={{ mb: 2, textAlign: "center" }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Ảnh CMND/CCCD (Mặt trước)
+                    </Typography>
+                    {supplierData.identificationPictureFront ? (
                       <img
-                        src={supplierData.identificationPicture}
+                        src={safeImageUrl(
+                          supplierData.identificationPictureFront,
+                          "/assets/default-cccd-front.jpg"
+                        )}
                         alt="CMND/CCCD mặt trước"
                         style={{
                           maxWidth: "100%",
@@ -470,26 +487,57 @@ export default function SupplierProfile() {
                           objectFit: "cover",
                           borderRadius: "8px",
                         }}
+                        onError={(e) => {
+                          if (
+                            e.currentTarget.src !==
+                            window.location.origin +
+                              "/assets/default-cccd-front.jpg"
+                          ) {
+                            e.currentTarget.src =
+                              "/assets/default-cccd-front.jpg";
+                          }
+                        }}
                       />
-                    </Box>
-                  )}
-                  {supplierData.identificationPictureOwner && (
-                    <Box sx={{ textAlign: "center" }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Ảnh chụp cùng CMND/CCCD
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Chưa tải lên
                       </Typography>
+                    )}
+                  </Box>
+                  <Box sx={{ textAlign: "center" }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Ảnh CMND/CCCD (Mặt sau)
+                    </Typography>
+                    {supplierData.identificationPictureBack ? (
                       <img
-                        src={supplierData.identificationPictureOwner}
-                        alt="Ảnh chụp cùng CCCD"
+                        src={safeImageUrl(
+                          supplierData.identificationPictureBack,
+                          "/assets/default-cccd-back.jpg"
+                        )}
+                        alt="CMND/CCCD mặt sau"
                         style={{
                           maxWidth: "100%",
                           height: "120px",
                           objectFit: "cover",
                           borderRadius: "8px",
                         }}
+                        onError={(e) => {
+                          if (
+                            e.currentTarget.src !==
+                            window.location.origin +
+                              "/assets/default-cccd-back.jpg"
+                          ) {
+                            e.currentTarget.src =
+                              "/assets/default-cccd-back.jpg";
+                          }
+                        }}
                       />
-                    </Box>
-                  )}
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Chưa tải lên
+                      </Typography>
+                    )}
+                  </Box>
                 </CardContent>
               </Card>
             )}

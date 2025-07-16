@@ -71,7 +71,7 @@ namespace EcoFashionBackEnd.Services
                 AvatarUrl = supplier.AvatarUrl,
                 Bio = supplier.Bio,
                 SpecializationUrl = supplier.SpecializationUrl,
-                PortfolioUrl = supplier.PortfolioUrl,
+
                 PortfolioFiles = supplier.PortfolioFiles,
                 BannerUrl = supplier.BannerUrl,
                 Email = supplier.Email, // Có thể ẩn tùy business logic
@@ -197,8 +197,8 @@ namespace EcoFashionBackEnd.Services
                 Address = request.Address,
                 TaxNumber = request.TaxNumber,
                 IdentificationNumber = request.IdentificationNumber,
-                IdentificationPicture = request.IdentificationPicture,
-                IdentificationPictureOwner = request.IdentificationPictureOwner,
+                IdentificationPictureFront = request.IdentificationPictureFront,
+                IdentificationPictureBack = request.IdentificationPictureBack,
                 Certificates = request.Certificates,
                 CreatedAt = DateTime.UtcNow,
                 Status = "Active"
@@ -242,8 +242,8 @@ namespace EcoFashionBackEnd.Services
             existingSupplier.Address = request.Address ?? existingSupplier.Address;
             existingSupplier.TaxNumber = request.TaxNumber ?? existingSupplier.TaxNumber;
             existingSupplier.IdentificationNumber = request.IdentificationNumber ?? existingSupplier.IdentificationNumber;
-            existingSupplier.IdentificationPicture = request.IdentificationPicture ?? existingSupplier.IdentificationPicture;
-            existingSupplier.IdentificationPictureOwner = request.IdentificationPictureOwner ?? existingSupplier.IdentificationPictureOwner;
+            existingSupplier.IdentificationPictureFront = request.IdentificationPictureFront ?? existingSupplier.IdentificationPictureFront;
+            existingSupplier.IdentificationPictureBack = request.IdentificationPictureBack ?? existingSupplier.IdentificationPictureBack;
             existingSupplier.Certificates = request.Certificates ?? existingSupplier.Certificates;
             existingSupplier.UpdatedAt = DateTime.UtcNow;
 
