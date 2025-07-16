@@ -967,6 +967,7 @@ export default function DesignerDashBoard() {
               height: "60%",
               margin: "auto",
             }}
+            href="/designer/dashboard/add"
           >
             <Box
               sx={{

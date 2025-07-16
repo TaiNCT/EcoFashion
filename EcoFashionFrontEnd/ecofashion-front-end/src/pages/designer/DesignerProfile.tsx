@@ -196,7 +196,7 @@ export default function DesignerProfile() {
 
       <Grid container spacing={4}>
         {/* Left Column - Main Info */}
-        <Grid item xs={12} md={8}>
+        <Grid xs={12} md={8}>
           {/* Basic Information */}
           <Card sx={{ mb: 3 }}>
             <CardContent>

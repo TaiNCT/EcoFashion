@@ -71,7 +71,8 @@ export default function Navigation() {
 
   const handleAuth = (type: any) => {
     handleClose();
-
+    handleCloseShop();
+    window.scrollTo(0, 0);
     // Get current user role for profile navigation
     const userRole = user?.role?.toLowerCase();
 
@@ -120,6 +121,9 @@ export default function Navigation() {
         break;
       case "explore-suppliers":
         navigate("/explore/suppliers");
+        break;
+      case "fashion":
+        navigate("/fashion");
         break;
     }
   };
@@ -301,11 +305,9 @@ export default function Navigation() {
 
     return menuItems;
   };
-  // Hide Nav static on these routes
-  const staticLayout = matchPath("/brand/:id", location.pathname);
   return (
     <AppBar
-      position={staticLayout ? "static" : "sticky"}
+      position={"sticky"}
       elevation={scrolled || !isHome ? 4 : 0}
       sx={{
         backgroundColor: scrolled || !isHome ? "#fff" : "transparent",
@@ -313,6 +315,7 @@ export default function Navigation() {
         transition: "0.3s",
         paddingLeft: 3,
         paddingRight: 3,
+        zIndex: (theme) => theme.zIndex.appBar + 1,
       }}
     >
       <Toolbar
@@ -323,9 +326,20 @@ export default function Navigation() {
       >
         {/* Logo */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Button href="/">
-            <img src={logo} alt="EcoFashion Logo" style={{ height: 60 }} />
-          </Button>
+          <Box
+            component="img"
+            src={logo}
+            alt="EcoFashion Logo"
+            sx={{
+              height: 60,
+              transition: "transform 0.3s ease",
+              "&:hover": {
+                transform: "scale(1.05)", // slightly zoom on hover
+                cursor: "pointer", // optional
+              },
+            }}
+            onClick={() => navigate("/")}
+          />
         </Box>
         <Box
           sx={{
@@ -386,7 +400,9 @@ export default function Navigation() {
             }}
             disableScrollLock
           >
-            <MenuItem onClick={handleCloseShop}>Thời Trang</MenuItem>
+            <MenuItem onClick={() => handleAuth("fashion")}>
+              Thời Trang
+            </MenuItem>
             <MenuItem onClick={handleCloseShop}>Vật Liệu</MenuItem>
           </Menu>
 
@@ -489,6 +505,9 @@ export default function Navigation() {
               sx={{
                 fontSize: 30,
                 color: scrolled || !isHome ? "black" : "white",
+                "&:hover": {
+                  color: "rgba(94, 224, 159, 1)",
+                },
               }}
             />
           </IconButton>
@@ -497,6 +516,9 @@ export default function Navigation() {
               sx={{
                 fontSize: 30,
                 color: scrolled || !isHome ? "black" : "white",
+                "&:hover": {
+                  color: "rgba(94, 224, 159, 1)",
+                },
               }}
             />
           </IconButton>

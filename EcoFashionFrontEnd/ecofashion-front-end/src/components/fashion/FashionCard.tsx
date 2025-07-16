@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardMedia,
@@ -10,11 +10,15 @@ import {
   IconButton,
   Button,
   Link,
+  SwipeableDrawer,
+  styled,
+  Drawer,
 } from "@mui/material";
 
 import { AddToCart, EcoIcon } from "../../assets/icons/icon";
 import type { Fashion } from "../../types/Fashion";
 import { FavoriteBorderOutlined, LocalShipping } from "@mui/icons-material";
+import { grey } from "@mui/material/colors";
 
 interface FashionCardProps {
   product: Fashion;
@@ -119,18 +123,23 @@ const FashionCard: React.FC<FashionCardProps> = ({
   // };
 
   //   const sustainabilityScore = getSustainabilityScore(product.sustainability);
-
   return (
     <Card
       sx={{
         width: "100%",
         height: "100%",
         position: "relative",
+        overflow: "hidden",
         "&:hover": {
           transform: "translateY(-4px)",
           transition: "all 0.3s ease",
           boxShadow: 3,
         },
+        "&:hover .card-hover-content": {
+          opacity: 1,
+          transform: "translateY(0)",
+        },
+        borderRadius: "10px",
       }}
     >
       {/* Product Tag */}
@@ -185,155 +194,194 @@ const FashionCard: React.FC<FashionCardProps> = ({
       >
         <FavoriteBorderOutlined />
       </IconButton>
+
       {/* Product Image */}
-      <Link href={`/detail/${product.id}`} style={{ justifyContent: "center" }}>
+      <Link href={`/detail/${product.id}`} sx={{ textDecoration: "none" }}>
         <CardMedia
           component="img"
-          height="240"
+          height="360"
           image={product.image}
           alt={product.name}
+          sx={{ width: "100%", objectFit: "cover" }}
         />
       </Link>
       {/* Content */}
       <CardContent
+        className="card-hover-content"
         sx={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          height: "60%",
+          background: "rgba(255, 255, 255, 1)",
           textAlign: "left",
+          transition: "opacity 0.3s ease, transform 0.3s ease",
+          opacity: 0,
+          transform: "translateY(20px)",
+          borderRadius: "10px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 0,
         }}
       >
-        {/* Category and Brand */}
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 1,
+            width: "90%",
+            height: "90%",
+            margin: "auto",
           }}
         >
-          <Chip
-            label={product.category.toUpperCase()}
-            size="small"
-            sx={{
-              bgcolor: getCategoryColor(product.category),
-              color: "white",
-              fontWeight: "bold",
-              fontSize: "0.7rem",
-            }}
-          />
-          <Typography variant="caption" color="text.secondary">
-            {product.brand.name}
-          </Typography>
-        </Box>
-        {/* Design Name */}
-        <Typography
-          fontWeight="bold"
-          sx={{
-            fontSize: "25px",
-            width: "100%",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {product.name}
-        </Typography>
-        {/* Rating */}
-        <Box display="flex" alignItems="center">
-          <Rating
-            value={Math.round(product.rating.average)}
-            readOnly
-            size="small"
-          />
-          <Typography variant="body2" ml={1}>
-            ({product.rating.count})
-          </Typography>
-        </Box>
-        {/* Design Price */}
-        <Box
-          sx={{
-            mb: 1,
-            minHeight: 56,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {!product.price.original && (
-            <Typography
-              component="div"
-              sx={{
-                fontWeight: "bold",
-                color: "#2e7d32",
-                margin: "auto 0",
-                fontSize: "28px",
-              }}
-            >
-              {formatPrice(product.price)}
-            </Typography>
-          )}
-          {product.price.original && (
-            <Box>
-              <Typography
-                variant="h5"
-                component="div"
-                sx={{ fontWeight: "bold", color: "#2e7d32" }}
-              >
-                {formatPrice(product.price)}
-              </Typography>
-              <Typography
-                variant="body2"
+          <Link
+            href={`/detail/${product.id}`}
+            sx={{ textDecoration: "none", flexGrow: 1 }}
+          >
+            <Box component="a">
+              {/* Category and Brand */}
+              <Box
                 sx={{
-                  textDecoration: "line-through",
-                  color: "text.secondary",
-                  fontSize: "0.875rem",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
                 }}
               >
-                {formatOriginalPrice(product.price)}
+                <Chip
+                  label={product.category.toUpperCase()}
+                  size="small"
+                  sx={{
+                    bgcolor: getCategoryColor(product.category),
+                    color: "white",
+                    fontWeight: "bold",
+                    fontSize: "0.7rem",
+                  }}
+                />
+                <Typography variant="caption" color="text.secondary">
+                  {product.brand.name}
+                </Typography>
+              </Box>
+              {/* Design Name */}
+              <Typography
+                fontWeight="bold"
+                sx={{
+                  fontSize: "25px",
+                  width: "100%",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  color: "black",
+                }}
+              >
+                {product.name}
               </Typography>
+              {/* Rating */}
+              <Box display="flex" alignItems="center">
+                <Rating
+                  value={Math.round(product.rating.average)}
+                  readOnly
+                  size="small"
+                />
+                <Typography variant="body2" ml={1}>
+                  ({product.rating.count})
+                </Typography>
+              </Box>
+              {/* Design Price */}
+              <Box
+                sx={{
+                  mb: 1,
+                  minHeight: 56,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                {!product.price.original && (
+                  <Typography
+                    component="div"
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#2e7d32",
+                      margin: "auto 0",
+                      fontSize: "28px",
+                    }}
+                  >
+                    {formatPrice(product.price)}
+                  </Typography>
+                )}
+                {product.price.original && (
+                  <Box>
+                    <Typography
+                      variant="h5"
+                      component="div"
+                      sx={{ fontWeight: "bold", color: "#2e7d32" }}
+                    >
+                      {formatPrice(product.price)}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        textDecoration: "line-through",
+                        color: "text.secondary",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      {formatOriginalPrice(product.price)}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+              {/* Material */}
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1,
+                  mt: 1,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {product.materials.map((mat, index) => (
+                  <Chip
+                    key={index}
+                    label={`${mat.name} (${mat.percentageUse}%)`}
+                    size="small"
+                    sx={{
+                      backgroundColor: "rgba(220, 252, 231, 1)",
+                      color: "rgba(29, 106, 58, 1)",
+                    }}
+                  />
+                ))}
+              </Box>
+              {/* Available */}
+              <Box sx={{ margin: "10px 0" }}>
+                <Chip
+                  label={getAvailabilityText(product.availability)}
+                  size="small"
+                  color={getAvailabilityColor(product.availability)}
+                  icon={<LocalShipping sx={{ fontSize: 16 }} />}
+                />
+              </Box>
             </Box>
-          )}
+          </Link>
+
+          {/* Add To Cart */}
+          {/* <Button
+            variant="contained"
+            fullWidth
+            sx={{
+              backgroundColor: "rgba(22, 163, 74, 1)",
+            }}
+            onClick={(e) => {
+              e.stopPropagation(); // prevent navigation
+              e.preventDefault(); // prevent Link
+            }}
+          >
+            <AddToCart />
+            Thêm vào Cart
+          </Button> */}
         </Box>
-        {/* Material */}
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1,
-            mt: 1,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {product.materials.map((mat, index) => (
-            <Chip
-              key={index}
-              label={`${mat.name} (${mat.percentageUse}%)`}
-              size="small"
-              sx={{
-                backgroundColor: "rgba(220, 252, 231, 1)",
-                color: "rgba(29, 106, 58, 1)",
-              }}
-            />
-          ))}
-        </Box>
-        {/* Available */}
-        <Box sx={{ margin: "10px 0" }}>
-          <Chip
-            label={getAvailabilityText(product.availability)}
-            size="small"
-            color={getAvailabilityColor(product.availability)}
-            icon={<LocalShipping sx={{ fontSize: 16 }} />}
-          />
-        </Box>
-        {/* Add To Cart */}
-        <Button
-          variant="contained"
-          fullWidth
-          sx={{
-            backgroundColor: "rgba(22, 163, 74, 1)",
-          }}
-        >
-          <AddToCart />
-          Thêm vào Cart
-        </Button>
       </CardContent>
     </Card>
   );

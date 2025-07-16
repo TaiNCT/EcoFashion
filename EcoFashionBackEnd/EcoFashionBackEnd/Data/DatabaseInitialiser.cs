@@ -143,9 +143,21 @@ namespace EcoFashionBackEnd.Data
             // Seed DesignsColor
             var colors = new List<DesignsColor>
             {
-                new DesignsColor { ColorName = "Red", ColorCode = "#FF0000" },
-                new DesignsColor { ColorName = "Blue", ColorCode = "#0000FF" },
-                new DesignsColor { ColorName = "Green", ColorCode = "#008000" }
+              new DesignsColor { ColorName = "Đen", ColorCode = "#000000" },
+new DesignsColor { ColorName = "Trắng", ColorCode = "#ffffff" },
+new DesignsColor { ColorName = "Xanh lá", ColorCode = "#2ecc40" },
+new DesignsColor { ColorName = "Nâu", ColorCode = "#8B4513" },
+new DesignsColor { ColorName = "Xanh Navy", ColorCode = "#001f3f" },
+new DesignsColor { ColorName = "Xanh Rêu", ColorCode = "#556b2f" },
+new DesignsColor { ColorName = "Xám", ColorCode = "#808080" },
+new DesignsColor { ColorName = "Be", ColorCode = "#f5f5dc" },
+new DesignsColor { ColorName = "Tím", ColorCode = "#800080" },
+new DesignsColor { ColorName = "Hồng", ColorCode = "#ff69b4" },
+new DesignsColor { ColorName = "Hồng Nhạt", ColorCode = "#ffe4e1" },
+new DesignsColor { ColorName = "Kem", ColorCode = "#fdf5e6" },
+new DesignsColor { ColorName = "Xanh Nhạt", ColorCode = "#add8e6" },
+new DesignsColor { ColorName = "Xanh Dương", ColorCode = "#0074D9" },
+new DesignsColor { ColorName = "Xanh Đậm", ColorCode = "#003366" },
             };
             await _context.DesignsColors.AddRangeAsync(colors);
             await _context.SaveChangesAsync();
@@ -163,8 +175,22 @@ namespace EcoFashionBackEnd.Data
             // Seed DesignType
             var designTypes = new List<DesignType>
             {
-                new DesignType { DesignName = "T-Shirt", SizeId = sizes.First(s => s.SizeName == "M").Id, Meter = 1.5f },
-                new DesignType { DesignName = "Jeans", SizeId = sizes.First(s => s.SizeName == "L").Id, Meter = 2.5f }
+                //Áo
+                new DesignType { DesignName = "Áo", SizeId = sizes.First(s => s.SizeName == "S").Id, Meter = 1.0f },
+                new DesignType { DesignName = "Áo", SizeId = sizes.First(s => s.SizeName == "M").Id, Meter = 1.5f },
+                new DesignType { DesignName = "Áo", SizeId = sizes.First(s => s.SizeName == "L").Id, Meter = 2.5f },
+                //Quần
+                                new DesignType { DesignName = "Quần", SizeId = sizes.First(s => s.SizeName == "S").Id, Meter = 1.0f },
+                new DesignType { DesignName = "Quần", SizeId = sizes.First(s => s.SizeName == "M").Id, Meter = 1.5f },
+                new DesignType { DesignName = "Quần", SizeId = sizes.First(s => s.SizeName == "L").Id, Meter = 2.5f },
+                //Đầm
+                                new DesignType { DesignName = "Đầm", SizeId = sizes.First(s => s.SizeName == "S").Id, Meter = 1.0f },
+                new DesignType { DesignName = "Đầm", SizeId = sizes.First(s => s.SizeName == "M").Id, Meter = 1.5f },
+                new DesignType { DesignName = "Đầm", SizeId = sizes.First(s => s.SizeName == "L").Id, Meter = 2.5f },
+                //Váy
+                                new DesignType { DesignName = "Váy", SizeId = sizes.First(s => s.SizeName == "S").Id, Meter = 1.0f },
+                new DesignType { DesignName = "Váy", SizeId = sizes.First(s => s.SizeName == "M").Id, Meter = 1.5f },
+                new DesignType { DesignName = "Váy", SizeId = sizes.First(s => s.SizeName == "L").Id, Meter = 2.5f },
             };
             await _context.DesignTypes.AddRangeAsync(designTypes);
             await _context.SaveChangesAsync();

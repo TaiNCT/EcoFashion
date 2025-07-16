@@ -38,7 +38,7 @@ import { GridExpandMoreIcon, GridSearchIcon } from "@mui/x-data-grid";
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import StarIcon from "@mui/icons-material/Star";
-import DesignsSection from "./DesignsSection";
+import DesignsSection from "../../components/design/DesignsSection";
 const products: Fashion[] = [
   {
     id: 1,
@@ -942,383 +942,388 @@ export default function DesingBrandProfile() {
         {/* Navigation */}
       </Box>
       <Divider />
-      {/* Nav Bar */}
-      <AppBar
-        position="sticky"
-        elevation={0}
-        sx={{
-          backgroundColor: "white",
-          color: "black",
-          width: "100%",
-
-          borderBottom: "1px solid black",
-        }}
-      >
-        <Box sx={{ display: "flex", padding: 2 }}>
-          <Stack direction="row" spacing={2}>
-            <Button
-              color="inherit"
-              onClick={() => handleScroll("items")}
-              sx={{
-                fontSize: "1rem",
-              }}
-            >
-              Sản Phẩm
-            </Button>
-            <Button
-              color="inherit"
-              onClick={() => handleScroll("reviews")}
-              sx={{
-                fontSize: "1rem",
-              }}
-            >
-              Đánh giá
-            </Button>
-            <Button
-              color="inherit"
-              onClick={() => handleScroll("about")}
-              sx={{
-                fontSize: "1rem",
-              }}
-            >
-              Thông Tin Khác
-            </Button>
-            <Button
-              color="inherit"
-              onClick={() => handleScroll("policies")}
-              sx={{
-                fontSize: "1rem",
-              }}
-            >
-              Qui Định
-            </Button>
-          </Stack>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              width: "30%",
-              height: 48,
-              bgcolor: "#eaeaea",
-              borderRadius: "999px",
-              boxShadow: 1,
-              marginLeft: "auto",
-            }}
-          >
-            <InputBase
-              fullWidth
-              placeholder="Tìm kiếm..."
-              sx={{
-                fontSize: "1rem",
-                mx: 2,
-              }}
-            />
-            <IconButton
-              sx={{
-                borderRadius: "0px 999px 999px 0px",
-                color: "black",
-                height: "100%",
-                width: 48,
-                "&:hover": {
-                  bgcolor: "darkgreen",
-                  color: "white",
-                },
-              }}
-            >
-              <GridSearchIcon />
-            </IconButton>
-          </Box>
-        </Box>
-      </AppBar>
-      {/* Section */}
-      <Box sx={{ width: "90%", margin: "auto" }}>
-        {/*Danh sách Sản Phẩm */}
-        <Box id="items" sx={{ minHeight: "100vh", p: 3, display: "flex" }}>
-          {/* Filter */}
-          <Box flex={1} sx={{ textAlign: "left" }}>
-            <Box sx={{ width: 300, padding: 3 }}>
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                marginBottom={"30px"}
-              >
-                <Typography variant="h6" fontWeight="bold">
-                  Phân Loại
-                </Typography>
-                <Link
-                  onClick={handleClearAll}
-                  underline="hover"
-                  sx={{ cursor: "pointer", fontSize: 14 }}
-                >
-                  Xóa lựa chọn
-                </Link>
-              </Box>
-
-              {/* Filter Sections */}
-              <Accordion
-                disableGutters
-                elevation={0}
-                sx={{ boxShadow: "none" }}
-              >
-                <AccordionSummary expandIcon={<GridExpandMoreIcon />}>
-                  <Typography fontSize={16}>Màu Sắc</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <FormGroup>
-                    {dynamicColorFilterOptions.map((item, index) => (
-                      <FormControlLabel
-                        key={index}
-                        control={
-                          <Checkbox
-                            checked={selectedColors.includes(item.label)}
-                            onChange={() => handleColorChange(item.label)}
-                          />
-                        }
-                        label={
-                          <Box display="flex" alignItems="center">
-                            <Box
-                              sx={{
-                                width: 14,
-                                height: 14,
-                                borderRadius: "50%",
-                                backgroundColor: colorToHex(item.label),
-                                border: "1px solid #ccc",
-                                mr: 1,
-                              }}
-                            />
-                            {`${item.label} (${item.count})`}
-                          </Box>
-                        }
-                        sx={{ mb: 0.5, alignItems: "center" }}
-                      />
-                    ))}
-                  </FormGroup>
-                </AccordionDetails>
-              </Accordion>
-              <Divider />
-              {Object.entries(filterOptions).map(([title, options]) => (
-                <React.Fragment key={title}>
-                  <Accordion
-                    disableGutters
-                    elevation={0}
-                    sx={{ boxShadow: "none" }}
-                  >
-                    <AccordionSummary expandIcon={<GridExpandMoreIcon />}>
-                      <Typography fontSize={16}>{title}</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <FormGroup>
-                        {options.map((item, index) => (
-                          <FormControlLabel
-                            key={index}
-                            control={<Checkbox />}
-                            label={`${item.label} (${item.count})`}
-                            sx={{ mb: 0.5, alignItems: "center" }}
-                          />
-                        ))}
-                      </FormGroup>
-                    </AccordionDetails>
-                  </Accordion>
-                  <Divider />
-                </React.Fragment>
-              ))}
-              {/* Bottom Button */}
-              <Box mt={6}>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  fullWidth
-                  sx={{
-                    color: "black",
-                    fontWeight: "bold",
-                    "&:hover": {
-                      bgcolor: "#333",
-                      color: "white",
-                    },
-                  }}
-                  onClick={() => {
-                    setActiveColors(selectedColors); // apply filter
-                    setShowSorted(true);
-                    handleScroll("items");
-                  }}
-                >
-                  {selectedColors.length > 0
-                    ? `Xem ${previewFilteredProducts.length} sản phẩm`
-                    : "Xem Tất Cả Sản Phẩm"}
-                </Button>
-              </Box>
-            </Box>
-          </Box>
-          <Divider orientation="vertical" flexItem />
-          {/* Sản Phẩm */}
-          <Box flex={5} sx={{ margin: "0 30px", minHeight: "500px" }}>
-            <Box sx={{ width: "100%", display: "flex", margin: "10px 0" }}>
-              <Typography variant="h4" fontWeight="bold">
-                Thời Trang
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  height: 48,
-                  bgcolor: "transparent",
-                  borderRadius: "999px",
-                  marginLeft: "auto",
-
-                  float: "right",
-                }}
-              >
-                <Typography>
-                  Sắp xếp theo:
-                  <Select
-                    value={sortType}
-                    sx={{
-                      border: "none",
-                      fontSize: 14,
-                      minWidth: 100,
-                      "& fieldset": { border: "none" },
-                    }}
-                    MenuProps={{
-                      disableScrollLock: true,
-                    }}
-                    onChange={(e) => {
-                      setSortType(e.target.value);
-                      setShowSorted(true);
-                    }}
-                  >
-                    <MenuItem value="all" sx={{ width: "100%" }}>
-                      Tất cả
-                    </MenuItem>
-                    <MenuItem value="recent">Mới Đây</MenuItem>
-                    <MenuItem value="material">Vật liệu</MenuItem>
-                    <MenuItem value="lowest">Giá Thấp Tới Cao</MenuItem>
-                    <MenuItem value="highest">Giá Cao Tới Thấp</MenuItem>
-                  </Select>
-                </Typography>
-              </Box>
-            </Box>
-            <DesignsSection products={sortedProducts} id={"items"} />
-          </Box>
-        </Box>
-        <Divider />
-        {/* Đánh Giá */}
-        <Box id="reviews" sx={{ p: 3, display: "flex" }}>
-          <Typography variant="h4" flex={1}>
-            Đánh giá
-          </Typography>
-          <Box flex={4} sx={{ display: "flex" }}>
-            <Box sx={{ width: "100%" }}>
-              <Box
-                sx={{
-                  maxHeight: 500,
-                  overflowY: "auto",
-                  p: 2,
-                  border: "1px solid #eee",
-                  borderRadius: 2,
-                }}
-              >
-                {reviews.map((review, index) => (
-                  <Box key={index} mb={2}>
-                    <Typography fontWeight="bold">{review.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {review.date}
-                    </Typography>
-                    <Box
-                      sx={{
-                        width: 200,
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Rating
-                        name="text-feedback"
-                        value={review.rating}
-                        readOnly
-                        precision={0.5}
-                        emptyIcon={
-                          <StarIcon
-                            style={{ opacity: 0.55 }}
-                            fontSize="inherit"
-                          />
-                        }
-                      />
-                      <Box sx={{ ml: 2, fontSize: "20px" }}>
-                        {review.rating}
-                      </Box>
-                    </Box>
-                    <Typography>{review.comment}</Typography>
-                    {index < reviews.length - 1 && (
-                      <Divider sx={{ mt: 2, mb: 2 }} />
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-        <Divider />
-        {/* Thông Tin Khác */}
-        <Box id="about" sx={{ p: 3, mt: 0 }}>
-          <Typography variant="h5" sx={{ marginBottom: "30px" }}>
-            Thông Tin Khác
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              width: "50%",
-            }}
-          >
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <Typography variant="caption">Đơn Hàng Thành Công</Typography>
-              <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
-                900
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <Typography variant="caption">Năm Gia Nhập EcoFashion</Typography>
-              <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
-                2024
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-        <Divider />
-        {/* Qui Định */}
-        <Box
-          id="policies"
-          sx={{ p: 3, paddingBottom: 10, scrollMarginTop: "70px" }}
+      <Box id="items">
+        {/* Nav Bar */}
+        <AppBar
+          position="sticky"
+          elevation={0}
+          sx={{
+            backgroundColor: "white",
+            color: "black",
+            width: "100%",
+            top: { xs: 56, sm: 64 },
+            zIndex: (theme) => theme.zIndex.appBar,
+            borderBottom: "1px solid black",
+          }}
         >
-          <Typography variant="h5"> Qui Định Thanh Toán</Typography>
-          <Box sx={{ px: 4, py: 2 }}>
-            {/* Payment Section */}
-            <Box display="flex" alignItems="flex-start" gap={4}>
-              <Box>
-                <Typography variant="body1" fontWeight="medium">
-                  Thanh Toán Bằng
-                </Typography>
-                <Box display="flex" gap={1} mt={1}>
-                  <CardMedia
-                    component="img"
-                    alt="Visa"
-                    image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTlp4qW2M8xPofmuZHwEfGi9mNMWUG0zs53A&s"
-                    sx={{ height: 100, width: "auto" }}
-                  />
+          <Box sx={{ display: "flex", padding: 2 }}>
+            <Stack direction="row" spacing={2}>
+              <Button
+                color="inherit"
+                onClick={() => handleScroll("items")}
+                sx={{
+                  fontSize: "1rem",
+                }}
+              >
+                Sản Phẩm
+              </Button>
+              <Button
+                color="inherit"
+                onClick={() => handleScroll("reviews")}
+                sx={{
+                  fontSize: "1rem",
+                }}
+              >
+                Đánh giá
+              </Button>
+              <Button
+                color="inherit"
+                onClick={() => handleScroll("about")}
+                sx={{
+                  fontSize: "1rem",
+                }}
+              >
+                Thông Tin Khác
+              </Button>
+              <Button
+                color="inherit"
+                onClick={() => handleScroll("policies")}
+                sx={{
+                  fontSize: "1rem",
+                }}
+              >
+                Qui Định
+              </Button>
+            </Stack>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                width: "30%",
+                height: 48,
+                bgcolor: "#eaeaea",
+                borderRadius: "999px",
+                boxShadow: 1,
+                marginLeft: "auto",
+              }}
+            >
+              <InputBase
+                fullWidth
+                placeholder="Tìm kiếm..."
+                sx={{
+                  fontSize: "1rem",
+                  mx: 2,
+                }}
+              />
+              <IconButton
+                sx={{
+                  borderRadius: "0px 999px 999px 0px",
+                  color: "black",
+                  height: "100%",
+                  width: 48,
+                  "&:hover": {
+                    bgcolor: "darkgreen",
+                    color: "white",
+                  },
+                }}
+              >
+                <GridSearchIcon />
+              </IconButton>
+            </Box>
+          </Box>
+        </AppBar>
+        {/* Section */}
+        <Box sx={{ width: "90%", margin: "auto" }}>
+          {/*Danh sách Sản Phẩm */}
+          <Box sx={{ minHeight: "100vh", p: 3, display: "flex" }}>
+            {/* Filter */}
+            <Box flex={1} sx={{ textAlign: "left" }}>
+              <Box sx={{ width: 300, padding: 3 }}>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  marginBottom={"30px"}
+                >
+                  <Typography variant="h6" fontWeight="bold">
+                    Phân Loại
+                  </Typography>
+                  <Link
+                    onClick={handleClearAll}
+                    underline="hover"
+                    sx={{ cursor: "pointer", fontSize: 14 }}
+                  >
+                    Xóa lựa chọn
+                  </Link>
+                </Box>
+
+                {/* Filter Sections */}
+                <Accordion
+                  disableGutters
+                  elevation={0}
+                  sx={{ boxShadow: "none" }}
+                >
+                  <AccordionSummary expandIcon={<GridExpandMoreIcon />}>
+                    <Typography fontSize={16}>Màu Sắc</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <FormGroup>
+                      {dynamicColorFilterOptions.map((item, index) => (
+                        <FormControlLabel
+                          key={index}
+                          control={
+                            <Checkbox
+                              checked={selectedColors.includes(item.label)}
+                              onChange={() => handleColorChange(item.label)}
+                            />
+                          }
+                          label={
+                            <Box display="flex" alignItems="center">
+                              <Box
+                                sx={{
+                                  width: 14,
+                                  height: 14,
+                                  borderRadius: "50%",
+                                  backgroundColor: colorToHex(item.label),
+                                  border: "1px solid #ccc",
+                                  mr: 1,
+                                }}
+                              />
+                              {`${item.label} (${item.count})`}
+                            </Box>
+                          }
+                          sx={{ mb: 0.5, alignItems: "center" }}
+                        />
+                      ))}
+                    </FormGroup>
+                  </AccordionDetails>
+                </Accordion>
+                <Divider />
+                {Object.entries(filterOptions).map(([title, options]) => (
+                  <React.Fragment key={title}>
+                    <Accordion
+                      disableGutters
+                      elevation={0}
+                      sx={{ boxShadow: "none" }}
+                    >
+                      <AccordionSummary expandIcon={<GridExpandMoreIcon />}>
+                        <Typography fontSize={16}>{title}</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <FormGroup>
+                          {options.map((item, index) => (
+                            <FormControlLabel
+                              key={index}
+                              control={<Checkbox />}
+                              label={`${item.label} (${item.count})`}
+                              sx={{ mb: 0.5, alignItems: "center" }}
+                            />
+                          ))}
+                        </FormGroup>
+                      </AccordionDetails>
+                    </Accordion>
+                    <Divider />
+                  </React.Fragment>
+                ))}
+                {/* Bottom Button */}
+                <Box mt={6}>
+                  <Button
+                    variant="outlined"
+                    color="inherit"
+                    fullWidth
+                    sx={{
+                      color: "black",
+                      fontWeight: "bold",
+                      "&:hover": {
+                        bgcolor: "#333",
+                        color: "white",
+                      },
+                    }}
+                    onClick={() => {
+                      setActiveColors(selectedColors); // apply filter
+                      setShowSorted(true);
+                      handleScroll("items");
+                    }}
+                  >
+                    {selectedColors.length > 0
+                      ? `Xem ${previewFilteredProducts.length} sản phẩm`
+                      : "Xem Tất Cả Sản Phẩm"}
+                  </Button>
                 </Box>
               </Box>
-
-              {/* Divider */}
-              <Divider orientation="vertical" flexItem />
-
-              {/* Return Policy */}
-              <Box>
-                <Typography variant="body1" fontWeight="bold">
-                  Trả Hàng
+            </Box>
+            <Divider orientation="vertical" flexItem />
+            {/* Sản Phẩm */}
+            <Box flex={5} sx={{ margin: "0 30px", minHeight: "500px" }}>
+              <Box sx={{ width: "100%", display: "flex", margin: "10px 0" }}>
+                <Typography variant="h4" fontWeight="bold">
+                  Thời Trang
                 </Typography>
-                <Typography variant="body2" mt={1}>
-                  Xem chi tiết tại sản phẩm bạn mua.
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    height: 48,
+                    bgcolor: "transparent",
+                    borderRadius: "999px",
+                    marginLeft: "auto",
+
+                    float: "right",
+                  }}
+                >
+                  <Typography>
+                    Sắp xếp theo:
+                    <Select
+                      value={sortType}
+                      sx={{
+                        border: "none",
+                        fontSize: 14,
+                        minWidth: 100,
+                        "& fieldset": { border: "none" },
+                      }}
+                      MenuProps={{
+                        disableScrollLock: true,
+                      }}
+                      onChange={(e) => {
+                        setSortType(e.target.value);
+                        setShowSorted(true);
+                      }}
+                    >
+                      <MenuItem value="all" sx={{ width: "100%" }}>
+                        Tất cả
+                      </MenuItem>
+                      <MenuItem value="recent">Mới Đây</MenuItem>
+                      <MenuItem value="material">Vật liệu</MenuItem>
+                      <MenuItem value="lowest">Giá Thấp Tới Cao</MenuItem>
+                      <MenuItem value="highest">Giá Cao Tới Thấp</MenuItem>
+                    </Select>
+                  </Typography>
+                </Box>
+              </Box>
+              <DesignsSection products={sortedProducts} id={"items"} />
+            </Box>
+          </Box>
+          <Divider />
+          {/* Đánh Giá */}
+          <Box id="reviews" sx={{ p: 3, display: "flex" }}>
+            <Typography variant="h4" flex={1}>
+              Đánh giá
+            </Typography>
+            <Box flex={4} sx={{ display: "flex" }}>
+              <Box sx={{ width: "100%" }}>
+                <Box
+                  sx={{
+                    maxHeight: 500,
+                    overflowY: "auto",
+                    p: 2,
+                    border: "1px solid #eee",
+                    borderRadius: 2,
+                  }}
+                >
+                  {reviews.map((review, index) => (
+                    <Box key={index} mb={2}>
+                      <Typography fontWeight="bold">{review.name}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {review.date}
+                      </Typography>
+                      <Box
+                        sx={{
+                          width: 200,
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Rating
+                          name="text-feedback"
+                          value={review.rating}
+                          readOnly
+                          precision={0.5}
+                          emptyIcon={
+                            <StarIcon
+                              style={{ opacity: 0.55 }}
+                              fontSize="inherit"
+                            />
+                          }
+                        />
+                        <Box sx={{ ml: 2, fontSize: "20px" }}>
+                          {review.rating}
+                        </Box>
+                      </Box>
+                      <Typography>{review.comment}</Typography>
+                      {index < reviews.length - 1 && (
+                        <Divider sx={{ mt: 2, mb: 2 }} />
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+          <Divider />
+          {/* Thông Tin Khác */}
+          <Box id="about" sx={{ p: 3, mt: 0 }}>
+            <Typography variant="h5" sx={{ marginBottom: "30px" }}>
+              Thông Tin Khác
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                width: "50%",
+              }}
+            >
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <Typography variant="caption">Đơn Hàng Thành Công</Typography>
+                <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
+                  900
                 </Typography>
+              </Box>
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <Typography variant="caption">
+                  Năm Gia Nhập EcoFashion
+                </Typography>
+                <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
+                  2024
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+          <Divider />
+          {/* Qui Định */}
+          <Box
+            id="policies"
+            sx={{ p: 3, paddingBottom: 10, scrollMarginTop: "70px" }}
+          >
+            <Typography variant="h5"> Qui Định Thanh Toán</Typography>
+            <Box sx={{ px: 4, py: 2 }}>
+              {/* Payment Section */}
+              <Box display="flex" alignItems="flex-start" gap={4}>
+                <Box>
+                  <Typography variant="body1" fontWeight="medium">
+                    Thanh Toán Bằng
+                  </Typography>
+                  <Box display="flex" gap={1} mt={1}>
+                    <CardMedia
+                      component="img"
+                      alt="Visa"
+                      image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTlp4qW2M8xPofmuZHwEfGi9mNMWUG0zs53A&s"
+                      sx={{ height: 100, width: "auto" }}
+                    />
+                  </Box>
+                </Box>
+
+                {/* Divider */}
+                <Divider orientation="vertical" flexItem />
+
+                {/* Return Policy */}
+                <Box>
+                  <Typography variant="body1" fontWeight="bold">
+                    Trả Hàng
+                  </Typography>
+                  <Typography variant="body2" mt={1}>
+                    Xem chi tiết tại sản phẩm bạn mua.
+                  </Typography>
+                </Box>
               </Box>
             </Box>
           </Box>

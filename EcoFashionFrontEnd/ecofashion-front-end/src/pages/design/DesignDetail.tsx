@@ -520,8 +520,8 @@ export default function DesignDetail() {
           <Link underline="hover" color="inherit" href="/">
             Trang chủ
           </Link>
-          <Link underline="hover" color="inherit" href="/shop">
-            Cửa Hàng
+          <Link underline="hover" color="inherit" href="/fashion">
+            Thời Trang
           </Link>
           <Typography color="text.primary">{product.name}</Typography>
         </Breadcrumbs>
