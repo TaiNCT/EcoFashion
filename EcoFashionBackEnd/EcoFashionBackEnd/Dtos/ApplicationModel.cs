@@ -9,28 +9,39 @@ namespace EcoFashionBackEnd.Dtos
         public int TargetRoleId { get; set; }
         
         // Portfolio & Profile Images
-        public string? AvatarUrl { get; set; } // Ảnh đại diện cho landing page
+        public string? AvatarUrl { get; set; } // https://www.ecofashion-example.com/
         public string? PortfolioUrl { get; set; }
         public string? PortfolioFiles { get; set; } // JSON array of file urls
-        public string? BannerUrl { get; set; } // Ảnh banner cho landing page
+        public string? BannerUrl { get; set; } // https://www.ecofashion-example.com/
         public string? SpecializationUrl { get; set; }
+        public string? Bio { get; set; }
 
         // Social Media
-        public string? SocialLinks { get; set; } // JSON object of social media links
+        public string? SocialLinks { get; set; } // JSON object of social media links { instagram: "...", behance: "..." }
 
-        // Identification / Xác minh
+        // Identification / Xác minh - 2 hình CCCD riêng biệt
         public string? IdentificationNumber { get; set; }
-        public string? IdentificationPicture { get; set; }
+        public string? IdentificationPictureFront { get; set; } 
+        public string? IdentificationPictureBack { get; set; } 
         public bool IsIdentificationVerified { get; set; } = false;
 
         //Tracking
-        public DateTime CreatedAt { get; set; }
-        public DateTime? ProcessedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? ProcessedAt { get; set; }    // Thời gian admin xử lý
 
         // Kết quả xử lý
-        public int? ProcessedBy { get; set; }
-        public string? RejectionReason { get; set; }
+        public int? ProcessedBy { get; set; }         // Admin ID xử lý
+        public string? RejectionReason { get; set; }  // Lý do từ chối (nếu rejected)
         public string? Note { get; set; }
+
+        // Thông tin liên hệ bổ sung cho Designer/Supplier
+        public string? PhoneNumber { get; set; }
+        public string? Address { get; set; }
+        // Thông tin thuế
+        public string? TaxNumber { get; set; }
+
+        // Chứng chỉ/giải thưởng
+        public string? Certificates { get; set; }
 
         public string Status { get; set; } = "pending";
         
@@ -38,15 +49,5 @@ namespace EcoFashionBackEnd.Dtos
         public UserModel? User { get; set; }
         public UserRoleModel? Role { get; set; }
         public UserModel? ProcessedByUser { get; set; }
-
-        // Thông tin liên hệ bổ sung cho Designer/Supplier
-        public string? PhoneNumber { get; set; }
-        public string? Address { get; set; }
-        // Thông tin thuế
-        public string? TaxNumber { get; set; }
-        // Chủ sở hữu ảnh xác thực
-        public string? IdentificationPictureOwner { get; set; }
-        // Chứng chỉ/giải thưởng
-        public string? Certificates { get; set; }
     }
 }

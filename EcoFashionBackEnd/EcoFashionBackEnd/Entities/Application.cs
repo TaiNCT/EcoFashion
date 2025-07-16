@@ -25,18 +25,20 @@ public enum ApplicationStatus
     public virtual UserRole? Role { get; set; }
      
      // Portfolio & Profile Images
-    public string? AvatarUrl { get; set; } // Ảnh đại diện cho landing page
+    public string? AvatarUrl { get; set; } // Ảnh đại diện cho profile page
     public string? PortfolioUrl { get; set; }
     public string? PortfolioFiles { get; set; } // JSON array of file urls
     public string? BannerUrl { get; set; } // Ảnh banner cho landing page
     public string? SpecializationUrl { get; set; }
+    public string? Bio { get; set; }
 
     // Social Media
     public string? SocialLinks { get; set; } // JSON object of social media links { instagram: "...", behance: "..." }
 
     // Identification / Xác minh
     public string? IdentificationNumber { get; set; }
-    public string? IdentificationPicture { get; set; }
+    public string? IdentificationPictureFront { get; set; } // URL của hình mặt trước CCCD
+    public string? IdentificationPictureBack { get; set; }  // URL của hình mặt sau CCCD
     public bool IsIdentificationVerified { get; set; } = false;
 
     //Tracking
@@ -55,8 +57,7 @@ public enum ApplicationStatus
     public string? Address { get; set; }
     // Thông tin thuế
     public string? TaxNumber { get; set; }
-    // Chủ sở hữu ảnh xác thực
-    public string? IdentificationPictureOwner { get; set; }
+
     // Chứng chỉ/giải thưởng
     public string? Certificates { get; set; }
 }

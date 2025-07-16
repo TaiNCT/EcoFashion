@@ -14,12 +14,9 @@ namespace EcoFashionBackEnd.Mapper
             CreateMap<Designer, DesignerModel>().ReverseMap();
             CreateMap<Design, DesignModel>().ReverseMap();
 
-
-
-
-            // Application mapping với enum conversion
-            CreateMap<Application, ApplicationModel>()
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+            // Application mapping với enum conversion và field mapping
+            CreateMap<Application, ApplicationModel>().ReverseMap();
+               
         }
     }
 }

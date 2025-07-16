@@ -23,5 +23,13 @@ namespace EcoFashionBackEnd.Entities
         [Key]
         [Column(Order = 1)]
         public int SavedMaterialIdPk { get; set; } // Composite Key Part 2
+        public Guid SupplierId { get; internal set; }
+        public string MaterialName { get; internal set; }
+        public string Description { get; internal set; }
+        public int Price { get; internal set; }
+        public int AvailableQuantity { get; internal set; }
+        public string Unit { get; internal set; }
+        public DateTime CreatedAt { get; internal set; }
+        public string Status { get; internal set; }
     }
 }

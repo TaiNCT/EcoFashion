@@ -99,9 +99,14 @@ export default function DesignerLandingPage() {
             className="avatar"
             src={safeImageUrl(designer.avatarUrl, "/assets/default-avatar.png")}
             alt={designer.designerName || "avatar"}
-            onError={(e) =>
-              (e.currentTarget.src = "/assets/default-avatar.png")
-            }
+            onError={(e) => {
+              if (
+                e.currentTarget.src !==
+                window.location.origin + "/assets/default-avatar.png"
+              ) {
+                e.currentTarget.src = "/assets/default-avatar.png";
+              }
+            }}
           />
           <div className="info">
             <h2>
@@ -176,10 +181,16 @@ export default function DesignerLandingPage() {
                         key={idx}
                         src={safeImageUrl(url, "/assets/default-portfolio.jpg")}
                         alt={`portfolio-${idx}`}
-                        onError={(e) =>
-                          (e.currentTarget.src =
-                            "/assets/default-portfolio.jpg")
-                        }
+                        onError={(e) => {
+                          if (
+                            e.currentTarget.src !==
+                            window.location.origin +
+                              "/assets/default-portfolio.jpg"
+                          ) {
+                            e.currentTarget.src =
+                              "/assets/default-portfolio.jpg";
+                          }
+                        }}
                       />
                     ))}
                   </div>
@@ -193,6 +204,14 @@ export default function DesignerLandingPage() {
                 <img
                   src="/assets/default-portfolio.jpg"
                   alt="portfolio-default"
+                  onError={(e) => {
+                    if (
+                      e.currentTarget.src !==
+                      window.location.origin + "/assets/default-portfolio.jpg"
+                    ) {
+                      e.currentTarget.src = "/assets/default-portfolio.jpg";
+                    }
+                  }}
                 />
               </div>
             </div>
