@@ -148,9 +148,11 @@ namespace EcoFashionBackEnd.Migrations
                     PortfolioFiles = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BannerUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SpecializationUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Bio = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SocialLinks = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IdentificationNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IdentificationPicture = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IdentificationPictureFront = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IdentificationPictureBack = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsIdentificationVerified = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ProcessedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -161,7 +163,6 @@ namespace EcoFashionBackEnd.Migrations
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TaxNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IdentificationPictureOwner = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Certificates = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -199,8 +200,8 @@ namespace EcoFashionBackEnd.Migrations
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TaxNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IdentificationNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IdentificationPicture = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IdentificationPictureOwner = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IdentificationPictureFront = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IdentificationPictureBack = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -237,8 +238,8 @@ namespace EcoFashionBackEnd.Migrations
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TaxNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IdentificationNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IdentificationPicture = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IdentificationPictureOwner = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IdentificationPictureFront = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IdentificationPictureBack = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -449,7 +450,18 @@ namespace EcoFashionBackEnd.Migrations
                     DesignId = table.Column<int>(type: "int", nullable: false),
                     SavedMaterialId = table.Column<int>(type: "int", nullable: false),
                     PersentageUsed = table.Column<float>(type: "real", nullable: false),
+<<<<<<<< HEAD:EcoFashionBackEnd/EcoFashionBackEnd/Migrations/20250716154312_v1.cs
                     MeterUsed = table.Column<int>(type: "int", nullable: false)
+========
+                    SupplierId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MaterialName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<int>(type: "int", nullable: false),
+                    AvailableQuantity = table.Column<int>(type: "int", nullable: false),
+                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+>>>>>>>> 5e8d73c54c340d303a9bfdcb1a10a834064e9394:EcoFashionBackEnd/EcoFashionBackEnd/Migrations/20250716095250_InitialCreated.cs
                 },
                 constraints: table =>
                 {

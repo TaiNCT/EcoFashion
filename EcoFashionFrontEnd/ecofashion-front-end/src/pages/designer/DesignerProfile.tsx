@@ -1,3 +1,10 @@
+// Utility function to fallback image URL safely
+function safeImageUrl(
+  url?: string,
+  fallback: string = "/assets/default-image.jpg"
+): string {
+  return typeof url === "string" && url.trim() ? url : fallback;
+}
 import {
   Box,
   Container,
@@ -10,7 +17,6 @@ import {
   Paper,
   Divider,
   CircularProgress,
-  Grid,
   TextField,
 } from "@mui/material";
 import { useState, useEffect } from "react";
@@ -30,6 +36,8 @@ import {
   Image,
   Verified,
 } from "@mui/icons-material";
+import Grid from "@mui/material/Grid";
+import logo from "../../assets/pictures/homepage/logo.png";
 
 export default function DesignerProfile() {
   const { user, refreshUserFromServer } = useAuth();
@@ -196,7 +204,7 @@ export default function DesignerProfile() {
 
       <Grid container spacing={4}>
         {/* Left Column - Main Info */}
-        <Grid item xs={12} md={8}>
+        <Grid>
           {/* Basic Information */}
           <Card sx={{ mb: 3 }}>
             <CardContent>
@@ -213,9 +221,19 @@ export default function DesignerProfile() {
               <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                 <Avatar
                   sx={{ width: 80, height: 80, mr: 3, bgcolor: "#4caf50" }}
-                  src={profile.bannerUrl}
+                  src={safeImageUrl(profile.avatarUrl, logo)}
+                  imgProps={{
+                    onError: (e: any) => {
+                      if (
+                        e.currentTarget.src !==
+                        window.location.origin + "/assets/default-avatar.png"
+                      ) {
+                        e.currentTarget.src = "/assets/default-avatar.png";
+                      }
+                    },
+                  }}
                 >
-                  {profile.designerName?.charAt(0)}
+                  {!profile.avatarUrl ? profile.designerName?.charAt(0) : null}
                 </Avatar>
                 <Box>
                   <Typography variant="h6">
@@ -231,7 +249,7 @@ export default function DesignerProfile() {
               </Box>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid>
                   {isEditing ? (
                     <TextField
                       fullWidth
@@ -253,7 +271,7 @@ export default function DesignerProfile() {
                   )}
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid>
                   {isEditing ? (
                     <TextField
                       fullWidth
@@ -275,7 +293,7 @@ export default function DesignerProfile() {
                   )}
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid>
                   {isEditing ? (
                     <TextField
                       fullWidth
@@ -316,7 +334,7 @@ export default function DesignerProfile() {
               <Divider sx={{ mb: 3 }} />
 
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid>
                   {isEditing ? (
                     <TextField
                       fullWidth
@@ -349,7 +367,7 @@ export default function DesignerProfile() {
                   )}
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid>
                   {isEditing ? (
                     <TextField
                       fullWidth
@@ -371,7 +389,7 @@ export default function DesignerProfile() {
                   )}
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid>
                   {isEditing ? (
                     <TextField
                       fullWidth
@@ -409,7 +427,7 @@ export default function DesignerProfile() {
         </Grid>
 
         {/* Right Column - CCCD & Identity */}
-        <Grid item xs={12} md={4}>
+        <Grid>
           {/* Identity Verification */}
           <Card>
             <CardContent>
@@ -448,10 +466,13 @@ export default function DesignerProfile() {
                 <Typography variant="subtitle2" gutterBottom>
                   Ảnh CMND/CCCD (Mặt trước)
                 </Typography>
-                {profile.identificationPicture ? (
+                {profile.identificationPictureFront ? (
                   <Box>
                     <img
-                      src={profile.identificationPicture}
+                      src={safeImageUrl(
+                        profile.identificationPictureFront,
+                        "/assets/default-cccd-front.jpg"
+                      )}
                       alt="CMND/CCCD mặt trước"
                       style={{
                         maxWidth: "100%",
@@ -459,43 +480,15 @@ export default function DesignerProfile() {
                         objectFit: "cover",
                         borderRadius: "8px",
                       }}
-                    />
-                  </Box>
-                ) : (
-                  <Box sx={{ py: 3, color: "text.secondary" }}>
-                    <Image sx={{ fontSize: 40, mb: 1 }} />
-                    <Typography variant="body2">Chưa tải lên</Typography>
-                  </Box>
-                )}
-                {isEditing && (
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="URL ảnh CCCD"
-                    value={formData.identificationPicture || ""}
-                    onChange={(e) =>
-                      handleInputChange("identificationPicture", e.target.value)
-                    }
-                    sx={{ mt: 1 }}
-                  />
-                )}
-              </Paper>
-
-              {/* CCCD Owner Image */}
-              <Paper sx={{ p: 2, textAlign: "center" }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Ảnh chụp cùng CMND/CCCD
-                </Typography>
-                {profile.identificationPictureOwner ? (
-                  <Box>
-                    <img
-                      src={profile.identificationPictureOwner}
-                      alt="Ảnh chụp cùng CCCD"
-                      style={{
-                        maxWidth: "100%",
-                        height: "120px",
-                        objectFit: "cover",
-                        borderRadius: "8px",
+                      onError={(e) => {
+                        if (
+                          e.currentTarget.src !==
+                          window.location.origin +
+                            "/assets/default-cccd-front.jpg"
+                        ) {
+                          e.currentTarget.src =
+                            "/assets/default-cccd-front.jpg";
+                        }
                       }}
                     />
                   </Box>
@@ -509,11 +502,64 @@ export default function DesignerProfile() {
                   <TextField
                     fullWidth
                     size="small"
-                    label="URL ảnh chụp cùng CCCD"
-                    value={formData.identificationPictureOwner || ""}
+                    label="URL ảnh CMND/CCCD (Mặt trước)"
+                    value={formData.identificationPictureFront || ""}
                     onChange={(e) =>
                       handleInputChange(
-                        "identificationPictureOwner",
+                        "identificationPictureFront",
+                        e.target.value
+                      )
+                    }
+                    sx={{ mt: 1 }}
+                  />
+                )}
+              </Paper>
+
+              {/* CCCD Back Image */}
+              <Paper sx={{ p: 2, textAlign: "center" }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Ảnh CMND/CCCD (Mặt sau)
+                </Typography>
+                {profile.identificationPictureBack ? (
+                  <Box>
+                    <img
+                      src={safeImageUrl(
+                        profile.identificationPictureBack,
+                        "/assets/default-cccd-back.jpg"
+                      )}
+                      alt="Ảnh CMND/CCCD mặt sau"
+                      style={{
+                        maxWidth: "100%",
+                        height: "120px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                      }}
+                      onError={(e) => {
+                        if (
+                          e.currentTarget.src !==
+                          window.location.origin +
+                            "/assets/default-cccd-back.jpg"
+                        ) {
+                          e.currentTarget.src = "/assets/default-cccd-back.jpg";
+                        }
+                      }}
+                    />
+                  </Box>
+                ) : (
+                  <Box sx={{ py: 3, color: "text.secondary" }}>
+                    <Image sx={{ fontSize: 40, mb: 1 }} />
+                    <Typography variant="body2">Chưa tải lên</Typography>
+                  </Box>
+                )}
+                {isEditing && (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="URL ảnh CMND/CCCD (Mặt sau)"
+                    value={formData.identificationPictureBack || ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "identificationPictureBack",
                         e.target.value
                       )
                     }

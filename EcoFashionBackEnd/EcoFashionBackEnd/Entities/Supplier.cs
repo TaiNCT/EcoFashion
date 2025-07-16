@@ -34,8 +34,8 @@ namespace EcoFashionBackEnd.Entities
         //Thông tin thuế
         public string? TaxNumber { get; set; }
         public string? IdentificationNumber { get; set; }
-        public string? IdentificationPicture { get; set; }
-        public string? IdentificationPictureOwner { get; set; }
+        public string? IdentificationPictureFront { get; set; }
+        public string? IdentificationPictureBack { get; set; }
 
 
         // Trạng thái & tracking

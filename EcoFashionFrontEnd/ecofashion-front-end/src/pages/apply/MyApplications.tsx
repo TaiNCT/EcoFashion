@@ -30,7 +30,10 @@ export default function MyApplications() {
   const [loading, setLoading] = useState(true);
 
   // Nếu user đã là designer hoặc supplier thì chỉ hiển thị thông báo
-  if (user?.role?.toLowerCase() === "designer" || user?.role?.toLowerCase() === "supplier") {
+  if (
+    user?.role?.toLowerCase() === "designer" ||
+    user?.role?.toLowerCase() === "supplier"
+  ) {
     return (
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Alert severity="info">
@@ -47,16 +50,20 @@ export default function MyApplications() {
         setLoading(true);
         const data = await applicationService.getMyApplications();
         setApplications(data);
-        
+
         // Check if any application was recently approved and refresh user info
-        const recentlyApproved = data.find(app => 
-          app.status === "approved" && 
-          app.processedAt &&
-          new Date(app.processedAt).getTime() > Date.now() - 24 * 60 * 60 * 1000 // Last 24 hours
+        const recentlyApproved = data.find(
+          (app) =>
+            app.status === "approved" &&
+            app.processedAt &&
+            new Date(app.processedAt).getTime() >
+              Date.now() - 24 * 60 * 60 * 1000 // Last 24 hours
         );
-        
+
         if (recentlyApproved) {
-          console.log("🎉 Found recently approved application, refreshing user info");
+          console.log(
+            "🎉 Found recently approved application, refreshing user info"
+          );
           try {
             await refreshUserFromServer();
           } catch (error) {
@@ -208,6 +215,7 @@ export default function MyApplications() {
                 {/* Content */}
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                    {/* Ngày gửi, ngày xử lý, portfolioUrl giữ nguyên */}
                     <Box sx={{ minWidth: 200 }}>
                       <Typography variant="body2" color="text.secondary">
                         <strong>Ngày gửi:</strong>
@@ -218,7 +226,6 @@ export default function MyApplications() {
                         )}
                       </Typography>
                     </Box>
-
                     {application.processedAt && (
                       <Box sx={{ minWidth: 200 }}>
                         <Typography variant="body2" color="text.secondary">
@@ -231,7 +238,6 @@ export default function MyApplications() {
                         </Typography>
                       </Box>
                     )}
-
                     {application.portfolioUrl && (
                       <Box sx={{ minWidth: 200 }}>
                         <Typography variant="body2" color="text.secondary">
@@ -253,55 +259,187 @@ export default function MyApplications() {
                         </Typography>
                       </Box>
                     )}
-
-                    <Box sx={{ minWidth: 200 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        <strong>Số CMND/CCCD:</strong>
-                      </Typography>
-                      <Typography variant="body1">
-                        {application.identificationNumber}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  {application.note && (
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        <strong>Ghi chú:</strong>
-                      </Typography>
-                      <Typography variant="body1">
-                        {application.note}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  {/* Rejection Reason */}
-                  {application.status === "rejected" &&
-                    application.rejectionReason && (
-                      <Alert severity="error" sx={{ mt: 2 }}>
-                        <Typography variant="body2">
-                          <strong>Lý do từ chối:</strong>
+                    {/* Bổ sung các trường còn thiếu */}
+                    {application.avatarUrl && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Logo:</strong>
+                        </Typography>
+                        <img
+                          src={application.avatarUrl}
+                          alt="Logo"
+                          width={60}
+                          style={{ borderRadius: 8 }}
+                        />
+                      </Box>
+                    )}
+                    {application.portfolioFiles && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Ảnh Portfolio:</strong>
+                        </Typography>
+                        <Box sx={{ display: "flex", gap: 1 }}>
+                          {(() => {
+                            try {
+                              const files = JSON.parse(
+                                application.portfolioFiles
+                              );
+                              if (Array.isArray(files)) {
+                                return files.map((url: string, idx: number) => (
+                                  <img
+                                    key={idx}
+                                    src={url}
+                                    alt={`Portfolio ${idx + 1}`}
+                                    width={50}
+                                    style={{ borderRadius: 4 }}
+                                  />
+                                ));
+                              }
+                            } catch {}
+                            return null;
+                          })()}
+                        </Box>
+                      </Box>
+                    )}
+                    {application.specializationUrl && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Chuyên môn:</strong>
                         </Typography>
                         <Typography variant="body1">
-                          {application.rejectionReason}
+                          {application.specializationUrl}
                         </Typography>
-                      </Alert>
+                      </Box>
                     )}
-
-                  {/* Success Message */}
-                  {application.status === "approved" && (
-                    <Alert severity="success" sx={{ mt: 2 }}>
-                      <Typography variant="body1">
-                        🎉 Chúc mừng! Đơn đăng ký của bạn đã được phê duyệt.
-                        {application.processedByUser?.fullName
-                          ? ` Đơn của bạn đã được duyệt bởi: ${application.processedByUser.fullName}`
-                          : application.processedBy
-                            ? ` Đơn của bạn đã được duyệt bởi admin ID: ${application.processedBy}`
-                            : ""}
-                        Bạn hiện đã là {getRoleName(application.targetRoleId)} và có thể sử dụng các tính năng mới.
-                      </Typography>
-                    </Alert>
-                  )}
+                    {application.bio && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Giới thiệu:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {application.bio}
+                        </Typography>
+                      </Box>
+                    )}
+                    {application.certificates && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Chứng chỉ:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {application.certificates}
+                        </Typography>
+                      </Box>
+                    )}
+                    {application.taxNumber && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Mã số thuế:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {application.taxNumber}
+                        </Typography>
+                      </Box>
+                    )}
+                    {application.address && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Địa chỉ:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {application.address}
+                        </Typography>
+                      </Box>
+                    )}
+                    {application.phoneNumber && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Số điện thoại:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {application.phoneNumber}
+                        </Typography>
+                      </Box>
+                    )}
+                    {application.socialLinks && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Mạng xã hội:</strong>
+                        </Typography>
+                        {(() => {
+                          try {
+                            const links = JSON.parse(application.socialLinks);
+                            return Object.entries(links).map(
+                              ([platform, url]) => (
+                                <Typography key={platform} variant="body2">
+                                  <strong>{platform}:</strong>{" "}
+                                  <a
+                                    href={String(url)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    {String(url)}
+                                  </a>
+                                </Typography>
+                              )
+                            );
+                          } catch {
+                            return (
+                              <Typography variant="body2">
+                                {application.socialLinks}
+                              </Typography>
+                            );
+                          }
+                        })()}
+                      </Box>
+                    )}
+                    {application.identificationNumber && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Số CCCD/CMND:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {application.identificationNumber}
+                        </Typography>
+                      </Box>
+                    )}
+                    {application.identificationPictureFront && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Ảnh mặt trước CCCD/CMND:</strong>
+                        </Typography>
+                        <img
+                          src={application.identificationPictureFront}
+                          alt="ID Front"
+                          width={60}
+                          style={{ borderRadius: 4 }}
+                        />
+                      </Box>
+                    )}
+                    {application.identificationPictureBack && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Ảnh mặt sau CCCD/CMND:</strong>
+                        </Typography>
+                        <img
+                          src={application.identificationPictureBack}
+                          alt="ID Back"
+                          width={60}
+                          style={{ borderRadius: 4 }}
+                        />
+                      </Box>
+                    )}
+                    {application.note && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Ghi chú:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {application.note}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
                 </Box>
               </CardContent>
             </Card>

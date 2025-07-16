@@ -1,5 +1,11 @@
 import apiClient, { handleApiResponse } from "./baseApi";
+import {
+  backendFieldMapping,
+  applicationModelResponseSchema,
+  type ApplicationModelResponse,
+} from "../../schemas/applyDesignerSchema";
 
+// DTO for Designer Application in camelCase
 export interface ApplyDesignerRequest {
   // Profile images for landing page
   avatarFile?: File; // Ảnh đại diện
@@ -7,21 +13,22 @@ export interface ApplyDesignerRequest {
 
   portfolioUrl?: string;
   portfolioFiles?: File[]; // Multiple portfolio files
-  bannerUrl?: string; // URL trực tiếp (nếu không upload file)
+  bio?: string;
   specializationUrl?: string;
   certificates?: string; // CSV or JSON string
   taxNumber?: string;
   address?: string;
-  identificationPictureOwner?: string;
-
+  phoneNumber?: string;
   // Social media links as JSON string
   socialLinks?: string; // {"instagram": "url", "behance": "url", "facebook": "url"}
 
   identificationNumber: string;
-  identificationPictureFile?: File; // File upload thay vì URL
+  identificationPictureFront?: File;
+  identificationPictureBack?: File;
   note?: string;
 }
 
+//DTO for Supplier Form
 export interface ApplySupplierRequest {
   // Profile images for landing page
   avatarFile?: File; // Ảnh đại diện
@@ -29,21 +36,24 @@ export interface ApplySupplierRequest {
 
   portfolioUrl?: string;
   portfolioFiles?: File[]; // Multiple portfolio files
-  bannerUrl?: string; // URL trực tiếp (nếu không upload file)
+  bio?: string;
   specializationUrl?: string;
   certificates?: string; // CSV or JSON string
   taxNumber?: string;
   address?: string;
-  identificationPictureOwner?: string;
-
+  phoneNumber?: string;
   // Social media links as JSON string
   socialLinks?: string; // {"instagram": "url", "behance": "url", "facebook": "url"}
 
   identificationNumber: string;
-  identificationPictureFile?: File; // File upload thay vì URL
+  identificationPictureFront?: File;
+  identificationPictureBack?: File;
   note?: string;
 }
 
+// Model for Application data returned from API
+// This matches the backend ApplicationModel structure
+// Use camelCase for all properties to match backend API
 export interface ApplicationModel {
   applicationId: number;
   userId: number;
@@ -51,21 +61,23 @@ export interface ApplicationModel {
 
   // Portfolio & Profile Images
   avatarUrl?: string;
+  bannerUrl?: string;
   portfolioUrl?: string;
   portfolioFiles?: string; // JSON array of file urls
-  bannerUrl?: string;
   specializationUrl?: string;
+  bio?: string;
   certificates?: string;
   taxNumber?: string;
   address?: string;
-  identificationPictureOwner?: string;
 
   // Social Media
   socialLinks?: string; // JSON object of social media links
 
-  // Identification / Xác minh
+  // Identification / Xác minh - 2 hình CCCD mat truoc và sau
+
   identificationNumber?: string;
-  identificationPicture?: string;
+  identificationPictureFront?: string;
+  identificationPictureBack?: string;
   isIdentificationVerified?: boolean;
 
   //Tracking
@@ -94,12 +106,14 @@ export interface ApplicationModel {
     fullName?: string;
     email?: string;
   };
+
+  phoneNumber?: string;
 }
 
 export interface ApiResult<T> {
-  success: boolean; // Backend sử dụng camelCase
-  result: T; // Backend sử dụng camelCase
-  errorMessage?: string; // Backend sử dụng camelCase
+  success: boolean; // Backend response sử dụng camelCase
+  result: T; // Backend response sử dụng camelCase
+  errorMessage?: string; // Backend response sử dụng camelCase
 }
 
 class ApplicationService {
@@ -113,40 +127,60 @@ class ApplicationService {
   ): FormData {
     const formData = new FormData();
 
-    // Profile images
+    // Profile images - match backend field names exactly
     if (request.avatarFile) {
-      formData.append("AvatarFile", request.avatarFile);
+      formData.append(backendFieldMapping.avatarFile, request.avatarFile);
     }
     if (request.bannerFile) {
-      formData.append("BannerFile", request.bannerFile);
+      formData.append(backendFieldMapping.bannerFile, request.bannerFile);
     }
 
     // Portfolio files (multiple)
     if (request.portfolioFiles && request.portfolioFiles.length > 0) {
       request.portfolioFiles.forEach((file) => {
-        formData.append("PortfolioFiles", file);
+        formData.append(backendFieldMapping.portfolioFiles, file);
       });
     }
 
-    // Identification file
-    if (request.identificationPictureFile) {
+    // Identification files (Front/Back)
+    if (request.identificationPictureFront) {
       formData.append(
-        "IdentificationPictureFile",
-        request.identificationPictureFile
+        backendFieldMapping.identificationPictureFront,
+        request.identificationPictureFront as File
+      );
+    }
+    if (request.identificationPictureBack) {
+      formData.append(
+        backendFieldMapping.identificationPictureBack,
+        request.identificationPictureBack as File
       );
     }
 
-    // Text fields
+    // Text fields - match backend field names exactly
     if (request.portfolioUrl)
-      formData.append("PortfolioUrl", request.portfolioUrl);
-    if (request.bannerUrl) formData.append("BannerUrl", request.bannerUrl);
+      formData.append(backendFieldMapping.portfolioUrl, request.portfolioUrl);
     if (request.specializationUrl)
-      formData.append("SpecializationUrl", request.specializationUrl);
+      formData.append(
+        backendFieldMapping.specializationUrl,
+        request.specializationUrl
+      );
+    if (request.bio) formData.append(backendFieldMapping.bio, request.bio);
     if (request.socialLinks)
-      formData.append("SocialLinks", request.socialLinks);
+      formData.append(backendFieldMapping.socialLinks, request.socialLinks);
     if (request.identificationNumber)
-      formData.append("IdentificationNumber", request.identificationNumber);
-    if (request.note) formData.append("Note", request.note);
+      formData.append(
+        backendFieldMapping.identificationNumber,
+        request.identificationNumber
+      );
+    if (request.note) formData.append(backendFieldMapping.note, request.note);
+    if (request.phoneNumber)
+      formData.append(backendFieldMapping.phoneNumber, request.phoneNumber);
+    if (request.address)
+      formData.append(backendFieldMapping.address, request.address);
+    if (request.taxNumber)
+      formData.append(backendFieldMapping.taxNumber, request.taxNumber);
+    if (request.certificates)
+      formData.append(backendFieldMapping.certificates, request.certificates);
 
     return formData;
   }
@@ -154,7 +188,7 @@ class ApplicationService {
   // User đăng ký làm Designer
   async applyAsDesigner(
     request: ApplyDesignerRequest
-  ): Promise<ApplicationModel> {
+  ): Promise<ApplicationModelResponse> {
     const formData = this.createFormData(request);
 
     const response = await apiClient.post<any>(
@@ -164,16 +198,17 @@ class ApplicationService {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        timeout: 1200000, // 20 minutes for file upload
+        timeout: 300000, // 5 minutes for file upload
       }
     );
-    return handleApiResponse<ApplicationModel>(response);
+    const result = handleApiResponse<ApplicationModelResponse>(response);
+    return applicationModelResponseSchema.parse(result);
   }
 
   // User đăng ký làm Supplier
   async applyAsSupplier(
     request: ApplySupplierRequest
-  ): Promise<ApplicationModel> {
+  ): Promise<ApplicationModelResponse> {
     const formData = this.createFormData(request);
 
     const response = await apiClient.post<any>(
@@ -183,30 +218,34 @@ class ApplicationService {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        timeout: 1200000, // 20 minutes for file upload
+        timeout: 300000, // 20 minutes for file upload
       }
     );
-    return handleApiResponse<ApplicationModel>(response);
+    const result = handleApiResponse<ApplicationModelResponse>(response);
+    return applicationModelResponseSchema.parse(result);
   }
 
   // User xem đơn đăng ký của mình
-  async getMyApplications(): Promise<ApplicationModel[]> {
+  async getMyApplications(): Promise<ApplicationModelResponse[]> {
     const response = await apiClient.get<any>(
       `${this.API_BASE}/MyApplications`
     );
-    return handleApiResponse<ApplicationModel[]>(response);
+    const result = handleApiResponse<ApplicationModelResponse[]>(response);
+    return result.map((item) => applicationModelResponseSchema.parse(item));
   }
 
   // Xem chi tiết đơn đăng ký
-  async getApplicationById(id: number): Promise<ApplicationModel> {
+  async getApplicationById(id: number): Promise<ApplicationModelResponse> {
     const response = await apiClient.get<any>(`${this.API_BASE}/${id}`);
-    return handleApiResponse<ApplicationModel>(response);
+    const result = handleApiResponse<ApplicationModelResponse>(response);
+    return applicationModelResponseSchema.parse(result);
   }
 
   // Admin - Xem tất cả đơn đăng ký
-  async getAllApplications(): Promise<ApplicationModel[]> {
+  async getAllApplications(): Promise<ApplicationModelResponse[]> {
     const response = await apiClient.get<any>(`${this.API_BASE}`);
-    return handleApiResponse<ApplicationModel[]>(response);
+    const result = handleApiResponse<ApplicationModelResponse[]>(response);
+    return result.map((item) => applicationModelResponseSchema.parse(item));
   }
 
   // Admin - Lọc đơn đăng ký

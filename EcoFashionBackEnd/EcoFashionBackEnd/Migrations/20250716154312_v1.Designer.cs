@@ -12,8 +12,13 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
+<<<<<<<< HEAD:EcoFashionBackEnd/EcoFashionBackEnd/Migrations/20250716154312_v1.Designer.cs
     [Migration("20250716154312_v1")]
     partial class v1
+========
+    [Migration("20250716095250_InitialCreated")]
+    partial class InitialCreated
+>>>>>>>> 5e8d73c54c340d303a9bfdcb1a10a834064e9394:EcoFashionBackEnd/EcoFashionBackEnd/Migrations/20250716095250_InitialCreated.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,6 +47,9 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("BannerUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Certificates")
                         .HasColumnType("nvarchar(max)");
 
@@ -51,10 +59,10 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("IdentificationNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPicture")
+                    b.Property<string>("IdentificationPictureBack")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPictureOwner")
+                    b.Property<string>("IdentificationPictureFront")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsIdentificationVerified")
@@ -317,10 +325,10 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("IdentificationNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPicture")
+                    b.Property<string>("IdentificationPictureBack")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPictureOwner")
+                    b.Property<string>("IdentificationPictureFront")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
@@ -389,17 +397,47 @@ namespace EcoFashionBackEnd.Migrations
                         .HasColumnType("int")
                         .HasColumnOrder(1);
 
+                    b.Property<int>("AvailableQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("DesignId")
                         .HasColumnType("int");
 
+<<<<<<<< HEAD:EcoFashionBackEnd/EcoFashionBackEnd/Migrations/20250716154312_v1.Designer.cs
                     b.Property<int>("MeterUsed")
                         .HasColumnType("int");
+========
+                    b.Property<string>("MaterialName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+>>>>>>>> 5e8d73c54c340d303a9bfdcb1a10a834064e9394:EcoFashionBackEnd/EcoFashionBackEnd/Migrations/20250716095250_InitialCreated.Designer.cs
 
                     b.Property<float>("PersentageUsed")
                         .HasColumnType("real");
 
+                    b.Property<int>("Price")
+                        .HasColumnType("int");
+
                     b.Property<int>("SavedMaterialId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SupplierId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DesignIdPk", "SavedMaterialIdPk");
 
@@ -556,10 +594,10 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("IdentificationNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPicture")
+                    b.Property<string>("IdentificationPictureBack")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPictureOwner")
+                    b.Property<string>("IdentificationPictureFront")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")

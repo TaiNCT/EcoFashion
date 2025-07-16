@@ -103,100 +103,81 @@ namespace EcoFashionBackEnd.Services
             return model;
         }
 
-        public async Task<ApplicationModel?> ApplyAsSupplier(int userId, ApplySupplierRequest request, IFormFile? identificationPictureFile)
+        public async Task<ApplicationModel?> ApplyAsSupplier(int userId, ApplySupplierRequest request)
         {
             // Upload profile images
             var avatarUrl = await UploadSingleImageAsync(request.AvatarFile);
             var bannerUrl = await UploadSingleImageAsync(request.BannerFile);
             var portfolioFilesJson = await UploadPortfolioFilesAsync(request.PortfolioFiles);
 
-            var application = new Application
-            {
-                UserId = userId,
-                TargetRoleId = 3,
-                AvatarUrl = avatarUrl,
-                PortfolioUrl = request.PortfolioUrl,
-                PortfolioFiles = portfolioFilesJson,
-                BannerUrl = bannerUrl ?? request.BannerUrl,
-                SpecializationUrl = request.SpecializationUrl,
-                SocialLinks = request.SocialLinks,
-                IdentificationNumber = request.IdentificationNumber,
-                IdentificationPicture = null,
-                IsIdentificationVerified = false,
-                Note = request.Note,
-                PhoneNumber = request.PhoneNumber,
-                Address = request.Address,
-                TaxNumber = request.TaxNumber,
-                IdentificationPictureOwner = request.IdentificationPictureOwner,
-                Certificates = request.Certificates
-            };
-
-            if (identificationPictureFile != null && identificationPictureFile.Length > 0)
-            {
-                try
-                {
-                    var uploadResult = await _cloudService.UploadImageAsync(identificationPictureFile);
-                    if (uploadResult?.SecureUrl != null)
-                    {
-                        application.IdentificationPicture = uploadResult.SecureUrl.ToString();
-                    }
-                }
-                catch (Exception)
-                {
-                    // Log error but don't fail the application
-                }
-            }
-
-            await _applicationRepository.AddAsync(application);
-            var result = await _dbContext.SaveChangesAsync();
-            return result > 0 ? _mapper.Map<ApplicationModel>(application) : null;
-        }
-
-        public async Task<ApplicationModel?> ApplyAsDesigner(int userId, ApplyDesignerRequest request, IFormFile? identificationPictureFile)
-        {
-            // Upload profile images
-            var avatarUrl = await UploadSingleImageAsync(request.AvatarFile);
-            var bannerUrl = await UploadSingleImageAsync(request.BannerFile);
-            var portfolioFilesJson = await UploadPortfolioFilesAsync(request.PortfolioFiles);
-
-            string? Normalize(string? value) => string.IsNullOrEmpty(value) ? null : value.Trim();
+            // Upload identification images
+            var identificationPictureFrontUrl = await UploadSingleImageAsync(request.IdentificationPictureFront);
+            var identificationPictureBackUrl = await UploadSingleImageAsync(request.IdentificationPictureBack);
 
             var application = new Application
             {
                 UserId = userId,
                 TargetRoleId = 2,
                 AvatarUrl = avatarUrl,
-                PortfolioUrl = Normalize(request.PortfolioUrl),
-                PortfolioFiles = Normalize(portfolioFilesJson),
-                BannerUrl = bannerUrl ?? Normalize(request.BannerUrl),
-                SpecializationUrl = Normalize(request.SpecializationUrl),
-                SocialLinks = Normalize(request.SocialLinks),
-                IdentificationNumber = Normalize(request.IdentificationNumber),
-                IdentificationPicture = null,
+                PortfolioUrl = request.PortfolioUrl,
+                PortfolioFiles = portfolioFilesJson,
+                BannerUrl = bannerUrl,
+                SpecializationUrl = request.SpecializationUrl,
+                SocialLinks = request.SocialLinks,
+                IdentificationNumber = request.IdentificationNumber,
+                IdentificationPictureFront = identificationPictureFrontUrl,
+                IdentificationPictureBack = identificationPictureBackUrl,
                 IsIdentificationVerified = false,
-                Note = Normalize(request.Note),
-                PhoneNumber = Normalize(request.PhoneNumber),
-                Address = Normalize(request.Address),
-                TaxNumber = Normalize(request.TaxNumber),
-                IdentificationPictureOwner = Normalize(request.IdentificationPictureOwner),
-                Certificates = Normalize(request.Certificates)
+                Note = request.Note,
+                PhoneNumber = request.PhoneNumber,
+                Address = request.Address,
+                TaxNumber = request.TaxNumber,
+                Certificates = request.Certificates,
+                Bio = request.Bio,
             };
 
-            if (identificationPictureFile != null && identificationPictureFile.Length > 0)
+            await _applicationRepository.AddAsync(application);
+            var result = await _dbContext.SaveChangesAsync();
+            return result > 0 ? _mapper.Map<ApplicationModel>(application) : null;
+        }
+
+        public async Task<ApplicationModel?> ApplyAsDesigner(int userId, ApplyDesignerRequest request)
+        {
+            // Upload profile images
+            var avatarUrl = await UploadSingleImageAsync(request.AvatarFile);
+            var bannerUrl = await UploadSingleImageAsync(request.BannerFile);
+            var portfolioFilesJson = await UploadPortfolioFilesAsync(request.PortfolioFiles);
+
+            // Upload identification images - 2 hình CCCD riêng biệt
+            var identificationPictureFrontUrl = await UploadSingleImageAsync(request.IdentificationPictureFront);
+            var identificationPictureBackUrl = await UploadSingleImageAsync(request.IdentificationPictureBack);
+
+            var application = new Application
             {
-                try
-                {
-                    var uploadResult = await _cloudService.UploadImageAsync(identificationPictureFile);
-                    if (uploadResult?.SecureUrl != null)
-                    {
-                        application.IdentificationPicture = uploadResult.SecureUrl.ToString();
-                    }
-                }
-                catch (Exception)
-                {
-                    // Log error but don't fail the application
-                }
-            }
+                UserId = userId,
+                TargetRoleId = 2,
+                AvatarUrl = avatarUrl,
+                PortfolioUrl = request.PortfolioUrl,
+                PortfolioFiles = portfolioFilesJson,
+                BannerUrl = bannerUrl,
+                SpecializationUrl = request.SpecializationUrl,
+                SocialLinks = request.SocialLinks,
+                IdentificationNumber = request.IdentificationNumber,
+                IdentificationPictureFront = identificationPictureFrontUrl, // URL của hình mặt trước
+                IdentificationPictureBack = identificationPictureBackUrl,   // URL của hình mặt sau
+                IsIdentificationVerified = false,
+                Note = request.Note,
+                PhoneNumber = request.PhoneNumber,
+                Address = request.Address,
+                TaxNumber = request.TaxNumber,
+                Certificates = request.Certificates,
+                Bio = request.Bio,
+                // Tracking
+                //Status = ApplicationStatus.pending,
+                CreatedAt = DateTime.UtcNow,
+                
+                
+            };
 
             await _applicationRepository.AddAsync(application);
             var result = await _dbContext.SaveChangesAsync();
@@ -224,7 +205,7 @@ namespace EcoFashionBackEnd.Services
             return result;
         }
 
- 
+ //Approve Supplier and Designer Applications
     public async Task<bool> ApproveSupplierApplication(int applicationId, int adminId)
     {
         var application = await _applicationRepository.GetByIdAsync(applicationId);
@@ -247,32 +228,29 @@ namespace EcoFashionBackEnd.Services
             PortfolioFiles = application.PortfolioFiles,
             BannerUrl = application.BannerUrl,
             SpecializationUrl = application.SpecializationUrl,
-            Bio = application.Note,
+            Bio = application.Bio,
             Email = user.Email,
             PhoneNumber = application.PhoneNumber,
             Address = application.Address,
             TaxNumber = application.TaxNumber,
             IdentificationNumber = application.IdentificationNumber,
-            IdentificationPicture = application.IdentificationPicture,
-            IdentificationPictureOwner = application.IdentificationPictureOwner,
+            IdentificationPictureFront = application.IdentificationPictureFront,
+            IdentificationPictureBack = application.IdentificationPictureBack,
             Certificates = application.Certificates,
             CreatedAt = DateTime.UtcNow,
             Status = "Active"
         };
 
         await _supplierRepository.AddAsync(supplier);
-        
         // Cập nhật vai trò người dùng
         user.RoleId = 3; // Supplier role
         _dbContext.Users.Update(user); // Cập nhật user trong database
-        
         application.Status = ApplicationStatus.approved;
         application.ProcessedAt = DateTime.UtcNow;
         application.ProcessedBy = adminId;
         application.IsIdentificationVerified = true; // Mark as verified when approved
         // TODO: Send notification to user về approval
         // TODO: Send email confirmation
-
         return await _dbContext.SaveChangesAsync() > 0;
     }
 
@@ -292,22 +270,21 @@ namespace EcoFashionBackEnd.Services
         {
             DesignerId = Guid.NewGuid(),
             UserId = application.UserId,
-            DesignerName = user.FullName,
+            DesignerName = user.FullName, // Tên nhà thiết kế từ User
             AvatarUrl = application.AvatarUrl,
             PortfolioUrl = application.PortfolioUrl,
             PortfolioFiles = application.PortfolioFiles,
             BannerUrl = application.BannerUrl,
             SpecializationUrl = application.SpecializationUrl,
-            Bio = application.Note, // Nếu Application có trường Bio hoặc Note
+            Bio = application.Bio,
             Email = user.Email,
-
-            // PhoneNumber và Address không có trong User, chỉ lấy nếu Application có và Designer có
-            // Nếu Designer entity có các trường này, giữ lại, còn không thì bỏ
-            // TaxNumber = null, // Nếu Application có trường này thì lấy, không thì null
+            PhoneNumber = application.PhoneNumber,
+            Address = application.Address,
+            TaxNumber = application.TaxNumber,
             IdentificationNumber = application.IdentificationNumber,
-            IdentificationPicture = application.IdentificationPicture,
-            IdentificationPictureOwner = "",
-            // Certificates = null, // Nếu Application có trường này thì lấy, không thì null
+            IdentificationPictureFront = application.IdentificationPictureFront,
+            IdentificationPictureBack = application.IdentificationPictureBack,            
+            Certificates = application.Certificates,
             CreatedAt = DateTime.UtcNow,
             Status = "Active"
         };
@@ -323,7 +300,7 @@ namespace EcoFashionBackEnd.Services
         application.ProcessedBy = adminId;
         application.IsIdentificationVerified = true; // Mark as verified when approved
         // TODO: Send notification to user về approval
-        // TODO: Send email confirmation
+        // TODO: Send email confirmation (not yet implemented)
 
         return await _dbContext.SaveChangesAsync() > 0;
     }
@@ -340,7 +317,7 @@ namespace EcoFashionBackEnd.Services
         application.ProcessedBy = adminId;
         application.RejectionReason = rejectionReason;
         // TODO: Send notification to user về rejection với lý do
-        // TODO: Send email notification
+        // TODO: Send email notification to user về rejection 
 
         return await _dbContext.SaveChangesAsync() > 0;
     }

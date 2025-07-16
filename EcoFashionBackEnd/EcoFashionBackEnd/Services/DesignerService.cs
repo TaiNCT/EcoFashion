@@ -69,7 +69,6 @@ namespace EcoFashionBackEnd.Services
                 AvatarUrl = designer.AvatarUrl,
                 Bio = designer.Bio,
                 SpecializationUrl = designer.SpecializationUrl,
-                PortfolioUrl = designer.PortfolioUrl,
                 PortfolioFiles = designer.PortfolioFiles,
                 BannerUrl = designer.BannerUrl,
                 Email = designer.Email, // Có thể ẩn tùy business logic
@@ -181,8 +180,8 @@ namespace EcoFashionBackEnd.Services
                 Address = request.Address,
                 TaxNumber = request.TaxNumber,
                 IdentificationNumber = request.IdentificationNumber,
-                IdentificationPicture = request.IdentificationPicture,
-                IdentificationPictureOwner = request.IdentificationPictureOwner,
+                IdentificationPictureFront = request.IdentificationPictureFront,
+                IdentificationPictureBack = request.IdentificationPictureBack,
                 Certificates = request.Certificates,
                 CreatedAt = DateTime.UtcNow,
                 Status = "Active"
@@ -228,8 +227,8 @@ namespace EcoFashionBackEnd.Services
             existingDesigner.Address = request.Address ?? existingDesigner.Address;
             existingDesigner.TaxNumber = request.TaxNumber ?? existingDesigner.TaxNumber;
             existingDesigner.IdentificationNumber = request.IdentificationNumber ?? existingDesigner.IdentificationNumber;
-            existingDesigner.IdentificationPicture = request.IdentificationPicture ?? existingDesigner.IdentificationPicture;
-            existingDesigner.IdentificationPictureOwner = request.IdentificationPictureOwner ?? existingDesigner.IdentificationPictureOwner;
+            existingDesigner.IdentificationPictureFront = request.IdentificationPictureFront ?? existingDesigner.IdentificationPictureFront;
+            existingDesigner.IdentificationPictureBack = request.IdentificationPictureBack ?? existingDesigner.IdentificationPictureBack;
             existingDesigner.Certificates = request.Certificates ?? existingDesigner.Certificates;
             existingDesigner.UpdatedAt = DateTime.UtcNow;
 
