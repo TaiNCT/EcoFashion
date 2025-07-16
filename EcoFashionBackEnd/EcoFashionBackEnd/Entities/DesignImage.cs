@@ -4,7 +4,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace EcoFashionBackEnd.Entities
 {
-    [Table("Design_Image")]
+    [Table("DesignImages")]
     public class DesignImage
     {
         [Key]

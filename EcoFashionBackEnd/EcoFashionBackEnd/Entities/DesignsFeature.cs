@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Entities
 {
-    [Table("Designs_Feature")]
-    public class DesignsFeature
+    [Table("DesignFeatures")]
+    public class DesignFeature
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

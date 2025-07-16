@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Entities
 {
-    [Table("Designs_Materials")]
+    [Table("DesignsMaterials")]
     public class DesignsMaterial
     {
         [ForeignKey("DesignId")]
@@ -23,5 +23,7 @@ namespace EcoFashionBackEnd.Entities
         [Key]
         [Column(Order = 1)]
         public int SavedMaterialIdPk { get; set; } // Composite Key Part 2
+
+        public int MeterUsed { get; set; }
     }
 }

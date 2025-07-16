@@ -20,19 +20,22 @@ namespace EcoFashionBackEnd.Entities
         public string? CareInstructions { get; set; }
         public decimal Price { get; set; }
         public int Quantity { get; set; }
-        public bool Gender { get; set; }
         public int ProductScore { get; set; }
-        public string? Status { get; set; } // ENUM('pending', 'approved', 'rejected') - bạn có thể tạo một enum DesignStatus riêng
+        public string? Status { get; set; } 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        [ForeignKey("DesignsTypes")]
+        public int? DesignTypeId { get; set; }
+
+        public virtual DesignsType DesignTypes { get; set; }
         public virtual ICollection<DesignsVarient> DesignsVarients { get; set; }
-        public virtual DesignsFeature DesignsFeature { get; set; }
+        public virtual DesignFeature DesignsFeature { get; set; }
         public virtual ICollection<DesignsMaterial> DesignsMaterials { get; set; }
         public virtual ICollection<DesignsRating> DesignsRatings { get; set; }
         public virtual ICollection<DesignImage> DesignImages { get; set; }
 
-        // public virtual ICollection<Designs_Color> DesignsColors { get; set; } // Bạn có thể bỏ comment nếu cần
-        // public virtual ICollection<Designs_Size> DesignsSizes { get; set; }   // Bạn có thể bỏ comment nếu cần
-        // public virtual Design_Type DesignType { get; set; }   
+         public virtual ICollection<DesignsColor> DesignsColors { get; set; } 
+         public virtual ICollection<DesignsSize> DesignsSizes { get; set; }   
+         
     }
 }

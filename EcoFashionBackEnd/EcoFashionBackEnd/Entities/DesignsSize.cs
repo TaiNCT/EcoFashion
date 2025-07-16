@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Entities
 {
-    [Table("Designs_Size")]
+    [Table("DesignsSizes")]
     public class DesignsSize
     {
         [Key]
@@ -12,5 +12,6 @@ namespace EcoFashionBackEnd.Entities
 
         public string? SizeName { get; set; }
         public string? SizeDescription { get; set; }
+        public virtual ICollection<Design> Designs { get; set; } = new List<Design>();
     }
 }

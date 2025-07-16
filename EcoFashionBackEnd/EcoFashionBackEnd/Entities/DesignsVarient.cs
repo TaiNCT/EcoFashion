@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Entities
 {
-    [Table("Designs_Varient")]
+    [Table("DesignsVarients")]
     public class DesignsVarient
     {
         [Key]

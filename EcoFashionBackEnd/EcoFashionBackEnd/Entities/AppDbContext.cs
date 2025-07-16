@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using static System.Net.Mime.MediaTypeNames;
-using System.Composition;
 
 namespace EcoFashionBackEnd.Entities
 {
@@ -19,16 +17,15 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Application> Applications { get; set; }
         public DbSet<SavedSupplier> SavedSuppliers { get; set; }
         public DbSet<Design> Designs { get; set; }
-        public DbSet<DesignsColor> DesignsColors { get; set; }
-        public DbSet<DesignsSize> DesignsSizes { get; set; }
         public DbSet<DesignsVarient> DesignsVarients { get; set; }
-        public DbSet<DesignsFeature> DesignsFeatures { get; set; }
         public DbSet<DesignsMaterial> DesignsMaterials { get; set; }
-        public DbSet<DesignsRating> DesignsRatings { get; set; }
-        public DbSet<DesignType> DesignTypes { get; set; }
-        public DbSet<TypeSize> TypeSizes { get; set; }
-        public DbSet<Image> Images { get; set; }
+        public DbSet<DesignsColor> DesignsColors { get; set; }
         public DbSet<DesignImage> DesignImages { get; set; }
+        public DbSet<TypeSize> TypeSizes { get; set; }
+        public DbSet<DesignFeature> DesignFeatures { get; set; }
+        public DbSet<DesignsSize> DesignsSizes { get; set; }
+        public DbSet<DesignsType> DesignsTypes { get; set; }
+        public DbSet<DesignMaterialInventory> DesignMaterialInventorys { get; set; }
 
         #endregion
 
@@ -41,6 +38,7 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
+            #region user
 
             // SUPPLIER PROFILE
             modelBuilder.Entity<Supplier>()
@@ -69,6 +67,7 @@ namespace EcoFashionBackEnd.Entities
                 .HasForeignKey(a => a.TargetRoleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+
             // SAVED SUPPLIER
             modelBuilder.Entity<SavedSupplier>()
                 .HasOne(ss => ss.Designer)
@@ -81,18 +80,27 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(ss => ss.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);
+            #endregion
+            // DESIGN
+            modelBuilder.Entity<Design>()
+      .HasMany(d => d.DesignsColors)
+      .WithMany(dc => dc.Designs)
+      .UsingEntity(j => j.ToTable("DesignColors"));
 
-            // Optional: ENUM string conversion for UserStatus
-            modelBuilder.Entity<User>()
-                .Property(u => u.Status)
-                .HasConversion<string>();
+            modelBuilder.Entity<DesignsColor>()
+                .HasMany(c => c.Designs)
+                .WithMany(d => d.DesignsColors)
+                .UsingEntity(j => j.ToTable("DesignColors"));
 
-            // Optional: ENUM string conversion for ApplicationStatus
-            modelBuilder.Entity<Application>()
-                .Property(a => a.Status)
-                .HasConversion<string>();
+            modelBuilder.Entity<Design>()
+                .HasMany(d => d.DesignsSizes)
+                .WithMany(ds => ds.Designs)
+                .UsingEntity(j => j.ToTable("DesignSizes"));
+            modelBuilder.Entity<DesignsSize>()
+                .HasMany(s => s.Designs)
+                .WithMany(d => d.DesignsSizes)
+                .UsingEntity(j => j.ToTable("DesignSizes"));
 
-            // Configure relationships for new tables
             modelBuilder.Entity<DesignsVarient>()
                 .HasOne(dv => dv.DesignsSize)
                 .WithMany()
@@ -111,12 +119,6 @@ namespace EcoFashionBackEnd.Entities
                 .HasForeignKey(dv => dv.ColorId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<DesignsFeature>()
-                .HasOne(df => df.Design)
-                .WithOne(d => d.DesignsFeature)
-                .HasForeignKey<DesignsFeature>(df => df.DesignId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<DesignsMaterial>()
                 .HasKey(dm => new { dm.DesignIdPk, dm.SavedMaterialIdPk }); // Configure Composite Key
 
@@ -126,36 +128,12 @@ namespace EcoFashionBackEnd.Entities
                 .HasForeignKey(dm => dm.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<DesignType>()
-                .HasOne(dt => dt.DesignsSize)
-                .WithMany()
-                .HasForeignKey(dt => dt.SizeId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-
-            modelBuilder.Entity<TypeSize>()
-                .HasKey(ts => new { ts.DesignTypeIdPk, ts.SizeIdPk }); // Configure Composite Key
-
-            // Explicitly configure DesignTypeId and SizeId as foreign keys in TypeSize to avoid potential issues
-            modelBuilder.Entity<TypeSize>()
-                .HasOne<DesignType>()
-                .WithMany()
-                .HasForeignKey(ts => ts.DesignTypeId);
-
-            modelBuilder.Entity<TypeSize>()
-                .HasOne<DesignsSize>()
-                .WithMany()
-                .HasForeignKey(ts => ts.SizeId);
-
-            modelBuilder.Entity<DesignsRating>()
-                .HasKey(dr => new { dr.DesignIdPk, dr.CustomerIdPk }); // Configure Composite Key
-
-            modelBuilder.Entity<DesignsRating>()
-                .HasOne(dr => dr.Design)
-                .WithMany(d => d.DesignsRatings)
-                .HasForeignKey(dr => dr.DesignId)
+            modelBuilder.Entity<DesignFeature>()
+                .HasOne(df => df.Design)
+                .WithOne(d => d.DesignsFeature)
+                .HasForeignKey<DesignFeature>(df => df.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
-            // Configure relationship for Design and Image (many-to-many using DesignImage)
+
             modelBuilder.Entity<DesignImage>()
                 .HasOne(di => di.Design)
                 .WithMany(d => d.DesignImages)
@@ -172,6 +150,27 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<DesignImage>()
                 .HasIndex(di => new { di.DesignId, di.ImageId })
                 .IsUnique();
+
+            modelBuilder.Entity<TypeSize>()
+                .HasKey(ts => new { ts.DesignTypeIdPk, ts.SizeIdPk }); // Configure Composite Key
+
+            modelBuilder.Entity<TypeSize>()
+                .HasOne<DesignsSize>()
+                .WithMany()
+                .HasForeignKey(ts => ts.SizeId);
+
+            modelBuilder.Entity<TypeSize>()
+                .HasOne<DesignsType>()
+                .WithMany()
+                .HasForeignKey(ts => ts.DesignTypeId);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Status)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Application>()
+                .Property(a => a.Status)
+                .HasConversion<string>();
         }
     }
 }

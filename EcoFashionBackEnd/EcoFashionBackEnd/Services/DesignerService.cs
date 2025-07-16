@@ -30,12 +30,7 @@ namespace EcoFashionBackEnd.Services
             _mapper = mapper;
             _dbContext = dbContext;
         }
-
-        // Landing Pages Methods - Public APIs
-
-        /// <summary>
-        /// Get public designers for listing page (with pagination)
-        /// </summary>
+      
         public async Task<List<DesignerSummaryModel>> GetPublicDesigners(int page = 1, int pageSize = 12)
         {
             var query = _designerRepository.GetAll().Include(d => d.User);
@@ -364,6 +359,7 @@ namespace EcoFashionBackEnd.Services
             return designer?.DesignerId;
         }
 
+       
         public async Task<bool> RemoveFollowedSupplier(Guid designerId, Guid supplierId)
         {
             var savedSupplier = await _dbContext.SavedSuppliers

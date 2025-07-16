@@ -1,22 +1,35 @@
 ﻿using AutoMapper;
-using EcoFashionBackEnd.Common.Payloads.Requests;
-using EcoFashionBackEnd.Dtos;
-using EcoFashionBackEnd.Entities;
-using EcoFashionBackEnd.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using EcoFashionBackEnd.Common.Payloads.Requests;
+using EcoFashionBackEnd.Dtos;
+using EcoFashionBackEnd.Entities;
+using EcoFashionBackEnd.Repositories;
+using EcoFashionBackEnd.Services;
+
 public class DesignService
 {
     private readonly IRepository<Design, int> _designRepository;
+    private readonly IRepository<DesignFeature, int> _designsFeatureRepository;
+    private readonly IRepository<Image, int> _imageRepository;
+    private readonly IRepository<DesignImage, int> _designImageRepository;
     private readonly IMapper _mapper;
+    private readonly CloudService _cloudService;
+    private readonly AppDbContext _dbContext;
 
-    public DesignService(IRepository<Design, int> designRepository, IMapper mapper)
+    public DesignService(IRepository<Design, int> designRepository, IRepository<DesignFeature, int> designsFeatureRepository, IRepository<Image, int> imageRepository, IRepository<DesignImage, int> designImageRepository, IMapper mapper, CloudService cloudService, AppDbContext dbContext)
     {
         _designRepository = designRepository;
+        _designsFeatureRepository = designsFeatureRepository;
+        _imageRepository = imageRepository;
+        _designImageRepository = designImageRepository;
         _mapper = mapper;
+        _cloudService = cloudService;
+        _dbContext = dbContext;
     }
 
     public async Task<IEnumerable<DesignModel>> GetAllDesigns()
@@ -31,44 +44,59 @@ public class DesignService
         return _mapper.Map<DesignModel>(design);
     }
 
-    public async Task<int> CreateDesign(CreateDesignRequest request, Guid designerId)
+   
+
+    public async Task<int> CreateDesign(CreateDesignRequest request, Guid designerId, List<IFormFile>? imageFiles)
     {
-        var designEntity = new Design
+        if (!request.DesignTypeId.HasValue)
         {
-            
-            DesignerId = designerId,
-            Name = request.Name,
-            Description = request.Description,
-            RecycledPercentage = request.RecycledPercentage,
-            CareInstructions = request.CareInstructions,
-            Price = request.Price,
-            Quantity = request.Quantity,
-            Gender = request.Gender,
-            ProductScore = request.ProductScore,
-            Status = request.Status,
-            CreatedAt = DateTime.UtcNow
-        };
+            throw new Exception("DesignTypeId không hợp lệ.");
+        }
 
-        var createdDesign = await _designRepository.AddAsync(designEntity);
+        var designTypeExists = await _dbContext.DesignsTypes.AnyAsync(dt => dt.DesignTypeId == request.DesignTypeId.Value);
+        if (!designTypeExists)
+        {
+            throw new Exception($"DesignTypeId '{request.DesignTypeId.Value}' không tồn tại.");
+        }
+
+        var designEntity = _mapper.Map<Design>(request);
+        designEntity.DesignerId = designerId;
+        designEntity.CreatedAt = DateTime.UtcNow;
+
+   
+        await _designRepository.AddAsync(designEntity);
+        Console.WriteLine($"Giá trị DesignTypeId trước khi lưu: {designEntity.DesignTypeId}");
         await _designRepository.Commit();
-        return createdDesign.DesignId;
-    }
+        if (imageFiles != null && imageFiles.Any())
+        {
+            var uploadResults = await _cloudService.UploadImagesAsync(imageFiles);
+            foreach (var uploadResult in uploadResults)
+            {
+                if (uploadResult?.SecureUrl != null)
+                {
+                    var imageEntity = new Image { ImageUrl = uploadResult.SecureUrl.ToString() };
+                    await _imageRepository.AddAsync(imageEntity);
+                    await _imageRepository.Commit();
 
+                    var designImageEntity = new DesignImage
+                    {
+                        DesignId = designEntity.DesignId,
+                        ImageId = imageEntity.ImageId
+                    };
+                    await _designImageRepository.AddAsync(designImageEntity);
+                    await _designImageRepository.Commit();
+                }
+            }
+        }
+
+        return designEntity.DesignId;
+    }
     public async Task<bool> UpdateDesign(int id, UpdateDesignRequest request)
     {
         var existingDesign = await _designRepository.GetByIdAsync(id);
         if (existingDesign == null) return false;
 
-        existingDesign.Name = request.Name ?? existingDesign.Name;
-        existingDesign.Description = request.Description ?? existingDesign.Description;
-        existingDesign.RecycledPercentage = request.RecycledPercentage;
-        existingDesign.CareInstructions = request.CareInstructions ?? existingDesign.CareInstructions;
-        existingDesign.Price = request.Price;
-        existingDesign.Quantity = request.Quantity;
-        existingDesign.Gender = request.Gender;
-        existingDesign.ProductScore = request.ProductScore;
-        existingDesign.Status = request.Status ?? existingDesign.Status;
-
+        _mapper.Map(request, existingDesign); // Áp dụng các thay đổi từ request
         _designRepository.Update(existingDesign);
         var result = await _designRepository.Commit();
         return result > 0;

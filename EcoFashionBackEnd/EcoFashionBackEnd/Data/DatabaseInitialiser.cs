@@ -49,7 +49,7 @@ namespace EcoFashionBackEnd.Data
 
         public async Task TrySeedAsync()
         {
-            if (_context.UserRoles.Any() || _context.Users.Any() || _context.DesignsColors.Any() || _context.DesignsSizes.Any() || _context.DesignTypes.Any() || _context.Designs.Any() || _context.Images.Any() || _context.DesignImages.Any()) return;
+            if (_context.UserRoles.Any() || _context.Users.Any() || _context.DesignsColors.Any()) return;
 
 
             // Roles
@@ -140,70 +140,69 @@ namespace EcoFashionBackEnd.Data
 
             await _context.SaveChangesAsync();
 
-            // Seed DesignsColor
-            var colors = new List<DesignsColor>
-            {
-                new DesignsColor { ColorName = "Red", ColorCode = "#FF0000" },
-                new DesignsColor { ColorName = "Blue", ColorCode = "#0000FF" },
-                new DesignsColor { ColorName = "Green", ColorCode = "#008000" }
-            };
-            await _context.DesignsColors.AddRangeAsync(colors);
-            await _context.SaveChangesAsync();
+            //// Seed DesignsColor
+            //var colors = new List<DesignsColor>
+            //{
+            //    new DesignsColor { ColorName = "Red", ColorCode = "#FF0000" },
+            //    new DesignsColor { ColorName = "Blue", ColorCode = "#0000FF" },
+            //    new DesignsColor { ColorName = "Green", ColorCode = "#008000" }
+            //};
+            //await _context.DesignsColors.AddRangeAsync(colors);
+            //await _context.SaveChangesAsync();
 
-            // Seed DesignsSize
-            var sizes = new List<DesignsSize>
-            {
-                new DesignsSize { SizeName = "S", SizeDescription = "Small" },
-                new DesignsSize { SizeName = "M", SizeDescription = "Medium" },
-                new DesignsSize { SizeName = "L", SizeDescription = "Large" }
-            };
-            await _context.DesignsSizes.AddRangeAsync(sizes);
-            await _context.SaveChangesAsync();
+            //// Seed DesignsSize
+            //var sizes = new List<DesignsSize>
+            //{
+            //    new DesignsSize { SizeName = "S", SizeDescription = "Small" },
+            //    new DesignsSize { SizeName = "M", SizeDescription = "Medium" },
+            //    new DesignsSize { SizeName = "L", SizeDescription = "Large" }
+            //};
+            //await _context.DesignsSizes.AddRangeAsync(sizes);
+            //await _context.SaveChangesAsync();
 
-            // Seed DesignType
-            var designTypes = new List<DesignType>
-            {
-                new DesignType { DesignName = "T-Shirt", SizeId = sizes.First(s => s.SizeName == "M").Id, Meter = 1.5f },
-                new DesignType { DesignName = "Jeans", SizeId = sizes.First(s => s.SizeName == "L").Id, Meter = 2.5f }
-            };
-            await _context.DesignTypes.AddRangeAsync(designTypes);
-            await _context.SaveChangesAsync();
+            //// Seed DesignType
+            //var designTypes = new List<DesignsType>
+            //{
+            //   // new DesignsType { DesignName = "T-Shirt", SizeId = sizes.First(s => s.SizeName == "M").Id, Meter = 1.5f },
+            //    // new DesignsType { DesignName = "Jeans", SizeId = sizes.First(s => s.SizeName == "L").Id, Meter = 2.5f }
+            //};
+            //await _context.DesignsTypes.AddRangeAsync(designTypes);
+            //await _context.SaveChangesAsync();
 
-            // Seed a Design
-            var design = new Design
-            {
-                DesignerId = designer.DesignerId,
-                Name = "Sample T-Shirt",
-                Description = "A basic sample t-shirt.",
-                RecycledPercentage = 50.0f,
-                CareInstructions = "Machine wash cold.",
-                Price = 25.99m,
-                Quantity = 100,
-                Gender = true,
-                ProductScore = 4,
-                Status = "approved",
-                CreatedAt = DateTime.UtcNow
-            };
-            await _context.Designs.AddAsync(design);
-            await _context.SaveChangesAsync();
+            //// Seed a Design
+            //var design = new Design
+            //{
+            //    DesignerId = designer.DesignerId,
+            //    Name = "Sample T-Shirt",
+            //    Description = "A basic sample t-shirt.",
+            //    RecycledPercentage = 50.0f,
+            //    CareInstructions = "Machine wash cold.",
+            //    Price = 25.99m,
+            //    Quantity = 100,
+            //    ProductScore = 4,
+            //    Status = "approved",
+            //    CreatedAt = DateTime.UtcNow
+            //};
+            //await _context.Designs.AddAsync(design);
+            //await _context.SaveChangesAsync();
 
             // Seed Images
-            var images = new List<Image>
-            {
-                new Image { ImageUrl = "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400" },
-                new Image { ImageUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400" }
-            };
-            await _context.Images.AddRangeAsync(images);
-            await _context.SaveChangesAsync();
+            //var images = new List<Image>
+            //{
+            //    new Image { ImageUrl = "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400" },
+            //    new Image { ImageUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400" }
+            //};
+            //await _context.Images.AddRangeAsync(images);
+            //await _context.SaveChangesAsync();
 
             // Seed DesignImages 
-            var designImages = new List<DesignImage>
-            {
-                new DesignImage { DesignId = design.DesignId, ImageId = images[0].ImageId },
-                new DesignImage { DesignId = design.DesignId, ImageId = images[1].ImageId }
-            };
-            await _context.DesignImages.AddRangeAsync(designImages);
-            await _context.SaveChangesAsync();
+            //var designImages = new List<DesignImage>
+            //{
+            //    new DesignImage { DesignId = design.DesignId, ImageId = images[0].ImageId },
+            //    new DesignImage { DesignId = design.DesignId, ImageId = images[1].ImageId }
+            //};
+            //await _context.DesignImages.AddRangeAsync(designImages);
+            //await _context.SaveChangesAsync();
         }
     }
 

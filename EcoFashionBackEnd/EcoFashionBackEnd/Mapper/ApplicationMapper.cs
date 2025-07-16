@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Entities;
 
@@ -13,7 +14,10 @@ namespace EcoFashionBackEnd.Mapper
             CreateMap<Supplier, SupplierModel>().ReverseMap();
             CreateMap<Designer, DesignerModel>().ReverseMap();
             CreateMap<Design, DesignModel>().ReverseMap();
-
+            CreateMap<Design, DesignModel>().ReverseMap();
+            CreateMap<CreateDesignRequest, Design>();
+            CreateMap<CreateDesignRequest, DesignFeature>();
+            CreateMap<UpdateDesignRequest, Design>();
 
 
 
