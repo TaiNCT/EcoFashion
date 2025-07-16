@@ -96,6 +96,7 @@ namespace EcoFashionBackEnd.Entities
                 .HasMany(d => d.DesignsSizes)
                 .WithMany(ds => ds.Designs)
                 .UsingEntity(j => j.ToTable("DesignSizes"));
+
             modelBuilder.Entity<DesignsSize>()
                 .HasMany(s => s.Designs)
                 .WithMany(d => d.DesignsSizes)
@@ -145,6 +146,11 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(di => di.ImageId)
                 .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Design>()
+                .HasOne(d => d.DesignTypes) 
+                .WithMany() 
+                .HasForeignKey(d => d.DesignTypeId) 
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Unique constraint for DesignId and ImageId to prevent duplicates
             modelBuilder.Entity<DesignImage>()

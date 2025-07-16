@@ -94,8 +94,8 @@ namespace EcoFashionBackEnd.Data
                 Address = "123 Eco Street, HCMC",
                 TaxNumber = "TAX123456",
                 IdentificationNumber = "ID123456789",
-                IdentificationPictureFront = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=300",
-                IdentificationPictureBack = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
+                //IdentificationPictureFront = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=300",
+                //IdentificationPictureBack = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
                 SpecializationUrl = "https://specialization.designer1.com",
                 Status = "active",
                 CreatedAt = now
@@ -119,13 +119,12 @@ namespace EcoFashionBackEnd.Data
                 Address = "456 Green Lane, HCMC",
                 TaxNumber = "TAXSUP123",
                 IdentificationNumber = "SUPID987654321",
-                IdentificationPictureFront = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=300",
-                IdentificationPictureBack = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
+                //IdentificationPictureFront = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=300",
+                //IdentificationPictureBack = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
                 SpecializationUrl = "https://specialization.supplier1.com",
                 Status = "active",
                 CreatedAt = DateTime.UtcNow
-            });
-
+            };
             await _context.SaveChangesAsync();
 
             //// Seed DesignsColor

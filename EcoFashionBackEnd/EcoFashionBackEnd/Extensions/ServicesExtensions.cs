@@ -47,7 +47,7 @@ public static class ServicesExtensions
         });
 
         services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
-        services.Configure<CloundSettings>(configuration.GetSection(nameof(CloundSettings)));
+        services.Configure<CloudSettings>(configuration.GetSection(nameof(CloudSettings)));
 
         services.AddAuthorization();
 

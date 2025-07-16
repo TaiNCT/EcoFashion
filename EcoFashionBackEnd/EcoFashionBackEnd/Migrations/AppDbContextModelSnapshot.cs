@@ -159,9 +159,6 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<int?>("DesignTypeId")
                         .HasColumnType("int");
 
-                    b.Property<int>("DesignTypesDesignTypeId")
-                        .HasColumnType("int");
-
                     b.Property<Guid>("DesignerId")
                         .HasColumnType("uniqueidentifier");
 
@@ -185,7 +182,7 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasKey("DesignId");
 
-                    b.HasIndex("DesignTypesDesignTypeId");
+                    b.HasIndex("DesignTypeId");
 
                     b.HasIndex("DesignerId");
 
@@ -389,16 +386,6 @@ namespace EcoFashionBackEnd.Migrations
                         .HasColumnType("int")
                         .HasColumnOrder(1);
 
-                    b.Property<int>("AvailableQuantity")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("DesignId")
                         .HasColumnType("int");
 
@@ -408,22 +395,8 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<float>("PersentageUsed")
                         .HasColumnType("real");
 
-                    b.Property<int>("Price")
-                        .HasColumnType("int");
-
                     b.Property<int>("SavedMaterialId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("SupplierId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DesignIdPk", "SavedMaterialIdPk");
 
@@ -806,9 +779,8 @@ namespace EcoFashionBackEnd.Migrations
                 {
                     b.HasOne("EcoFashionBackEnd.Entities.DesignsType", "DesignTypes")
                         .WithMany()
-                        .HasForeignKey("DesignTypesDesignTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("DesignTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("EcoFashionBackEnd.Entities.Designer", "DesignerProfile")
                         .WithMany()

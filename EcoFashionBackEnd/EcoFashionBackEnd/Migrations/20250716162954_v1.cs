@@ -298,8 +298,7 @@ namespace EcoFashionBackEnd.Migrations
                     ProductScore = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DesignTypeId = table.Column<int>(type: "int", nullable: true),
-                    DesignTypesDesignTypeId = table.Column<int>(type: "int", nullable: false)
+                    DesignTypeId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -311,11 +310,11 @@ namespace EcoFashionBackEnd.Migrations
                         principalColumn: "DesignerId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Designs_DesignsTypes_DesignTypesDesignTypeId",
-                        column: x => x.DesignTypesDesignTypeId,
+                        name: "FK_Designs_DesignsTypes_DesignTypeId",
+                        column: x => x.DesignTypeId,
                         principalTable: "DesignsTypes",
                         principalColumn: "DesignTypeId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -450,18 +449,7 @@ namespace EcoFashionBackEnd.Migrations
                     DesignId = table.Column<int>(type: "int", nullable: false),
                     SavedMaterialId = table.Column<int>(type: "int", nullable: false),
                     PersentageUsed = table.Column<float>(type: "real", nullable: false),
-<<<<<<<< HEAD:EcoFashionBackEnd/EcoFashionBackEnd/Migrations/20250716154312_v1.cs
                     MeterUsed = table.Column<int>(type: "int", nullable: false)
-========
-                    SupplierId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    MaterialName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Price = table.Column<int>(type: "int", nullable: false),
-                    AvailableQuantity = table.Column<int>(type: "int", nullable: false),
-                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
->>>>>>>> 5e8d73c54c340d303a9bfdcb1a10a834064e9394:EcoFashionBackEnd/EcoFashionBackEnd/Migrations/20250716095250_InitialCreated.cs
                 },
                 constraints: table =>
                 {
@@ -580,9 +568,9 @@ namespace EcoFashionBackEnd.Migrations
                 column: "DesignerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Designs_DesignTypesDesignTypeId",
+                name: "IX_Designs_DesignTypeId",
                 table: "Designs",
-                column: "DesignTypesDesignTypeId");
+                column: "DesignTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DesignSizes_DesignsSizesId",

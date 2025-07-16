@@ -180,8 +180,8 @@ namespace EcoFashionBackEnd.Services
                 Address = request.Address,
                 TaxNumber = request.TaxNumber,
                 IdentificationNumber = request.IdentificationNumber,
-                IdentificationPictureFront = request.IdentificationPictureFront,
-                IdentificationPictureBack = request.IdentificationPictureBack,
+                //IdentificationPictureFront = request.IdentificationPictureFront,
+                //IdentificationPictureBack = request.IdentificationPictureBack,
                 Certificates = request.Certificates,
                 CreatedAt = DateTime.UtcNow,
                 Status = "Active"
@@ -227,8 +227,8 @@ namespace EcoFashionBackEnd.Services
             existingDesigner.Address = request.Address ?? existingDesigner.Address;
             existingDesigner.TaxNumber = request.TaxNumber ?? existingDesigner.TaxNumber;
             existingDesigner.IdentificationNumber = request.IdentificationNumber ?? existingDesigner.IdentificationNumber;
-            existingDesigner.IdentificationPictureFront = request.IdentificationPictureFront ?? existingDesigner.IdentificationPictureFront;
-            existingDesigner.IdentificationPictureBack = request.IdentificationPictureBack ?? existingDesigner.IdentificationPictureBack;
+            //existingDesigner.IdentificationPictureFront = request.IdentificationPictureFront ?? existingDesigner.IdentificationPictureFront;
+            //existingDesigner.IdentificationPictureBack = request.IdentificationPictureBack ?? existingDesigner.IdentificationPictureBack;
             existingDesigner.Certificates = request.Certificates ?? existingDesigner.Certificates;
             existingDesigner.UpdatedAt = DateTime.UtcNow;
 

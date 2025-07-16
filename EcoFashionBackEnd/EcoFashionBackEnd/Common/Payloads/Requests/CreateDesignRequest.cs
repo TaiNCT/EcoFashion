@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 
 public class CreateDesignRequest
@@ -11,6 +12,7 @@ public class CreateDesignRequest
     public int Quantity { get; set; }
     public int ProductScore { get; set; }
     public string? Status { get; set; }
-    public int? DesignTypeId { get; set; } 
-    public List<IFormFile>? ImageFiles { get; set; } 
+    public int? DesignTypeId { get; set; }
+    [FromForm]
+    public List<IFormFile> ImageFiles { get; set; } = new();
 }

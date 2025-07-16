@@ -2,6 +2,7 @@
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos;
+using EcoFashionBackEnd.Dtos.Design;
 using EcoFashionBackEnd.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -10,7 +11,7 @@ namespace EcoFashionBackEnd.Controllers;
 
 
 //[Authorize]
-[Route("api/Dsign")]
+[Route("api/Design")]
 [ApiController]
 public class DesignController : ControllerBase
 {
@@ -37,6 +38,16 @@ public class DesignController : ControllerBase
         if (design == null) return NotFound(ApiResult<DesignModel>.Fail("Không tìm thấy thiết kế."));
         return Ok(ApiResult<DesignModel>.Succeed(design));
     }
+    [HttpGet("Detail/{id}")]
+    public async Task<IActionResult> GetDesignDetail(int id)
+    {
+        var design = await _designService.GetDesignDetailById(id);
+        if (design == null)
+            return NotFound(ApiResult<DesignDetailDto>.Fail("Không tìm thấy thiết kế."));
+
+        return Ok(ApiResult<DesignDetailDto>.Succeed(design));
+    }
+
 
     [HttpPost("Create")]
     public async Task<IActionResult> CreateDesign([FromForm] CreateDesignRequest request)
