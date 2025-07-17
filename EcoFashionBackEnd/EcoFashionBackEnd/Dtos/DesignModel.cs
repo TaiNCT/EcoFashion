@@ -11,6 +11,7 @@
         public decimal Price { get; set; }
         public int ProductScore { get; set; }
         public string? Status { get; set; }
+        public int? DesignTypeId { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }
