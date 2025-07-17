@@ -40,7 +40,7 @@ namespace EcoFashionBackEnd.Services
                 {
                     File = new FileDescription(file.FileName, stream),
                     UploadPreset = "Ecofashion",
-                    //ResourceType = ResourceType.Image // ✅ Quan trọng!
+                    //ResourceType = ResourceType.Image 
                 };
 
                 try

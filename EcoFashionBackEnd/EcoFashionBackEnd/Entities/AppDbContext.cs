@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EcoFashionBackEnd.Entities.EcoFashionBackEnd.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace EcoFashionBackEnd.Entities
 {
@@ -26,7 +27,11 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<DesignsSize> DesignsSizes { get; set; }
         public DbSet<DesignsType> DesignsTypes { get; set; }
         public DbSet<DesignMaterialInventory> DesignMaterialInventorys { get; set; }
-
+        public DbSet<Material> Materials { get; set; }
+        public DbSet<MaterialImage> MaterialImages { get; set; }
+        public DbSet<SustainabilityCriteria> SustainabilityCriteria { get; set; }
+        public DbSet<MaterialSustainability> MaterialSustainabilityMetrics { get; set; }
+        public DbSet<MaterialType> MaterialTypes { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -80,8 +85,16 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(ss => ss.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<User>()
+             .Property(u => u.Status)
+             .HasConversion<string>();
+
+            modelBuilder.Entity<Application>()
+                .Property(a => a.Status)
+                .HasConversion<string>();
             #endregion
-            // DESIGN
+            #region DESIGN
             modelBuilder.Entity<Design>()
       .HasMany(d => d.DesignsColors)
       .WithMany(dc => dc.Designs)
@@ -121,13 +134,19 @@ namespace EcoFashionBackEnd.Entities
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DesignsMaterial>()
-                .HasKey(dm => new { dm.DesignIdPk, dm.SavedMaterialIdPk }); // Configure Composite Key
+                .HasKey(dm => new { dm.DesignId, dm.MaterialId });
 
             modelBuilder.Entity<DesignsMaterial>()
-                .HasOne(dm => dm.Design)
+                .HasOne(dm => dm.Designs)
                 .WithMany(d => d.DesignsMaterials)
                 .HasForeignKey(dm => dm.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignsMaterial>()
+                .HasOne(dm => dm.Materials)
+                .WithMany()
+                .HasForeignKey(dm => dm.MaterialId)
+                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<DesignFeature>()
                 .HasOne(df => df.Design)
@@ -151,14 +170,57 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany() 
                 .HasForeignKey(d => d.DesignTypeId) 
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // Unique constraint for DesignId and ImageId to prevent duplicates
             modelBuilder.Entity<DesignImage>()
                 .HasIndex(di => new { di.DesignId, di.ImageId })
                 .IsUnique();
+            #endregion
+
+            #region Material 
+            // Configure relationships for Materials
+            modelBuilder.Entity<Material>()
+                .HasOne(m => m.SupplierProfile)
+                .WithMany()
+                .HasForeignKey(m => m.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Material>()
+                .HasOne(m => m.MaterialType)
+                .WithMany()
+                .HasForeignKey(m => m.TypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MaterialImage>()
+                .HasOne(mi => mi.Material)
+                .WithMany(m => m.MaterialImages)
+                .HasForeignKey(mi => mi.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MaterialImage>()
+                .HasOne(mi => mi.Image)
+                .WithMany()
+                .HasForeignKey(mi => mi.ImageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MaterialSustainability>()
+                .HasKey(ms => new { ms.MaterialId, ms.CriterionId });
+
+            modelBuilder.Entity<MaterialSustainability>()
+                .HasOne(ms => ms.Material)
+                .WithMany(m => m.MaterialSustainabilityMetrics)
+                .HasForeignKey(ms => ms.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MaterialSustainability>()
+                .HasOne(ms => ms.SustainabilityCriterion)
+                .WithMany()
+                .HasForeignKey(ms => ms.CriterionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            #endregion
+            #region unique
+           
 
             modelBuilder.Entity<TypeSize>()
-                .HasKey(ts => new { ts.DesignTypeIdPk, ts.SizeIdPk }); // Configure Composite Key
+                .HasKey(ts => new { ts.DesignTypeIdPk, ts.SizeIdPk }); 
 
             modelBuilder.Entity<TypeSize>()
                 .HasOne<DesignsSize>()
@@ -169,14 +231,8 @@ namespace EcoFashionBackEnd.Entities
                 .HasOne<DesignsType>()
                 .WithMany()
                 .HasForeignKey(ts => ts.DesignTypeId);
+            #endregion
 
-            modelBuilder.Entity<User>()
-                .Property(u => u.Status)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<Application>()
-                .Property(a => a.Status)
-                .HasConversion<string>();
         }
     }
 }

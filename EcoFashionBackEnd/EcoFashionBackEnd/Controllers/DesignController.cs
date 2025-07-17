@@ -1,4 +1,5 @@
-﻿using EcoFashionBackEnd.Common;
+﻿using AutoMapper;
+using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos;
@@ -17,11 +18,13 @@ public class DesignController : ControllerBase
 {
     private readonly DesignService _designService;
     private readonly DesignerService _designerService;
+    private readonly IMapper _mapper;
 
-    public DesignController(DesignService designService, DesignerService designerService)
+    public DesignController(DesignService designService, DesignerService designerService,IMapper mapper)
     {
         _designService = designService;
         _designerService = designerService;
+        _mapper = mapper;
     }
 
     [HttpGet("GetAll")]
@@ -41,12 +44,14 @@ public class DesignController : ControllerBase
     [HttpGet("Detail/{id}")]
     public async Task<IActionResult> GetDesignDetail(int id)
     {
-        var design = await _designService.GetDesignDetailById(id);
-        if (design == null)
-            return NotFound(ApiResult<DesignDetailDto>.Fail("Không tìm thấy thiết kế."));
+        var dto = await _designService.GetDesignDetailById(id);
+        if (dto == null)
+            return NotFound(ApiResult<DesignDetailResponse>.Fail("Không tìm thấy thiết kế."));
 
-        return Ok(ApiResult<DesignDetailDto>.Succeed(design));
+        var response = _mapper.Map<DesignDetailResponse>(dto);
+        return Ok(ApiResult<DesignDetailResponse>.Succeed(response));
     }
+
 
 
     [HttpPost("Create")]

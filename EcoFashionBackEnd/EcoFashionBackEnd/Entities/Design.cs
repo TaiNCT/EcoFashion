@@ -19,7 +19,6 @@ namespace EcoFashionBackEnd.Entities
         public float RecycledPercentage { get; set; }
         public string? CareInstructions { get; set; }
         public decimal Price { get; set; }
-        public int Quantity { get; set; }
         public int ProductScore { get; set; }
         public string? Status { get; set; } 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -33,7 +32,6 @@ namespace EcoFashionBackEnd.Entities
         public virtual ICollection<DesignsMaterial> DesignsMaterials { get; set; }
         public virtual ICollection<DesignsRating> DesignsRatings { get; set; }
         public virtual ICollection<DesignImage> DesignImages { get; set; }
-
          public virtual ICollection<DesignsColor> DesignsColors { get; set; } 
          public virtual ICollection<DesignsSize> DesignsSizes { get; set; }   
          

@@ -1,29 +1,22 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EcoFashionBackEnd.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace EcoFashionBackEnd.Entities
+[Table("DesignsMaterials")]
+public class DesignsMaterial
 {
-    [Table("DesignsMaterials")]
-    public class DesignsMaterial
-    {
-        [ForeignKey("DesignId")]
-        public int DesignId { get; set; }
-        public virtual Design Design { get; set; }
+    [Key, Column(Order = 0)]
+    public int DesignId { get; set; }
 
-        [ForeignKey("SavedMaterialId")]
-        public int SavedMaterialId { get; set; }
-        //public virtual SavedMaterial SavedMaterial { get; set; } // Assuming SavedMaterial entity exists
+    [Key, Column(Order = 1)]
+    public int MaterialId { get; set; }
 
-        public float PersentageUsed { get; set; }
+    [ForeignKey("DesignId")]
+    public virtual Design Designs { get; set; }
 
-        [Key]
-        [Column(Order = 0)]
-        public int DesignIdPk { get; set; } // Composite Key Part 1
+    [ForeignKey("MaterialId")]
+    public virtual Material Materials { get; set; }
 
-        [Key]
-        [Column(Order = 1)]
-        public int SavedMaterialIdPk { get; set; } // Composite Key Part 2
-
-        public int MeterUsed { get; set; }
-    }
+    public float PersentageUsed { get; set; }
+    public int MeterUsed { get; set; }
 }

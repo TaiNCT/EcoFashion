@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using EcoFashionBackEnd.Common.Payloads.Requests;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 
@@ -9,10 +10,16 @@ public class CreateDesignRequest
     public float RecycledPercentage { get; set; }
     public string? CareInstructions { get; set; }
     public decimal Price { get; set; }
-    public int Quantity { get; set; }
     public int ProductScore { get; set; }
     public string? Status { get; set; }
     public int? DesignTypeId { get; set; }
+
+    public CreateDesignFeatureRequest Feature { get; set; } = new();
+    [FromForm]
+    public string MaterialsJson { get; set; } = string.Empty;
+    //[{"materialId":4,"persentageUsed":40,"meterUsed":1.8},{"materialId":2,"persentageUsed":60,"meterUsed":2.2}]
+
     [FromForm]
     public List<IFormFile> ImageFiles { get; set; } = new();
+    
 }

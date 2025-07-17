@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Dtos.Design;
 using CloudinaryDotNet.Actions;
+using Newtonsoft.Json;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -19,6 +20,7 @@ namespace EcoFashionBackEnd.Services
         private readonly IRepository<Design, int> _designRepository;
         private readonly IRepository<DesignFeature, int> _designsFeatureRepository;
         private readonly IRepository<DesignsVarient, int> _designsVarientRepository;
+        private readonly IRepository<DesignsMaterial, int> _designMaterialRepository;
         private readonly IRepository<Image, int> _imageRepository;
         private readonly IRepository<DesignImage, int> _designImageRepository;
         private readonly AppDbContext _dbContext;
@@ -29,6 +31,7 @@ namespace EcoFashionBackEnd.Services
             IRepository<Design, int> designRepository,
             IRepository<DesignFeature, int> designsFeatureRepository,
             IRepository<DesignsVarient, int> designsVarientRepository,
+            IRepository<DesignsMaterial, int> designsMaterialRepository,
             IRepository<Image, int> imageRepository,
             IRepository<DesignImage, int> designImageRepository,
             AppDbContext dbContext,
@@ -38,6 +41,7 @@ namespace EcoFashionBackEnd.Services
             _designRepository = designRepository;
             _designsFeatureRepository = designsFeatureRepository;
             _designsVarientRepository = designsVarientRepository;
+            _designMaterialRepository = designsMaterialRepository;
             _imageRepository = imageRepository;
             _designImageRepository = designImageRepository;
             _dbContext = dbContext;
@@ -53,6 +57,12 @@ namespace EcoFashionBackEnd.Services
                 .Include(d => d.DesignsVarients).ThenInclude(v => v.DesignsColor)
                 .Include(d => d.DesignsVarients).ThenInclude(v => v.DesignsSize)
                 .Include(d => d.DesignsMaterials)
+                    .ThenInclude(dm => dm.Materials)
+                        .ThenInclude(m => m.MaterialType)
+                .Include(d => d.DesignsMaterials)
+                    .ThenInclude(dm => dm.Materials)
+                        .ThenInclude(m => m.MaterialSustainabilityMetrics)
+                            .ThenInclude(ms => ms.SustainabilityCriterion)
                 .Include(d => d.DesignsRatings)
                 .Include(d => d.DesignerProfile)
                 .FirstOrDefaultAsync(d => d.DesignId == id);
@@ -67,7 +77,6 @@ namespace EcoFashionBackEnd.Services
                 RecycledPercentage = design.RecycledPercentage,
                 CareInstructions = design.CareInstructions,
                 Price = design.Price,
-                Quantity = design.Quantity,
                 ProductScore = design.ProductScore,
                 Status = design.Status,
                 CreatedAt = design.CreatedAt,
@@ -78,7 +87,6 @@ namespace EcoFashionBackEnd.Services
                 Feature = design.DesignsFeature == null ? null : new DesignFeatureDto
                 {
                     ReduceWaste = design.DesignsFeature.ReduceWaste,
-                    RecycledMaterials = design.DesignsFeature.RecycledMaterials,
                     LowImpactDyes = design.DesignsFeature.LowImpactDyes,
                     Durable = design.DesignsFeature.Durable,
                     EthicallyManufactured = design.DesignsFeature.EthicallyManufactured
@@ -95,11 +103,23 @@ namespace EcoFashionBackEnd.Services
                     WasteDiverted = v.WasteDiverted
                 }).ToList(),
 
-                Materials = design.DesignsMaterials.Select(m => new MaterialDto
+                Materials = design.DesignsMaterials.Select(dm => new MaterialDto
                 {
-                    SavedMaterialId = m.SavedMaterialId,
-                    PersentageUsed = m.PersentageUsed,
-                    MeterUsed = m.MeterUsed
+                    MaterialId = dm.MaterialId,
+                    PersentageUsed = dm.PersentageUsed,
+                    MeterUsed = dm.MeterUsed,
+
+                    MaterialName = dm.Materials?.Name,
+                    MaterialTypeName = dm.Materials?.MaterialType?.TypeName,
+
+                    SustainabilityCriteria = dm.Materials?.MaterialSustainabilityMetrics?
+                        .Select(ms => new SustainabilityCriterionDto
+                        {
+                            Criterion = ms.SustainabilityCriterion?.Name?.Trim().ToLower().Replace(" ", "_") ?? "",
+                            Value = ms.Value
+                        })
+                        .Where(dto => !string.IsNullOrEmpty(dto.Criterion))
+                        .ToList() ?? new()
                 }).ToList(),
 
                 AvgRating = design.DesignsRatings.Any() ? design.DesignsRatings.Average(r => r.RatingScore) : null,
@@ -122,66 +142,100 @@ namespace EcoFashionBackEnd.Services
         }
 
 
-
-
-
-
         public async Task<int> CreateDesign(CreateDesignRequest request, Guid designerId, List<IFormFile> imageFiles)
         {
+            // Validate DesignTypeId
             if (!request.DesignTypeId.HasValue ||
                 !await _dbContext.DesignsTypes.AnyAsync(dt => dt.DesignTypeId == request.DesignTypeId.Value))
             {
                 throw new Exception("DesignTypeId không hợp lệ hoặc không tồn tại.");
             }
 
-          
-            var design = _mapper.Map<Design>(request);
-            design.DesignerId = designerId;
-            design.CreatedAt = DateTime.UtcNow;
 
+            // Map sang model
+            var designModel = _mapper.Map<DesignModel>(request);
+            designModel.DesignerId = designerId;
+            designModel.CreatedAt = DateTime.UtcNow;
+
+            // Model → Entity
+            var design = _mapper.Map<Design>(designModel);
             await _designRepository.AddAsync(design);
-            await _designRepository.Commit(); 
+            await _designRepository.Commit(); // commit để có DesignId
 
-            var feature = _mapper.Map<DesignFeature>(request);
-            feature.DesignId = design.DesignId;
+            // Tạo DesignFeature
+            var featureModel = _mapper.Map<DesignFeatureModel>(request.Feature);
+            featureModel.DesignId = design.DesignId;
 
+            var feature = _mapper.Map<DesignFeature>(featureModel);
             await _designsFeatureRepository.AddAsync(feature);
-            List<ImageUploadResult> uploadResults = await _cloudService.UploadImagesAsync(imageFiles);
-            if (imageFiles?.Any() == true)
+
+
+            // Tạo DesignMaterials
+            var materialRequests = new List<DesignMaterialRequest>();
+            if (!string.IsNullOrWhiteSpace(request.MaterialsJson))
             {
-
-                if (uploadResults.Any())
+                try
                 {
-                    foreach (var uploadResult in uploadResults)
-                    {
-                        if (!string.IsNullOrWhiteSpace(uploadResult?.SecureUrl?.ToString()))
-                        {
-                            var designImage = new DesignImage
-                            {
-                                DesignId = design.DesignId,
-                                Image = new Image
-                                {
-                                    ImageUrl = uploadResult.SecureUrl.ToString()
-                                }
-                            };
+                    materialRequests = JsonConvert.DeserializeObject<List<DesignMaterialRequest>>(request.MaterialsJson) ?? new();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error parsing MaterialsJson: " + ex.Message);
+                    throw new Exception("MaterialsJson không hợp lệ.");
+                }
+            }
 
-                            await _designImageRepository.AddAsync(designImage);
-                        }
-                        else
-                        {
-                            Console.WriteLine("⚠️ Upload failed or returned null SecureUrl.");
-                        }
-                    }
+            Console.WriteLine("Số lượng materials: " + materialRequests.Count);
+
+            if (materialRequests.Any())
+            {
+                var materialModels = _mapper.Map<List<DesignMaterialModel>>(materialRequests);
+
+                // Gán DesignId vào model trước khi map sang entity
+                foreach (var model in materialModels)
+                {
+                    model.DesignId = design.DesignId;
+                }
+
+                var materialEntities = _mapper.Map<List<DesignsMaterial>>(materialModels);
+
+                foreach (var material in materialEntities)
+                {
+                    await _designMaterialRepository.AddAsync(material);
                 }
             }
 
 
+            // Upload ảnh
+            if (imageFiles?.Any() == true)
+            {
+                var uploadResults = await _cloudService.UploadImagesAsync(imageFiles);
+                foreach (var uploadResult in uploadResults)
+                {
+                    if (!string.IsNullOrWhiteSpace(uploadResult?.SecureUrl?.ToString()))
+                    {
+                        var designImage = new DesignImage
+                        {
+                            DesignId = design.DesignId,
+                            Image = new Image
+                            {
+                                ImageUrl = uploadResult.SecureUrl.ToString()
+                            }
+                        };
+
+                        await _designImageRepository.AddAsync(designImage);
+                    }
+                    else
+                    {
+                        Console.WriteLine(" Upload failed or returned null SecureUrl.");
+                    }
+                }
+            }
+
             await _designRepository.Commit();
-
             return design.DesignId;
+
         }
-
-
 
         public async Task<IEnumerable<DesignModel>> GetAllDesigns()
         {
@@ -200,7 +254,7 @@ namespace EcoFashionBackEnd.Services
             var existingDesign = await _designRepository.GetByIdAsync(id);
             if (existingDesign == null) return false;
 
-            _mapper.Map(request, existingDesign); // Áp dụng các thay đổi từ request
+            _mapper.Map(request, existingDesign); 
             _designRepository.Update(existingDesign);
             var result = await _designRepository.Commit();
             return result > 0;

@@ -2,8 +2,12 @@
 {
     public class MaterialDto
     {
-        public int SavedMaterialId { get; set; }
-        public float PersentageUsed { get; set; }
-        public int MeterUsed { get; set; }
+        public int MaterialId { get; set; }
+        public double PersentageUsed { get; set; }
+        public double MeterUsed { get; set; }
+
+        public string? MaterialName { get; set; }
+        public string? MaterialTypeName { get; set; }
+        public List<SustainabilityCriterionDto> SustainabilityCriteria { get; set; } = new();
     }
 }
