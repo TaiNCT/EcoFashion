@@ -1,7 +1,8 @@
 ﻿namespace EcoFashionBackEnd.Dtos.Design
 {
-    public class VarientDto
+    public class VariantDto
     {
+       
         public string SizeName { get; set; }
         public string ColorName { get; set; }
         public string ColorCode { get; set; }

@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Entities
 {
-    [Table("DesignsVarients")]
-    public class DesignsVarient
+    [Table("DesignsVariants")]
+    public class DesignsVariant
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -20,7 +20,7 @@ namespace EcoFashionBackEnd.Entities
 
         public int ColorId { get; set; }
         [ForeignKey("ColorId")]
-        public virtual DesignsColor DesignsColor { get; set; }
+        public virtual DesignsColor DesignsColor { get; set; }  
 
         public int Quantity { get; set; }
         public float CarbonFootprint { get; set; }

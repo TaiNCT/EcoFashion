@@ -19,7 +19,7 @@ namespace EcoFashionBackEnd.Services
     {
         private readonly IRepository<Design, int> _designRepository;
         private readonly IRepository<DesignFeature, int> _designsFeatureRepository;
-        private readonly IRepository<DesignsVarient, int> _designsVarientRepository;
+        private readonly IRepository<DesignsVariant, int> _designsVarientRepository;
         private readonly IRepository<DesignsMaterial, int> _designMaterialRepository;
         private readonly IRepository<Image, int> _imageRepository;
         private readonly IRepository<DesignImage, int> _designImageRepository;
@@ -30,7 +30,7 @@ namespace EcoFashionBackEnd.Services
         public DesignService(
             IRepository<Design, int> designRepository,
             IRepository<DesignFeature, int> designsFeatureRepository,
-            IRepository<DesignsVarient, int> designsVarientRepository,
+            IRepository<DesignsVariant, int> designsVarientRepository,
             IRepository<DesignsMaterial, int> designsMaterialRepository,
             IRepository<Image, int> imageRepository,
             IRepository<DesignImage, int> designImageRepository,
@@ -54,8 +54,8 @@ namespace EcoFashionBackEnd.Services
                 .Include(d => d.DesignTypes)
                 .Include(d => d.DesignImages).ThenInclude(di => di.Image)
                 .Include(d => d.DesignsFeature)
-                .Include(d => d.DesignsVarients).ThenInclude(v => v.DesignsColor)
-                .Include(d => d.DesignsVarients).ThenInclude(v => v.DesignsSize)
+                .Include(d => d.DesignsVariants).ThenInclude(v => v.DesignsColor)
+                .Include(d => d.DesignsVariants).ThenInclude(v => v.DesignsSize)
                 .Include(d => d.DesignsMaterials)
                     .ThenInclude(dm => dm.Materials)
                         .ThenInclude(m => m.MaterialType)
@@ -92,7 +92,7 @@ namespace EcoFashionBackEnd.Services
                     EthicallyManufactured = design.DesignsFeature.EthicallyManufactured
                 },
 
-                Varients = design.DesignsVarients.Select(v => new VarientDto
+                Variants = design.DesignsVariants.Select(v => new VariantDto
                 {
                     SizeName = v.DesignsSize?.SizeName ?? "",
                     ColorName = v.DesignsColor?.ColorName ?? "",
@@ -249,15 +249,46 @@ namespace EcoFashionBackEnd.Services
             return _mapper.Map<DesignModel>(design);
         }
 
-        public async Task<bool> UpdateDesign(int id, UpdateDesignRequest request)
+        public async Task<bool> UpdateDesignVariants(int designId, UpdateDesignRequest request)
         {
-            var existingDesign = await _designRepository.GetByIdAsync(id);
-            if (existingDesign == null) return false;
+            var design = await _dbContext.Designs
+                .Include(d => d.DesignsVariants)
+                .FirstOrDefaultAsync(d => d.DesignId == designId);
 
-            _mapper.Map(request, existingDesign); 
-            _designRepository.Update(existingDesign);
-            var result = await _designRepository.Commit();
-            return result > 0;
+            if (design == null) return false;
+
+            // Update thông tin thiết kế nếu cần
+            design.Name = request.Name;
+            design.Description = request.Description;
+            //design.DesignTypeId = request.DesignTypeId;
+
+            // Đồng bộ variant
+            var existingVariants = design.DesignsVariants.ToList();
+
+            foreach (var variantRequest in request.Variants)
+            {
+                if (variantRequest.Id.HasValue)
+                {
+                    var existing = existingVariants.FirstOrDefault(v => v.Id == variantRequest.Id.Value);
+                    if (existing != null)
+                    {
+                        _mapper.Map(variantRequest, existing);
+                    }
+                }
+                else
+                {
+                    var newEntity = _mapper.Map<DesignsVariant>(variantRequest);
+                    newEntity.DesignId = designId;
+                    _dbContext.DesignsVarients.Add(newEntity);
+                }
+            }
+
+            var updatedIds = request.Variants.Where(v => v.Id.HasValue).Select(v => v.Id.Value).ToHashSet();
+            var toRemove = existingVariants.Where(v => !updatedIds.Contains(v.Id)).ToList();
+            _dbContext.DesignsVarients.RemoveRange(toRemove);
+
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> DeleteDesign(int id)

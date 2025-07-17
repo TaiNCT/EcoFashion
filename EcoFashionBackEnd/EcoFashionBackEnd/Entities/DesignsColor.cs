@@ -9,9 +9,8 @@ namespace EcoFashionBackEnd.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
         public string? ColorName { get; set; }
         public string? ColorCode { get; set; }
-        public virtual ICollection<Design> Designs { get; set; } = new List<Design>();
+        public virtual ICollection<DesignsVariant> Variants { get; set; }
     }
 }

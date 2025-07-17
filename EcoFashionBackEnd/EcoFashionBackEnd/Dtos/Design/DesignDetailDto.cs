@@ -18,7 +18,7 @@
 
         public DesignFeatureDto? Feature { get; set; }
 
-        public List<VarientDto>? Varients { get; set; }
+        public List<VariantDto>? Variants { get; set; }
 
         public List<MaterialDto>? Materials { get; set; }
 
