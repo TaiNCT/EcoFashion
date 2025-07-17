@@ -7,19 +7,25 @@ export interface DesignerProfile {
   designerId: string;
   userId: number;
   designerName: string;
-  portfolioUrl?: string;
-  bannerUrl?: string;
+  avatarUrl?: string;
+  bio?: string;
   specializationUrl?: string;
+  portfolioUrl?: string;
+  portfolioFiles?: string;
+  bannerUrl?: string;
   email?: string;
   phoneNumber?: string;
   address?: string;
   taxNumber?: string;
   identificationNumber?: string;
-  identificationPicture?: string;
-  identificationPictureOwner?: string;
+  identificationPictureFront?: string;
+  identificationPictureBack?: string;
   status?: string;
   createdAt: string;
   updatedAt?: string;
+  rating?: number;
+  reviewCount?: number;
+  certificates?: string;
 }
 
 export interface CreateDesignerRequest {

@@ -1,7 +1,17 @@
 import "./SupplierLandingPage.css";
 import { useState, useEffect } from "react";
+// Utility function to fallback image URL safely
+function safeImageUrl(
+  url?: string,
+  fallback: string = "/assets/default-image.jpg"
+): string {
+  return typeof url === "string" && url.trim() ? url : fallback;
+}
 import { useParams, useNavigate } from "react-router-dom";
-import { SupplierService, type SupplierPublic } from "../../services/api/supplierService";
+import {
+  SupplierService,
+  type SupplierPublic,
+} from "../../services/api/supplierService";
 import { toast } from "react-toastify";
 
 export default function SupplierLandingPage() {
@@ -24,7 +34,8 @@ export default function SupplierLandingPage() {
         const data = await SupplierService.getSupplierPublicProfile(id);
         setSupplierData(data);
       } catch (error: any) {
-        const errorMessage = error.message || "Không thể tải thông tin nhà cung cấp";
+        const errorMessage =
+          error.message || "Không thể tải thông tin nhà cung cấp";
         setError(errorMessage);
         toast.error(errorMessage, { position: "bottom-center" });
       } finally {
@@ -37,32 +48,83 @@ export default function SupplierLandingPage() {
   if (loading) {
     return (
       <div className="supplier-container">
-        <div className="supplier-loading">Đang tải thông tin nhà cung cấp...</div>
+        <div className="supplier-loading">
+          Đang tải thông tin nhà cung cấp...
+        </div>
       </div>
     );
   }
   if (error || !supplierData) {
     return (
       <div className="supplier-container">
-        <button className="supplier-back-btn" onClick={() => navigate("/explore/suppliers")}>← Quay lại danh sách</button>
-        <div className="supplier-error">{error || "Không tìm thấy thông tin nhà cung cấp"}</div>
-        <button className="supplier-back-btn" onClick={() => navigate("/explore/suppliers")}>← Quay lại danh sách</button>
+        <button
+          className="supplier-back-btn"
+          onClick={() => navigate("/explore/suppliers")}
+        >
+          ← Quay lại danh sách
+        </button>
+        <div className="supplier-error">
+          {error || "Không tìm thấy thông tin nhà cung cấp"}
+        </div>
+        <button
+          className="supplier-back-btn"
+          onClick={() => navigate("/explore/suppliers")}
+        >
+          ← Quay lại danh sách
+        </button>
       </div>
     );
   }
   return (
     <div className="supplier-container">
-      <button className="supplier-back-btn" onClick={() => navigate("/explore/suppliers")}>← Quay lại danh sách</button>
-      <div className="supplier-banner" style={{ backgroundImage: `url(${supplierData.bannerUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=300&fit=crop"})` }}>
+      <button
+        className="supplier-back-btn"
+        onClick={() => navigate("/explore/suppliers")}
+      >
+        ← Quay lại danh sách
+      </button>
+      <div
+        className="supplier-banner"
+        style={{
+          backgroundImage: `url(${safeImageUrl(
+            supplierData.bannerUrl,
+            "/assets/default-banner.jpg"
+          )})`,
+        }}
+      >
         <div className="supplier-banner-overlay" />
         <div className="supplier-banner-content">
-          <img className="supplier-avatar" src={supplierData.avatarUrl || ''} alt="avatar" onError={e => (e.currentTarget.style.display='none')} />
+          <img
+            className="supplier-avatar"
+            src={safeImageUrl(
+              supplierData.avatarUrl,
+              "/assets/default-avatar.png"
+            )}
+            alt="avatar"
+            onError={(e) => {
+              if (
+                e.currentTarget.src !==
+                window.location.origin + "/assets/default-avatar.png"
+              ) {
+                e.currentTarget.src = "/assets/default-avatar.png";
+              }
+            }}
+          />
           <div className="supplier-banner-info">
-            <h2>{supplierData.supplierName || supplierData.userFullName || "Nhà cung cấp"}</h2>
+            <h2>
+              {supplierData.supplierName ||
+                supplierData.userFullName ||
+                "Nhà cung cấp"}
+            </h2>
             <div className="supplier-banner-tags">
               <span className="supplier-chip">🏢 Nhà Cung Cấp</span>
-              <span className="supplier-chip-outline">Thành viên từ {new Date(supplierData.createdAt).getFullYear()}</span>
-              <span className="supplier-rating">⭐ {supplierData.rating?.toFixed(1) || "0"} ({supplierData.reviewCount || 0} đánh giá)</span>
+              <span className="supplier-chip-outline">
+                Thành viên từ {new Date(supplierData.createdAt).getFullYear()}
+              </span>
+              <span className="supplier-rating">
+                ⭐ {supplierData.rating?.toFixed(1) || "0"} (
+                {supplierData.reviewCount || 0} đánh giá)
+              </span>
             </div>
           </div>
         </div>
@@ -71,7 +133,10 @@ export default function SupplierLandingPage() {
         <div className="supplier-main-info">
           <div className="supplier-card">
             <h3 className="supplier-section-title">🏢 Giới thiệu</h3>
-            <div className="supplier-bio">{supplierData.bio || "Nhà cung cấp chuyên nghiệp với nhiều năm kinh nghiệm trong lĩnh vực cung cấp nguyên liệu và dịch vụ chất lượng cao, cam kết mang đến những sản phẩm tốt nhất cho khách hàng."}</div>
+            <div className="supplier-bio">
+              {supplierData.bio ||
+                "Nhà cung cấp chuyên nghiệp với nhiều năm kinh nghiệm trong lĩnh vực cung cấp nguyên liệu và dịch vụ chất lượng cao, cam kết mang đến những sản phẩm tốt nhất cho khách hàng."}
+            </div>
             <div className="supplier-tags">
               <span className="supplier-tag">🌱 Nguyên liệu bền vững</span>
               <span className="supplier-tag">🏢 Uy tín cao</span>
@@ -81,13 +146,24 @@ export default function SupplierLandingPage() {
           {supplierData.portfolioUrl && (
             <div className="supplier-card">
               <h3 className="supplier-section-title">🌐 Portfolio</h3>
-              <a className="supplier-portfolio-btn" href={supplierData.portfolioUrl} target="_blank" rel="noopener noreferrer">Xem Portfolio</a>
+              <a
+                className="supplier-portfolio-btn"
+                href={supplierData.portfolioUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Xem Portfolio
+              </a>
             </div>
           )}
           {supplierData.certificates && (
             <div className="supplier-card">
-              <h3 className="supplier-section-title">🎖️ Chứng chỉ & Giải thưởng</h3>
-              <div className="supplier-certificates">{supplierData.certificates}</div>
+              <h3 className="supplier-section-title">
+                🎖️ Chứng chỉ & Giải thưởng
+              </h3>
+              <div className="supplier-certificates">
+                {supplierData.certificates}
+              </div>
             </div>
           )}
         </div>
@@ -120,11 +196,15 @@ export default function SupplierLandingPage() {
             <div className="supplier-stats-list">
               <div className="supplier-stats-item">
                 <span>Đánh giá trung bình:</span>
-                <span className="supplier-rating">{supplierData.rating?.toFixed(1) || "0"}/5</span>
+                <span className="supplier-rating">
+                  {supplierData.rating?.toFixed(1) || "0"}/5
+                </span>
               </div>
               <div className="supplier-stats-item">
                 <span>Tổng đánh giá:</span>
-                <span className="supplier-rating">{supplierData.reviewCount || 0}</span>
+                <span className="supplier-rating">
+                  {supplierData.reviewCount || 0}
+                </span>
               </div>
               <div className="supplier-stats-item">
                 <span>Thành viên từ:</span>
@@ -136,4 +216,4 @@ export default function SupplierLandingPage() {
       </div>
     </div>
   );
-} 
+}

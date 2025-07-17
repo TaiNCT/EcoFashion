@@ -21,7 +21,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
 
-
+        // Apply as Supplier or Designer
         [Authorize]
         [HttpPost("ApplySupplier")]
         public async Task<IActionResult> ApplyAsSupplier([FromForm] ApplySupplierRequest request)
@@ -33,7 +33,7 @@ namespace EcoFashionBackEnd.Controllers
                 return Unauthorized(ApiResult<ApplicationModel>.Fail("Không thể xác định người dùng."));
             }
 
-            var application = await _applicationService.ApplyAsSupplier(userId, request, request.IdentificationPictureFile);
+            var application = await _applicationService.ApplyAsSupplier(userId, request);
             if (application != null)
             {
                 return CreatedAtAction("GetApplicationById", new { id = application.ApplicationId }, ApiResult<ApplicationModel>.Succeed(application));
@@ -52,13 +52,15 @@ namespace EcoFashionBackEnd.Controllers
                 return Unauthorized(ApiResult<ApplicationModel>.Fail("Không thể xác định người dùng."));
             }
 
-            var application = await _applicationService.ApplyAsDesigner(userId, request, request.IdentificationPictureFile);
+            var application = await _applicationService.ApplyAsDesigner(userId, request);
             if (application != null)
             {
                 return Ok(ApiResult<ApplicationModel>.Succeed(application));
             }
             return BadRequest(ApiResult<object>.Fail("Không thể gửi đơn đăng ký trở thành nhà thiết kế."));
         }
+        // -----------------------------------------------
+        // Get Application by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetApplicationById(int id)
         {

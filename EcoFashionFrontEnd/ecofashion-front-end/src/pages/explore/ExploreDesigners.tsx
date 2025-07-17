@@ -1,3 +1,10 @@
+// Utility function to fallback image URL safely
+function safeImageUrl(
+  url?: string,
+  fallback: string = "/assets/default-image.jpg"
+): string {
+  return typeof url === "string" && url.trim() ? url : fallback;
+}
 import {
   Container,
   Typography,
@@ -179,19 +186,29 @@ const ExploreDesignersPage: React.FC = () => {
               <div
                 className="designer-banner"
                 style={{
-                  backgroundImage: `url(${
-                    designer.bannerUrl ||
-                    "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400&h=160&fit=crop"
-                  })`,
+                  backgroundImage: `url(${safeImageUrl(
+                    designer.bannerUrl,
+                    "/assets/default-banner.jpg"
+                  )})`,
                 }}
               />
               <div className="designer-content">
                 <div className="designer-avatar-name">
                   <img
                     className="designer-avatar"
-                    src={designer.avatarUrl || ""}
+                    src={safeImageUrl(
+                      designer.avatarUrl,
+                      "/assets/default-avatar.png"
+                    )}
                     alt="avatar"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
+                    onError={(e) => {
+                      if (
+                        e.currentTarget.src !==
+                        window.location.origin + "/assets/default-avatar.png"
+                      ) {
+                        e.currentTarget.src = "/assets/default-avatar.png";
+                      }
+                    }}
                   />
                   <div className="designer-info">
                     <div className="designer-name-row">

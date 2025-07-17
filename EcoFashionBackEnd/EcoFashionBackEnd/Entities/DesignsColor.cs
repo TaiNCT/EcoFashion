@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Entities
 {
-    [Table("Designs_Color")]
+    [Table("DesignsColors")]
     public class DesignsColor
     {
         [Key]
@@ -12,5 +12,6 @@ namespace EcoFashionBackEnd.Entities
 
         public string? ColorName { get; set; }
         public string? ColorCode { get; set; }
+        public virtual ICollection<Design> Designs { get; set; } = new List<Design>();
     }
 }

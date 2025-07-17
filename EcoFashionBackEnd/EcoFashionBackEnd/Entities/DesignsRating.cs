@@ -1,26 +1,24 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Entities
 {
-    [Table("Designs_Rating")]
+    [Table("DesignsRating")]
+    [PrimaryKey(nameof(DesignIdPk), nameof(UserIdPk))] // Định nghĩa composite key ở đây
     public class DesignsRating
     {
         [ForeignKey("DesignId")]
         public int DesignId { get; set; }
         public virtual Design Design { get; set; }
 
-        public Guid CustomerId { get; set; }
+        public int UserId { get; set; }
 
         public float RatingScore { get; set; }
 
-        [Key]
         [Column(Order = 0)]
-        public int DesignIdPk { get; set; } // Composite Key Part 1
+        public int DesignIdPk { get; set; } // Phần 1 của Composite Key
 
-        [Key]
         [Column(Order = 1)]
-        public Guid CustomerIdPk { get; set; } // Composite Key Part 2
+        public int UserIdPk { get; set; } // Phần 2 của Composite Key
     }
 }
