@@ -7,15 +7,25 @@ import {
   Pagination,
   Select,
   MenuItem,
+  Card,
+  Chip,
+  IconButton,
+  Link,
+  CardContent,
+  Rating,
 } from "@mui/material";
 import FashionCard from "../fashion/FashionCard";
 import type { Fashion } from "../../types/Fashion";
+import type { Design } from "../../services/api/designService";
+import { EcoIcon } from "../../assets/icons/icon";
+import { FavoriteBorderOutlined } from "@mui/icons-material";
+
 interface ProductsSectionProps {
-  products: Fashion[];
+  products: Design[];
   id?: any;
-  onProductSelect?: (product: Fashion) => void;
-  onAddToCart?: (product: Fashion) => void;
-  onToggleFavorite?: (product: Fashion) => void;
+  onProductSelect?: (product: Design) => void;
+  onAddToCart?: (product: Design) => void;
+  onToggleFavorite?: (product: Design) => void;
   onViewMore?: () => void;
   showViewMore?: boolean;
 }
@@ -29,7 +39,7 @@ const DesignsSection: React.FC<ProductsSectionProps> = ({
   onViewMore,
   // showViewMore = true,
 }) => {
-  if (products.length === 0) {
+  if (!products) {
     return (
       <Container maxWidth="lg">
         <Box
@@ -75,11 +85,23 @@ const DesignsSection: React.FC<ProductsSectionProps> = ({
 
   const totalPages = Math.ceil(products.length / productsPerPage);
 
+  //testing
+  const getCategoryColor = (category: Design["designTypeId"]) => {
+    const colors = {
+      clothing: "#2196f3",
+      accessories: "#ff9800",
+      footwear: "#4caf50",
+      bags: "#9c27b0",
+      home: "#607d8b",
+    };
+    return colors[category] || "#9e9e9e";
+  };
+
   return (
     <Box sx={{ width: "100%", textAlign: "center" }}>
       <Grid container spacing={2}>
         {paginatedProducts.map((product) => (
-          <Grid key={product.id} size={3}>
+          <Grid key={product.designId} size={3}>
             <FashionCard
               product={product}
               onSelect={onProductSelect}

@@ -19,12 +19,14 @@ import { AddToCart, EcoIcon } from "../../assets/icons/icon";
 import type { Fashion } from "../../types/Fashion";
 import { FavoriteBorderOutlined, LocalShipping } from "@mui/icons-material";
 import { grey } from "@mui/material/colors";
-
+import type { Design } from "../../services/api/designService";
+//example
+import ao_linen from "../../assets/pictures/example/ao-linen.webp";
 interface FashionCardProps {
-  product: Fashion;
-  onSelect?: (product: Fashion) => void;
-  onAddToCart?: (product: Fashion) => void;
-  onToggleFavorite?: (product: Fashion) => void;
+  product: Design;
+  onSelect?: (product: Design) => void;
+  onAddToCart?: (product: Design) => void;
+  onToggleFavorite?: (product: Design) => void;
 }
 
 const FashionCard: React.FC<FashionCardProps> = ({
@@ -33,7 +35,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
   // onAddToCart,
   // onToggleFavorite,
 }) => {
-  const getCategoryColor = (category: Fashion["category"]) => {
+  const getCategoryColor = (category: Design["designTypeId"]) => {
     const colors = {
       clothing: "#2196f3",
       accessories: "#ff9800",
@@ -153,14 +155,14 @@ const FashionCard: React.FC<FashionCardProps> = ({
           flexDirection: "column",
         }}
       >
-        {product.isNew && (
+        {/* {product.isNew && (
           <Chip
             label="Mới"
             size="small"
             sx={{ mb: 1, bgcolor: "#e91e63", color: "white" }}
           />
-        )}
-        {product.isBestSeller && (
+        )} */}
+        {/* {product.isBestSeller && (
           <Chip
             label="Bán Chạy Nhất"
             size="small"
@@ -170,10 +172,10 @@ const FashionCard: React.FC<FashionCardProps> = ({
               color: "white",
             }}
           />
-        )}
+        )} */}
         <Chip
           icon={<EcoIcon />}
-          label={`${product.sustainability}% Tái Chế`}
+          label={`${product.recycledPercentage}% Tái Chế`}
           size="small"
           sx={{
             backgroundColor: "rgba(200, 248, 217, 1)",
@@ -196,11 +198,15 @@ const FashionCard: React.FC<FashionCardProps> = ({
       </IconButton>
 
       {/* Product Image */}
-      <Link href={`/detail/${product.id}`} sx={{ textDecoration: "none" }}>
+      <Link
+        href={`/detail/${product.designId}`}
+        sx={{ textDecoration: "none" }}
+      >
         <CardMedia
           component="img"
           height="360"
-          image={product.image}
+          // image={product.image}
+          image={ao_linen}
           alt={product.name}
           sx={{ width: "100%", objectFit: "cover" }}
         />
@@ -235,7 +241,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
           }}
         >
           <Link
-            href={`/detail/${product.id}`}
+            href={`/detail/${product.designId}`}
             sx={{ textDecoration: "none", flexGrow: 1 }}
           >
             <Box component="a">
@@ -249,17 +255,18 @@ const FashionCard: React.FC<FashionCardProps> = ({
                 }}
               >
                 <Chip
-                  label={product.category.toUpperCase()}
+                  // label={product.category.toUpperCase()}
+                  label={product.designId}
                   size="small"
                   sx={{
-                    bgcolor: getCategoryColor(product.category),
+                    bgcolor: getCategoryColor(product.designId),
                     color: "white",
                     fontWeight: "bold",
                     fontSize: "0.7rem",
                   }}
                 />
                 <Typography variant="caption" color="text.secondary">
-                  {product.brand.name}
+                  {product.designerId}
                 </Typography>
               </Box>
               {/* Design Name */}
@@ -279,12 +286,12 @@ const FashionCard: React.FC<FashionCardProps> = ({
               {/* Rating */}
               <Box display="flex" alignItems="center">
                 <Rating
-                  value={Math.round(product.rating.average)}
+                  value={Math.round(product.productScore)}
                   readOnly
                   size="small"
                 />
                 <Typography variant="body2" ml={1}>
-                  ({product.rating.count})
+                  ({product.productScore})
                 </Typography>
               </Box>
               {/* Design Price */}
@@ -296,7 +303,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
                   flexDirection: "column",
                 }}
               >
-                {!product.price.original && (
+                {/* {!product.price.original && (
                   <Typography
                     component="div"
                     sx={{
@@ -308,28 +315,31 @@ const FashionCard: React.FC<FashionCardProps> = ({
                   >
                     {formatPrice(product.price)}
                   </Typography>
-                )}
-                {product.price.original && (
-                  <Box>
-                    <Typography
-                      variant="h5"
-                      component="div"
-                      sx={{ fontWeight: "bold", color: "#2e7d32" }}
-                    >
-                      {formatPrice(product.price)}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        textDecoration: "line-through",
-                        color: "text.secondary",
-                        fontSize: "0.875rem",
-                      }}
-                    >
-                      {formatOriginalPrice(product.price)}
-                    </Typography>
-                  </Box>
-                )}
+                )} */}
+                {/* {product.price.original && ( */}
+                <Box>
+                  <Typography
+                    variant="h5"
+                    component="div"
+                    sx={{ fontWeight: "bold", color: "#2e7d32" }}
+                  >
+                    {/* {formatPrice(product.price)} */}
+                    {product.price}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      textDecoration: "line-through",
+                      color: "text.secondary",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    {/* {formatOriginalPrice(product.Price)}
+                     */}
+                    {product.price}
+                  </Typography>
+                </Box>
+                {/* )} */}
               </Box>
               {/* Material */}
               <Box
@@ -342,7 +352,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
                   textOverflow: "ellipsis",
                 }}
               >
-                {product.materials.map((mat, index) => (
+                {/* {product.materials.map((mat, index) => (
                   <Chip
                     key={index}
                     label={`${mat.name} (${mat.percentageUse}%)`}
@@ -352,17 +362,17 @@ const FashionCard: React.FC<FashionCardProps> = ({
                       color: "rgba(29, 106, 58, 1)",
                     }}
                   />
-                ))}
+                ))} */}
               </Box>
               {/* Available */}
-              <Box sx={{ margin: "10px 0" }}>
+              {/* <Box sx={{ margin: "10px 0" }}>
                 <Chip
                   label={getAvailabilityText(product.availability)}
                   size="small"
                   color={getAvailabilityColor(product.availability)}
                   icon={<LocalShipping sx={{ fontSize: 16 }} />}
                 />
-              </Box>
+              </Box> */}
             </Box>
           </Link>
 

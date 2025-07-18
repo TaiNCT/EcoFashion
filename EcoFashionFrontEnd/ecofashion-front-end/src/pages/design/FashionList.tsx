@@ -8,6 +8,8 @@ import {
   Button,
   CardMedia,
   Checkbox,
+  CircularProgress,
+  Container,
   Divider,
   Drawer,
   FormControlLabel,
@@ -18,7 +20,7 @@ import {
   Typography,
 } from "@mui/material";
 import DesignsSection from "../../components/design/DesignsSection";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 //image
 import fashion_banner from "../../assets/pictures/fashion/Fashion.png";
 //example
@@ -33,7 +35,8 @@ import cotton from "../../assets/pictures/example/cotton.webp";
 import polyester from "../../assets/pictures/example/Polyester.jpg";
 import { Fashion } from "../../types/Fashion";
 import { GridExpandMoreIcon } from "@mui/x-data-grid";
-
+import { DesignService } from "../../services/api/designService";
+import { toast } from "react-toastify";
 const products: Fashion[] = [
   {
     id: 1,
@@ -454,7 +457,45 @@ const products: Fashion[] = [
     images: [dam_con_trung, ao_linen, chan_vay_dap],
   },
 ];
+type Design = {
+  designId: number;
+  designerId: string;
+  name?: string;
+  description?: string;
+  recycledPercentage: number;
+  careInstructions?: string;
+  price: number;
+  productScore: number;
+  status?: string;
+  createdAt: string;
+  designTypeId?: number;
+};
 export default function DesignsList() {
+  //Design Data
+  const [designs, setDesigns] = useState<Design[]>([]);
+  //Loading
+  const [loading, setLoading] = useState(true);
+  //Error
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    loadDesigners();
+  }, []);
+
+  const loadDesigners = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await DesignService.getAllDesign();
+      setDesigns(data);
+    } catch (error: any) {
+      const errorMessage =
+        error.message || "Không thể tải danh sách nhà thiết kế";
+      setError(errorMessage);
+      toast.error(errorMessage, { position: "bottom-center" });
+    } finally {
+      setLoading(false);
+    }
+  };
   //filter
   const colorCounts: Record<string, number> = {};
 
@@ -857,7 +898,7 @@ export default function DesignsList() {
               flex={5}
               sx={{ width: "100%", margin: "auto", padding: 3, paddingTop: 0 }}
             >
-              <DesignsSection products={sortedProducts} id={"items"} />
+              <DesignsSection products={designs} id={"items"} />
             </Box>
           </Box>
           <Divider />

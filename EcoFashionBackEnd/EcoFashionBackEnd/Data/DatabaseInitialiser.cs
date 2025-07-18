@@ -69,7 +69,8 @@ namespace EcoFashionBackEnd.Data
                 new User { Email = "admin@example.com", PasswordHash = SecurityUtil.Hash("admin"), FullName = "Admin User", RoleId = adminRole.RoleId, Status = UserStatus.Active },
                 new User { Email = "designer@example.com", PasswordHash = SecurityUtil.Hash("designer"), FullName = "Designer One", RoleId = designerRole.RoleId, Status = UserStatus.Active },
                 new User { Email = "supplier@example.com", PasswordHash = SecurityUtil.Hash("supplier"), FullName = "Supplier One", RoleId = supplierRole.RoleId, Status = UserStatus.Active },
-                new User { Email = "customer@example.com", PasswordHash = SecurityUtil.Hash("customer"), FullName = "Customer One", RoleId = customerRole.RoleId, Status = UserStatus.Active }
+                new User { Email = "customer@example.com", PasswordHash = SecurityUtil.Hash("customer"), FullName = "Customer One", RoleId = customerRole.RoleId, Status = UserStatus.Active },
+            new User { Email = "tester1@example.com", PasswordHash = SecurityUtil.Hash("tester1"), FullName = "Tester One", RoleId = designerRole.RoleId, Status = UserStatus.Active }
             };
             await _context.Users.AddRangeAsync(users);
             await _context.SaveChangesAsync();
@@ -77,7 +78,7 @@ namespace EcoFashionBackEnd.Data
             var designerUser = users.First(u => u.Email == "designer@example.com");
             var supplierUser = users.First(u => u.Email == "supplier@example.com");
             var customerUser = users.First(u => u.Email == "customer@example.com");
-
+            var testerUser = users.First(u => u.Email == "tester1@example.com");
             // Designer
             var designer = new Designer
             {
@@ -101,6 +102,31 @@ namespace EcoFashionBackEnd.Data
                 CreatedAt = now
             };
             await _context.Designers.AddAsync(designer);
+            await _context.SaveChangesAsync();
+
+            // Tester
+            var tester = new Designer
+            {
+                UserId = testerUser.UserId,
+                DesignerName = "Tester One",
+                Bio = "Nhà thiết kế đam mê thời trang bền vững và nghệ thuật tự nhiên. bến vững",
+                AvatarUrl = "https://images.pexels.com/photos/32965438/pexels-photo-32965438.jpeg",
+                BannerUrl = "https://images.unsplash.com/photo-1580828343064-fde4fc206bc6?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                PortfolioUrl = "https://portfolio.designer1.com",
+                PortfolioFiles = JsonSerializer.Serialize(new[] { "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400" }),
+                Certificates = JsonSerializer.Serialize(new[] { "Eco Fashion Award 2023" }),
+                Email = "designer1@example.com",
+                PhoneNumber = "0123456789",
+                Address = "123 Eco Street, HCMC",
+                TaxNumber = "TAX123456",
+                IdentificationNumber = "ID123456789",
+                //IdentificationPictureFront = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=300",
+                //IdentificationPictureBack = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
+                SpecializationUrl = "https://specialization.designer1.com",
+                Status = "active",
+                CreatedAt = now
+            };
+            await _context.Designers.AddAsync(tester);
             await _context.SaveChangesAsync();
 
             // Supplier

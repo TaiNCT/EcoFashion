@@ -1,3 +1,10 @@
+// Utility function to fallback image URL safely
+function safeImageUrl(
+  url?: string,
+  fallback: string = "/assets/default-image.jpg"
+): string {
+  return typeof url === "string" && url.trim() ? url : fallback;
+}
 import {
   AppBar,
   Box,
@@ -44,6 +51,8 @@ import chan_vay_dap from "../assets/pictures/example/chan-vay-dap.webp";
 import dam_con_trung from "../assets/pictures/example/dam-con-trung.webp";
 import type { Fashion } from "../types/Fashion";
 import SearchIcon from "@mui/icons-material/Search";
+import { DesignService } from "../services/api/designService";
+import { toast } from "react-toastify";
 
 const products: Fashion[] = [
   {
@@ -573,24 +582,48 @@ const StyledInput = styled(InputBase)({
   flex: 1,
 });
 
+type Design = {
+  designId: number;
+  designerId: string;
+  name?: string;
+  description?: string;
+  recycledPercentage: number;
+  careInstructions?: string;
+  price: number;
+  productScore: number;
+  status?: string;
+  createdAt: string;
+  designTypeId?: number;
+};
+
 export default function Homepage() {
   const { user } = useAuth();
+  //Design Data
+  const [designs, setDesigns] = useState<Design[]>([]);
+  //Loading
+  const [loading, setLoading] = useState(true);
+  //Error
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    loadDesigners();
+  }, []);
 
-  // //Scroll Banner
-  // const [scrolled, setScrolled] = useState(false);
+  const loadDesigners = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await DesignService.getAllDesign();
+      setDesigns(data);
+    } catch (error: any) {
+      const errorMessage =
+        error.message || "Không thể tải danh sách nhà thiết kế";
+      setError(errorMessage);
+      toast.error(errorMessage, { position: "bottom-center" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // useEffect(() => {
-  //   const handleScroll = () => {
-  //     setScrolled(window.scrollY > 100);
-  //   };
-
-  //   window.addEventListener("scroll", handleScroll);
-  //   return () => window.removeEventListener("scroll", handleScroll);
-  // }, []);
-
-  //   window.addEventListener("scroll", handleScroll);
-  //   return () => window.removeEventListener("scroll", handleScroll);
-  // }, []);
   return (
     <Box sx={{ minHeight: "100vh" }}>
       {/* Banner */}
@@ -998,7 +1031,7 @@ export default function Homepage() {
       >
         {/* Thời Trang Mới */}
         <FashionsSection
-          products={products}
+          products={designs}
           title="SẢN PHẨM NỔI BẬT"
           onProductSelect={(product) => {
             console.log("Selected product:", product.name);
@@ -1022,7 +1055,7 @@ export default function Homepage() {
         />
         {/* Bán Chạy Nhất */}
         <FashionsSection
-          products={bestSellerProducts}
+          products={designs}
           title="BÁN CHẠY NHẤT"
           onProductSelect={(product) => {
             console.log("Selected product:", product.name);
@@ -1190,6 +1223,19 @@ export default function Homepage() {
           </Stack>
         </Container>
       </Box>
+      {error && <div className="explore-error">{error}</div>}
+      {loading && <div className="explore-loading">Đang tải...</div>}
+      {!loading && designs.length > 0 ? (
+        <div>
+          {designs.map((design) => (
+            <div key={design.designId}>
+              <h3>{design.name}</h3>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div>Error</div>
+      )}
     </Box>
   );
 }

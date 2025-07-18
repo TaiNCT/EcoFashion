@@ -1,21 +1,29 @@
 import React, { useRef, useState } from "react";
-import { Box, Container, Typography, Button, IconButton } from "@mui/material";
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  IconButton,
+  Grid,
+} from "@mui/material";
 import FashionCard from "./FashionCard";
 import type { Fashion } from "../../types/Fashion";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
+import { Design } from "../../services/api/designService";
 interface ProductsSectionProps {
-  products: Fashion[];
+  products: Design[];
   title?: string;
-  onProductSelect?: (product: Fashion) => void;
-  onAddToCart?: (product: Fashion) => void;
-  onToggleFavorite?: (product: Fashion) => void;
+  onProductSelect?: (product: Design) => void;
+  onAddToCart?: (product: Design) => void;
+  onToggleFavorite?: (product: Design) => void;
   onViewMore?: () => void;
   showViewMore?: boolean;
 }
 
 const FashionsSection: React.FC<ProductsSectionProps> = ({
   products,
-  title = "SẢN PHẨM",
+  title,
   onProductSelect,
   onAddToCart,
   onToggleFavorite,
@@ -101,23 +109,19 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
           </IconButton>
         </Box>
       </Box>
-      <Box
-        sx={{
-          display: "flex",
-          gap: 3,
-          flex: 1,
-          overflow: "hidden",
-        }}
-      >
-        {visibleProducts.map((product) => (
-          <FashionCard
-            key={product.id}
-            product={product}
-            onSelect={onProductSelect}
-            onAddToCart={onAddToCart}
-            onToggleFavorite={onToggleFavorite}
-          />
-        ))}
+      <Box sx={{ width: "100%" }}>
+        <Grid container spacing={2}>
+          {visibleProducts.map((product) => (
+            <Grid key={product.designId} size={3}>
+              <FashionCard
+                product={product}
+                onSelect={onProductSelect}
+                onAddToCart={onAddToCart}
+                onToggleFavorite={onToggleFavorite}
+              />
+            </Grid>
+          ))}
+        </Grid>
       </Box>
 
       <Box sx={{ textAlign: "center", paddingTop: 2, paddingBottom: 2 }}>
