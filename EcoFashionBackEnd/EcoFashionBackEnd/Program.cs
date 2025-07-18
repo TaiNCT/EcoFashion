@@ -74,7 +74,10 @@ public class Program
             
             // Enable Swagger for all environments
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(c =>
+            {
+                c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+            });
             
             // Database migration only in Development
             if (app.Environment.IsDevelopment())

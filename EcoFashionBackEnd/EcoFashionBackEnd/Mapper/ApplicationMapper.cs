@@ -41,6 +41,10 @@ namespace EcoFashionBackEnd.Mapper
             CreateMap<MaterialDto, DesignMaterialModel>();
             CreateMap<DesignMaterialRequest, DesignMaterialModel>();    
             CreateMap<DesignMaterialModel, DesignsMaterial>();
+            CreateMap<MaterialType, MaterialTypeModel>();
+            CreateMap<MaterialTypeRequest, MaterialType>();
+            CreateMap<Material, MaterialModel>();
+            CreateMap<MaterialRequest, Material>();
 
             // ---------- Design Detail Mapping (for GET) ----------
             CreateMap<DesignDetailDto, DesignDetailResponse>();
