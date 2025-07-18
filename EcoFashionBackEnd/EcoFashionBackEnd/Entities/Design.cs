@@ -28,7 +28,6 @@ namespace EcoFashionBackEnd.Entities
 
         public virtual DesignsType DesignTypes { get; set; }
         public virtual ICollection<DesignsVariant> DesignsVariants { get; set; } = new List<DesignsVariant>();
-
         public virtual DesignFeature DesignsFeature { get; set; }
         public virtual ICollection<DesignsMaterial> DesignsMaterials { get; set; }
         public virtual ICollection<DesignsRating> DesignsRatings { get; set; }
