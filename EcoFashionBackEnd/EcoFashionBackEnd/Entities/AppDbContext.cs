@@ -34,15 +34,9 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<MaterialSustainability> MaterialSustainabilities { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
 
-        public DbSet<Material> Materials { get; set; }
-        public DbSet<MaterialType> MaterialTypes { get; set; }
         public DbSet<DesignDraft> DesignDrafts { get; set; }
         public DbSet<DraftMaterial> DraftMaterials { get; set; }
-        public DbSet<MaterialSustainability> MaterialSustainabilities { get; set; }
         public DbSet<SavedMaterial> SavedMaterials { get; set; }
-        public DbSet<MaterialImage> MaterialImages { get; set; }
-        public DbSet<Image> Images { get; set; }
-        public DbSet<SustainabilityCriteria> SustainabilityCriterias { get; set; }
         public DbSet<DesignerMaterialInventory> DesignerMaterialInventories { get; set; }
         #endregion
 
@@ -196,6 +190,16 @@ namespace EcoFashionBackEnd.Entities
                 .HasForeignKey(m => m.TypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Material>()
+                .Property(m => m.PricePerUnit)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<Material>()
+                .Property(m => m.RecycledPercentage)
+                .HasPrecision(5, 2);
+            modelBuilder.Entity<Material>()
+                .Property(m => m.SustainabilityScore)
+                .HasPrecision(5, 2);
+
             modelBuilder.Entity<MaterialImage>()
                 .HasOne(mi => mi.Material)
                 .WithMany(m => m.MaterialImages)
@@ -222,6 +226,10 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(ms => ms.CriterionId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MaterialSustainability>()
+                .Property(ms => ms.Value)
+                .HasPrecision(5, 2);
             #endregion
             #region unique
            
@@ -241,39 +249,6 @@ namespace EcoFashionBackEnd.Entities
             #endregion
 
 
-            modelBuilder.Entity<Material>()
-                .HasOne(m => m.Supplier).WithMany(s => s.Materials)
-                .HasForeignKey(m => m.SupplierId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Material>()
-                .HasOne(m => m.MaterialType).WithMany(mt => mt.Materials)
-                .HasForeignKey(m => m.TypeId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Material>()
-                .Property(m => m.PricePerUnit)
-                .HasPrecision(18, 2);
-            modelBuilder.Entity<Material>()
-                .Property(m => m.RecycledPercentage)
-                .HasPrecision(5, 2);
-            modelBuilder.Entity<Material>()
-                .Property(m => m.SustainabilityScore)
-                .HasPrecision(5, 2);
-
-            modelBuilder.Entity<MaterialSustainability>()
-                .HasKey(ms => new { ms.MaterialId, ms.SustainabilityCriteriaId });
-            modelBuilder.Entity<MaterialSustainability>()
-                .HasOne(ms => ms.Material)
-                .WithMany(m => m.MaterialSustainabilities)
-                .HasForeignKey(ms => ms.MaterialId)
-                .OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<MaterialSustainability>()
-                .HasOne(ms => ms.SustainabilityCriteria)
-                .WithMany(sc => sc.MaterialSustainabilities)
-                .HasForeignKey(ms => ms.SustainabilityCriteriaId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<MaterialSustainability>()
-                .Property(ms => ms.Value)
-                .HasPrecision(5, 2);
 
             modelBuilder.Entity<SavedMaterial>()
                 .HasOne(sm => sm.Material)

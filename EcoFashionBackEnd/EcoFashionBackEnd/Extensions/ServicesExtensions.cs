@@ -9,7 +9,6 @@ using EcoFashionBackEnd.Settings;
 using AutoMapper;
 using EcoFashionBackEnd.Helpers;
 using EcoFashionBackEnd.Middlewares;
-using MailKit;
 using EcoFashionBackEnd.Mapper;
 using EcoFashionBackEnd.Helpers.Photos;
 using EcoFashionBackEnd.Data;

@@ -48,7 +48,6 @@ namespace EcoFashionBackEnd.Entities
         public double? Rating { get; set; } // Điểm đánh giá trung bình
         public int? ReviewCount { get; set; } // Số lượng đánh giá
         public string? Certificates { get; set; } // JSON array các chứng chỉ/giải thưởng
-        public string? Status { get; set; }
         public ICollection<SavedMaterial> SavedMaterials { get; set; } = new List<SavedMaterial>();
         public ICollection<DesignDraft> DesignDrafts { get; set; } = new List<DesignDraft>();
         public ICollection<DesignerMaterialInventory> DesignerMaterialInventories { get; set; } = new List<DesignerMaterialInventory>();
