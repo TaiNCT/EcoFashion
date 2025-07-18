@@ -19,7 +19,7 @@ namespace EcoFashionBackEnd.Common.Payloads.Responses
 
         public DesignFeatureDto? Feature { get; set; }
 
-        public List<VarientDto> Varients { get; set; } = new();
+        public List<VariantDto> Variants { get; set; } = new();
         public List<MaterialDto> Materials { get; set; } = new();
 
         public double? AvgRating { get; set; }

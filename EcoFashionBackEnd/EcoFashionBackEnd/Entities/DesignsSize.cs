@@ -12,6 +12,6 @@ namespace EcoFashionBackEnd.Entities
 
         public string? SizeName { get; set; }
         public string? SizeDescription { get; set; }
-        public virtual ICollection<Design> Designs { get; set; } = new List<Design>();
+        public virtual ICollection<DesignsVariant> Variants { get; set; } = new List<DesignsVariant>();
     }
 }

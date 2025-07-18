@@ -14,6 +14,7 @@ using EcoFashionBackEnd.Mapper;
 using EcoFashionBackEnd.Helpers.Photos;
 using EcoFashionBackEnd.Services;
 using EcoFashionBackEnd.Data;
+using EcoFashionBackEnd.Data.test;
 
 
 namespace EcoFashionBackEnd.Extensions;
@@ -75,8 +76,7 @@ public static class ServicesExtensions
         });
 
         services.AddScoped(typeof(IRepository<,>), typeof(GenericRepository<,>));
-
-        services.AddScoped<DatabaseInitialiser>();
+        services.AddScoped<IDatabaseInitialiser, DatabaseInitialiser>();
 
         services.AddScoped<UserService>();
         services.AddScoped<UserRoleService>();

@@ -18,10 +18,11 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Application> Applications { get; set; }
         public DbSet<SavedSupplier> SavedSuppliers { get; set; }
         public DbSet<Design> Designs { get; set; }
-        public DbSet<DesignsVarient> DesignsVarients { get; set; }
+        public DbSet<DesignsVariant> DesignsVarients { get; set; }
         public DbSet<DesignsMaterial> DesignsMaterials { get; set; }
         public DbSet<DesignsColor> DesignsColors { get; set; }
         public DbSet<DesignImage> DesignImages { get; set; }
+        public DbSet<Image> Images { get; set; }
         public DbSet<TypeSize> TypeSizes { get; set; }
         public DbSet<DesignFeature> DesignFeatures { get; set; }
         public DbSet<DesignsSize> DesignsSizes { get; set; }
@@ -29,8 +30,8 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<DesignMaterialInventory> DesignMaterialInventorys { get; set; }
         public DbSet<Material> Materials { get; set; }
         public DbSet<MaterialImage> MaterialImages { get; set; }
-        public DbSet<SustainabilityCriteria> SustainabilityCriteria { get; set; }
-        public DbSet<MaterialSustainability> MaterialSustainabilityMetrics { get; set; }
+        public DbSet<SustainabilityCriteria> SustainabilityCriterias { get; set; }
+        public DbSet<MaterialSustainability> MaterialSustainabilities { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
         #endregion
 
@@ -95,42 +96,34 @@ namespace EcoFashionBackEnd.Entities
                 .HasConversion<string>();
             #endregion
             #region DESIGN
-            modelBuilder.Entity<Design>()
-      .HasMany(d => d.DesignsColors)
-      .WithMany(dc => dc.Designs)
-      .UsingEntity(j => j.ToTable("DesignColors"));
-
             modelBuilder.Entity<DesignsColor>()
-                .HasMany(c => c.Designs)
-                .WithMany(d => d.DesignsColors)
-                .UsingEntity(j => j.ToTable("DesignColors"));
-
-            modelBuilder.Entity<Design>()
-                .HasMany(d => d.DesignsSizes)
-                .WithMany(ds => ds.Designs)
-                .UsingEntity(j => j.ToTable("DesignSizes"));
+                .HasMany(c => c.Variants)
+                .WithOne(v => v.DesignsColor)
+                .HasForeignKey(v => v.ColorId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DesignsSize>()
-                .HasMany(s => s.Designs)
-                .WithMany(d => d.DesignsSizes)
-                .UsingEntity(j => j.ToTable("DesignSizes"));
-
-            modelBuilder.Entity<DesignsVarient>()
-                .HasOne(dv => dv.DesignsSize)
-                .WithMany()
-                .HasForeignKey(dv => dv.SizeId)
+                .HasMany(s => s.Variants)
+                .WithOne(v => v.DesignsSize)
+                .HasForeignKey(v => v.SizeId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<DesignsVarient>()
-                .HasOne(dv => dv.Design)
-                .WithMany(d => d.DesignsVarients)
-                .HasForeignKey(dv => dv.DesignId)
+            modelBuilder.Entity<DesignsVariant>()
+                .HasOne(v => v.Design)
+                .WithMany(d => d.DesignsVariants)
+                .HasForeignKey(v => v.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<DesignsVarient>()
-                .HasOne(dv => dv.DesignsColor)
+            modelBuilder.Entity<DesignsVariant>()
+                .HasOne(v => v.DesignsSize)
                 .WithMany()
-                .HasForeignKey(dv => dv.ColorId)
+                .HasForeignKey(v => v.SizeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignsVariant>()
+                .HasOne(v => v.DesignsColor)
+                .WithMany()
+                .HasForeignKey(v => v.ColorId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DesignsMaterial>()
@@ -146,7 +139,7 @@ namespace EcoFashionBackEnd.Entities
                 .HasOne(dm => dm.Materials)
                 .WithMany()
                 .HasForeignKey(dm => dm.MaterialId)
-                 .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<DesignFeature>()
                 .HasOne(df => df.Design)
@@ -165,14 +158,17 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(di => di.ImageId)
                 .OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Design>()
-                .HasOne(d => d.DesignTypes) 
-                .WithMany() 
-                .HasForeignKey(d => d.DesignTypeId) 
-                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<DesignImage>()
                 .HasIndex(di => new { di.DesignId, di.ImageId })
                 .IsUnique();
+
+            modelBuilder.Entity<Design>()
+                .HasOne(d => d.DesignTypes)
+                .WithMany()
+                .HasForeignKey(d => d.DesignTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             #endregion
 
             #region Material 

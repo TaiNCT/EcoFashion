@@ -1,4 +1,5 @@
 using EcoFashionBackEnd.Data;
+using EcoFashionBackEnd.Data.test;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Extensions;
 using EcoFashionBackEnd.Middlewares;
@@ -14,7 +15,7 @@ public class Program
             builder.Services.AddInfrastructure(builder.Configuration);
 
             // Add services to the container.
-            builder.Services.AddSwaggerGen(option =>
+            builder.Services.AddSwaggerGen(option => 
             {
                 option.SwaggerDoc("v1", new OpenApiInfo { Title = "BE API", Version = "v1" });
                 option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

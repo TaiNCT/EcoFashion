@@ -95,9 +95,10 @@ public class DesignController : ControllerBase
             return NotFound(ApiResult<object>.Fail("Không tìm thấy thiết kế hoặc bạn không có quyền cập nhật."));
         }
 
-        var updated = await _designService.UpdateDesign(id, request);
-        if (updated)
+        var success = await _designService.UpdateDesignVariants(id, request);
+        if (success)
             return Ok(ApiResult<object>.Succeed("Thiết kế đã được cập nhật."));
+
         return BadRequest(ApiResult<object>.Fail("Cập nhật thiết kế thất bại."));
     }
 
