@@ -443,7 +443,7 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float?>("CarbonFootprint")
+                    b.Property<float>("CarbonFootprint")
                         .HasColumnType("real");
 
                     b.Property<int>("ColorId")
@@ -464,10 +464,10 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<int>("SizeId")
                         .HasColumnType("int");
 
-                    b.Property<float?>("WasteDiverted")
+                    b.Property<float>("WasteDiverted")
                         .HasColumnType("real");
 
-                    b.Property<float?>("WaterUsage")
+                    b.Property<float>("WaterUsage")
                         .HasColumnType("real");
 
                     b.HasKey("Id");

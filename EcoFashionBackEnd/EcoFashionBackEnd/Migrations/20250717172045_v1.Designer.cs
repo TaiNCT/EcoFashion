@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250718095158_v1")]
+    [Migration("20250717172045_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -446,7 +446,7 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float?>("CarbonFootprint")
+                    b.Property<float>("CarbonFootprint")
                         .HasColumnType("real");
 
                     b.Property<int>("ColorId")
@@ -467,10 +467,10 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<int>("SizeId")
                         .HasColumnType("int");
 
-                    b.Property<float?>("WasteDiverted")
+                    b.Property<float>("WasteDiverted")
                         .HasColumnType("real");
 
-                    b.Property<float?>("WaterUsage")
+                    b.Property<float>("WaterUsage")
                         .HasColumnType("real");
 
                     b.HasKey("Id");

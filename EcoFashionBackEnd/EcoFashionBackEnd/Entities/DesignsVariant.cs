@@ -23,8 +23,8 @@ namespace EcoFashionBackEnd.Entities
         public virtual DesignsColor DesignsColor { get; set; }  
 
         public int Quantity { get; set; }
-        public float? CarbonFootprint { get; set; }
-        public float? WaterUsage { get; set; }
-        public float? WasteDiverted { get; set; }
+        public float CarbonFootprint { get; set; }
+        public float WaterUsage { get; set; }
+        public float WasteDiverted { get; set; }
     }
 }

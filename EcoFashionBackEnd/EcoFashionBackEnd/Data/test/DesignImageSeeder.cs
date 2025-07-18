@@ -11,6 +11,7 @@ namespace EcoFashionBackEnd.Data.test
 
             var designs = await context.Designs.OrderBy(d => d.DesignId).ToListAsync();
 
+            // 12 nhóm URL tương ứng 12 thiết kế
             var imageUrls = new List<List<string>>
         {
             new() { "https://example.com/img1a.jpg", "https://example.com/img1b.jpg", "https://example.com/img1c.jpg" },
@@ -27,6 +28,7 @@ namespace EcoFashionBackEnd.Data.test
             new() { "https://example.com/img12a.jpg", "https://example.com/img12b.jpg", "https://example.com/img12c.jpg" },
         };
 
+            // Safety check
             if (designs.Count != imageUrls.Count)
                 throw new Exception("Số lượng design và nhóm image URL không khớp.");
 
@@ -43,6 +45,7 @@ namespace EcoFashionBackEnd.Data.test
                     var image = new Image { ImageUrl = url };
                     allImageEntities.Add(image);
 
+                    // Không có ImageId ở đây vì chưa save, nên phải xử lý sau
                     allDesignImages.Add(new DesignImage
                     {
                         Design = design,
@@ -51,9 +54,11 @@ namespace EcoFashionBackEnd.Data.test
                 }
             }
 
+            // Save all images, EF sẽ gán ImageId tự động
             await context.Images.AddRangeAsync(allImageEntities);
             await context.SaveChangesAsync();
 
+            // Save relation sau khi có ImageId
             await context.DesignImages.AddRangeAsync(allDesignImages);
             await context.SaveChangesAsync();
         }

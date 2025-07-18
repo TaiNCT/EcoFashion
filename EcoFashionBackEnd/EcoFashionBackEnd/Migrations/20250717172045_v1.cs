@@ -544,9 +544,9 @@ namespace EcoFashionBackEnd.Migrations
                     DesignId = table.Column<int>(type: "int", nullable: false),
                     ColorId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
-                    CarbonFootprint = table.Column<float>(type: "real", nullable: true),
-                    WaterUsage = table.Column<float>(type: "real", nullable: true),
-                    WasteDiverted = table.Column<float>(type: "real", nullable: true),
+                    CarbonFootprint = table.Column<float>(type: "real", nullable: false),
+                    WaterUsage = table.Column<float>(type: "real", nullable: false),
+                    WasteDiverted = table.Column<float>(type: "real", nullable: false),
                     DesignsColorId = table.Column<int>(type: "int", nullable: true),
                     DesignsSizeId = table.Column<int>(type: "int", nullable: true)
                 },
