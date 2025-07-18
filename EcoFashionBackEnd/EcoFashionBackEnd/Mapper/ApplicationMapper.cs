@@ -23,8 +23,8 @@ namespace EcoFashionBackEnd.Mapper
             CreateMap<Design, DesignModel>().ReverseMap();
             CreateMap<DesignModel, Design>();
             CreateMap<UpdateDesignRequest, Design>();
-            CreateMap<UpdateDesignVariantRequest, DesignsVariant>();
-
+            CreateMap<DesignVariantModel, DesignsVariant>().ReverseMap();
+            CreateMap<DesignFeatureModel, DesignFeature>().ReverseMap();
 
             // CreateDesign mapping
             CreateMap<CreateDesignRequest, DesignModel>();
@@ -34,8 +34,8 @@ namespace EcoFashionBackEnd.Mapper
                 .ForMember(dest => dest.Durable, opt => opt.MapFrom(src => src.Feature.Durable))
                 .ForMember(dest => dest.EthicallyManufactured, opt => opt.MapFrom(src => src.Feature.EthicallyManufactured));
             CreateMap<CreateDesignFeatureRequest, DesignFeatureModel>();
-
-            CreateMap<DesignFeatureModel, DesignFeature>().ReverseMap();
+            CreateMap<UpdateDesignVariantRequest, DesignVariantModel>().ReverseMap();
+            CreateMap<UpdateDesignVariantRequest, DesignsVariant>().ReverseMap();
 
             // ---------- Material ----------
             CreateMap<MaterialDto, DesignMaterialModel>();
