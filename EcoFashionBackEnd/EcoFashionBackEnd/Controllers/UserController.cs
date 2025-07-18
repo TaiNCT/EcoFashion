@@ -3,7 +3,9 @@ using EcoFashionBackEnd.Dtos.Auth;
 using EcoFashionBackEnd.Dtos.User;
 using EcoFashionBackEnd.Exceptions;
 using EcoFashionBackEnd.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EcoFashionBackEnd.Controllers
 {
@@ -109,6 +111,37 @@ namespace EcoFashionBackEnd.Controllers
             catch (BadRequestException ex)
             {
                 return BadRequest(ApiResult<object>.Fail(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex.Message));
+            }
+        }
+
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetCurrentUserProfile()
+        {
+            try
+            {
+                // Lấy userId từ claims
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return Unauthorized(ApiResult<object>.Fail("Không thể xác định user."));
+                }
+
+                var userProfile = await _userService.GetUserProfileAsync(userId);
+                if (userProfile == null)
+                {
+                    return NotFound(ApiResult<object>.Fail("Không tìm thấy thông tin user."));
+                }
+
+                return Ok(ApiResult<object>.Succeed(userProfile));
+            }
+            catch (UserNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Fail(ex.Message));
             }
             catch (Exception ex)
             {

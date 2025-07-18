@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EcoFashionBackEnd.Entities.EcoFashionBackEnd.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace EcoFashionBackEnd.Entities
 {
-
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -17,6 +17,22 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Designer> Designers { get; set; }
         public DbSet<Application> Applications { get; set; }
         public DbSet<SavedSupplier> SavedSuppliers { get; set; }
+        public DbSet<Design> Designs { get; set; }
+        public DbSet<DesignsVariant> DesignsVarients { get; set; }
+        public DbSet<DesignsMaterial> DesignsMaterials { get; set; }
+        public DbSet<DesignsColor> DesignsColors { get; set; }
+        public DbSet<DesignImage> DesignImages { get; set; }
+        public DbSet<Image> Images { get; set; }
+        public DbSet<TypeSize> TypeSizes { get; set; }
+        public DbSet<DesignFeature> DesignFeatures { get; set; }
+        public DbSet<DesignsSize> DesignsSizes { get; set; }
+        public DbSet<DesignsType> DesignsTypes { get; set; }
+        public DbSet<DesignMaterialInventory> DesignMaterialInventorys { get; set; }
+        public DbSet<Material> Materials { get; set; }
+        public DbSet<MaterialImage> MaterialImages { get; set; }
+        public DbSet<SustainabilityCriteria> SustainabilityCriterias { get; set; }
+        public DbSet<MaterialSustainability> MaterialSustainabilities { get; set; }
+        public DbSet<MaterialType> MaterialTypes { get; set; }
 
         public DbSet<Material> Materials { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
@@ -39,6 +55,7 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
+            #region user
 
             // SUPPLIER PROFILE
             modelBuilder.Entity<Supplier>()
@@ -67,7 +84,7 @@ namespace EcoFashionBackEnd.Entities
                 .HasForeignKey(a => a.TargetRoleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-          
+
             // SAVED SUPPLIER
             modelBuilder.Entity<SavedSupplier>()
                 .HasOne(ss => ss.Designer)
@@ -81,15 +98,148 @@ namespace EcoFashionBackEnd.Entities
                 .HasForeignKey(ss => ss.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Optional: ENUM string conversion for UserStatus
             modelBuilder.Entity<User>()
-                .Property(u => u.Status)
-                .HasConversion<string>();
+             .Property(u => u.Status)
+             .HasConversion<string>();
 
-            // Optional: ENUM string conversion for ApplicationStatus
             modelBuilder.Entity<Application>()
                 .Property(a => a.Status)
                 .HasConversion<string>();
+            #endregion
+            #region DESIGN
+            modelBuilder.Entity<DesignsColor>()
+                .HasMany(c => c.Variants)
+                .WithOne(v => v.DesignsColor)
+                .HasForeignKey(v => v.ColorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignsSize>()
+                .HasMany(s => s.Variants)
+                .WithOne(v => v.DesignsSize)
+                .HasForeignKey(v => v.SizeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignsVariant>()
+                .HasOne(v => v.Design)
+                .WithMany(d => d.DesignsVariants)
+                .HasForeignKey(v => v.DesignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignsVariant>()
+                .HasOne(v => v.DesignsSize)
+                .WithMany()
+                .HasForeignKey(v => v.SizeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignsVariant>()
+                .HasOne(v => v.DesignsColor)
+                .WithMany()
+                .HasForeignKey(v => v.ColorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignsMaterial>()
+                .HasKey(dm => new { dm.DesignId, dm.MaterialId });
+
+            modelBuilder.Entity<DesignsMaterial>()
+                .HasOne(dm => dm.Designs)
+                .WithMany(d => d.DesignsMaterials)
+                .HasForeignKey(dm => dm.DesignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignsMaterial>()
+                .HasOne(dm => dm.Materials)
+                .WithMany()
+                .HasForeignKey(dm => dm.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DesignFeature>()
+                .HasOne(df => df.Design)
+                .WithOne(d => d.DesignsFeature)
+                .HasForeignKey<DesignFeature>(df => df.DesignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignImage>()
+                .HasOne(di => di.Design)
+                .WithMany(d => d.DesignImages)
+                .HasForeignKey(di => di.DesignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignImage>()
+                .HasOne(di => di.Image)
+                .WithMany()
+                .HasForeignKey(di => di.ImageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignImage>()
+                .HasIndex(di => new { di.DesignId, di.ImageId })
+                .IsUnique();
+
+            modelBuilder.Entity<Design>()
+                .HasOne(d => d.DesignTypes)
+                .WithMany()
+                .HasForeignKey(d => d.DesignTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            #endregion
+
+            #region Material 
+            // Configure relationships for Materials
+            modelBuilder.Entity<Material>()
+                .HasOne(m => m.SupplierProfile)
+                .WithMany()
+                .HasForeignKey(m => m.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Material>()
+                .HasOne(m => m.MaterialType)
+                .WithMany()
+                .HasForeignKey(m => m.TypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MaterialImage>()
+                .HasOne(mi => mi.Material)
+                .WithMany(m => m.MaterialImages)
+                .HasForeignKey(mi => mi.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MaterialImage>()
+                .HasOne(mi => mi.Image)
+                .WithMany()
+                .HasForeignKey(mi => mi.ImageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MaterialSustainability>()
+                .HasKey(ms => new { ms.MaterialId, ms.CriterionId });
+
+            modelBuilder.Entity<MaterialSustainability>()
+                .HasOne(ms => ms.Material)
+                .WithMany(m => m.MaterialSustainabilityMetrics)
+                .HasForeignKey(ms => ms.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MaterialSustainability>()
+                .HasOne(ms => ms.SustainabilityCriterion)
+                .WithMany()
+                .HasForeignKey(ms => ms.CriterionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            #endregion
+            #region unique
+           
+
+            modelBuilder.Entity<TypeSize>()
+                .HasKey(ts => new { ts.DesignTypeIdPk, ts.SizeIdPk }); 
+
+            modelBuilder.Entity<TypeSize>()
+                .HasOne<DesignsSize>()
+                .WithMany()
+                .HasForeignKey(ts => ts.SizeId);
+
+            modelBuilder.Entity<TypeSize>()
+                .HasOne<DesignsType>()
+                .WithMany()
+                .HasForeignKey(ts => ts.DesignTypeId);
+            #endregion
+
 
             modelBuilder.Entity<Material>()
                 .HasOne(m => m.Supplier).WithMany(s => s.Materials)

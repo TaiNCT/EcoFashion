@@ -30,7 +30,19 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ApplicationId"));
 
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("BannerUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Certificates")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -39,10 +51,22 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("IdentificationNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPicture")
+                    b.Property<string>("IdentificationPictureBack")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("IdentificationPictureFront")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsIdentificationVerified")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PortfolioFiles")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PortfolioUrl")
@@ -57,6 +81,9 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("RejectionReason")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SocialLinks")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SpecializationUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -66,6 +93,9 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Property<int>("TargetRoleId")
                         .HasColumnType("int");
+
+                    b.Property<string>("TaxNumber")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -79,13 +109,39 @@ namespace EcoFashionBackEnd.Migrations
                     b.ToTable("Applications");
                 });
 
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignDraft", b =>
+            modelBuilder.Entity("DesignsMaterial", b =>
                 {
-                    b.Property<int>("DesignDraftId")
+                    b.Property<int>("DesignId")
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("MeterUsed")
+                        .HasColumnType("int");
+
+                    b.Property<float>("PersentageUsed")
+                        .HasColumnType("real");
+
+                    b.HasKey("DesignId", "MaterialId");
+
+                    b.HasIndex("MaterialId");
+
+                    b.ToTable("DesignsMaterials");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>
+                {
+                    b.Property<int>("DesignId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DesignDraftId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DesignId"));
+
+                    b.Property<string>("CareInstructions")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -93,29 +149,122 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("DesignTypeId")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("DesignerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Gender")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("RecycledPercentage")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
+                    b.Property<int>("ProductScore")
+                        .HasColumnType("int");
+
+                    b.Property<float>("RecycledPercentage")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("DesignDraftId");
+                    b.HasKey("DesignId");
+
+                    b.HasIndex("DesignTypeId");
 
                     b.HasIndex("DesignerId");
 
-                    b.ToTable("Design_Draft");
+                    b.ToTable("Designs");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignFeature", b =>
+                {
+                    b.Property<int>("FeatureId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeatureId"));
+
+                    b.Property<int>("DesignId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Durable")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EthicallyManufactured")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("LowImpactDyes")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ReduceWaste")
+                        .HasColumnType("bit");
+
+                    b.HasKey("FeatureId");
+
+                    b.HasIndex("DesignId")
+                        .IsUnique();
+
+                    b.ToTable("DesignFeatures");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignImage", b =>
+                {
+                    b.Property<int>("DesignImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DesignImageId"));
+
+                    b.Property<int>("DesignId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ImageId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DesignImageId");
+
+                    b.HasIndex("ImageId");
+
+                    b.HasIndex("DesignId", "ImageId")
+                        .IsUnique();
+
+                    b.ToTable("DesignImages");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignMaterialInventory", b =>
+                {
+                    b.Property<int>("InventoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InventoryId"));
+
+                    b.Property<decimal>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("DesignerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastBuyDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Quantity")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("InventoryId");
+
+                    b.HasIndex("DesignerId");
+
+                    b.ToTable("DesignerMaterialInventorys");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Designer", b =>
@@ -127,7 +276,16 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("BannerUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Certificates")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -143,17 +301,26 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("IdentificationNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPicture")
+                    b.Property<string>("IdentificationPictureBack")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPictureOwner")
+                    b.Property<string>("IdentificationPictureFront")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PortfolioFiles")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PortfolioUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Rating")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("ReviewCount")
+                        .HasColumnType("int");
 
                     b.Property<string>("SpecializationUrl")
                         .HasColumnType("nvarchar(max)");
@@ -177,53 +344,168 @@ namespace EcoFashionBackEnd.Migrations
                     b.ToTable("Designer");
                 });
 
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignerMaterialInventory", b =>
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsColor", b =>
                 {
-                    b.Property<int>("DesignerMaterialInventoryId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DesignerMaterialInventoryId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<Guid>("DesignerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ColorCode")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("MaterialId")
+                    b.Property<string>("ColorName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DesignId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Quantity")
+                    b.HasKey("Id");
+
+                    b.HasIndex("DesignId");
+
+                    b.ToTable("DesignsColors");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsRating", b =>
+                {
+                    b.Property<int>("DesignIdPk")
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    b.Property<int>("UserIdPk")
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("DesignId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
+                    b.Property<float>("RatingScore")
+                        .HasColumnType("real");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DesignIdPk", "UserIdPk");
+
+                    b.HasIndex("DesignId");
+
+                    b.ToTable("DesignsRating");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsSize", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("DesignId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SizeDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SizeName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DesignId");
+
+                    b.ToTable("DesignsSizes");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsType", b =>
+                {
+                    b.Property<int>("DesignTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DesignTypeId"));
+
+                    b.Property<string>("DesignName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("DesignerMaterialInventoryId");
+                    b.HasKey("DesignTypeId");
 
-                    b.HasIndex("DesignerId");
-
-                    b.HasIndex("MaterialId");
-
-                    b.ToTable("Designer_Material_Inventory");
+                    b.ToTable("DesignsTypes");
                 });
 
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.DraftMaterial", b =>
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsVariant", b =>
                 {
-                    b.Property<int>("DesignDraftId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<float>("CarbonFootprint")
+                        .HasColumnType("real");
+
+                    b.Property<int>("ColorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DesignId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DesignsColorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DesignsSizeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SizeId")
+                        .HasColumnType("int");
+
+                    b.Property<float>("WasteDiverted")
+                        .HasColumnType("real");
+
+                    b.Property<float>("WaterUsage")
+                        .HasColumnType("real");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ColorId");
+
+                    b.HasIndex("DesignId");
+
+                    b.HasIndex("DesignsColorId");
+
+                    b.HasIndex("DesignsSizeId");
+
+                    b.HasIndex("SizeId");
+
+                    b.ToTable("DesignsVariants");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.EcoFashionBackEnd.Entities.MaterialImage", b =>
+                {
+                    b.Property<int>("MaterialImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaterialImageId"));
+
+                    b.Property<int>("ImageId")
                         .HasColumnType("int");
 
                     b.Property<int>("MaterialId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("PercentageUsed")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                    b.HasKey("MaterialImageId");
 
-                    b.HasKey("DesignDraftId", "MaterialId");
+                    b.HasIndex("ImageId");
 
                     b.HasIndex("MaterialId");
 
-                    b.ToTable("Draft_Material");
+                    b.ToTable("MaterialImages");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Image", b =>
@@ -235,7 +517,6 @@ namespace EcoFashionBackEnd.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
 
                     b.Property<string>("ImageUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ImageId");
@@ -251,33 +532,29 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaterialId"));
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DocumentationUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("MaterialDescription")
+                    b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("MaterialName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("PricePerUnit")
-                        .HasPrecision(18, 2)
+                    b.Property<decimal>("PricePerUnit")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("QuantityAvailable")
+                    b.Property<int>("QuantityAvailable")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("RecycledPercentage")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<float>("RecycledPercentage")
+                        .HasColumnType("real");
 
                     b.Property<Guid>("SupplierId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal?>("SustainabilityScore")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<float>("SustainabilityScore")
+                        .HasColumnType("real");
 
                     b.Property<int>("TypeId")
                         .HasColumnType("int");
@@ -288,41 +565,27 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("Material");
-                });
-
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialImage", b =>
-                {
-                    b.Property<int>("MaterialId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ImageId")
-                        .HasColumnType("int");
-
-                    b.HasKey("MaterialId", "ImageId");
-
-                    b.HasIndex("ImageId");
-
-                    b.ToTable("Material_Image");
+                    b.ToTable("Materials");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialSustainability", b =>
                 {
                     b.Property<int>("MaterialId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
 
-                    b.Property<int>("SustainabilityCriteriaId")
-                        .HasColumnType("int");
+                    b.Property<int>("CriterionId")
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
 
-                    b.Property<decimal>("Value")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<float>("Value")
+                        .HasColumnType("real");
 
-                    b.HasKey("MaterialId", "SustainabilityCriteriaId");
+                    b.HasKey("MaterialId", "CriterionId");
 
-                    b.HasIndex("SustainabilityCriteriaId");
+                    b.HasIndex("CriterionId");
 
-                    b.ToTable("Material_Sustainability");
+                    b.ToTable("MaterialSustainabilitys");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialType", b =>
@@ -333,41 +596,12 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TypeId"));
 
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<string>("TypeName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("TypeId");
 
-                    b.ToTable("MaterialType");
-                });
-
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.SavedMaterial", b =>
-                {
-                    b.Property<int>("SavedMaterialId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SavedMaterialId"));
-
-                    b.Property<Guid>("DesignerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("MaterialId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SavedMaterialId");
-
-                    b.HasIndex("DesignerId");
-
-                    b.HasIndex("MaterialId");
-
-                    b.ToTable("Saved_Material");
+                    b.ToTable("MaterialTypes");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Supplier", b =>
@@ -379,7 +613,16 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("BannerUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Certificates")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -391,17 +634,26 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("IdentificationNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPicture")
+                    b.Property<string>("IdentificationPictureBack")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdentificationPictureOwner")
+                    b.Property<string>("IdentificationPictureFront")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PortfolioFiles")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PortfolioUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Rating")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("ReviewCount")
+                        .HasColumnType("int");
 
                     b.Property<string>("SpecializationUrl")
                         .HasColumnType("nvarchar(max)");
@@ -431,25 +683,52 @@ namespace EcoFashionBackEnd.Migrations
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.SustainabilityCriteria", b =>
                 {
-                    b.Property<int>("SustainabilityCriteriaId")
+                    b.Property<int>("CriterionId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SustainabilityCriteriaId"));
-
-                    b.Property<string>("CriteriaName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CriterionId"));
 
                     b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Unit")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("SustainabilityCriteriaId");
+                    b.HasKey("CriterionId");
 
                     b.ToTable("Sustainability_Criteria");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.TypeSize", b =>
+                {
+                    b.Property<int>("DesignTypeIdPk")
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    b.Property<int>("SizeIdPk")
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("DesignTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<float>("Meter")
+                        .HasColumnType("real");
+
+                    b.Property<int>("SizeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DesignTypeIdPk", "SizeIdPk");
+
+                    b.HasIndex("DesignTypeId");
+
+                    b.HasIndex("SizeId");
+
+                    b.ToTable("TypeSizes");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.User", b =>
@@ -569,12 +848,79 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignDraft", b =>
+            modelBuilder.Entity("DesignsMaterial", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.Design", "Designs")
+                        .WithMany("DesignsMaterials")
+                        .HasForeignKey("DesignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Material", "Materials")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Designs");
+
+                    b.Navigation("Materials");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.DesignsType", "DesignTypes")
+                        .WithMany()
+                        .HasForeignKey("DesignTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Designer", "DesignerProfile")
+                        .WithMany()
+                        .HasForeignKey("DesignerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DesignTypes");
+
+                    b.Navigation("DesignerProfile");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignFeature", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.Design", "Design")
+                        .WithOne("DesignsFeature")
+                        .HasForeignKey("EcoFashionBackEnd.Entities.DesignFeature", "DesignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Design");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignImage", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.Design", "Design")
+                        .WithMany("DesignImages")
+                        .HasForeignKey("DesignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Image", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Design");
+
+                    b.Navigation("Image");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignMaterialInventory", b =>
                 {
                     b.HasOne("EcoFashionBackEnd.Entities.Designer", "Designer")
-                        .WithMany("DesignDrafts")
+                        .WithMany()
                         .HasForeignKey("DesignerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Designer");
@@ -591,69 +937,72 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignerMaterialInventory", b =>
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsColor", b =>
                 {
-                    b.HasOne("EcoFashionBackEnd.Entities.Designer", "Designer")
-                        .WithMany("DesignerMaterialInventories")
-                        .HasForeignKey("DesignerId")
+                    b.HasOne("EcoFashionBackEnd.Entities.Design", null)
+                        .WithMany("DesignsColors")
+                        .HasForeignKey("DesignId");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsRating", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.Design", "Design")
+                        .WithMany("DesignsRatings")
+                        .HasForeignKey("DesignId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EcoFashionBackEnd.Entities.Material", "Material")
-                        .WithMany("DesignerMaterialInventories")
-                        .HasForeignKey("MaterialId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Designer");
-
-                    b.Navigation("Material");
+                    b.Navigation("Design");
                 });
 
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.DraftMaterial", b =>
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsSize", b =>
                 {
-                    b.HasOne("EcoFashionBackEnd.Entities.DesignDraft", "DesignDraft")
-                        .WithMany("DraftMaterials")
-                        .HasForeignKey("DesignDraftId")
+                    b.HasOne("EcoFashionBackEnd.Entities.Design", null)
+                        .WithMany("DesignsSizes")
+                        .HasForeignKey("DesignId");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsVariant", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.DesignsColor", "DesignsColor")
+                        .WithMany()
+                        .HasForeignKey("ColorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EcoFashionBackEnd.Entities.Material", "Material")
-                        .WithMany("DraftMaterials")
-                        .HasForeignKey("MaterialId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("EcoFashionBackEnd.Entities.Design", "Design")
+                        .WithMany("DesignsVariants")
+                        .HasForeignKey("DesignId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("DesignDraft");
+                    b.HasOne("EcoFashionBackEnd.Entities.DesignsColor", null)
+                        .WithMany("Variants")
+                        .HasForeignKey("DesignsColorId");
 
-                    b.Navigation("Material");
+                    b.HasOne("EcoFashionBackEnd.Entities.DesignsSize", null)
+                        .WithMany("Variants")
+                        .HasForeignKey("DesignsSizeId");
+
+                    b.HasOne("EcoFashionBackEnd.Entities.DesignsSize", "DesignsSize")
+                        .WithMany()
+                        .HasForeignKey("SizeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Design");
+
+                    b.Navigation("DesignsColor");
+
+                    b.Navigation("DesignsSize");
                 });
 
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.Material", b =>
-                {
-                    b.HasOne("EcoFashionBackEnd.Entities.Supplier", "Supplier")
-                        .WithMany("Materials")
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("EcoFashionBackEnd.Entities.MaterialType", "MaterialType")
-                        .WithMany("Materials")
-                        .HasForeignKey("TypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("MaterialType");
-
-                    b.Navigation("Supplier");
-                });
-
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialImage", b =>
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.EcoFashionBackEnd.Entities.MaterialImage", b =>
                 {
                     b.HasOne("EcoFashionBackEnd.Entities.Image", "Image")
-                        .WithMany("MaterialImages")
+                        .WithMany()
                         .HasForeignKey("ImageId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("EcoFashionBackEnd.Entities.Material", "Material")
@@ -667,42 +1016,42 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("Material");
                 });
 
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Material", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.Supplier", "SupplierProfile")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EcoFashionBackEnd.Entities.MaterialType", "MaterialType")
+                        .WithMany()
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MaterialType");
+
+                    b.Navigation("SupplierProfile");
+                });
+
             modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialSustainability", b =>
                 {
+                    b.HasOne("EcoFashionBackEnd.Entities.SustainabilityCriteria", "SustainabilityCriterion")
+                        .WithMany()
+                        .HasForeignKey("CriterionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("EcoFashionBackEnd.Entities.Material", "Material")
-                        .WithMany("MaterialSustainabilities")
+                        .WithMany("MaterialSustainabilityMetrics")
                         .HasForeignKey("MaterialId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EcoFashionBackEnd.Entities.SustainabilityCriteria", "SustainabilityCriteria")
-                        .WithMany("MaterialSustainabilities")
-                        .HasForeignKey("SustainabilityCriteriaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Material");
 
-                    b.Navigation("SustainabilityCriteria");
-                });
-
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.SavedMaterial", b =>
-                {
-                    b.HasOne("EcoFashionBackEnd.Entities.Designer", "Designer")
-                        .WithMany("SavedMaterials")
-                        .HasForeignKey("DesignerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("EcoFashionBackEnd.Entities.Material", "Material")
-                        .WithMany("SavedMaterials")
-                        .HasForeignKey("MaterialId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Designer");
-
-                    b.Navigation("Material");
+                    b.Navigation("SustainabilityCriterion");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Supplier", b =>
@@ -714,6 +1063,21 @@ namespace EcoFashionBackEnd.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.TypeSize", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.DesignsType", null)
+                        .WithMany()
+                        .HasForeignKey("DesignTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcoFashionBackEnd.Entities.DesignsSize", null)
+                        .WithMany()
+                        .HasForeignKey("SizeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.User", b =>
@@ -744,51 +1108,39 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("Supplier");
                 });
 
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignDraft", b =>
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>
                 {
-                    b.Navigation("DraftMaterials");
+                    b.Navigation("DesignImages");
+
+                    b.Navigation("DesignsColors");
+
+                    b.Navigation("DesignsFeature")
+                        .IsRequired();
+
+                    b.Navigation("DesignsMaterials");
+
+                    b.Navigation("DesignsRatings");
+
+                    b.Navigation("DesignsSizes");
+
+                    b.Navigation("DesignsVariants");
                 });
 
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.Designer", b =>
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsColor", b =>
                 {
-                    b.Navigation("DesignDrafts");
-
-                    b.Navigation("DesignerMaterialInventories");
-
-                    b.Navigation("SavedMaterials");
+                    b.Navigation("Variants");
                 });
 
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.Image", b =>
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.DesignsSize", b =>
                 {
-                    b.Navigation("MaterialImages");
+                    b.Navigation("Variants");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Material", b =>
                 {
-                    b.Navigation("DesignerMaterialInventories");
-
-                    b.Navigation("DraftMaterials");
-
                     b.Navigation("MaterialImages");
 
-                    b.Navigation("MaterialSustainabilities");
-
-                    b.Navigation("SavedMaterials");
-                });
-
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialType", b =>
-                {
-                    b.Navigation("Materials");
-                });
-
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.Supplier", b =>
-                {
-                    b.Navigation("Materials");
-                });
-
-            modelBuilder.Entity("EcoFashionBackEnd.Entities.SustainabilityCriteria", b =>
-                {
-                    b.Navigation("MaterialSustainabilities");
+                    b.Navigation("MaterialSustainabilityMetrics");
                 });
 #pragma warning restore 612, 618
         }

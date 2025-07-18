@@ -21,7 +21,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
 
-
+        // Apply as Supplier or Designer
         [Authorize]
         [HttpPost("ApplySupplier")]
         public async Task<IActionResult> ApplyAsSupplier([FromForm] ApplySupplierRequest request)
@@ -33,7 +33,7 @@ namespace EcoFashionBackEnd.Controllers
                 return Unauthorized(ApiResult<ApplicationModel>.Fail("Không thể xác định người dùng."));
             }
 
-            var application = await _applicationService.ApplyAsSupplier(userId, request, request.IdentificationPictureFile);
+            var application = await _applicationService.ApplyAsSupplier(userId, request);
             if (application != null)
             {
                 return CreatedAtAction("GetApplicationById", new { id = application.ApplicationId }, ApiResult<ApplicationModel>.Succeed(application));
@@ -41,6 +41,7 @@ namespace EcoFashionBackEnd.Controllers
             return BadRequest(ApiResult<object>.Fail("Không thể gửi đơn đăng ký trở thành nhà cung cấp."));
         }
 
+        [Authorize]
         [HttpPost("ApplyDesigner")]
         public async Task<IActionResult> ApplyAsDesigner([FromForm] ApplyDesignerRequest request)
         {
@@ -51,13 +52,15 @@ namespace EcoFashionBackEnd.Controllers
                 return Unauthorized(ApiResult<ApplicationModel>.Fail("Không thể xác định người dùng."));
             }
 
-            var application = await _applicationService.ApplyAsDesigner(userId, request, request.IdentificationPictureFile);
+            var application = await _applicationService.ApplyAsDesigner(userId, request);
             if (application != null)
             {
                 return Ok(ApiResult<ApplicationModel>.Succeed(application));
             }
             return BadRequest(ApiResult<object>.Fail("Không thể gửi đơn đăng ký trở thành nhà thiết kế."));
         }
+        // -----------------------------------------------
+        // Get Application by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetApplicationById(int id)
         {
@@ -71,7 +74,7 @@ namespace EcoFashionBackEnd.Controllers
 
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAllApplications()
         {
             try
@@ -86,7 +89,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "admin")]
         [HttpPut("{applicationId}/ApproveSupplier")]
         public async Task<IActionResult> ApproveSupplierApplication(int applicationId)
         {
@@ -113,7 +116,7 @@ namespace EcoFashionBackEnd.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "admin")]
         [HttpPut("{applicationId}/ApproveDesigner")]
         public async Task<IActionResult> ApproveDesignerApplication(int applicationId)
         {
@@ -141,7 +144,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "admin")]
         [HttpPut("{applicationId}/Reject")]
         public async Task<IActionResult> RejectApplication(int applicationId, [FromBody] RejectApplicationRequest request)
         {
@@ -161,6 +164,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
         [HttpGet("Filter")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> FilterApplications(
         [FromQuery] string? status, // Thay ApplicationStatus? bằng string?
         [FromQuery] int? targetRoleId,
@@ -186,6 +190,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
         [HttpGet("Search")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> SearchApplications([FromQuery] string? keyword)
         {
             var applications = await _applicationService.SearchApplications(keyword);

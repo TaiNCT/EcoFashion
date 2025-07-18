@@ -66,12 +66,8 @@ namespace EcoFashionBackEnd.Services
             //    throw new BadRequestException("Tài khoản không hoạt động.");
             //}
 
-            IConfiguration configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
-
             var expiresAt = DateTime.Now.AddDays(7);
-            var jwtKey = configuration["JwtSettings:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
+            var jwtKey = _configuration["JwtSettings:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
             var token = user.GenerateJsonWebToken(jwtKey, DateTime.Now);
 
             var response = new AuthResponse
@@ -231,6 +227,31 @@ namespace EcoFashionBackEnd.Services
             }
 
             return true;
+        }
+
+        public async Task<UserInfo?> GetUserProfileAsync(int userId)
+        {
+            var user = await _dbContext.Users
+                .Include(u => u.UserRole)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException("Không tìm thấy thông tin user.");
+            }
+
+            return new UserInfo
+            {
+                UserId = user.UserId,
+                FullName = user.FullName ?? "",
+                Email = user.Email ?? "",
+                Phone = user.Phone,
+                Username = user.Username,
+                Role = user.UserRole?.RoleName ?? "",
+                RoleId = user.RoleId,
+                Status = user.Status.ToString(),
+                CreatedAt = user.CreatedAt
+            };
         }
     }
 }

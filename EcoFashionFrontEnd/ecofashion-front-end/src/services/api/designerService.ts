@@ -7,19 +7,25 @@ export interface DesignerProfile {
   designerId: string;
   userId: number;
   designerName: string;
-  portfolioUrl?: string;
-  bannerUrl?: string;
+  avatarUrl?: string;
+  bio?: string;
   specializationUrl?: string;
+  portfolioUrl?: string;
+  portfolioFiles?: string;
+  bannerUrl?: string;
   email?: string;
   phoneNumber?: string;
   address?: string;
   taxNumber?: string;
   identificationNumber?: string;
-  identificationPicture?: string;
-  identificationPictureOwner?: string;
+  identificationPictureFront?: string;
+  identificationPictureBack?: string;
   status?: string;
   createdAt: string;
   updatedAt?: string;
+  rating?: number;
+  reviewCount?: number;
+  certificates?: string;
 }
 
 export interface CreateDesignerRequest {
@@ -51,22 +57,57 @@ export interface DesignerListResponse {
   pageSize: number;
 }
 
+export interface DesignerSummary {
+  designerId: string;
+  designerName?: string;
+  avatarUrl?: string;
+  bio?: string;
+  bannerUrl?: string;
+  rating?: number;
+  reviewCount?: number;
+  createdAt: string;
+}
+
+export interface DesignerPublic {
+  designerId: string;
+  designerName?: string;
+  avatarUrl?: string;
+  bio?: string;
+  specializationUrl?: string;
+  portfolioUrl?: string;
+  portfolioFiles?: string;
+  bannerUrl?: string;
+  email?: string;
+  phoneNumber?: string;
+  address?: string;
+  rating?: number;
+  reviewCount?: number;
+  certificates?: string;
+  createdAt: string;
+  userFullName?: string;
+  socialLinks?: string;
+  taxNumber?: string;
+  identificationPictureOwner?: string;
+}
+
 /**
  * Designer Service
  * Handles all designer-related API calls
  */
 export class DesignerService {
+  private static readonly API_BASE = "Designer";
+
   /**
    * Get current user's designer profile
    */
   static async getDesignerProfile(): Promise<DesignerProfile> {
     try {
-      const response = await apiClient.get<BaseApiResponse<DesignerResponse>>(
-        "/Designer/profile"
+      const response = await apiClient.get<BaseApiResponse<DesignerProfile>>(
+        `/${this.API_BASE}/profile`
       );
       const data = handleApiResponse(response);
 
-      return data.designer;
+      return data; // Backend trả về DesignerModel trực tiếp, không wrap trong { designer: ... }
     } catch (error) {
       return handleApiError(error);
     }
@@ -78,7 +119,7 @@ export class DesignerService {
   static async getDesignerById(designerId: string): Promise<DesignerProfile> {
     try {
       const response = await apiClient.get<BaseApiResponse<DesignerResponse>>(
-        `/Designer/${designerId}`
+        `/${this.API_BASE}/${designerId}`
       );
       const data = handleApiResponse(response);
 
@@ -96,7 +137,7 @@ export class DesignerService {
   ): Promise<DesignerProfile> {
     try {
       const response = await apiClient.post<BaseApiResponse<DesignerResponse>>(
-        "/Designer/create",
+        `/${this.API_BASE}/create`,
         profileData
       );
       const data = handleApiResponse(response);
@@ -114,13 +155,14 @@ export class DesignerService {
     profileData: Partial<DesignerProfile>
   ): Promise<DesignerProfile> {
     try {
-      const response = await apiClient.put<BaseApiResponse<DesignerResponse>>(
-        "/Designer/profile",
+      const response = await apiClient.put<BaseApiResponse<string>>(
+        `/${this.API_BASE}/profile`,
         profileData
       );
       const data = handleApiResponse(response);
 
-      return data.designer;
+      // Backend update trả về message, cần get lại profile
+      return await DesignerService.getDesignerProfile();
     } catch (error) {
       return handleApiError(error);
     }
@@ -131,7 +173,7 @@ export class DesignerService {
    */
   static async deleteDesignerProfile(designerId: string): Promise<void> {
     try {
-      await apiClient.delete(`/Designer/delete/${designerId}`);
+      await apiClient.delete(`/${this.API_BASE}/delete/${designerId}`);
     } catch (error) {
       return handleApiError(error);
     }
@@ -157,7 +199,7 @@ export class DesignerService {
 
       const response = await apiClient.get<
         BaseApiResponse<DesignerListResponse>
-      >(`/Designer/list?${params.toString()}`);
+      >(`/${this.API_BASE}/list?${params.toString()}`);
 
       return handleApiResponse(response);
     } catch (error) {
@@ -180,7 +222,7 @@ export class DesignerService {
 
       const response = await apiClient.post<
         BaseApiResponse<{ imageUrl: string }>
-      >(`/Designer/upload-image/${designerId}`, formData, {
+      >(`/${this.API_BASE}/upload-image/${designerId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -201,7 +243,7 @@ export class DesignerService {
   ): Promise<DesignerProfile> {
     try {
       const response = await apiClient.patch<BaseApiResponse<DesignerResponse>>(
-        `/Designer/status/${designerId}`,
+        `/${this.API_BASE}/status/${designerId}`,
         { status }
       );
       const data = handleApiResponse(response);
@@ -229,8 +271,84 @@ export class DesignerService {
           pendingDesigners: number;
           rejectedDesigners: number;
         }>
-      >("/Designer/statistics");
+      >(`/${this.API_BASE}/statistics`);
 
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Get public designers for directory listing (no auth required)
+   */
+  static async getPublicDesigners(
+    page: number = 1,
+    pageSize: number = 12
+  ): Promise<DesignerSummary[]> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<DesignerSummary[]>>(
+        `/${this.API_BASE}/public?page=${page}&pageSize=${pageSize}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Get designer public profile for landing page (no auth required)
+   */
+  static async getDesignerPublicProfile(
+    designerId: string
+  ): Promise<DesignerPublic> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<DesignerPublic>>(
+        `/${this.API_BASE}/public/${designerId}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Search public designers (no auth required)
+   */
+  static async searchPublicDesigners(
+    keyword?: string,
+    page: number = 1,
+    pageSize: number = 12
+  ): Promise<DesignerSummary[]> {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+      });
+
+      if (keyword) {
+        params.append("keyword", keyword);
+      }
+
+      const response = await apiClient.get<BaseApiResponse<DesignerSummary[]>>(
+        `/${this.API_BASE}/public/search?${params.toString()}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Get featured designers for homepage (no auth required)
+   */
+  static async getFeaturedDesigners(
+    count: number = 6
+  ): Promise<DesignerSummary[]> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<DesignerSummary[]>>(
+        `/${this.API_BASE}/public/featured?count=${count}`
+      );
       return handleApiResponse(response);
     } catch (error) {
       return handleApiError(error);

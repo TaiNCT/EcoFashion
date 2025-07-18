@@ -73,6 +73,9 @@ export default function ApplicationManagement() {
   useEffect(() => {
     fetchApplications();
   }, []);
+
+
+
   const fetchApplications = async () => {
     try {
       setLoading(true);
@@ -108,7 +111,7 @@ export default function ApplicationManagement() {
         error.message.includes("unauthorized")
       ) {
         toast.error(
-          "Bạn không có quyền truy cập chức năng này. Vui lòng đăng nhập với tài khoản Admin.",
+          "Bạn không có quyền truy cập chức năng này. Vui lòng đăng nhập với tài khoản admin.",
           {
             position: "bottom-center",
           }
@@ -245,7 +248,7 @@ export default function ApplicationManagement() {
     return (
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Alert severity="error">
-          Bạn không có quyền truy cập trang này. Chỉ Admin mới có thể quản lý
+          Bạn không có quyền truy cập trang này. Chỉ admin mới có thể quản lý
           đơn đăng ký.
         </Alert>
       </Container>
@@ -440,20 +443,18 @@ export default function ApplicationManagement() {
                   <TableCell>
                     <Box>
                       <Typography variant="body2" fontWeight="bold">
-                        User ID: {application.userId}
+                        {application.user?.fullName || `User ID: ${application.userId}`}
                       </Typography>
-                      {application.identificationNumber && (
-                        <Typography variant="caption" color="text.secondary">
-                          CMND: {application.identificationNumber}
+                      {application.user?.email && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {application.user.email}
                         </Typography>
                       )}
                     </Box>
                   </TableCell>
                   <TableCell>{getRoleChip(application.targetRoleId)}</TableCell>
                   <TableCell>
-                    {new Date(application.createdAt).toLocaleDateString(
-                      "vi-VN"
-                    )}
+                    {new Date(application.createdAt).toLocaleDateString("vi-VN")}
                   </TableCell>
                   <TableCell>{getStatusChip(application.status)}</TableCell>
                   <TableCell>
@@ -518,7 +519,7 @@ export default function ApplicationManagement() {
         </TableContainer>
       )}
 
-      {/* Detail Dialog */}
+      {/* Simplified Detail Dialog - Complex fields commented out for now */}
       <Dialog
         open={detailDialogOpen}
         onClose={() => setDetailDialogOpen(false)}
@@ -535,30 +536,40 @@ export default function ApplicationManagement() {
                 <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
                   <Box sx={{ minWidth: 200 }}>
                     <Typography variant="body2" color="text.secondary">
+                      <strong>Họ tên:</strong>
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedApplication.user?.fullName || `User ID: ${selectedApplication.userId}`}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ minWidth: 200 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Email:</strong>
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedApplication.user?.email || "-"}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ minWidth: 200 }}>
+                    <Typography variant="body2" color="text.secondary">
                       <strong>Loại đăng ký:</strong>
                     </Typography>
                     <Typography variant="body1">
-                      {selectedApplication.targetRoleId === 2
-                        ? "Designer"
-                        : "Supplier"}
+                      {selectedApplication.targetRoleId === 2 ? "Designer" : "Supplier"}
                     </Typography>
                   </Box>
                   <Box sx={{ minWidth: 200 }}>
                     <Typography variant="body2" color="text.secondary">
                       <strong>Trạng thái:</strong>
                     </Typography>
-                    <Box sx={{ mt: 0.5 }}>
-                      {getStatusChip(selectedApplication.status)}
-                    </Box>
+                    <Box sx={{ mt: 0.5 }}>{getStatusChip(selectedApplication.status)}</Box>
                   </Box>
                   <Box sx={{ minWidth: 200 }}>
                     <Typography variant="body2" color="text.secondary">
                       <strong>Ngày gửi:</strong>
                     </Typography>
                     <Typography variant="body1">
-                      {new Date(selectedApplication.createdAt).toLocaleString(
-                        "vi-VN"
-                      )}
+                      {new Date(selectedApplication.createdAt).toLocaleString("vi-VN")}
                     </Typography>
                   </Box>
                   {selectedApplication.processedAt && (
@@ -567,21 +578,25 @@ export default function ApplicationManagement() {
                         <strong>Ngày xử lý:</strong>
                       </Typography>
                       <Typography variant="body1">
-                        {new Date(
-                          selectedApplication.processedAt
-                        ).toLocaleString("vi-VN")}
+                        {new Date(selectedApplication.processedAt).toLocaleString("vi-VN")}
                       </Typography>
                     </Box>
                   )}
-                  <Box sx={{ minWidth: 200 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      <strong>Số CMND/CCCD:</strong>
-                    </Typography>
-                    <Typography variant="body1">
-                      {selectedApplication.identificationNumber}
-                    </Typography>
-                  </Box>
+                  {selectedApplication.identificationNumber && (
+                    <Box sx={{ minWidth: 200 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        <strong>Số CMND/CCCD:</strong>
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApplication.identificationNumber}
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
+                
+                {/* Complex fields temporarily commented out to avoid render issues */}
+                {/* TODO: Add back detailed view for portfolio, images, social links etc. */}
+                
                 {selectedApplication.portfolioUrl && (
                   <Box>
                     <Typography variant="body2" color="text.secondary">
@@ -589,20 +604,29 @@ export default function ApplicationManagement() {
                     </Typography>
                     <Typography
                       variant="body2"
-                      sx={{
-                        color: "#1976d2",
-                        textDecoration: "underline",
-                        cursor: "pointer",
-                        wordBreak: "break-all",
-                      }}
-                      onClick={() =>
-                        window.open(selectedApplication.portfolioUrl, "_blank")
-                      }
+                      sx={{ color: "#1976d2", textDecoration: "underline", cursor: "pointer", wordBreak: "break-all" }}
+                      onClick={() => window.open(selectedApplication.portfolioUrl, "_blank")}
                     >
                       {selectedApplication.portfolioUrl}
                     </Typography>
                   </Box>
                 )}
+                
+                {selectedApplication.specializationUrl && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Chuyên môn:</strong>
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "#1976d2", textDecoration: "underline", cursor: "pointer", wordBreak: "break-all" }}
+                      onClick={() => window.open(selectedApplication.specializationUrl, "_blank")}
+                    >
+                      {selectedApplication.specializationUrl}
+                    </Typography>
+                  </Box>
+                )}
+                
                 {selectedApplication.note && (
                   <Box>
                     <Typography variant="body2" color="text.secondary">
@@ -613,19 +637,16 @@ export default function ApplicationManagement() {
                     </Typography>
                   </Box>
                 )}
-                {selectedApplication.status === "rejected" &&
-                  selectedApplication.rejectionReason && (
-                    <Box>
-                      <Alert severity="error">
-                        <Typography variant="body2">
-                          <strong>Lý do từ chối:</strong>
-                        </Typography>
-                        <Typography variant="body1">
-                          {selectedApplication.rejectionReason}
-                        </Typography>
-                      </Alert>
-                    </Box>
-                  )}
+                {selectedApplication.status === "rejected" && selectedApplication.rejectionReason && (
+                  <Box>
+                    <Alert severity="error">
+                      <Typography variant="body2">
+                        <strong>Lý do từ chối:</strong>
+                      </Typography>
+                      <Typography variant="body1">{selectedApplication.rejectionReason}</Typography>
+                    </Alert>
+                  </Box>
+                )}
               </Box>
             </Box>
           )}

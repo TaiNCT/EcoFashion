@@ -9,6 +9,8 @@ namespace EcoFashionBackEnd.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ImageId { get; set; }
+
+        public string? ImageUrl { get; set; }
         [Required]
         [Url]
         public required string ImageUrl { get; set; }

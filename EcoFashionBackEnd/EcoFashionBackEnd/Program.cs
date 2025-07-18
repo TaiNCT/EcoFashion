@@ -1,4 +1,5 @@
 using EcoFashionBackEnd.Data;
+using EcoFashionBackEnd.Data.test;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Extensions;
 using EcoFashionBackEnd.Middlewares;
@@ -10,13 +11,11 @@ public class Program
     public static async Task Main(string[] args)
     {
         {
-
-            IConfiguration configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddInfrastructure(builder.Configuration);
 
             // Add services to the container.
-            builder.Services.AddSwaggerGen(option =>
+            builder.Services.AddSwaggerGen(option => 
             {
                 option.SwaggerDoc("v1", new OpenApiInfo { Title = "BE API", Version = "v1" });
                 option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -47,7 +46,7 @@ public class Program
 
             builder.Services.AddCors(option =>
             option.AddPolicy("CORS", builder =>
-                builder.WithOrigins("http://localhost:3000", "http://localhost:5173")
+                builder.WithOrigins("http://localhost:5173", "http://localhost:5174")
                       .AllowAnyMethod()
                       .AllowAnyHeader()
                       .AllowCredentials()));
@@ -72,6 +71,12 @@ public class Program
             });
 
             // Configure the HTTP request pipeline.
+            
+            // Enable Swagger for all environments
+            app.UseSwagger();
+            app.UseSwaggerUI();
+            
+            // Database migration only in Development
             if (app.Environment.IsDevelopment())
             {
                 await using (var scope = app.Services.CreateAsyncScope())

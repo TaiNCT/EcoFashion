@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
+using EcoFashionBackEnd.Common.Payloads.Requests;
+using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos;
+using EcoFashionBackEnd.Dtos.Design;
 using EcoFashionBackEnd.Dtos.DesignerMaterialInventory;
 using EcoFashionBackEnd.Dtos.Material;
 using EcoFashionBackEnd.Dtos.MaterialType;
@@ -11,10 +14,46 @@ namespace EcoFashionBackEnd.Mapper
     {
         public ApplicationMapper()
         {
+            // ---------- User ----------
             CreateMap<User, UserModel>().ReverseMap();
             CreateMap<UserRole, UserRoleModel>().ReverseMap();
+
+            // ---------- Supplier & Designer ----------
             CreateMap<Supplier, SupplierModel>().ReverseMap();
             CreateMap<Designer, DesignerModel>().ReverseMap();
+
+            // ---------- Design ----------
+            CreateMap<Design, DesignModel>().ReverseMap();
+            CreateMap<DesignModel, Design>();
+            CreateMap<UpdateDesignRequest, Design>();
+            CreateMap<UpdateDesignVariantRequest, DesignsVariant>();
+
+
+            // CreateDesign mapping
+            CreateMap<CreateDesignRequest, DesignModel>();
+            CreateMap<CreateDesignRequest, DesignFeatureModel>()
+                .ForMember(dest => dest.ReduceWaste, opt => opt.MapFrom(src => src.Feature.ReduceWaste))
+                .ForMember(dest => dest.LowImpactDyes, opt => opt.MapFrom(src => src.Feature.LowImpactDyes))
+                .ForMember(dest => dest.Durable, opt => opt.MapFrom(src => src.Feature.Durable))
+                .ForMember(dest => dest.EthicallyManufactured, opt => opt.MapFrom(src => src.Feature.EthicallyManufactured));
+            CreateMap<CreateDesignFeatureRequest, DesignFeatureModel>();
+
+            CreateMap<DesignFeatureModel, DesignFeature>().ReverseMap();
+
+            // ---------- Material ----------
+            CreateMap<MaterialDto, DesignMaterialModel>();
+            CreateMap<DesignMaterialRequest, DesignMaterialModel>();    
+            CreateMap<DesignMaterialModel, DesignsMaterial>();
+
+            // ---------- Design Detail Mapping (for GET) ----------
+            CreateMap<DesignDetailDto, DesignDetailResponse>();
+            CreateMap<DesignFeatureDto, DesignFeatureDto>(); // no change, passthrough
+            CreateMap<VariantDto, VariantDto>();
+            CreateMap<MaterialDto, MaterialDto>();
+            CreateMap<SustainabilityCriterionDto, SustainabilityCriterionDto>();
+            CreateMap<DesignerPublicDto, DesignerPublicDto>();
+
+            // ---------- Application ----------
             CreateMap<MaterialType, MaterialTypeModel>().ReverseMap();
             CreateMap<MaterialTypeRequest, MaterialType>();
             CreateMap<Material,  MaterialModel>().ReverseMap();

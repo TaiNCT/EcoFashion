@@ -1,18 +1,31 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace EcoFashionBackEnd.Entities
+﻿namespace EcoFashionBackEnd.Entities
 {
-    [Table("Material_Image")]
-    public class MaterialImage
+    using System;
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+
+    namespace EcoFashionBackEnd.Entities
     {
+        [Table("MaterialImages")]
+        public class MaterialImage
+        {
+            [Key]
+            [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+            public int MaterialImageId { get; set; }
+
+            public int MaterialId { get; set; }
         [Required]
         public required int MaterialId { get; set; }
-        [ForeignKey("MaterialId")]
+            [ForeignKey("MaterialId")]
+            public virtual Material Material { get; set; }
+
+            public int ImageId { get; set; }
         public virtual Material? Material { get; set; }
         [Required]
         public required int ImageId { get; set; }
-        [ForeignKey("ImageId")]
+            [ForeignKey("ImageId")]
+            public virtual Image Image { get; set; }
+        }
         public virtual Image? Image { get; set; }
     }
 }

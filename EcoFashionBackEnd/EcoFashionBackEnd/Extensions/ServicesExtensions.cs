@@ -13,6 +13,7 @@ using MailKit;
 using EcoFashionBackEnd.Mapper;
 using EcoFashionBackEnd.Helpers.Photos;
 using EcoFashionBackEnd.Data;
+using EcoFashionBackEnd.Data.test;
 
 
 namespace EcoFashionBackEnd.Extensions;
@@ -46,7 +47,7 @@ public static class ServicesExtensions
         });
 
         services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
-        services.Configure<CloundSettings>(configuration.GetSection(nameof(CloundSettings)));
+        services.Configure<CloudSettings>(configuration.GetSection(nameof(CloudSettings)));
 
         services.AddAuthorization();
 
@@ -74,8 +75,7 @@ public static class ServicesExtensions
         });
 
         services.AddScoped(typeof(IRepository<,>), typeof(GenericRepository<,>));
-
-        services.AddScoped<DatabaseInitialiser>();
+        services.AddScoped<IDatabaseInitialiser, DatabaseInitialiser>();
 
         services.AddScoped<UserService>();
         services.AddScoped<UserRoleService>();
@@ -87,6 +87,8 @@ public static class ServicesExtensions
         services.AddScoped<MaterialTypeService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<CloudService>();
+     
+        services.AddScoped<DesignService>();
         services.AddScoped<DeveloperMaterialInventoryService>();
 
         //services.AddScoped<IVnPayService, VnPayService>();

@@ -4,193 +4,144 @@ import {
   Button,
   Checkbox,
   CircularProgress,
-  Divider,
-  FormControlLabel,
-  Grid,
-  IconButton,
-  Step,
-  StepButton,
   Stepper,
+  Step,
+  StepLabel,
+  FormControlLabel,
+  FormControl,
+  FormGroup,
+  InputAdornment,
+  Paper,
   TextField,
   Typography,
+  Container,
+  Card,
+  CardContent,
+  Divider,
 } from "@mui/material";
-import React, { useState } from "react";
-//Icon
-import InfoIcon from "@mui/icons-material/Info";
-import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
-import id from "../../assets/pictures/register/id.png";
-import idPeople from "../../assets/pictures/register/id_people.png";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { applyDesignerSchema } from "../../schemas/applyDesignerSchema";
 import { useAuth } from "../../services/user/AuthContext";
-import { Form, Formik } from "formik";
-import * as Yup from "yup";
-import {
-  applicationService,
-  type ApplyDesignerRequest,
-} from "../../services/api/applicationService";
 import { toast } from "react-toastify";
-const steps = ["Thông tin Nhà Thiết Kế", "Thông tin định danh", "Hoàn tất"];
+import FileUpload from "../../components/FileUpload";
+import {
+  Instagram,
+  Facebook,
+  Language,
+  Phone,
+  LocationOn,
+  BusinessCenter,
+} from "@mui/icons-material";
+import PaletteIcon from "@mui/icons-material/Palette";
+import { applicationService } from "../../services/api/applicationService";
 
-// Validation schema
-// const validationSchema = Yup.object({
-//   portfolioUrl: Yup.string()
-//     .url("Portfolio URL không hợp lệ")
-//     .required("Portfolio URL là bắt buộc"),
-//   bannerUrl: Yup.string().url("Banner URL không hợp lệ"),
-//   specializationUrl: Yup.string().url("Specialization URL không hợp lệ"),
-//   identificationNumber: Yup.string()
-//     .required("Số CMND/CCCD là bắt buộc")
-//     .matches(/^0[0-9]{9,12}$/, "Số CMND/CCCD phải có 9-12 chữ số"),
-//   identificationPicture: Yup.string()
-//     .url("URL ảnh CMND/CCCD không hợp lệ")
-//     .required("Ảnh CMND/CCCD là bắt buộc"),
-//   idHoldPicture: Yup.string()
-//     .url("URL ảnh CMND/CCCD không hợp lệ")
-//     .required("Ảnh CMND/CCCD là bắt buộc"),
-//   note: Yup.string().max(500, "Ghi chú không được quá 500 ký tự"),
-//   fullName: Yup.string()
-//     .required("Họ và Tên là bắt buộc")
-//     .max(30, "Ghi chú không được quá 30 ký tự"),
-//   accepted: Yup.boolean().oneOf([true], "Bạn phải đồng ý với chính sách."),
-// });
-// interface ApplyDesignerFormValues {
-//   portfolioUrl: string;
-//   bannerUrl: string;
-//   specializationUrl: string;
-//   identificationNumber: string;
-//   identificationPicture: string;
-//   idHoldPicture: string;
-//   note: string;
-//   fullName: string;
-//   accepted: boolean;
-// }
-// Validation schema
-const validationSchema = Yup.object({
-  portfolioUrl: Yup.string()
-    .url("Portfolio URL không hợp lệ")
-    .required("Portfolio URL là bắt buộc"),
-  bannerUrl: Yup.string().url("Banner URL không hợp lệ"),
-  specializationUrl: Yup.string().url("Specialization URL không hợp lệ"),
-  identificationNumber: Yup.string()
-    .required("Số CMND/CCCD là bắt buộc")
-    .matches(/^[0-9]{9,12}$/, "Số CMND/CCCD phải có 9-12 chữ số"),
-  identificationPicture: Yup.string()
-    .url("URL ảnh CMND/CCCD không hợp lệ")
-    .required("Ảnh CMND/CCCD là bắt buộc"),
-  note: Yup.string().max(500, "Ghi chú không được quá 500 ký tự"),
-});
+const steps = [
+  "Thông tin cơ bản",
+  "Thông tin nghề nghiệp",
+  "Portfolio & Media",
+  "Thông tin định danh",
+  "Xác nhận & Hoàn tất",
+];
 
-interface ApplyDesignerFormValues {
-  portfolioUrl: string;
-  bannerUrl: string;
-  specializationUrl: string;
-  identificationNumber: string;
-  identificationPicture: string;
-  note: string;
-}
 export default function ApplyDesigner() {
-  const [activeStep, setActiveStep] = React.useState(0);
-  //Make It jump to top
-  React.useEffect(() => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [activeStep, setActiveStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    control,
+    setValue,
+    formState: { errors },
+    trigger,
+  } = useForm({
+    resolver: zodResolver(applyDesignerSchema),
+    defaultValues: {
+      socialLinks: "",
+      agreedToTerms: false,
+    },
+  });
+
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeStep]);
 
-  const [completed, setCompleted] = React.useState<{
-    [k: number]: boolean;
-  }>({});
+  const watchAll = watch();
 
-  const totalSteps = () => {
-    return steps.length;
-  };
-
-  const completedSteps = () => {
-    return Object.keys(completed).length;
-  };
-
-  const isLastStep = () => {
-    return activeStep === totalSteps() - 1;
-  };
-
-  const allStepsCompleted = () => {
-    return completedSteps() === totalSteps();
-  };
-
-  const handleNext = () => {
-    const newActiveStep =
-      isLastStep() && !allStepsCompleted()
-        ? // It's the last step, but not all steps have been completed,
-          // find the first step that has been completed
-          steps.findIndex((i) => !(i in completed))
-        : activeStep + 1;
-    setActiveStep(newActiveStep);
+  const handleNext = async () => {
+    // Validate only the current step fields
+    const currentStepFields = getStepFields(activeStep);
+    const valid = await trigger(currentStepFields as any);
+    if (valid) setActiveStep((prev) => prev + 1);
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    setActiveStep((prev) => prev - 1);
   };
 
-  const handleReset = () => {
-    setActiveStep(0);
-    setCompleted({});
-  };
-
-  const navigate = useNavigate();
-  const handleClick = (pages: string) => {
-    switch (pages.toLocaleLowerCase()) {
-      case "applications":
-        navigate("/my-applications");
-        break;
-      case "homepage":
-        navigate("/");
-        break;
+  // Helper function to get fields for each step
+  const getStepFields = (step: number): string[] => {
+    switch (step) {
+      case 0: // Basic Info
+        return ["phoneNumber", "address"];
+      case 1: // Professional Info
+        return ["bio", "certificates", "specializationUrl", "taxNumber"];
+      case 2: // Portfolio & Media
+        return [
+          "avatarFile",
+          "bannerFile",
+          "portfolioUrl",
+          "portfolioFiles",
+          "socialLinks",
+        ];
+      case 3: // Identity Verification
+        return [
+          "identificationNumber",
+          "identificationPictureFront",
+          "identificationPictureBack",
+        ];
+      case 4: // Agreement
+        return ["note", "agreedToTerms"];
+      default:
+        return [];
     }
   };
-  const { user } = useAuth();
 
-  const initialValues: ApplyDesignerFormValues = {
-    portfolioUrl: "",
-    bannerUrl: "",
-    specializationUrl: "",
-    identificationNumber: "",
-    identificationPicture: "",
-    // idHoldPicture: "",
-    note: "",
-    // fullName: "",
-    // accepted: false,
-  };
+  const onSubmit = async (data) => {
+    // Debug: Log request
+    console.log("🚀 Sending request:", {
+      avatarFile: data.avatarFile?.[0]?.name,
+      bannerFile: data.bannerFile?.[0]?.name,
+      identificationPictureFront: data.identificationPictureFront?.[0]?.name,
+      identificationPictureBack: data.identificationPictureBack?.[0]?.name,
+      portfolioFiles: data.portfolioFiles?.map((f) => f.name),
+    });
 
-  const [loading, setLoading] = useState(false);
-  const handleSubmit = async (values: ApplyDesignerFormValues) => {
     try {
-      // setLoading(true);
+      setLoading(true);
+      toast.info("Đang xử lý đơn đăng ký...");
+      const result = await applicationService.applyAsDesigner(data);
 
-      // Prepare request data
-      const requestData: ApplyDesignerRequest = {
-        portfolioUrl: values.portfolioUrl,
-        bannerUrl: values.bannerUrl || undefined,
-        specializationUrl: values.specializationUrl || undefined,
-        identificationNumber: values.identificationNumber,
-        identificationPicture: values.identificationPicture,
-        note: values.note || undefined,
-      };
-
-      // Call API to submit application
-      await applicationService.applyAsDesigner(requestData);
-
-      toast.success("Đơn đăng ký Designer đã được gửi thành công!", {
-        position: "top-center",
+      // Debug: Log received response
+      console.log("✅ Received response:", {
+        avatarUrl: result.avatarUrl,
+        bannerUrl: result.bannerUrl,
+        identificationPictureFront: result.identificationPictureFront,
+        identificationPictureBack: result.identificationPictureBack,
       });
 
-      // Navigate to my applications page to see status
-      // navigate("/my-applications");
-      handleNext();
-    } catch (error: any) {
-      console.error("Error applying as designer:", error);
-      toast.error(error.message || "Có lỗi xảy ra khi gửi đơn đăng ký", {
-        position: "bottom-center",
-      });
+      toast.success("Gửi đơn thành công!");
+      navigate("/my-applications");
+    } catch (err) {
+      console.error("❌ Error submitting application:", err);
+      toast.error("Có lỗi xảy ra khi gửi đơn.");
     } finally {
       setLoading(false);
     }
@@ -198,445 +149,353 @@ export default function ApplyDesigner() {
 
   const renderStepContent = (step: number) => {
     switch (step) {
-      case 0:
+      case 0: // Basic Info
         return (
-          <Box mt={4} sx={{ width: "100%" }}>
-            <TextField
-              fullWidth
-              label="Tên Nhà Thiết Kế"
-              placeholder="Nhập vào"
-              helperText="0/30"
-              margin="normal"
-              disabled
-              value={user?.fullName || ""}
-            />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
+              Thông tin cơ bản
+            </Typography>
 
-            <TextField
-              fullWidth
-              label="Email"
-              placeholder="Nhập vào"
-              margin="normal"
-              disabled
-              value={user?.email || ""}
-            />
-
-            <TextField
-              fullWidth
-              label="Số điện thoại"
-              placeholder="Nhập vào"
-              margin="normal"
-              disabled
-              // InputProps={{
-              //   startAdornment: (
-              //     <InputAdornment position="start">+84</InputAdornment>
-              //   ),
-              // }}
-              value={user?.phone || ""}
-            />
-
-            {/* <Grid container spacing={2} mt={1}>
-              <Grid>
-                <TextField fullWidth placeholder="Nhập vào" />
-              </Grid>
-              <Grid sx={{ margin: "auto 0" }}>
-                <Button variant="outlined" fullWidth>
-                  Gửi
-                </Button>
-              </Grid>
-            </Grid> */}
-            <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
-              <Button
-                color="inherit"
-                disabled={activeStep === 0}
-                onClick={handleBack}
-                sx={{ mr: 1 }}
-              >
-                Quay Lại
-              </Button>
-              <Box sx={{ flex: "1 1 auto" }} />
-              {activeStep < steps.length - 2 && (
-                <Button variant="contained" onClick={handleNext}>
-                  Tiếp tục
-                </Button>
-              )}
-            </Box>
-          </Box>
-        );
-      case 1:
-        return (
-          <Box
-            sx={{
-              width: "100%",
-              paddingBottom: 5,
-            }}
-          >
-            <Box
-              display="flex"
-              alignItems="center"
-              margin={"30px"}
-              border={"1px solid black"}
-              padding={"15px"}
-              borderRadius={"10px"}
-            >
-              <InfoIcon sx={{ mr: 1, color: "#1976d2" }} />
-              <Typography color="primary">
-                Vui lòng cung cấp Thông tin Định danh của Nhà Thiết Kế.
+            {/* Display user info from claims */}
+            <Alert severity="info">
+              <Typography variant="body2">
+                <strong>Email:</strong> {user?.email}
               </Typography>
-            </Box>
+              <Typography variant="body2">
+                <strong>Họ và tên:</strong> {user?.fullName}
+              </Typography>
+            </Alert>
 
-            <Formik
-              initialValues={initialValues}
-              validationSchema={validationSchema}
-              onSubmit={handleSubmit}
-            >
-              {({ values, errors, touched, handleChange, handleBlur }) => (
-                <Form>
-                  <TextField
-                    fullWidth
-                    name="identificationNumber"
-                    label="Số Căn Cước Công Dân"
-                    placeholder="Nhập vào"
-                    inputProps={{ maxLength: 12 }}
-                    value={values.identificationNumber}
-                    sx={{ mb: 2 }}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={
-                      touched.identificationNumber &&
-                      Boolean(errors.identificationNumber)
-                    }
-                    helperText={
-                      touched.identificationNumber &&
-                      errors.identificationNumber
-                    }
-                    required
-                  />
-                  <TextField
-                    fullWidth
-                    name="fullName"
-                    label="Họ & Tên"
-                    placeholder="Họ và tên theo CCCD"
-                    inputProps={{ maxLength: 100 }}
-                    // value={values.fullName}
-                    sx={{ mb: 4 }}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    // error={touched.fullName && Boolean(errors.fullName)}
-                    // helperText={touched.fullName && errors.fullName}
-                    required
-                  />
-                  <Grid container spacing={2} mb={2}>
-                    <Grid>
-                      <Typography variant="body2" mb={1}>
-                        Hình chụp của thẻ CCCD/CMND:
-                      </Typography>
-                      <Box sx={{ display: "flex" }}>
-                        <Box
-                          sx={{
-                            border: "1px dashed gray",
-                            borderRadius: 2,
-                            p: 4,
-                            textAlign: "center",
-                            color: "gray",
-                          }}
-                        >
-                          <IconButton>
-                            <AddPhotoAlternateIcon fontSize="large" />
-                          </IconButton>
-                          <Typography variant="body2" mt={1}>
-                            Vui lòng cung cấp ảnh chụp cận CCCD/CMND
-                          </Typography>
-                          <Typography variant="caption">
-                            Các thông tin trong CCCD/CMND phải được hiển thị rõ
-                            ràng
-                          </Typography>
-                        </Box>
-                        <img
-                          src={id}
-                          style={{
-                            marginTop: "auto",
-                            height: "100px",
-                            width: "100px",
-                          }}
-                        />
-                      </Box>
-                    </Grid>
+            <TextField
+              fullWidth
+              label="Số điện thoại *"
+              {...register("phoneNumber")}
+              error={Boolean(errors.phoneNumber)}
+              helperText={errors.phoneNumber?.message}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Phone color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-                    <Grid>
-                      <Typography variant="body2" mb={1}>
-                        Ảnh đang cầm thẻ CCCD/CMND của bạn:
-                      </Typography>
-                      <Box sx={{ display: "flex" }}>
-                        <Box
-                          sx={{
-                            border: "1px dashed gray",
-                            borderRadius: 2,
-                            p: 4,
-                            textAlign: "center",
-                            color: "gray",
-                          }}
-                        >
-                          <IconButton>
-                            <AddPhotoAlternateIcon fontSize="large" />
-                          </IconButton>
-                          <Typography variant="body2">
-                            Vui lòng cung cấp ảnh chụp cận CCCD/CMND
-                          </Typography>
-                          <Typography variant="caption">
-                            Các thông tin trong CCCD/CMND phải được hiển thị rõ
-                            ràng
-                          </Typography>
-                        </Box>
-                        <img
-                          src={idPeople}
-                          style={{
-                            marginTop: "auto",
-                            height: "100px",
-                            width: "130px",
-                          }}
-                        />
-                      </Box>
-                    </Grid>
-                  </Grid>
-                  {/* Portfolio URL */}
-                  <TextField
-                    fullWidth
-                    name="portfolioUrl"
-                    label="Portfolio URL *"
-                    placeholder="https://your-portfolio.com"
-                    value={values.portfolioUrl}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={touched.portfolioUrl && Boolean(errors.portfolioUrl)}
-                    helperText={touched.portfolioUrl && errors.portfolioUrl}
-                    required
-                  />
-
-                  {/* Specialization URL */}
-                  <TextField
-                    fullWidth
-                    name="specializationUrl"
-                    label="Specialization URL"
-                    placeholder="https://your-specialization.com"
-                    value={values.specializationUrl}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={
-                      touched.specializationUrl &&
-                      Boolean(errors.specializationUrl)
-                    }
-                    helperText={
-                      touched.specializationUrl && errors.specializationUrl
-                    }
-                    required
-                  />
-
-                  {/* Identification Picture */}
-                  <TextField
-                    fullWidth
-                    name="identificationPicture"
-                    label="URL ảnh CMND/CCCD *"
-                    placeholder="https://your-id-picture.com"
-                    value={values.identificationPicture}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={
-                      touched.identificationPicture &&
-                      Boolean(errors.identificationPicture)
-                    }
-                    helperText={
-                      touched.identificationPicture &&
-                      errors.identificationPicture
-                    }
-                    required
-                  />
-
-                  {/* Note */}
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={4}
-                    name="note"
-                    label="Ghi chú"
-                    placeholder="Chia sẻ về kinh nghiệm, phong cách thiết kế..."
-                    value={values.note}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={touched.note && Boolean(errors.note)}
-                    helperText={touched.note && errors.note}
-                    required
-                  />
-
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        name="accepted"
-                        // checked={values.accepted}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        color="primary"
-                      />
-                    }
-                    label={
-                      <Typography variant="body2">
-                        Tôi xác nhận tất cả dữ liệu đã cung cấp là chính xác và
-                        trung thực. Tôi đã đọc và đồng ý với Chính sách Bảo Mật
-                        của EcoFashion
-                      </Typography>
-                    }
-                  />
-                  <Divider sx={{ padding: "20px", borderColor: "black" }} />
-                  <Box sx={{ display: "flex", flexDirection: "column", pt: 2 }}>
-                    <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
-                      <Button
-                        color="inherit"
-                        disabled={activeStep === 0}
-                        onClick={handleBack}
-                        sx={{ mr: 1 }}
-                      >
-                        Quay Lại
-                      </Button>
-                      <Box sx={{ flex: "1 1 auto" }} />
-                      {activeStep < steps.length - 2 ? (
-                        <Button variant="contained" onClick={handleNext}>
-                          Tiếp tục
-                        </Button>
-                      ) : (
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          disabled={loading}
-                        >
-                          {loading ? (
-                            <>
-                              <CircularProgress size={20} sx={{ mr: 1 }} />
-                              Đang gửi đơn...
-                            </>
-                          ) : (
-                            "Gửi đơn đăng ký"
-                          )}
-                        </Button>
-                      )}
-                    </Box>
-                    <Alert severity="info" sx={{ mt: 2 }}>
-                      <Typography variant="body2">
-                        <strong>Lưu ý:</strong> Đơn đăng ký của bạn sẽ được
-                        Admin xem xét và phê duyệt. Bạn sẽ nhận được thông báo
-                        khi đơn được xử lý.
-                      </Typography>
-                    </Alert>
-                  </Box>
-                </Form>
-              )}
-            </Formik>
+            <TextField
+              fullWidth
+              label="Địa chỉ *"
+              {...register("address")}
+              error={Boolean(errors.address)}
+              helperText={errors.address?.message}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LocationOn color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
           </Box>
         );
-      case 2:
+
+      case 1: // Professional Info
         return (
-          <Box
-            sx={{
-              textAlign: "center",
-              mt: 8,
-              px: 2,
-            }}
-          >
-            <CheckCircleIcon sx={{ fontSize: 80, color: "green", mb: 2 }} />
-            <Typography variant="h5" fontWeight="bold" gutterBottom>
-              Đăng ký thành công
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
+              Thông tin nghề nghiệp
             </Typography>
-            <Typography variant="body1" color="textSecondary" mb={4}>
-              Hãy chờ EcoFashion duyệt cho bạn nhé!
-            </Typography>
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "green",
-                color: "white",
-                px: 4,
-                py: 1,
-                borderRadius: "8px",
-                "&:hover": {
-                  backgroundColor: "darkgreen",
-                },
-                margin: "auto",
+
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              label="Mô tả về bản thân"
+              {...register("bio")}
+              error={Boolean(errors.bio)}
+              helperText={errors.bio?.message}
+            />
+
+            <TextField
+              fullWidth
+              label="Chứng chỉ/Giải thưởng"
+              {...register("certificates")}
+              error={Boolean(errors.certificates)}
+              helperText={errors.certificates?.message}
+            />
+
+            <TextField
+              fullWidth
+              label="URL chuyên môn"
+              placeholder="https://www.ecofation-example.com"
+              {...register("specializationUrl")}
+              error={Boolean(errors.specializationUrl)}
+              helperText={errors.specializationUrl?.message}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Language color="action" />
+                  </InputAdornment>
+                ),
               }}
-              onClick={() => handleClick("homepage")}
-            >
-              Trang Chủ
-            </Button>
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "green",
-                color: "white",
-                px: 4,
-                py: 1,
-                borderRadius: "8px",
-                "&:hover": {
-                  backgroundColor: "darkgreen",
-                },
-                margin: "auto",
+            />
+
+            <TextField
+              fullWidth
+              label="Mã số thuế"
+              {...register("taxNumber")}
+              error={Boolean(errors.taxNumber)}
+              helperText={errors.taxNumber?.message}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <BusinessCenter color="action" />
+                  </InputAdornment>
+                ),
               }}
-              onClick={() => handleClick("applications")}
-            >
-              Xem Đơn Đăng Ký
-            </Button>
+            />
           </Box>
         );
+
+      case 2: // Portfolio & Media
+        return (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
+              Portfolio & Hình ảnh
+            </Typography>
+
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Ảnh đại diện
+              </Typography>
+              <Controller
+                name="avatarFile"
+                control={control}
+                render={({ field }) => (
+                  <FileUpload
+                    label="Chọn ảnh đại diện"
+                    files={field.value ? [field.value] : []}
+                    onFilesChange={(files) => field.onChange(files)}
+                    accept="image/*"
+                    maxSize={5}
+                    error={errors.avatarFile?.message as string}
+                  />
+                )}
+              />
+            </Paper>
+
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Ảnh banner
+              </Typography>
+              <Controller
+                name="bannerFile"
+                control={control}
+                render={({ field }) => (
+                  <FileUpload
+                    label="Chọn ảnh banner"
+                    files={field.value ? [field.value] : []}
+                    onFilesChange={(files) => field.onChange(files)}
+                    accept="image/*"
+                    maxSize={10}
+                  />
+                )}
+              />
+            </Paper>
+
+            <TextField
+              fullWidth
+              label="Portfolio URL"
+              placeholder="https://www.ecofation-example.com"
+              {...register("portfolioUrl")}
+              error={Boolean(errors.portfolioUrl)}
+              helperText={errors.portfolioUrl?.message}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Language color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Portfolio Files
+              </Typography>
+              <Controller
+                name="portfolioFiles"
+                control={control}
+                render={({ field }) => (
+                  <FileUpload
+                    label="Chọn ảnh portfolio"
+                    multiple
+                    files={field.value || []}
+                    onFilesChange={(files) => field.onChange(files)}
+                    accept="image/*"
+                    maxSize={5}
+                  />
+                )}
+              />
+            </Paper>
+
+            <TextField
+              fullWidth
+              label="Liên kết mạng xã hội (JSON)"
+              {...register("socialLinks")}
+              error={Boolean(errors.socialLinks)}
+              helperText={errors.socialLinks?.message}
+            />
+          </Box>
+        );
+
+      case 3: // Identity Verification
+        return (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
+              Thông tin định danh
+            </Typography>
+
+            <TextField
+              fullWidth
+              label="Số CCCD/CMND *"
+              {...register("identificationNumber")}
+              error={Boolean(errors.identificationNumber)}
+              helperText={errors.identificationNumber?.message}
+            />
+
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Ảnh CCCD mặt trước
+              </Typography>
+              <Controller
+                name="identificationPictureFront"
+                control={control}
+                render={({ field }) => (
+                  <FileUpload
+                    label="Chọn ảnh mặt trước"
+                    files={field.value ? [field.value] : []}
+                    onFilesChange={(files) => field.onChange(files)}
+                    accept="image/*"
+                    maxSize={5}
+                    error={errors.identificationPictureFront?.message as string}
+                  />
+                )}
+              />
+            </Paper>
+
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Ảnh CCCD mặt sau
+              </Typography>
+              <Controller
+                name="identificationPictureBack"
+                control={control}
+                render={({ field }) => (
+                  <FileUpload
+                    label="Chọn ảnh mặt sau"
+                    files={field.value ? [field.value] : []}
+                    onFilesChange={(files) => field.onChange(files)}
+                    accept="image/*"
+                    maxSize={5}
+                    error={errors.identificationPictureBack?.message as string}
+                  />
+                )}
+              />
+            </Paper>
+          </Box>
+        );
+
+      case 4: // Agreement & Completion
+        return (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <Alert severity="success">
+              Bạn đã hoàn thành các bước đăng ký! Vui lòng xem lại thông tin và
+              xác nhận.
+            </Alert>
+
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              label="Ghi chú"
+              {...register("note")}
+              error={Boolean(errors.note)}
+              helperText={errors.note?.message}
+            />
+
+            <FormControl error={Boolean(errors.agreedToTerms)}>
+              <FormGroup>
+                <FormControlLabel
+                  control={<Checkbox {...register("agreedToTerms")} />}
+                  label="Tôi đồng ý với các điều khoản và điều kiện"
+                />
+                {errors.agreedToTerms && (
+                  <Typography variant="caption" color="error">
+                    {errors.agreedToTerms?.message}
+                  </Typography>
+                )}
+              </FormGroup>
+            </FormControl>
+          </Box>
+        );
+
       default:
         return "Unknown step";
     }
   };
+
   return (
-    <Box sx={{ border: "1px solid black", width: "80%", margin: "30px auto" }}>
-      <Box
-        sx={{
-          width: "60%",
-          margin: "30px auto",
-        }}
-      >
-        <Typography
-          sx={{
-            textAlign: "center",
-            margin: "30px auto",
-            fontSize: "30px",
-            fontWeight: "bold",
-          }}
-        >
-          Đăng ký Nhà Thiết Kế
-        </Typography>
-        <Stepper alternativeLabel nonLinear activeStep={activeStep}>
-          {steps.map((label, index) => (
-            <Step key={label} completed={completed[index]}>
-              <StepButton color="inherit" disabled>
-                {label}
-              </StepButton>
-            </Step>
-          ))}
-        </Stepper>
-        {allStepsCompleted() ? (
-          <React.Fragment>
-            <Typography sx={{ mt: 2, mb: 1 }}>
-              All steps completed - you are finished
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Card>
+        <CardContent>
+          <Box sx={{ textAlign: "center", mb: 4 }}>
+            <PaletteIcon sx={{ fontSize: 48, color: "#4caf50" }} />
+            <Typography variant="h4" fontWeight="bold">
+              Đăng ký Nhà Thiết Kế
             </Typography>
-            <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
-              <Box sx={{ flex: "1 1 auto" }} />
-              <Button onClick={handleReset}>Reset</Button>
-            </Box>
-          </React.Fragment>
-        ) : (
-          <React.Fragment>
-            <Box
-              sx={{
-                margin: "auto",
-                width: "100%",
-              }}
+            <Typography color="text.secondary">
+              Tham gia cộng đồng những nhà thiết kế thời trang bền vững
+            </Typography>
+            <Divider sx={{ mt: 2 }} />
+          </Box>
+
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }} alternativeLabel>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+
+          {renderStepContent(activeStep)}
+
+          <Box sx={{ display: "flex", flexDirection: "row", pt: 4 }}>
+            <Button
+              color="inherit"
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              sx={{ mr: 1 }}
             >
-              {renderStepContent(activeStep)}
-            </Box>
-          </React.Fragment>
-        )}
-      </Box>
-    </Box>
+              Quay lại
+            </Button>
+            <Box sx={{ flex: "1 1 auto" }} />
+            {activeStep === steps.length - 1 ? (
+              <Button
+                variant="contained"
+                onClick={handleSubmit(onSubmit)}
+                disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} /> : null}
+              >
+                Gửi đơn đăng ký
+              </Button>
+            ) : (
+              <Button variant="contained" onClick={handleNext}>
+                Tiếp theo
+              </Button>
+            )}
+          </Box>
+        </CardContent>
+      </Card>
+    </Container>
   );
 }
