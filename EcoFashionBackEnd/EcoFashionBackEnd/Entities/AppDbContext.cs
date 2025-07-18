@@ -27,6 +27,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<MaterialImage> MaterialImages { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<SustainabilityCriteria> SustainabilityCriterias { get; set; }
+        public DbSet<DesignerMaterialInventory> DesignerMaterialInventories { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -175,6 +176,20 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany(i => i.MaterialImages)
                 .HasForeignKey(mi => mi.ImageId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DesignerMaterialInventory>()
+                .HasOne(dmi => dmi.Designer)
+                .WithMany(d => d.DesignerMaterialInventories)
+                .HasForeignKey(dmi => dmi.DesignerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<DesignerMaterialInventory>()
+                .HasOne(dmi => dmi.Material)
+                .WithMany(m => m.DesignerMaterialInventories)
+                .HasForeignKey(dmi => dmi.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<DesignerMaterialInventory>()
+                .Property(dmi => dmi.Status)
+                .HasConversion<string>();
         }
     }
 }

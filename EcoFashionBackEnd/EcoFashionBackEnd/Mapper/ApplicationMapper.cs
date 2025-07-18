@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EcoFashionBackEnd.Dtos;
+using EcoFashionBackEnd.Dtos.DesignerMaterialInventory;
 using EcoFashionBackEnd.Dtos.Material;
 using EcoFashionBackEnd.Dtos.MaterialType;
 using EcoFashionBackEnd.Entities;
@@ -18,9 +19,13 @@ namespace EcoFashionBackEnd.Mapper
             CreateMap<MaterialTypeRequest, MaterialType>();
             CreateMap<Material,  MaterialModel>().ReverseMap();
             CreateMap<MaterialRequest,  Material>();
+            CreateMap<DesignerMaterialInventoryRequest, DesignerMaterialInventory>();
             // Application mapping với enum conversion
             CreateMap<Application, ApplicationModel>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+            CreateMap<DesignerMaterialInventory, DesignerMaterialInventoryModel>()
+                .ForMember(dest => dest.Status,
+                    opt => opt.MapFrom(src => src.Status.ToString()));
         }
     }
 }

@@ -94,8 +94,8 @@ namespace EcoFashionBackEnd.Controllers
                 return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
             try
             {
-                var deleted = await _materialService.DeleteMaterialAsync(userId, id);
-                if (!deleted)
+                var isDeleted = await _materialService.DeleteMaterialAsync(userId, id);
+                if (!isDeleted)
                     return NotFound(ApiResult<object>.Fail("Không tìm thấy vật liệu cần xóa"));
 
                 return Ok(ApiResult<object>.Succeed("Xóa vật liệu thành công"));

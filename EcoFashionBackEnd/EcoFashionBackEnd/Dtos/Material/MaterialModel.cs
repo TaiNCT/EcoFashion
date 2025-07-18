@@ -1,4 +1,6 @@
-﻿namespace EcoFashionBackEnd.Dtos.Material
+﻿using EcoFashionBackEnd.Dtos.MaterialType;
+
+namespace EcoFashionBackEnd.Dtos.Material
 {
     public class MaterialModel
     {
@@ -12,5 +14,7 @@
         public int? QuantityAvailable { get; set; }
         public decimal? PricePerUnit { get; set; }
         public string? DocumentationUrl { get; set; }
+        public MaterialTypeModel? Type { get; set; }
+        public SupplierModel? Supplier { get; set; }
     }
 }

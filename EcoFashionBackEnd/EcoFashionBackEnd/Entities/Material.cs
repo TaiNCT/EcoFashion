@@ -28,5 +28,6 @@ namespace EcoFashionBackEnd.Entities
         public ICollection<DraftMaterial> DraftMaterials { get; set; } = new List<DraftMaterial>();
         public ICollection<MaterialSustainability> MaterialSustainabilities { get; set; } = new List<MaterialSustainability>();
         public ICollection<MaterialImage> MaterialImages { get; set; } = new List<MaterialImage>();
+        public ICollection<DesignerMaterialInventory> DesignerMaterialInventories { get; set; } = new List<DesignerMaterialInventory>();
     }
 }

@@ -33,5 +33,6 @@ namespace EcoFashionBackEnd.Entities
         public string? Status { get; set; }
         public ICollection<SavedMaterial> SavedMaterials { get; set; } = new List<SavedMaterial>();
         public ICollection<DesignDraft> DesignDrafts { get; set; } = new List<DesignDraft>();
+        public ICollection<DesignerMaterialInventory> DesignerMaterialInventories { get; set; } = new List<DesignerMaterialInventory>();
     }
 }

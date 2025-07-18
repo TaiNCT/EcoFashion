@@ -23,8 +23,6 @@ namespace EcoFashionBackEnd.Services
         public async Task<MaterialModel?> GetMaterialByIdAsync(int id)
         {
             var material = await _materialRepository.GetByIdAsync(id);
-            if (material == null)
-                return null;
             return _mapper.Map<MaterialModel>(material);
         }
         public async Task<IEnumerable<MaterialModel>> GetAllMaterialsAsync()
