@@ -86,13 +86,12 @@ const DesignsSection: React.FC<ProductsSectionProps> = ({
   const totalPages = Math.ceil(products.length / productsPerPage);
 
   //testing
-  const getCategoryColor = (category: Design["designTypeId"]) => {
+  const getCategoryColor = (category: Design["designTypeName"]) => {
     const colors = {
-      clothing: "#2196f3",
-      accessories: "#ff9800",
-      footwear: "#4caf50",
-      bags: "#9c27b0",
-      home: "#607d8b",
+      Áo: "#2196f3",
+      Quần: "#ff9800",
+      Đầm: "#4caf50",
+      Váy: "#9c27b0",
     };
     return colors[category] || "#9e9e9e";
   };

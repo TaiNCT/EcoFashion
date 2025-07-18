@@ -5,28 +5,36 @@ namespace EcoFashionBackEnd.Data.test
 {
     public static class DesignImageSeeder
     {
+
         public static async Task SeedAsync(AppDbContext context)
         {
+            var url1 = "https://res.cloudinary.com/dnzg0mgoi/image/upload/v1752820137/ic95dsembewnfwgb6jor.jpg";
+            var url2 = "https://res.cloudinary.com/dnzg0mgoi/image/upload/v1752820093/au80dylupwlhtkrdyibj.webp";
+            var url3 = "https://res.cloudinary.com/dnzg0mgoi/image/upload/v1752820085/bsik9lhysub0hq0kfwwa.webp";
+            var url4 = "https://res.cloudinary.com/dnzg0mgoi/image/upload/v1752820075/zotgx2jv300aqhqyg8ch.webp";
+
             if (await context.DesignImages.AnyAsync() ) return;
 
             var designs = await context.Designs.OrderBy(d => d.DesignId).ToListAsync();
 
             // 12 nhóm URL tương ứng 12 thiết kế
             var imageUrls = new List<List<string>>
-        {
-            new() { "https://example.com/img1a.jpg", "https://example.com/img1b.jpg", "https://example.com/img1c.jpg" },
-            new() { "https://example.com/img2a.jpg", "https://example.com/img2b.jpg", "https://example.com/img2c.jpg" },
-            new() { "https://example.com/img3a.jpg", "https://example.com/img3b.jpg", "https://example.com/img3c.jpg" },
-            new() { "https://example.com/img4a.jpg", "https://example.com/img4b.jpg", "https://example.com/img4c.jpg" },
-            new() { "https://example.com/img5a.jpg", "https://example.com/img5b.jpg", "https://example.com/img5c.jpg" },
-            new() { "https://example.com/img6a.jpg", "https://example.com/img6b.jpg", "https://example.com/img6c.jpg" },
-            new() { "https://example.com/img7a.jpg", "https://example.com/img7b.jpg", "https://example.com/img7c.jpg" },
-            new() { "https://example.com/img8a.jpg", "https://example.com/img8b.jpg", "https://example.com/img8c.jpg" },
-            new() { "https://example.com/img9a.jpg", "https://example.com/img9b.jpg", "https://example.com/img9c.jpg" },
-            new() { "https://example.com/img10a.jpg", "https://example.com/img10b.jpg", "https://example.com/img10c.jpg" },
-            new() { "https://example.com/img11a.jpg", "https://example.com/img11b.jpg", "https://example.com/img11c.jpg" },
-            new() { "https://example.com/img12a.jpg", "https://example.com/img12b.jpg", "https://example.com/img12c.jpg" },
-        };
+            {
+           
+                new() { url1, url2, url3 },
+                new() { url1, url3, url4 },
+                new() { url1, url2, url4 },
+                new() { url2, url3, url4 },
+                new() { url3, url1, url2 },
+                new() { url2, url4, url1 },
+                new() { url4, url3, url2 },
+                new() { url4, url1, url3 },
+                new() { url3, url2, url1 },
+                new() { url2, url1, url3 },
+                new() { url1, url4, url2 },
+                new() { url3, url4, url1 },
+
+            };
 
             // Safety check
             if (designs.Count != imageUrls.Count)

@@ -35,20 +35,20 @@ const FashionCard: React.FC<FashionCardProps> = ({
   // onAddToCart,
   // onToggleFavorite,
 }) => {
-  const getCategoryColor = (category: Design["designTypeId"]) => {
-    const colors = {
-      clothing: "#2196f3",
-      accessories: "#ff9800",
-      footwear: "#4caf50",
-      bags: "#9c27b0",
-      home: "#607d8b",
+  const getCategoryColor = (category: string): string => {
+    const colors: Record<string, string> = {
+      Áo: "#2196f3",
+      Quần: "#ff9800",
+      Đầm: "#4caf50",
+      Váy: "#9c27b0",
     };
-    return colors[category] || "#9e9e9e";
+
+    return colors[category.normalize("NFC")] || "#9e9e9e"; // default grey
   };
 
-  const getAvailabilityColor = (availability: Fashion["availability"]) => {
+  const getAvailabilityColor = (availability: Design["status"]) => {
     const colors = {
-      "in-stock": "success" as const,
+      "in stock": "success" as const,
       limited: "warning" as const,
       "pre-order": "info" as const,
       "out-of-stock": "error" as const,
@@ -56,9 +56,9 @@ const FashionCard: React.FC<FashionCardProps> = ({
     return colors[availability];
   };
 
-  const getAvailabilityText = (availability: Fashion["availability"]) => {
+  const getAvailabilityText = (availability: Design["status"]) => {
     const texts = {
-      "in-stock": "Còn hàng",
+      "in stock": "Còn hàng",
       limited: "Số lượng có hạn",
       "pre-order": "Đặt trước",
       "out-of-stock": "Hết hàng",
@@ -93,9 +93,11 @@ const FashionCard: React.FC<FashionCardProps> = ({
   //   return Math.min(Math.round(score / 4), 5); // Scale to 1-5
   // };
 
-  const formatPrice = (price: Fashion["price"]) => {
-    const formatted = new Intl.NumberFormat("vi-VN").format(price.current);
-    return `${formatted}₫`;
+  const formatPriceVND = (price: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
   };
 
   const formatOriginalPrice = (price: Fashion["price"]) => {
@@ -204,11 +206,14 @@ const FashionCard: React.FC<FashionCardProps> = ({
       >
         <CardMedia
           component="img"
-          height="360"
-          // image={product.image}
-          image={ao_linen}
+          image={product.imageUrls[0]}
           alt={product.name}
-          sx={{ width: "100%", objectFit: "cover" }}
+          sx={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            borderRadius: 2,
+          }}
         />
       </Link>
       {/* Content */}
@@ -219,7 +224,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
           bottom: 0,
           left: 0,
           width: "100%",
-          height: "60%",
+          height: "auto",
           background: "rgba(255, 255, 255, 1)",
           textAlign: "left",
           transition: "opacity 0.3s ease, transform 0.3s ease",
@@ -230,7 +235,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          padding: 0,
+          paddingTop: 2,
         }}
       >
         <Box
@@ -256,17 +261,17 @@ const FashionCard: React.FC<FashionCardProps> = ({
               >
                 <Chip
                   // label={product.category.toUpperCase()}
-                  label={product.designId}
+                  label={product.designTypeName.toUpperCase()}
                   size="small"
                   sx={{
-                    bgcolor: getCategoryColor(product.designId),
+                    bgcolor: getCategoryColor(product.designTypeName),
                     color: "white",
                     fontWeight: "bold",
                     fontSize: "0.7rem",
                   }}
                 />
                 <Typography variant="caption" color="text.secondary">
-                  {product.designerId}
+                  {product.designer.designerName}
                 </Typography>
               </Box>
               {/* Design Name */}
@@ -303,27 +308,27 @@ const FashionCard: React.FC<FashionCardProps> = ({
                   flexDirection: "column",
                 }}
               >
-                {/* {!product.price.original && (
-                  <Typography
-                    component="div"
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#2e7d32",
-                      margin: "auto 0",
-                      fontSize: "28px",
-                    }}
-                  >
-                    {formatPrice(product.price)}
-                  </Typography>
-                )} */}
-                {/* {product.price.original && ( */}
+                {/* {!product.price.original && (*/}
+                <Typography
+                  component="div"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#2e7d32",
+                    margin: "auto 0",
+                    fontSize: "28px",
+                  }}
+                >
+                  {formatPriceVND(product.price)}
+                </Typography>
+                {/* )}  */}
+                {/* {product.price.original && ( 
                 <Box>
                   <Typography
                     variant="h5"
                     component="div"
                     sx={{ fontWeight: "bold", color: "#2e7d32" }}
                   >
-                    {/* {formatPrice(product.price)} */}
+                   
                     {product.price}
                   </Typography>
                   <Typography
@@ -334,12 +339,11 @@ const FashionCard: React.FC<FashionCardProps> = ({
                       fontSize: "0.875rem",
                     }}
                   >
-                    {/* {formatOriginalPrice(product.Price)}
-                     */}
+                
                     {product.price}
                   </Typography>
                 </Box>
-                {/* )} */}
+              )} */}
               </Box>
               {/* Material */}
               <Box
@@ -352,27 +356,29 @@ const FashionCard: React.FC<FashionCardProps> = ({
                   textOverflow: "ellipsis",
                 }}
               >
-                {/* {product.materials.map((mat, index) => (
+                {product.materials.map((mat, index) => (
                   <Chip
                     key={index}
-                    label={`${mat.name} (${mat.percentageUse}%)`}
+                    label={`${mat.materialName} (${Math.round(
+                      mat.persentageUsed
+                    )}%)`}
                     size="small"
                     sx={{
                       backgroundColor: "rgba(220, 252, 231, 1)",
                       color: "rgba(29, 106, 58, 1)",
                     }}
                   />
-                ))} */}
+                ))}
               </Box>
               {/* Available */}
-              {/* <Box sx={{ margin: "10px 0" }}>
+              <Box sx={{ margin: "10px 0" }}>
                 <Chip
-                  label={getAvailabilityText(product.availability)}
+                  label={getAvailabilityText(product.status)}
                   size="small"
-                  color={getAvailabilityColor(product.availability)}
+                  color={getAvailabilityColor(product.status)}
                   icon={<LocalShipping sx={{ fontSize: 16 }} />}
                 />
-              </Box> */}
+              </Box>
             </Box>
           </Link>
 

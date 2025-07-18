@@ -10,7 +10,7 @@ const API_BASE_URL = import.meta.env.DEV
 // Create axios instance with common config
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
   },

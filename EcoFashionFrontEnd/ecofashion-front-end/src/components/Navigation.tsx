@@ -384,6 +384,7 @@ export default function Navigation() {
                 backgroundColor: "transparent", // xoá hiệu ứng khi click
                 boxShadow: "none",
               },
+              fontWeight: "bold",
             }}
           >
             Cửa Hàng
@@ -432,6 +433,7 @@ export default function Navigation() {
                 backgroundColor: "transparent",
                 boxShadow: "none",
               },
+              fontWeight: "bold",
             }}
           >
             Khám Phá

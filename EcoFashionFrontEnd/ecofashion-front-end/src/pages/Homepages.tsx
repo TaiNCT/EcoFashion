@@ -51,7 +51,7 @@ import chan_vay_dap from "../assets/pictures/example/chan-vay-dap.webp";
 import dam_con_trung from "../assets/pictures/example/dam-con-trung.webp";
 import type { Fashion } from "../types/Fashion";
 import SearchIcon from "@mui/icons-material/Search";
-import { DesignService } from "../services/api/designService";
+import { Design, DesignService } from "../services/api/designService";
 import { toast } from "react-toastify";
 
 const products: Fashion[] = [
@@ -582,19 +582,19 @@ const StyledInput = styled(InputBase)({
   flex: 1,
 });
 
-type Design = {
-  designId: number;
-  designerId: string;
-  name?: string;
-  description?: string;
-  recycledPercentage: number;
-  careInstructions?: string;
-  price: number;
-  productScore: number;
-  status?: string;
-  createdAt: string;
-  designTypeId?: number;
-};
+// type Design = {
+//   designId: number;
+//   designerId: string;
+//   name?: string;
+//   description?: string;
+//   recycledPercentage: number;
+//   careInstructions?: string;
+//   price: number;
+//   productScore: number;
+//   status?: string;
+//   createdAt: string;
+//   designTypeId?: number;
+// };
 
 export default function Homepage() {
   const { user } = useAuth();

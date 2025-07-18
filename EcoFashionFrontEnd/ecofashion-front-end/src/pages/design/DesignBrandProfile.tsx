@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { Fashion } from "../../types/Fashion";
 import {
   AppBar,
@@ -39,6 +39,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import StarIcon from "@mui/icons-material/Star";
 import DesignsSection from "../../components/design/DesignsSection";
+import { toast } from "react-toastify";
+import { DesignerService } from "../../services/api";
+import { DesignerPublic } from "../../services/api/designerService";
+import DesignService, { Design } from "../../services/api/designService";
 const products: Fashion[] = [
   {
     id: 1,
@@ -531,81 +535,73 @@ const reviews = [
   // Add more reviews as needed
 ];
 export default function DesingBrandProfile() {
-  const { id } = useParams(); // lấy id từ URL
-  const brand = products.find((p) => p.brand.id === Number(id));
-  //Scroll TO Anchor
-  const handleScroll = (id: string) => {
-    const element = document.getElementById(id);
-    const navbarHeight =
-      document.querySelector(".MuiAppBar-root")?.clientHeight || 0;
-
-    if (element) {
-      const y =
-        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
-
-      window.scrollTo({ top: y, behavior: "smooth" });
-    }
-  };
   //Change image
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isAtStart, setIsAtStart] = useState(true);
   const [isAtEnd, setIsAtEnd] = useState(false);
-
-  const handleScroll2 = () => {
-    const el = scrollRef.current;
-    if (el) {
-      setIsAtStart(el.scrollLeft === 0);
-      setIsAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1); // small margin for rounding errors
-    }
-  };
-
-  const scroll = (direction: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const cardWidth = 400;
-    const gap = 16;
-    const scrollAmount = cardWidth + gap;
-
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    const nextScrollLeft =
-      direction === "left"
-        ? Math.max(el.scrollLeft - scrollAmount, 0)
-        : Math.min(el.scrollLeft + scrollAmount, maxScroll);
-
-    el.scrollTo({
-      left: nextScrollLeft,
-      behavior: "smooth",
-    });
-  };
+  //Get Brand Detail
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [designer, setDesigner] = useState<DesignerPublic | null>(null);
+  const [designs, setDesigns] = useState<Design[]>([]);
+  //filter by color
+  const [showSorted, setShowSorted] = useState(false);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [activeColors, setActiveColors] = useState<string[]>([]);
 
   useEffect(() => {
-    handleScroll2(); // initialize scroll state
-    const el = scrollRef.current;
-    if (el) el.addEventListener("scroll", handleScroll2);
-    return () => {
-      if (el) el.removeEventListener("scroll", handleScroll2);
+    if (!id) return;
+    const fetchDesigner = async () => {
+      try {
+        setLoading(true);
+        const data = await DesignerService.getDesignerPublicProfile(id);
+        const allDesign = await DesignService.getAllDesign();
+        setDesigner(data);
+        setDesigns(allDesign);
+      } catch (err: any) {
+        const msg = err.message || "Không thể tải thông tin nhà thiết kế.";
+        setError(msg);
+        toast.error(msg);
+      } finally {
+        setLoading(false);
+      }
     };
-  }, []);
+    fetchDesigner();
+  }, [id]);
 
-  //
-  //Change image
-  const [startIndex, setStartIndex] = useState(0);
-  const visibleCount = 4;
+  const filteredProducts = designs.filter((product: any) => {
+    if (activeColors.length === 0) return true;
+    return product.colors.some((color: string) => activeColors.includes(color));
+  });
+  //Sort product
+  const [sortType, setSortType] = useState<
+    "all" | "recent" | "lowest" | "highest"
+  >("all");
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (!showSorted) return 0; // don't sort until button is clicked
 
-  // const handlePrev = () => {
-  //   setStartIndex((prev) => Math.max(prev - 1, 0));
-  // };
+    switch (sortType) {
+      case "lowest":
+        return a.price - b.price;
+      case "highest":
+        return b.price - a.price;
+      case "recent":
+        return b.designId - a.designId;
+      default:
+        return 0;
+    }
+  });
 
-  // const handleNext = () => {
-  //   setStartIndex((prev) =>
-  //     Math.min(prev + 1, Math.max(0, sustainabilityItems.length - visibleCount))
+  // if (loading) return <div className="designer-loading">Đang tải...</div>;
+  // if (error || !designer)
+  //   return (
+  //     <div className="designer-error">
+  //       <p>{error || "Không tìm thấy designer."}</p>
+  //       <button>← Quay lại</button>
+  //     </div>
   //   );
-  // };
-  // const visibleItems = sustainabilityItems.slice(
-  //   startIndex,
-  //   startIndex + visibleCount
-  // );
 
   //filter
   const colorCounts: Record<string, number> = {};
@@ -659,44 +655,48 @@ export default function DesingBrandProfile() {
       { label: "Recycled Polyester", count: 11 },
     ],
   };
-  //filter by color
-  const [showSorted, setShowSorted] = useState(false);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [activeColors, setActiveColors] = useState<string[]>([]);
+
   const handleColorChange = (color: string) => {
     setSelectedColors((prev) =>
       prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
     );
   };
-  const filteredProducts = products.filter((product: any) => {
-    if (activeColors.length === 0) return true;
-    return product.colors.some((color: string) => activeColors.includes(color));
-  });
+
   const previewFilteredProducts = products.filter((product: any) => {
     if (selectedColors.length === 0) return true;
     return product.colors.some((color: string) =>
       selectedColors.includes(color)
     );
   });
+  //Scroll TO Anchor
+  const handleScroll = (id: string) => {
+    const element = document.getElementById(id);
+    const navbarHeight = 150;
+    // document.querySelector(".MuiAppBar-root")?.clientHeight || 0;
 
-  //Sort product
-  const [sortType, setSortType] = useState<
-    "all" | "recent" | "lowest" | "highest"
-  >("all");
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (!showSorted) return 0; // don't sort until button is clicked
+    if (element) {
+      const y =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
 
-    switch (sortType) {
-      case "lowest":
-        return a.price.current - b.price.current;
-      case "highest":
-        return b.price.current - a.price.current;
-      case "recent":
-        return b.id - a.id;
-      default:
-        return 0;
+      window.scrollTo({ top: y, behavior: "smooth" });
     }
-  });
+  };
+  const handleScroll2 = () => {
+    const el = scrollRef.current;
+    if (el) {
+      setIsAtStart(el.scrollLeft === 0);
+      setIsAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1); // small margin for rounding errors
+    }
+  };
+
+  useEffect(() => {
+    handleScroll2(); // initialize scroll state
+    const el = scrollRef.current;
+    if (el) el.addEventListener("scroll", handleScroll2);
+    return () => {
+      if (el) el.removeEventListener("scroll", handleScroll2);
+    };
+  }, []);
   //Xóa filter
   const handleClearAll = () => {
     setSelectedColors([]); // Reset color selections
@@ -704,6 +704,36 @@ export default function DesingBrandProfile() {
     setActiveColors([]); // Clear applied filter if you use one
     handleScroll("items");
   };
+
+  const scroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const cardWidth = 400;
+    const gap = 16;
+    const scrollAmount = cardWidth + gap;
+
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    const nextScrollLeft =
+      direction === "left"
+        ? Math.max(el.scrollLeft - scrollAmount, 0)
+        : Math.min(el.scrollLeft + scrollAmount, maxScroll);
+
+    el.scrollTo({
+      left: nextScrollLeft,
+      behavior: "smooth",
+    });
+  };
+  if (loading) return <div className="designer-loading">Đang tải...</div>;
+  if (error || !designer)
+    return (
+      <div className="designer-error">
+        <p>{error || "Không tìm thấy designer."}</p>
+        <button onClick={() => navigate("/explore/designers")}>
+          ← Quay lại
+        </button>
+      </div>
+    );
   return (
     <Box width={"100%"}>
       {/* Banner */}
@@ -732,8 +762,11 @@ export default function DesingBrandProfile() {
           }}
         >
           <Avatar
-            sx={{ margin: "auto 10px", height: "100px", width: "100px" }}
-          />
+            src={designer.avatarUrl || undefined}
+            sx={{ margin: "auto 10px", height: "80px", width: "80px" }}
+          >
+            {!designer.avatarUrl && designer.designerName?.[0]}
+          </Avatar>
           <Box
             sx={{
               margin: "auto",
@@ -751,7 +784,7 @@ export default function DesingBrandProfile() {
                 whiteSpace: "nowrap",
               }}
             >
-              {brand?.brand.name}
+              {designer.designerName}
             </Typography>
 
             <Typography
@@ -879,7 +912,7 @@ export default function DesingBrandProfile() {
               margin: "auto",
             }}
           >
-            <IconButton onClick={() => scroll("left")} disabled={isAtStart}>
+            <IconButton onClick={() => scroll("left")}>
               <ArrowBackIos />
             </IconButton>
 
@@ -934,7 +967,7 @@ export default function DesingBrandProfile() {
                 </Grid>
               ))}
             </Box>
-            <IconButton onClick={() => scroll("right")} disabled={isAtEnd}>
+            <IconButton onClick={() => scroll("right")}>
               <ArrowForwardIos />
             </IconButton>
           </Box>

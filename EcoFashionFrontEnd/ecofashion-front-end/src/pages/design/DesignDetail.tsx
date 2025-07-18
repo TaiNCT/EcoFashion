@@ -30,8 +30,8 @@ import {
   ArrowBackIcon,
   ArrowForwardIcon,
 } from "../../assets/icons/icon";
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 // Icon
 import StarIcon from "@mui/icons-material/Star";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -52,6 +52,11 @@ import dam_con_trung from "../../assets/pictures/example/dam-con-trung.webp";
 import type { Fashion } from "../../types/Fashion";
 import FashionsSection from "../../components/fashion/FashionsSection";
 import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
+import DesignService, {
+  Design,
+  Feature,
+} from "../../services/api/designService";
+import { toast } from "react-toastify";
 
 const products: Fashion[] = [
   {
@@ -436,31 +441,26 @@ const ratingData = [
 
 export default function DesignDetail() {
   const { id } = useParams(); // lấy id từ URL
-  const product = products.find((p) => p.id === Number(id));
-  // const [mainImage, setMainImage] = useState(
-  //   products.find((p) => p.id === id)?.image
-  // );
-
-  if (!product) {
-    return (
-      <Box sx={{ p: 4 }}>
-        <Typography color="error">Không tìm thấy sản phẩm.</Typography>
-      </Box>
-    );
-  }
-
+  // const product = products.find((p) => p.id === Number(id));
+  //Design Detail Data
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [designDetail, setDesignDetail] = useState<Design | null>(null);
+  const [relatedDesign, setRelatedDesign] = useState<Design[]>([]);
+  //Size
   const [size, setSize] = useState("M");
 
   //Change Image
   const [currentIndex, setCurrentIndex] = useState(0);
+
   const handlePrev = () => {
-    const images = product.images ?? [];
+    const images = designDetail.imageUrls ?? [];
     if (!images || images.length === 0) return;
 
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
   const handleNext = () => {
-    const images = product.images ?? [];
+    const images = designDetail.imageUrls ?? [];
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
@@ -480,9 +480,11 @@ export default function DesignDetail() {
     "secondary.main",
   ];
 
-  const formatPrice = (price: Fashion["price"]) => {
-    const formatted = new Intl.NumberFormat("vi-VN").format(price.current);
-    return `${formatted}₫`;
+  const formatPriceVND = (price: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
   };
   const formatOriginalPrice = (price: Fashion["price"]) => {
     if (!price.original) return null;
@@ -495,10 +497,93 @@ export default function DesignDetail() {
     height: 200,
   };
 
-  const materialData = products[0].materials.map((mat) => ({
-    label: mat.name,
-    value: mat.percentageUse,
+  useEffect(() => {
+    if (!id) return;
+    const fetchDesigner = async () => {
+      try {
+        setLoading(true);
+        const data = await DesignService.getDesignDetailById(Number(id));
+        const relatedData = await DesignService.getAllDesign();
+        setDesignDetail(data);
+        setRelatedDesign(relatedData);
+      } catch (err: any) {
+        const msg = err.message || "Không thể tải thông tin nhà thiết kế.";
+        setError(msg);
+        toast.error(msg);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDesigner();
+  }, [id]);
+
+  // if (!designDetail) {
+  //   return (
+  //     <Box sx={{ p: 4 }}>
+  //       <Typography color="error">Không tìm thấy sản phẩm.</Typography>
+  //     </Box>
+  //   );
+  // }
+  if (loading) return <div className="designer-loading">Đang tải...</div>;
+  if (error || !designDetail)
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography color="error">Không tìm thấy sản phẩm.</Typography>
+      </Box>
+    );
+  const materialData = designDetail.materials.map((mat) => ({
+    label: mat.materialName,
+    value: Math.round(mat.persentageUsed),
   }));
+  //Render Feature
+  const renderFeatures = (feature?: Feature | null) => {
+    if (!feature) {
+      return (
+        <ListItem>
+          <ListItemIcon sx={{ minWidth: "30px", color: "gray" }}>
+            <EcoIcon />
+          </ListItemIcon>
+          <ListItemText primary="Chưa cập nhật thông tin nổi bật" />
+        </ListItem>
+      );
+    }
+
+    const items = [];
+
+    if (feature.reduceWaste) {
+      items.push("Giảm rác thải ra môi trường");
+    }
+    if (feature.lowImpactDyes) {
+      items.push("Thuốc nhuộm và quy trình ít tác động đến môi trường");
+    }
+    if (feature.durable) {
+      items.push("Kết cấu bền chắc sử dụng lâu dài");
+    }
+    if (feature.ethicallyManufactured) {
+      items.push("Quy trình sản xuất có trách nhiệm");
+    }
+
+    if (items.length === 0) {
+      return (
+        <ListItem>
+          <ListItemIcon sx={{ minWidth: "30px", color: "gray" }}>
+            <EcoIcon />
+          </ListItemIcon>
+          <ListItemText primary="Không có thông tin nổi bật" />
+        </ListItem>
+      );
+    }
+
+    return items.map((text, idx) => (
+      <ListItem key={idx}>
+        <ListItemIcon sx={{ minWidth: "30px", color: "green" }}>
+          <EcoIcon />
+        </ListItemIcon>
+        <ListItemText primary={text} />
+      </ListItem>
+    ));
+  };
+
   return (
     <Box
       sx={{
@@ -523,9 +608,10 @@ export default function DesignDetail() {
           <Link underline="hover" color="inherit" href="/fashion">
             Thời Trang
           </Link>
-          <Typography color="text.primary">{product.name}</Typography>
+          <Typography color="text.primary">{designDetail.name}</Typography>
         </Breadcrumbs>
       </AppBar>
+
       <Box sx={{ mx: "auto", width: "70%", bgcolor: "#fff" }}>
         {/* Chi Tiết Sản Phẩm */}
         <Box sx={{ py: 2, px: 4, display: "flex" }}>
@@ -540,11 +626,13 @@ export default function DesignDetail() {
             <Box sx={{ position: "relative", marginBottom: 2 }}>
               <Box
                 component="img"
-                src={product.images?.[currentIndex] ?? ""}
-                alt={product.name}
+                src={designDetail.imageUrls?.[currentIndex] ?? ""}
+                alt={designDetail.name}
                 sx={{
                   width: "100%",
+                  height: "80vh",
                   borderRadius: 2,
+                  objectFit: "cover",
                 }}
               />
               <IconButton
@@ -575,7 +663,7 @@ export default function DesignDetail() {
               </IconButton>
             </Box>
             <Box sx={{ display: "flex", gap: 1 }}>
-              {product.images?.slice(0, 3).map((img, index) => (
+              {designDetail.imageUrls?.slice(0, 3).map((img, index) => (
                 <Box
                   key={index}
                   component="img"
@@ -607,14 +695,14 @@ export default function DesignDetail() {
                 <Typography
                   sx={{ fontSize: "30px", margin: "auto 0", width: "100%" }}
                 >
-                  {product.name}
+                  {designDetail.name}
                 </Typography>
                 <Box
                   sx={{ width: "30%", display: "flex", alignItems: "center" }}
                 >
                   <Rating
                     name="text-feedback"
-                    value={product.rating.average}
+                    value={designDetail.productScore}
                     readOnly
                     precision={0.5}
                     emptyIcon={
@@ -622,7 +710,7 @@ export default function DesignDetail() {
                     }
                   />
                   <Box sx={{ ml: 2, fontSize: "20px" }}>
-                    {product.rating.count}
+                    {designDetail.productScore}
                   </Box>
                 </Box>
               </Box>
@@ -653,12 +741,12 @@ export default function DesignDetail() {
                     paddingLeft: "20px",
                   }}
                 >
-                  P{product.id}
+                  P00{designDetail.designId}
                 </Typography>
               </Box>
               <Chip
                 icon={<EcoIcon />}
-                label={`${product.sustainability}% Tái Chế`}
+                label={`${designDetail.recycledPercentage}% Tái Chế`}
                 size="small"
                 sx={{
                   backgroundColor: "rgba(200, 248, 217, 1)",
@@ -675,19 +763,19 @@ export default function DesignDetail() {
               >
                 Giá:
               </Typography>
-              {!product.price.original && (
-                <Typography
-                  component="div"
-                  sx={{
-                    fontWeight: "bold",
-                    margin: "auto 0",
-                    fontSize: "20px",
-                  }}
-                >
-                  {formatPrice(product.price)}
-                </Typography>
-              )}
-              {product.price.original && (
+              {/* {!product.price.original && ( */}
+              <Typography
+                component="div"
+                sx={{
+                  fontWeight: "bold",
+                  margin: "auto 0",
+                  fontSize: "20px",
+                }}
+              >
+                {formatPriceVND(designDetail.price)}
+              </Typography>
+              {/* )} */}
+              {/* {product.price.original && (
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <Typography
                     component="div"
@@ -720,7 +808,7 @@ export default function DesignDetail() {
                       />
                     )}
                 </Box>
-              )}
+              )} */}
             </Box>
 
             {/* Material */}
@@ -814,10 +902,7 @@ export default function DesignDetail() {
                   <ToggleButton value="M">M</ToggleButton>
                   <ToggleButton value="L">L</ToggleButton>
                 </ToggleButtonGroup>
-                <Link
-                  href={`/detail/${product.id}`}
-                  sx={{ margin: "auto 0", marginLeft: "auto" }}
-                >
+                <Link sx={{ margin: "auto 0", marginLeft: "auto" }}>
                   Hướng dẫn chọn size
                 </Link>{" "}
               </Box>
@@ -864,12 +949,17 @@ export default function DesignDetail() {
           >
             <IconButton
               disableRipple
-              href={`/brand/${product.brand.id}`}
+              // href={`/explore/designers/${designDetail.designer.designerId}`}
+              href={`/brand/${designDetail.designer.designerId}`}
               sx={{ textDecoration: "none" }}
             >
               <Avatar
+                src={designDetail.designer.avatarUrl || undefined}
                 sx={{ margin: "auto 10px", height: "80px", width: "80px" }}
-              />
+              >
+                {!designDetail.designer.avatarUrl &&
+                  designDetail.designer.designerName?.[0]}
+              </Avatar>
             </IconButton>
             <Box
               sx={{
@@ -879,7 +969,8 @@ export default function DesignDetail() {
               }}
             >
               <Link
-                href={`/brand/${product.brand.id}`}
+                // href={`/explore/designers/${designDetail.designer.designerId}`}
+                href={`/brand/${designDetail.designer.designerId}`}
                 sx={{ textDecoration: "none", color: "black" }}
               >
                 <Typography
@@ -891,7 +982,7 @@ export default function DesignDetail() {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {product.brand.name}
+                  {designDetail.designer.designerName}
                 </Typography>{" "}
               </Link>
               <Typography sx={{ width: "100%", fontSize: "15px" }}>
@@ -1014,7 +1105,7 @@ export default function DesignDetail() {
           {tabIndex === 0 && (
             <Box sx={{ display: "flex", padding: 4, paddingTop: 0 }}>
               {/* Mô Tả */}
-              <Grid>
+              <Grid flex={1}>
                 <Typography variant="subtitle1" fontWeight="bold">
                   Mô Tả
                 </Typography>
@@ -1022,35 +1113,16 @@ export default function DesignDetail() {
                   component="div"
                   sx={{ whiteSpace: "pre-line", fontSize: "15px" }}
                 >
-                  - Quần tây ống suông, hai túi sườn và hai túi mở ở thân sau.
-                  {"\n"}- Lưng quần có thun ở thân sau tạo sự thoải mái.
-                  {"\n"}- Chất liệu 100% linen cao cấp, đã trải qua bước xử lý
-                  vải giúp làm mềm và không co rút khi giặt.
-                  {"\n"}- Mặc được in trực tiếp lên sản phẩm để loại bỏ những cọ
-                  xát khó chịu lên cơ thể nhưng giảm thiểu rác thời trang.
-                  {"\n"}- Thiết kế ra mắt năm 2016 và được sản xuất tại Sài Gòn.
+                  {designDetail.description}
                 </Typography>
               </Grid>
 
               {/* Đặc điểm và Bảo quản */}
-              <Grid>
+              <Grid flex={1}>
                 <Typography variant="subtitle1" fontWeight="bold">
                   Đặc điểm
                 </Typography>
-                <List dense>
-                  {[
-                    "Thuốc nhuộm và quy trình ít tác động đến môi trường",
-                    "Kết cấu bền chắc sử dụng lâu dài",
-                    "Quy trình sản xuất có trách nhiệm",
-                  ].map((text, index) => (
-                    <ListItem key={index}>
-                      <ListItemIcon sx={{ minWidth: "30px", color: "green" }}>
-                        <EcoIcon />
-                      </ListItemIcon>
-                      <ListItemText primary={text} />
-                    </ListItem>
-                  ))}
-                </List>
+                <List dense>{renderFeatures(designDetail.feature)}</List>
 
                 <Typography
                   variant="subtitle1"
@@ -1060,8 +1132,7 @@ export default function DesignDetail() {
                   Hướng Dẫn Bảo Quản
                 </Typography>
                 <Typography variant="body2">
-                  Giặt máy bằng nước lạnh với các màu tương tự. Sấy ở nhiệt độ
-                  thấp. Không dùng thuốc tẩy. Ủi ở nhiệt độ ẩm nếu cần.
+                  {designDetail.careInstructions}
                 </Typography>
               </Grid>
             </Box>
@@ -1293,7 +1364,7 @@ export default function DesignDetail() {
                     >
                       <Rating
                         name="text-feedback"
-                        value={product.rating.average}
+                        value={designDetail.productScore}
                         readOnly
                         precision={0.5}
                         emptyIcon={
@@ -1304,7 +1375,7 @@ export default function DesignDetail() {
                         }
                       />
                       <Box sx={{ ml: 2, fontSize: "20px" }}>
-                        {product.rating.count}
+                        {designDetail.productScore}
                       </Box>
                     </Box>
                   </Box>
@@ -1399,7 +1470,7 @@ export default function DesignDetail() {
           )}
           {/* Tab Vận Chuyển*/}
           {tabIndex === 3 && (
-            <Box sx={{ display: "flex", padding: 4, paddingTop: 0 }}>
+            <Box sx={{ display: "flex", padding: 4, paddingTop: 0, gap: 3 }}>
               {/* Mô Tả */}
               <Grid sx={{ flex: 1 }}>
                 <Typography variant="subtitle1" fontWeight="bold">
@@ -1475,24 +1546,24 @@ export default function DesignDetail() {
 
         {/* Related Products */}
         <FashionsSection
-          products={products}
+          products={relatedDesign}
           title="SẢN PHẨM NỔI BẬT"
-          onProductSelect={(product) => {
-            console.log("Selected product:", product.name);
-            // TODO: Navigate to product detail or open modal
-          }}
-          onAddToCart={(product) => {
-            console.log("Add to cart:", product.name);
-            // TODO: Add to cart logic
-          }}
-          onToggleFavorite={(product) => {
-            console.log("Toggle favorite:", product.name);
-            // TODO: Toggle favorite logic
-          }}
-          onViewMore={() => {
-            console.log("View more featured products");
-            // TODO: Navigate to featured products page
-          }}
+          // onProductSelect={(product) => {
+          //   console.log("Selected product:", product.name);
+          //   // TODO: Navigate to product detail or open modal
+          // }}
+          // onAddToCart={(product) => {
+          //   console.log("Add to cart:", product.name);
+          //   // TODO: Add to cart logic
+          // }}
+          // onToggleFavorite={(product) => {
+          //   console.log("Toggle favorite:", product.name);
+          //   // TODO: Toggle favorite logic
+          // }}
+          // onViewMore={() => {
+          //   console.log("View more featured products");
+          //   // TODO: Navigate to featured products page
+          // }}
         />
       </Box>
     </Box>

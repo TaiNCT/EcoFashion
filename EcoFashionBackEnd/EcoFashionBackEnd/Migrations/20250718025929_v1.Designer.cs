@@ -12,11 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-<<<<<<<< HEAD:EcoFashionBackEnd/EcoFashionBackEnd/Migrations/20250717110455_v1.Designer.cs
-    [Migration("20250717110455_v1")]
-========
-    [Migration("20250717172045_v1")]
->>>>>>>> merge-design-page:EcoFashionBackEnd/EcoFashionBackEnd/Migrations/20250717172045_v1.Designer.cs
+    [Migration("20250718025929_v1")]
     partial class v1
     {
         /// <inheritdoc />
