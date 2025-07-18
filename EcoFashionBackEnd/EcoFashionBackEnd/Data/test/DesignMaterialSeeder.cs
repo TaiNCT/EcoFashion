@@ -33,7 +33,7 @@ namespace EcoFashionBackEnd.Data.test
                     }
                     else
                     {
-                        percent = (float)Math.Round(Random.Shared.NextDouble() * (remaining / 2), 1); 
+                        percent = (float)Math.Round(Random.Shared.NextDouble() * (remaining / 2), 1, MidpointRounding.AwayFromZero);
                         remaining -= percent;
                     }
 

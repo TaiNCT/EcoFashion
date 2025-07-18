@@ -135,7 +135,7 @@ const Signup: React.FC = () => {
           <Paper
             elevation={6}
             sx={{
-              padding: 4,
+              padding: 3,
               width: "100%",
               borderRadius: 2,
             }}

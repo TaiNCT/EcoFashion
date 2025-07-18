@@ -31,6 +31,7 @@ export type {
 // Import for re-export
 import { AuthService } from "./authService";
 import { DesignerService } from "./designerService";
+import { DesignService } from "./designService";
 import { apiClient } from "./baseApi";
 
 // Re-export for backward compatibility with existing code

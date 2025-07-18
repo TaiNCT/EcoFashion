@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using Azure;
 using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Dtos.Design;
 using EcoFashionBackEnd.Services;
+using Humanizer;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 namespace EcoFashionBackEnd.Controllers;
@@ -31,7 +33,9 @@ public class DesignController : ControllerBase
     public async Task<IActionResult> GetAllDesigns()
     {
         var designs = await _designService.GetAllDesigns();
-        return Ok(ApiResult<IEnumerable<DesignModel>>.Succeed(designs));
+        //return Ok(ApiResult<IEnumerable<DesignModel>>.Succeed(designs));
+        var response = _mapper.Map<IEnumerable<DesignDetailResponse>>(designs);
+        return Ok(ApiResult< IEnumerable<DesignDetailResponse>>.Succeed(response));
     }
 
     [HttpGet("{id}")]
@@ -41,6 +45,7 @@ public class DesignController : ControllerBase
         if (design == null) return NotFound(ApiResult<DesignModel>.Fail("Không tìm thấy thiết kế."));
         return Ok(ApiResult<DesignModel>.Succeed(design));
     }
+
     [HttpGet("Detail/{id}")]
     public async Task<IActionResult> GetDesignDetail(int id)
     {

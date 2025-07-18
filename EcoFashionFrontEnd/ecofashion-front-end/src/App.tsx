@@ -5,11 +5,10 @@ import "react-toastify/dist/ReactToastify.css";
 
 //Pages
 import Homepages from "./pages/Homepages";
-import Homepages2 from "./pages/Homepage2";
 
 import About from "./pages/About";
 import FooterInfo from "./pages/FooterInfo";
-import FashionDetail from "./pages/FashionDetail";
+import DesignDetail from "./pages/design/DesignDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import VerifyOTP from "./components/VerifyOTP";
@@ -32,39 +31,35 @@ import DesignerLandingPage from "./pages/explore/DesignerLandingPage";
 import ExploreSuppliers from "./pages/explore/ExploreSuppliers";
 import SupplierLandingPage from "./pages/explore/SupplierLandingPage";
 import TestAuth from "./pages/TestAuth";
-
-// import { createTheme } from "@mui/material/styles";
+import FashionList from "./pages/design/FashionList";
+import DesingBrandProfile from "./pages/design/DesignBrandProfile";
+import AddDesign from "./pages/design/AddDesign";
 function App() {
-  // const theme = createTheme({
-  //   typography: {
-  //     fontFamily: ["Lato", "sans-serif"].join(","),
-  //   },
-  // });
-
   const location = useLocation();
   // Hide Nav and Footer on these routes
   const hideLayout = ["/login", "/signup"].includes(location.pathname);
+
   return (
     <AuthContextProvider>
       <div className="app">
         {!hideLayout && <Navigation />}
         <Routes>
           <Route path="/" element={<Homepages />} />
-          <Route path="/Homepage2" element={<Homepages2 />} />
-
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/detail/:id" element={<FashionDetail />} />
-
+          <Route path="/detail/:id" element={<DesignDetail />} />
           <Route path="/businessinfor" element={<BusinessInfor />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
+          <Route path="/fashion" element={<FashionList />} />
 
           {/* TEST ROUTE - Remove in production */}
           <Route path="/test-auth" element={<TestAuth />} />
 
           {/* NEW APPLICATION ROUTES - Updated multi-step forms */}
+          <Route path="/brand/:id" element={<DesingBrandProfile />} />
+          {/* Application Routes */}
           <Route
             path="/apply/designer"
             element={
@@ -93,12 +88,30 @@ function App() {
           />
 
           {/* Designer Routes */}
-
+          {/* Designer Profile */}
           <Route
             path="/designer/profile"
             element={
               <ProtectedRoute allowedRoles={["designer"]}>
                 <DesignerProfile />
+              </ProtectedRoute>
+            }
+          />
+          {/* Add New Design */}
+          <Route
+            path="/designer/dashboard/add"
+            element={
+              <ProtectedRoute allowedRoles={["designer"]}>
+                <AddDesign />
+              </ProtectedRoute>
+            }
+          />
+          {/* Designer Dashboard */}
+          <Route
+            path="/designer/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["designer"]}>
+                <DesginerDashboared />
               </ProtectedRoute>
             }
           />
@@ -113,16 +126,6 @@ function App() {
           <Route
             path="/explore/suppliers/:id"
             element={<SupplierLandingPage />}
-          />
-
-          {/* Designer Dashboard */}
-          <Route
-            path="/designer/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={["designer"]}>
-                <DesginerDashboared />
-              </ProtectedRoute>
-            }
           />
 
           {/* Admin Routes */}

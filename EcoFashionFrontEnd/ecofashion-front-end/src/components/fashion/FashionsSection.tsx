@@ -1,21 +1,29 @@
-import React from "react";
-import { Box, Container, Typography, Button, IconButton } from "@mui/material";
+import React, { useRef, useState } from "react";
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  IconButton,
+  Grid,
+} from "@mui/material";
 import FashionCard from "./FashionCard";
 import type { Fashion } from "../../types/Fashion";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
+import { Design } from "../../services/api/designService";
 interface ProductsSectionProps {
-  products: Fashion[];
+  products: Design[];
   title?: string;
-  onProductSelect?: (product: Fashion) => void;
-  onAddToCart?: (product: Fashion) => void;
-  onToggleFavorite?: (product: Fashion) => void;
+  onProductSelect?: (product: Design) => void;
+  onAddToCart?: (product: Design) => void;
+  onToggleFavorite?: (product: Design) => void;
   onViewMore?: () => void;
   showViewMore?: boolean;
 }
 
 const FashionsSection: React.FC<ProductsSectionProps> = ({
   products,
-  title = "SẢN PHẨM",
+  title,
   onProductSelect,
   onAddToCart,
   onToggleFavorite,
@@ -51,11 +59,24 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
       </Container>
     );
   }
+  //Change image
+  const [startIndex, setStartIndex] = useState(0);
+  const visibleCount = 4;
 
+  const handlePrev = () => {
+    setStartIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleNext = () => {
+    setStartIndex((prev) =>
+      Math.min(prev + 1, Math.max(0, products.length - visibleCount))
+    );
+  };
+
+  const visibleProducts = products.slice(startIndex, startIndex + visibleCount);
   return (
     <Box
       sx={{
-        borderBottom: "1px solid black",
         marginBottom: "30px",
         textAlign: "center",
         display: "flex",
@@ -77,33 +98,30 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
           {title}
         </Typography>
         <Box>
-          <IconButton>
+          <IconButton onClick={handlePrev} disabled={startIndex === 0}>
             <ArrowBack sx={{ fontSize: "40px" }} />
           </IconButton>
-          <IconButton>
+          <IconButton
+            onClick={handleNext}
+            disabled={startIndex + visibleCount >= products.length}
+          >
             <ArrowForward sx={{ fontSize: "40px" }} />
           </IconButton>
         </Box>
       </Box>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          margin: "auto",
-          width: "100%",
-          justifyContent: "center",
-          gap: 3,
-        }}
-      >
-        {products.map((product) => (
-          <FashionCard
-            key={product.id}
-            product={product}
-            onSelect={onProductSelect}
-            onAddToCart={onAddToCart}
-            onToggleFavorite={onToggleFavorite}
-          />
-        ))}
+      <Box sx={{ width: "100%" }}>
+        <Grid container spacing={2}>
+          {visibleProducts.map((product) => (
+            <Grid key={product.designId} size={3}>
+              <FashionCard
+                product={product}
+                onSelect={onProductSelect}
+                onAddToCart={onAddToCart}
+                onToggleFavorite={onToggleFavorite}
+              />
+            </Grid>
+          ))}
+        </Grid>
       </Box>
 
       <Box sx={{ textAlign: "center", paddingTop: 2, paddingBottom: 2 }}>
@@ -121,48 +139,6 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
         </Button>
       </Box>
     </Box>
-    // <Container maxWidth="lg" sx={{ mb: 6 }}>
-    //   <Typography variant="h4" component="h2" fontWeight="bold" sx={{ mb: 3 }}>
-    //     {title}
-    //   </Typography>
-
-    //   <Box
-    //     sx={{
-    //       display: "grid",
-    //       gridTemplateColumns: {
-    //         xs: "1fr",
-    //         sm: "1fr 1fr",
-    //         md: "1fr 1fr 1fr",
-    //         lg: "1fr 1fr 1fr 1fr",
-    //       },
-    //       gap: 3,
-    //       mb: 3,
-    //     }}
-    //   >
-    //     {products.map((product) => (
-    //       <FashionCard
-    //         key={product.id}
-    //         product={product}
-    //         onSelect={onProductSelect}
-    //         onAddToCart={onAddToCart}
-    //         onToggleFavorite={onToggleFavorite}
-    //       />
-    //     ))}
-    //   </Box>
-
-    //   {showViewMore && (
-    //     <Box sx={{ textAlign: "center" }}>
-    //       <Button
-    //         variant="outlined"
-    //         size="large"
-    //         onClick={onViewMore}
-    //         sx={{ color: "#4caf50", borderColor: "#4caf50" }}
-    //       >
-    //         XEM THÊM SẢN PHẨM
-    //       </Button>
-    //     </Box>
-    //   )}
-    // </Container>
   );
 };
 

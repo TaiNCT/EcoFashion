@@ -12,9 +12,9 @@ import {
   styled,
   Divider,
 } from "@mui/material";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, matchPath, useLocation, useNavigate } from "react-router-dom";
 //Image
-import logo from "../assets/pictures/homepage/logo.png";
+import logo from "../assets/pictures/homepage/logo2.png";
 //Icon Login
 import DesignServicesIcon from "@mui/icons-material/DesignServices";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -71,7 +71,8 @@ export default function Navigation() {
 
   const handleAuth = (type: any) => {
     handleClose();
-
+    handleCloseShop();
+    window.scrollTo(0, 0);
     // Get current user role for profile navigation
     const userRole = user?.role?.toLowerCase();
 
@@ -82,7 +83,7 @@ export default function Navigation() {
       case "login":
         navigate("/login");
         break;
-      case "designerregister":
+      case "applydesigner":
         navigate("/apply/designer");
         break;
       case "supplierregister":
@@ -120,6 +121,9 @@ export default function Navigation() {
         break;
       case "explore-suppliers":
         navigate("/explore/suppliers");
+        break;
+      case "fashion":
+        navigate("/fashion");
         break;
     }
   };
@@ -303,7 +307,7 @@ export default function Navigation() {
   };
   return (
     <AppBar
-      position="sticky"
+      position={"sticky"}
       elevation={scrolled || !isHome ? 4 : 0}
       sx={{
         backgroundColor: scrolled || !isHome ? "#fff" : "transparent",
@@ -311,6 +315,7 @@ export default function Navigation() {
         transition: "0.3s",
         paddingLeft: 3,
         paddingRight: 3,
+        zIndex: (theme) => theme.zIndex.appBar + 1,
       }}
     >
       <Toolbar
@@ -321,16 +326,27 @@ export default function Navigation() {
       >
         {/* Logo */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Button href="/">
-            <img src={logo} alt="EcoFashion Logo" style={{ height: 80 }} />
-          </Button>
+          <Box
+            component="img"
+            src={logo}
+            alt="EcoFashion Logo"
+            sx={{
+              height: 60,
+              transition: "transform 0.3s ease",
+              "&:hover": {
+                transform: "scale(1.05)", // slightly zoom on hover
+                cursor: "pointer", // optional
+              },
+            }}
+            onClick={() => navigate("/")}
+          />
         </Box>
         <Box
           sx={{
             flexGrow: 1,
             display: "flex",
             justifyContent: "space-evenly",
-            maxWidth: "100%", // optional: limit width
+            maxWidth: "70%", // optional: limit width
           }}
         >
           <NavLink
@@ -368,6 +384,7 @@ export default function Navigation() {
                 backgroundColor: "transparent", // xoá hiệu ứng khi click
                 boxShadow: "none",
               },
+              fontWeight: "bold",
             }}
           >
             Cửa Hàng
@@ -382,8 +399,11 @@ export default function Navigation() {
                 "aria-labelledby": "basic-button",
               },
             }}
+            disableScrollLock
           >
-            <MenuItem onClick={handleCloseShop}>Thời Trang</MenuItem>
+            <MenuItem onClick={() => handleAuth("fashion")}>
+              Thời Trang
+            </MenuItem>
             <MenuItem onClick={handleCloseShop}>Vật Liệu</MenuItem>
           </Menu>
 
@@ -413,6 +433,7 @@ export default function Navigation() {
                 backgroundColor: "transparent",
                 boxShadow: "none",
               },
+              fontWeight: "bold",
             }}
           >
             Khám Phá
@@ -486,6 +507,9 @@ export default function Navigation() {
               sx={{
                 fontSize: 30,
                 color: scrolled || !isHome ? "black" : "white",
+                "&:hover": {
+                  color: "rgba(94, 224, 159, 1)",
+                },
               }}
             />
           </IconButton>
@@ -494,6 +518,9 @@ export default function Navigation() {
               sx={{
                 fontSize: 30,
                 color: scrolled || !isHome ? "black" : "white",
+                "&:hover": {
+                  color: "rgba(94, 224, 159, 1)",
+                },
               }}
             />
           </IconButton>
@@ -627,9 +654,7 @@ export default function Navigation() {
               {/* User Profile Link */}
               <MenuItem onClick={() => handleAuth("desiger-profile")}>
                 <Box sx={{ display: "flex" }}>
-                  <Icon>
-                    <DesignServicesIcon />
-                  </Icon>
+                  <DesignServicesIcon />
                   <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
                 </Box>
               </MenuItem>
@@ -641,11 +666,12 @@ export default function Navigation() {
                   onClick={() => handleAuth("admin-dashboard")}
                 >
                   <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                    sx={{
+                      display: "flex",
+                      borderBottom: "1px solid black",
+                    }}
                   >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
+                    <CompostIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Quản Trị Hệ Thống
                     </Typography>
@@ -658,9 +684,7 @@ export default function Navigation() {
                   <Box
                     sx={{ display: "flex", borderBottom: "1px solid black" }}
                   >
-                    <Icon>
-                      <AssignmentIcon />
-                    </Icon>
+                    <AssignmentIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Quản Lý Đơn Đăng Ký
                     </Typography>
@@ -673,9 +697,7 @@ export default function Navigation() {
                   <Box
                     sx={{ display: "flex", borderBottom: "1px solid black" }}
                   >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
+                    <CompostIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Designer Dashboard
                     </Typography>
@@ -688,9 +710,7 @@ export default function Navigation() {
                   <Box
                     sx={{ display: "flex", borderBottom: "1px solid black" }}
                   >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
+                    <CompostIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Supplier Dashboard
                     </Typography>
@@ -703,14 +723,15 @@ export default function Navigation() {
                 user.role?.toLowerCase() === "user") && [
                 <MenuItem
                   key="apply-designer"
-                  onClick={() => handleAuth("designerregister")}
+                  onClick={() => handleAuth("applydesigner")}
                 >
                   <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                    sx={{
+                      display: "flex",
+                      borderBottom: "1px solid black",
+                    }}
                   >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
+                    <CompostIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Đăng Ký Làm Nhà Thiết Kế
                     </Typography>
@@ -723,9 +744,7 @@ export default function Navigation() {
                   <Box
                     sx={{ display: "flex", borderBottom: "1px solid black" }}
                   >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
+                    <CompostIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Đăng Ký Làm Nhà Cung Cấp
                     </Typography>
@@ -742,9 +761,7 @@ export default function Navigation() {
                   <Box
                     sx={{ display: "flex", borderBottom: "1px solid black" }}
                   >
-                    <Icon>
-                      <DesignServicesIcon />
-                    </Icon>
+                    <DesignServicesIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Đơn Đăng Ký Của Tôi
                     </Typography>
@@ -755,17 +772,13 @@ export default function Navigation() {
               {/* Common Menu Items */}
               <MenuItem onClick={handleClose}>
                 <Box sx={{ display: "flex", width: "100%" }}>
-                  <Icon>
-                    <SettingsIcon />
-                  </Icon>
+                  <SettingsIcon />
                   <Typography sx={{ padding: "3px" }}>Cài Đặt</Typography>
                 </Box>
               </MenuItem>
               <MenuItem onClick={handleLogout}>
                 <Box sx={{ display: "flex", width: "100%" }}>
-                  <Icon>
-                    <LogoutIcon />
-                  </Icon>
+                  <LogoutIcon />
                   <Typography sx={{ padding: "3px" }}> Đăng Xuất</Typography>
                 </Box>
               </MenuItem>

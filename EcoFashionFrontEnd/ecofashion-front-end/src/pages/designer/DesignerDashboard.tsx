@@ -23,7 +23,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useAuth } from "../../services/user/AuthContext";
 //Icon
 import AddIcon from "@mui/icons-material/Add";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import StarIcon from "@mui/icons-material/Star";
@@ -58,6 +58,8 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import DesignService, { Design } from "../../services/api/designService";
+import { toast } from "react-toastify";
 
 // Register chart components
 ChartJS.register(
@@ -213,6 +215,30 @@ export default function DesignerDashBoard() {
     },
   ];
 
+  //Design Data
+  const [designs, setDesigns] = useState<Design[]>([]);
+  //Loading
+  const [loading, setLoading] = useState(true);
+  //Error
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    loadDesigners();
+  }, []);
+  const loadDesigners = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await DesignService.getAllDesign();
+      setDesigns(data);
+    } catch (error: any) {
+      const errorMessage =
+        error.message || "Không thể tải danh sách nhà thiết kế";
+      setError(errorMessage);
+      toast.error(errorMessage, { position: "bottom-center" });
+    } finally {
+      setLoading(false);
+    }
+  };
   const products = [
     {
       id: 1,
@@ -407,6 +433,21 @@ export default function DesignerDashBoard() {
       status: "Còn Hàng",
     },
   ];
+
+  const generateMockProducts = (designs: Design[]) => {
+    return designs.map((design) => ({
+      id: design.designId,
+      title: design.name,
+      author: design.designer.designerName || "Không rõ",
+      image: design.imageUrls[0] || "", // hoặc ảnh mặc định
+      price: `${design.price.toLocaleString("vi-VN")}₫`,
+      rating: design.productScore || 4,
+      recycledPercentage: design.recycledPercentage,
+      material: design.materials?.map((mat) => mat.materialName) || [],
+      sale_quantity: 13,
+      status: design.status || "Không rõ",
+    }));
+  };
 
   const yearData = [
     { label: "Jan", revenue: 64854, cost: 32652 },
@@ -667,13 +708,13 @@ export default function DesignerDashBoard() {
           | "success"
           | "warning" = "default";
         switch (params.value) {
-          case "Còn Hàng":
+          case "in stock":
             color = "success";
             break;
-          case "Còn Ít Hàng":
+          case "low stock":
             color = "warning";
             break;
-          case "Hết Hàng":
+          case "out of stock":
             color = "error";
             break;
           default:
@@ -824,18 +865,23 @@ export default function DesignerDashBoard() {
           | "info"
           | "success"
           | "warning" = "default";
+        let text: "Lỗi" | "Còn Hàng" | "Còn Ít Hàng" | "Hết Hàng" = "Lỗi";
         switch (params.value) {
-          case "Còn Hàng":
+          case "in stock":
             color = "success";
+            text = "Còn Hàng";
             break;
-          case "Còn Ít Hàng":
+          case "low stock":
             color = "warning";
+            text = "Còn Ít Hàng";
             break;
-          case "Hết Hàng":
+          case "out of stock":
             color = "error";
+            text = "Hết Hàng";
             break;
           default:
             color = "default";
+            text = "Lỗi";
         }
 
         return <Chip label={params.value} color={color} size="small" />;
@@ -930,7 +976,14 @@ export default function DesignerDashBoard() {
       {/* Top Part */}
       <Box sx={{ width: "100%", display: "flex" }}>
         {/* Title */}
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            paddingTop: 3,
+            paddingBottom: 3,
+          }}
+        >
           <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
             Designer Dashboard
           </Typography>
@@ -967,6 +1020,7 @@ export default function DesignerDashBoard() {
               height: "60%",
               margin: "auto",
             }}
+            href="/designer/dashboard/add"
           >
             <Box
               sx={{
@@ -1330,7 +1384,7 @@ export default function DesignerDashBoard() {
           </Box>
           {/* Table */}
           <DataGrid
-            rows={products}
+            rows={generateMockProducts(designs)}
             columns={fashion_columns}
             initialState={{
               pagination: {

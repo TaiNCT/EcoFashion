@@ -1,3 +1,10 @@
+// Utility function to fallback image URL safely
+function safeImageUrl(
+  url?: string,
+  fallback: string = "/assets/default-image.jpg"
+): string {
+  return typeof url === "string" && url.trim() ? url : fallback;
+}
 import {
   AppBar,
   Box,
@@ -18,6 +25,7 @@ import {
   MenuItem,
   Link,
   InputBase,
+  Divider,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import banner from "../assets/pictures/homepage/banner.jpg";
@@ -42,13 +50,16 @@ import ao_linen from "../assets/pictures/example/ao-linen.webp";
 import chan_vay_dap from "../assets/pictures/example/chan-vay-dap.webp";
 import dam_con_trung from "../assets/pictures/example/dam-con-trung.webp";
 import type { Fashion } from "../types/Fashion";
+import SearchIcon from "@mui/icons-material/Search";
+import { Design, DesignService } from "../services/api/designService";
+import { toast } from "react-toastify";
 
 const products: Fashion[] = [
   {
     id: 1,
     name: "Áo thun Organic Cotton",
     category: "clothing",
-    brand: "EcoWear",
+    brand: { id: 1, name: "EcoWear" },
     image: ao_linen,
     images: [
       "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
@@ -93,7 +104,7 @@ const products: Fashion[] = [
   {
     id: 2,
     name: "Chân Váy Đắp",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: chan_vay_dap,
     images: [
@@ -140,7 +151,7 @@ const products: Fashion[] = [
   {
     id: 3,
     name: "Đầm Côn Trùng",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: dam_con_trung,
     images: [
@@ -186,8 +197,55 @@ const products: Fashion[] = [
   },
   {
     id: 4,
-    name: "Đầm Côn Trùng",
-    brand: "Nguyễn Công Trí",
+    name: "Đầm Côn Trùng11",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
+    category: "clothing",
+    image: dam_con_trung,
+    images: [
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
+    ],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: false,
+    isNew: true,
+    discountPercentage: 18,
+  },
+  {
+    id: 5,
+    name: "Đầm Côn Trùng12",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: dam_con_trung,
     images: [
@@ -237,7 +295,7 @@ const bestSellerProducts: Fashion[] = [
     id: 1,
     name: "Áo thun Organic Cotton",
     category: "clothing",
-    brand: "EcoWear",
+    brand: { id: 1, name: "EcoWear" },
     image: ao_linen,
     images: [
       "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
@@ -283,7 +341,7 @@ const bestSellerProducts: Fashion[] = [
   {
     id: 2,
     name: "Chân Váy Đắp",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: chan_vay_dap,
     images: [
@@ -330,7 +388,7 @@ const bestSellerProducts: Fashion[] = [
   {
     id: 3,
     name: "Đầm Côn Trùng",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
     category: "clothing",
     image: dam_con_trung,
     images: [
@@ -377,7 +435,101 @@ const bestSellerProducts: Fashion[] = [
   {
     id: 4,
     name: "Đầm Côn Trùng",
-    brand: "Nguyễn Công Trí",
+    brand: { id: 2, name: "Nguyễn Công Trí" },
+    category: "clothing",
+    image: dam_con_trung,
+    images: [
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
+    ],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: true,
+    isNew: false,
+    discountPercentage: 18,
+  },
+  {
+    id: 5,
+    name: "Đầm Côn Trùng",
+    brand: { id: 1, name: "EcoWear" },
+    category: "clothing",
+    image: dam_con_trung,
+    images: [
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
+    ],
+    sustainability: 85,
+    materials: [
+      {
+        name: "Cotton hữu cơ",
+        percentageUse: 40,
+      },
+      {
+        name: "Vải Nilon",
+        percentageUse: 60,
+      },
+    ],
+    price: {
+      current: 450000,
+      original: 550000,
+      currency: "VND",
+    },
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+    availability: "in-stock",
+    rating: {
+      average: 4.5,
+      count: 127,
+    },
+    description:
+      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+    features: [
+      "100% Cotton hữu cơ",
+      "Thoáng khí",
+      "Co giãn nhẹ",
+      "Dễ chăm sóc",
+    ],
+    isFeatured: true,
+    isBestSeller: true,
+    isNew: false,
+    discountPercentage: 18,
+  },
+  {
+    id: 6,
+    name: "Đầm Côn Trùng134",
+    brand: { id: 1, name: "EcoWear" },
     category: "clothing",
     image: dam_con_trung,
     images: [
@@ -430,28 +582,54 @@ const StyledInput = styled(InputBase)({
   flex: 1,
 });
 
+// type Design = {
+//   designId: number;
+//   designerId: string;
+//   name?: string;
+//   description?: string;
+//   recycledPercentage: number;
+//   careInstructions?: string;
+//   price: number;
+//   productScore: number;
+//   status?: string;
+//   createdAt: string;
+//   designTypeId?: number;
+// };
+
 export default function Homepage() {
   const { user } = useAuth();
-
-  //Scroll Banner
-  const [scrolled, setScrolled] = useState(false);
-
+  //Design Data
+  const [designs, setDesigns] = useState<Design[]>([]);
+  //Loading
+  const [loading, setLoading] = useState(true);
+  //Error
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 100);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    loadDesigners();
   }, []);
 
+  const loadDesigners = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await DesignService.getAllDesign();
+      setDesigns(data);
+    } catch (error: any) {
+      const errorMessage =
+        error.message || "Không thể tải danh sách nhà thiết kế";
+      setError(errorMessage);
+      toast.error(errorMessage, { position: "bottom-center" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box sx={{ minHeight: "100vh" }}>
       {/* Banner */}
       <Box
         sx={{
-          height: "90vh",
+          height: "100vh",
           transition: "height 0.5s ease",
           display: "flex",
           justifyContent: "center",
@@ -470,6 +648,7 @@ export default function Homepage() {
             textAlign: "center",
             color: "white",
             width: "100%",
+            marginBottom: "100px",
           }}
         >
           <Box
@@ -477,6 +656,7 @@ export default function Homepage() {
               width: "60%",
               backgroundColor: "rgba(145, 136, 136, 0.42)",
               margin: "auto",
+              padding: 3,
             }}
           >
             <Typography variant="h2" fontWeight="bold" gutterBottom>
@@ -514,18 +694,29 @@ export default function Homepage() {
                   minWidth: 100,
                   "& fieldset": { border: "none" },
                 }}
+                MenuProps={{
+                  disableScrollLock: true,
+                }}
               >
                 <MenuItem value="all">Tất cả</MenuItem>
                 <MenuItem value="products">Thời trang</MenuItem>
                 <MenuItem value="material">Vật liệu</MenuItem>
               </Select>
             </Box>
-
-            <StyledInput
-              placeholder="Tìm kiếm.."
-              fullWidth
-              sx={{ border: "none" }}
-            />
+            <Box
+              sx={{
+                width: "85%",
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <StyledInput
+                placeholder="Tìm kiếm.."
+                fullWidth
+                sx={{ border: "none" }}
+              />
+              <SearchIcon sx={{ color: "black", margin: "auto" }} />
+            </Box>
           </Box>
           {user ? (
             <Stack
@@ -756,7 +947,7 @@ export default function Homepage() {
                   textTransform: "none",
                 }}
               >
-                Đăng Sản Phẩm{" "}
+                Đăng Sản Phẩm
                 <svg
                   viewBox="0 0 32 32"
                   width={30}
@@ -786,6 +977,7 @@ export default function Homepage() {
                   color: "rgba(52,168,83,1)",
                   textTransform: "none",
                 }}
+                href="/fashion"
               >
                 Khám Phá
                 <svg
@@ -840,7 +1032,7 @@ export default function Homepage() {
       >
         {/* Thời Trang Mới */}
         <FashionsSection
-          products={products}
+          products={designs}
           title="SẢN PHẨM NỔI BẬT"
           onProductSelect={(product) => {
             console.log("Selected product:", product.name);
@@ -859,9 +1051,12 @@ export default function Homepage() {
             // TODO: Navigate to featured products page
           }}
         />
+        <Divider
+          sx={{ height: "2px", backgroundColor: "black", opacity: "20%" }}
+        />
         {/* Bán Chạy Nhất */}
         <FashionsSection
-          products={bestSellerProducts}
+          products={designs}
           title="BÁN CHẠY NHẤT"
           onProductSelect={(product) => {
             console.log("Selected product:", product.name);
@@ -880,59 +1075,10 @@ export default function Homepage() {
             // TODO: Navigate to featured products page
           }}
         />
-
+        <Divider
+          sx={{ height: "2px", backgroundColor: "black", opacity: "20%" }}
+        />
         {/* Nguyên Vật Liệu */}
-        {/* <Box sx={{ borderBottom: "1px solid black", marginBottom: "30px" }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 3,
-            }}
-          >
-            <Typography variant="h4" component="h2" fontWeight="bold">
-              NGUYÊN LIỆU
-            </Typography>
-            <Box>
-              <IconButton>
-                <ArrowBack sx={{ fontSize: "40px" }} />
-              </IconButton>
-              <IconButton>
-                <ArrowForward sx={{ fontSize: "40px" }} />
-              </IconButton>
-            </Box>
-          </Box>
-
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              margin: "auto",
-              width: "100%",
-              justifyContent: "center",
-              gap: 3,
-            }}
-          >
-            {products.map((item, index) => (
-              <NewDesignCard product={item} />
-            ))}
-          </Box>
-
-          <Typography
-            sx={{
-              color: "green",
-              mt: 3,
-              cursor: "pointer",
-              fontWeight: 600,
-              width: "100%",
-              textDecoration: "underline",
-              margin: "30px auto",
-            }}
-          >
-            XEM THÊM SẢN PHẨM
-          </Typography>
-        </Box> */}
         <MaterialsSection
           materials={materials.slice(0, 4)} // Show first 4 materials for homepage
           onMaterialSelect={(material) => {
@@ -1078,6 +1224,19 @@ export default function Homepage() {
           </Stack>
         </Container>
       </Box>
+      {error && <div className="explore-error">{error}</div>}
+      {loading && <div className="explore-loading">Đang tải...</div>}
+      {!loading && designs.length > 0 ? (
+        <div>
+          {designs.map((design) => (
+            <div key={design.designId}>
+              <h3>{design.name}</h3>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div>Error</div>
+      )}
     </Box>
   );
 }

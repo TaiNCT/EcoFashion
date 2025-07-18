@@ -1,5 +1,7 @@
 ﻿using EcoFashionBackEnd.Entities;
+using Humanizer;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace EcoFashionBackEnd.Data.test
 {
@@ -24,6 +26,12 @@ namespace EcoFashionBackEnd.Data.test
 
             var designs = new List<Design>();
 
+            var random = new Random();
+
+            int min = 500000;
+
+            int max = 1000000;
+
             for (int i = 0; i < 12; i++)
             {
                 designs.Add(new Design
@@ -31,6 +39,12 @@ namespace EcoFashionBackEnd.Data.test
                     Name = designNames[i],
                     Description = $"This is a sustainable design: {designNames[i]}",
                     DesignerId = designer.DesignerId,
+                    RecycledPercentage = 100 - i,
+                    CareInstructions = $"{designNames[i]} phải giặt bằng nước, ít xài hóa chất",
+                    Price = random.Next(min, max + 1),
+                    ProductScore = 5,
+                    Status = "in stock",
+                    DesignTypeId = 1,
                     CreatedAt = DateTime.UtcNow
                 });
             }

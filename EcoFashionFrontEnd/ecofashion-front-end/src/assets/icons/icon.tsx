@@ -110,3 +110,21 @@ export const AddToCart = () => (
     />
   </svg>
 );
+
+export const EcoLogo = () => {
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="768"
+    height="768"
+    version="1.1"
+  >
+    <path d="M 460,580 L 461,580 L 461,581 L 460,581 Z" fill="green" />
+    <path d="M 469,579 L 470,579 L 470,580 L 469,580 Z" fill="green" />
+    <path d="M 459,578 L 460,578 L 460,579 L 459,579 Z" fill="green" />
+    <path d="M 468,578 L 469,578 L 469,579 L 468,579 Z" fill="green" />
+    <path d="M 458,577 L 459,577 L 459,578 L 458,578 Z" fill="green" />
+    <path d="M 467,577 L 468,577 L 468,578 L 467,578 Z" fill="green" />
+    <path d="M 457,576 L 458,576 L 458,577 L 457,577 Z" fill="green" />
+    <path d="M 466,576 L 467,576 L 467,577 L 466,577 Z" fill="green" />
+  </svg>;
+};
