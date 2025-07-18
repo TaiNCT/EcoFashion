@@ -52,13 +52,6 @@ public class DesignController : ControllerBase
         return Ok(ApiResult<DesignDetailResponse>.Succeed(response));
     }
 
-    [HttpGet("designer/{designerId}")]
-    public async Task<IActionResult> GetDesignsByDesigner(Guid designerId)
-    {
-        var dtos = await _designService.GetDesignsByDesignerId(designerId);
-        var responses = _mapper.Map<List<DesignDetailResponse>>(dtos);
-        return Ok(ApiResult<List<DesignDetailResponse>>.Succeed(responses));
-    }
 
 
     [HttpPost("Create")]
@@ -81,7 +74,7 @@ public class DesignController : ControllerBase
         return CreatedAtAction(nameof(GetDesignById), new { id = response.DesignId }, ApiResult<CreateDesignResponse>.Succeed(response));
     }
 
-    [HttpPut("update-dessignVariant-By{id}")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> UpdateDesign(int id, [FromBody] UpdateDesignRequest request)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
