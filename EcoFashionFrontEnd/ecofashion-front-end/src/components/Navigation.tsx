@@ -83,7 +83,7 @@ export default function Navigation() {
       case "login":
         navigate("/login");
         break;
-      case "designerregister":
+      case "applydesigner":
         navigate("/apply/designer");
         break;
       case "supplierregister":
@@ -654,9 +654,7 @@ export default function Navigation() {
               {/* User Profile Link */}
               <MenuItem onClick={() => handleAuth("desiger-profile")}>
                 <Box sx={{ display: "flex" }}>
-                  <Icon>
-                    <DesignServicesIcon />
-                  </Icon>
+                  <DesignServicesIcon />
                   <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
                 </Box>
               </MenuItem>
@@ -668,11 +666,12 @@ export default function Navigation() {
                   onClick={() => handleAuth("admin-dashboard")}
                 >
                   <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                    sx={{
+                      display: "flex",
+                      borderBottom: "1px solid black",
+                    }}
                   >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
+                    <CompostIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Quản Trị Hệ Thống
                     </Typography>
@@ -685,9 +684,7 @@ export default function Navigation() {
                   <Box
                     sx={{ display: "flex", borderBottom: "1px solid black" }}
                   >
-                    <Icon>
-                      <AssignmentIcon />
-                    </Icon>
+                    <AssignmentIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Quản Lý Đơn Đăng Ký
                     </Typography>
@@ -700,9 +697,7 @@ export default function Navigation() {
                   <Box
                     sx={{ display: "flex", borderBottom: "1px solid black" }}
                   >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
+                    <CompostIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Designer Dashboard
                     </Typography>
@@ -715,9 +710,7 @@ export default function Navigation() {
                   <Box
                     sx={{ display: "flex", borderBottom: "1px solid black" }}
                   >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
+                    <CompostIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Supplier Dashboard
                     </Typography>
@@ -730,14 +723,15 @@ export default function Navigation() {
                 user.role?.toLowerCase() === "user") && [
                 <MenuItem
                   key="apply-designer"
-                  onClick={() => handleAuth("designerregister")}
+                  onClick={() => handleAuth("applydesigner")}
                 >
                   <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
+                    sx={{
+                      display: "flex",
+                      borderBottom: "1px solid black",
+                    }}
                   >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
+                    <CompostIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Đăng Ký Làm Nhà Thiết Kế
                     </Typography>
@@ -750,9 +744,7 @@ export default function Navigation() {
                   <Box
                     sx={{ display: "flex", borderBottom: "1px solid black" }}
                   >
-                    <Icon>
-                      <CompostIcon />
-                    </Icon>
+                    <CompostIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Đăng Ký Làm Nhà Cung Cấp
                     </Typography>
@@ -769,9 +761,7 @@ export default function Navigation() {
                   <Box
                     sx={{ display: "flex", borderBottom: "1px solid black" }}
                   >
-                    <Icon>
-                      <DesignServicesIcon />
-                    </Icon>
+                    <DesignServicesIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Đơn Đăng Ký Của Tôi
                     </Typography>
@@ -782,17 +772,13 @@ export default function Navigation() {
               {/* Common Menu Items */}
               <MenuItem onClick={handleClose}>
                 <Box sx={{ display: "flex", width: "100%" }}>
-                  <Icon>
-                    <SettingsIcon />
-                  </Icon>
+                  <SettingsIcon />
                   <Typography sx={{ padding: "3px" }}>Cài Đặt</Typography>
                 </Box>
               </MenuItem>
               <MenuItem onClick={handleLogout}>
                 <Box sx={{ display: "flex", width: "100%" }}>
-                  <Icon>
-                    <LogoutIcon />
-                  </Icon>
+                  <LogoutIcon />
                   <Typography sx={{ padding: "3px" }}> Đăng Xuất</Typography>
                 </Box>
               </MenuItem>

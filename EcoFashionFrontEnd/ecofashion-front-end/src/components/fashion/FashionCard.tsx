@@ -149,7 +149,6 @@ const FashionCard: React.FC<FashionCardProps> = ({
       {/* Product Tag */}
       <Box
         sx={{
-          p: 1,
           position: "absolute",
           top: 8,
           left: 8,
@@ -212,7 +211,6 @@ const FashionCard: React.FC<FashionCardProps> = ({
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            borderRadius: 2,
           }}
         />
       </Link>

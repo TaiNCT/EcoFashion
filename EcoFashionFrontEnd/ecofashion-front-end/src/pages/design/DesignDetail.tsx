@@ -493,7 +493,7 @@ export default function DesignDetail() {
   };
   //Chart
   const sizeChart = {
-    width: 200,
+    width: 180,
     height: 200,
   };
 

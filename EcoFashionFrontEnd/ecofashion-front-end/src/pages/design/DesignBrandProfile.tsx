@@ -550,7 +550,9 @@ export default function DesingBrandProfile() {
   const [showSorted, setShowSorted] = useState(false);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [activeColors, setActiveColors] = useState<string[]>([]);
-
+  //Count type
+  const [typeCounts, setTypeCounts] = useState<Record<string, number>>({});
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   useEffect(() => {
     if (!id) return;
     const fetchDesigner = async () => {
@@ -558,6 +560,14 @@ export default function DesingBrandProfile() {
         setLoading(true);
         const data = await DesignerService.getDesignerPublicProfile(id);
         const allDesign = await DesignService.getAllDesign();
+        // Count design types
+        const counts: Record<string, number> = {};
+        allDesign.forEach((design: any) => {
+          const typeName = design.designTypeName || "Khác"; // fallback if null/undefined
+          counts[typeName] = (counts[typeName] || 0) + 1;
+        });
+
+        setTypeCounts(counts);
         setDesigner(data);
         setDesigns(allDesign);
       } catch (err: any) {
@@ -571,9 +581,43 @@ export default function DesingBrandProfile() {
     fetchDesigner();
   }, [id]);
 
+  // filter type
+  const dynamicTypeFilterOptions = Object.entries(typeCounts).map(
+    ([label, count]) => ({
+      label,
+      count,
+    })
+  );
+  const handleTypeChange = (type: string) => {
+    setSelectedTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+  };
+
+  const [activeTypes, setActiveTypes] = useState<string[]>([]);
+
   const filteredProducts = designs.filter((product: any) => {
-    if (activeColors.length === 0) return true;
-    return product.colors.some((color: string) => activeColors.includes(color));
+    const colorMatch =
+      activeColors.length === 0 ||
+      product.colors.some((color: string) => activeColors.includes(color));
+
+    const typeMatch =
+      activeTypes.length === 0 ||
+      activeTypes.includes(product.designTypeName || "Khác");
+
+    return colorMatch && typeMatch;
+  });
+
+  const previewFilteredProducts = designs.filter((product: any) => {
+    const colorMatch =
+      selectedColors.length === 0 ||
+      product.colors.some((color: string) => selectedColors.includes(color));
+
+    const typeMatch =
+      selectedTypes.length === 0 ||
+      selectedTypes.includes(product.designTypeName || "Khác");
+
+    return colorMatch && typeMatch;
   });
   //Sort product
   const [sortType, setSortType] = useState<
@@ -662,12 +706,6 @@ export default function DesingBrandProfile() {
     );
   };
 
-  const previewFilteredProducts = products.filter((product: any) => {
-    if (selectedColors.length === 0) return true;
-    return product.colors.some((color: string) =>
-      selectedColors.includes(color)
-    );
-  });
   //Scroll TO Anchor
   const handleScroll = (id: string) => {
     const element = document.getElementById(id);
@@ -702,6 +740,8 @@ export default function DesingBrandProfile() {
     setSelectedColors([]); // Reset color selections
     setShowSorted(false); // Hide filtered result
     setActiveColors([]); // Clear applied filter if you use one
+    setSelectedTypes([]);
+    setActiveTypes([]);
     handleScroll("items");
   };
 
@@ -1132,6 +1172,35 @@ export default function DesingBrandProfile() {
                   </AccordionDetails>
                 </Accordion>
                 <Divider />
+                {/* Filter By Type */}
+                <Accordion
+                  disableGutters
+                  elevation={0}
+                  sx={{ boxShadow: "none" }}
+                >
+                  <AccordionSummary expandIcon={<GridExpandMoreIcon />}>
+                    <Typography fontSize={16}>Loại Sản Phẩm</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ maxHeight: 200, overflowY: "auto", pr: 1 }}>
+                      <FormGroup>
+                        {dynamicTypeFilterOptions.map((item, index) => (
+                          <FormControlLabel
+                            key={index}
+                            control={
+                              <Checkbox
+                                checked={selectedTypes.includes(item.label)}
+                                onChange={() => handleTypeChange(item.label)}
+                              />
+                            }
+                            label={`${item.label} (${item.count})`}
+                            sx={{ mb: 0.5 }}
+                          />
+                        ))}
+                      </FormGroup>
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
                 {Object.entries(filterOptions).map(([title, options]) => (
                   <React.Fragment key={title}>
                     <Accordion
@@ -1174,6 +1243,7 @@ export default function DesingBrandProfile() {
                     }}
                     onClick={() => {
                       setActiveColors(selectedColors); // apply filter
+                      setActiveTypes(selectedTypes);
                       setShowSorted(true);
                       handleScroll("items");
                     }}

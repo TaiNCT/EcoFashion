@@ -35,7 +35,7 @@ import cotton from "../../assets/pictures/example/cotton.webp";
 import polyester from "../../assets/pictures/example/Polyester.jpg";
 import { Fashion } from "../../types/Fashion";
 import { GridExpandMoreIcon } from "@mui/x-data-grid";
-import { DesignService } from "../../services/api/designService";
+import { Design, DesignService } from "../../services/api/designService";
 import { toast } from "react-toastify";
 const products: Fashion[] = [
   {
@@ -457,19 +457,7 @@ const products: Fashion[] = [
     images: [dam_con_trung, ao_linen, chan_vay_dap],
   },
 ];
-type Design = {
-  designId: number;
-  designerId: string;
-  name?: string;
-  description?: string;
-  recycledPercentage: number;
-  careInstructions?: string;
-  price: number;
-  productScore: number;
-  status?: string;
-  createdAt: string;
-  designTypeId?: number;
-};
+
 export default function DesignsList() {
   //Design Data
   const [designs, setDesigns] = useState<Design[]>([]);
@@ -477,6 +465,10 @@ export default function DesignsList() {
   const [loading, setLoading] = useState(true);
   //Error
   const [error, setError] = useState<string | null>(null);
+  //Count type
+  const [typeCounts, setTypeCounts] = useState<Record<string, number>>({});
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+
   useEffect(() => {
     loadDesigners();
   }, []);
@@ -486,6 +478,14 @@ export default function DesignsList() {
       setLoading(true);
       setError(null);
       const data = await DesignService.getAllDesign();
+      // Count design types
+      const counts: Record<string, number> = {};
+      data.forEach((design: any) => {
+        const typeName = design.designTypeName || "Khác"; // fallback if null/undefined
+        counts[typeName] = (counts[typeName] || 0) + 1;
+      });
+
+      setTypeCounts(counts);
       setDesigns(data);
     } catch (error: any) {
       const errorMessage =
@@ -496,7 +496,7 @@ export default function DesignsList() {
       setLoading(false);
     }
   };
-  //filter
+  //filter color
   const colorCounts: Record<string, number> = {};
 
   products.forEach((product: any) => {
@@ -533,6 +533,18 @@ export default function DesignsList() {
     return colors[colorName] || "#ccc"; // fallback
   };
 
+  // filter type
+  const dynamicTypeFilterOptions = Object.entries(typeCounts).map(
+    ([label, count]) => ({
+      label,
+      count,
+    })
+  );
+  const handleTypeChange = (type: string) => {
+    setSelectedTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+  };
   const filterOptions = {
     Loại: [
       { label: "Áo", count: 24 },
@@ -552,21 +564,35 @@ export default function DesignsList() {
   const [showSorted, setShowSorted] = useState(false);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [activeColors, setActiveColors] = useState<string[]>([]);
+  const [activeTypes, setActiveTypes] = useState<string[]>([]);
   const handleColorChange = (color: string) => {
     setSelectedColors((prev) =>
       prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
     );
   };
-  const filteredProducts = products.filter((product: any) => {
-    if (activeColors.length === 0) return true;
-    return product.colors.some((color: string) => activeColors.includes(color));
+  const filteredProducts = designs.filter((product: any) => {
+    const colorMatch =
+      activeColors.length === 0 ||
+      product.colors.some((color: string) => activeColors.includes(color));
+
+    const typeMatch =
+      activeTypes.length === 0 ||
+      activeTypes.includes(product.designTypeName || "Khác");
+
+    return colorMatch && typeMatch;
   });
-  const previewFilteredProducts = products.filter((product: any) => {
-    if (selectedColors.length === 0) return true;
-    return product.colors.some((color: string) =>
-      selectedColors.includes(color)
-    );
+  const previewFilteredProducts = designs.filter((product: any) => {
+    const colorMatch =
+      selectedColors.length === 0 ||
+      product.colors.some((color: string) => selectedColors.includes(color));
+
+    const typeMatch =
+      selectedTypes.length === 0 ||
+      selectedTypes.includes(product.designTypeName || "Khác");
+
+    return colorMatch && typeMatch;
   });
+
   //Sort product
   const [sortType, setSortType] = useState<
     "all" | "recent" | "lowest" | "highest"
@@ -576,11 +602,11 @@ export default function DesignsList() {
 
     switch (sortType) {
       case "lowest":
-        return a.price.current - b.price.current;
+        return a.price - b.price;
       case "highest":
-        return b.price.current - a.price.current;
+        return b.price - a.price;
       case "recent":
-        return b.id - a.id;
+        return b.designId - a.designId;
       default:
         return 0;
     }
@@ -603,6 +629,8 @@ export default function DesignsList() {
     setSelectedColors([]); // Reset color selections
     setShowSorted(false); // Hide filtered result
     setActiveColors([]); // Clear applied filter if you use one
+    setSelectedTypes([]);
+    setActiveTypes([]);
     handleScroll("items");
     toggleDrawer("left", false);
   };
@@ -723,6 +751,7 @@ export default function DesignsList() {
                       </Box>
 
                       {/* Filter Sections */}
+                      {/* Filter By Color */}
                       <Accordion
                         disableGutters
                         elevation={0}
@@ -778,7 +807,42 @@ export default function DesignsList() {
                         </AccordionDetails>
                       </Accordion>
                       <Divider />
-                      {Object.entries(filterOptions).map(([title, options]) => (
+                      {/* Filter By Type */}
+                      <Accordion
+                        disableGutters
+                        elevation={0}
+                        sx={{ boxShadow: "none" }}
+                      >
+                        <AccordionSummary expandIcon={<GridExpandMoreIcon />}>
+                          <Typography fontSize={16}>Loại Sản Phẩm</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          <Box
+                            sx={{ maxHeight: 200, overflowY: "auto", pr: 1 }}
+                          >
+                            <FormGroup>
+                              {dynamicTypeFilterOptions.map((item, index) => (
+                                <FormControlLabel
+                                  key={index}
+                                  control={
+                                    <Checkbox
+                                      checked={selectedTypes.includes(
+                                        item.label
+                                      )}
+                                      onChange={() =>
+                                        handleTypeChange(item.label)
+                                      }
+                                    />
+                                  }
+                                  label={`${item.label} (${item.count})`}
+                                  sx={{ mb: 0.5 }}
+                                />
+                              ))}
+                            </FormGroup>
+                          </Box>
+                        </AccordionDetails>
+                      </Accordion>
+                      {/* {Object.entries(filterOptions).map(([title, options]) => (
                         <React.Fragment key={title}>
                           <Accordion
                             disableGutters
@@ -805,7 +869,7 @@ export default function DesignsList() {
                           </Accordion>
                           <Divider />
                         </React.Fragment>
-                      ))}
+                      ))} */}
                       {/* Bottom Button */}
                       <Box mt={6}>
                         <Button
@@ -822,6 +886,7 @@ export default function DesignsList() {
                           }}
                           onClick={() => {
                             setActiveColors(selectedColors); // apply filter
+                            setActiveTypes(selectedTypes);
                             setShowSorted(true);
                             handleScroll("items");
                           }}
@@ -898,7 +963,7 @@ export default function DesignsList() {
               flex={5}
               sx={{ width: "100%", margin: "auto", padding: 3, paddingTop: 0 }}
             >
-              <DesignsSection products={designs} id={"items"} />
+              <DesignsSection products={sortedProducts} id={"items"} />
             </Box>
           </Box>
           <Divider />

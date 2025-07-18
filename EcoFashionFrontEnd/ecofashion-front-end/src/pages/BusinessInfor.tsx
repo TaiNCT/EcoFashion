@@ -33,7 +33,7 @@ export default function BusinessInfor() {
   const handleClick = (type: any) => {
     switch (type) {
       case "desginer":
-        navigate("/designerregister");
+        navigate("/apply/designer");
         break;
     }
   };

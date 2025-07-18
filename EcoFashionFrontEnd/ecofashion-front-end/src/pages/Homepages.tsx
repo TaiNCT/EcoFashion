@@ -947,7 +947,7 @@ export default function Homepage() {
                   textTransform: "none",
                 }}
               >
-                Đăng Sản Phẩm{" "}
+                Đăng Sản Phẩm
                 <svg
                   viewBox="0 0 32 32"
                   width={30}
@@ -977,6 +977,7 @@ export default function Homepage() {
                   color: "rgba(52,168,83,1)",
                   textTransform: "none",
                 }}
+                href="/fashion"
               >
                 Khám Phá
                 <svg
