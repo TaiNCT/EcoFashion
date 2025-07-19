@@ -9,11 +9,8 @@ using EcoFashionBackEnd.Settings;
 using AutoMapper;
 using EcoFashionBackEnd.Helpers;
 using EcoFashionBackEnd.Middlewares;
-using MailKit;
 using EcoFashionBackEnd.Mapper;
 using EcoFashionBackEnd.Helpers.Photos;
-using EcoFashionBackEnd.Services;
-using EcoFashionBackEnd.Data;
 using EcoFashionBackEnd.Data.test;
 
 
@@ -86,9 +83,11 @@ public static class ServicesExtensions
         services.AddScoped<CustomerService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<CloudService>();
-     
+        
         services.AddScoped<DesignService>();
-
+        services.AddScoped<MaterialService>();
+        services.AddScoped<MaterialTypeService>();
+        services.AddScoped<DesignerMaterialInventoryService>();
         //services.AddScoped<IVnPayService, VnPayService>();
 
 
