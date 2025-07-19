@@ -27,7 +27,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<DesignFeature> DesignFeatures { get; set; }
         public DbSet<DesignsSize> DesignsSizes { get; set; }
         public DbSet<DesignsType> DesignsTypes { get; set; }
-        public DbSet<DesignMaterialInventory> DesignMaterialInventorys { get; set; }
+        public DbSet<DesignerMaterialInventory> DesignerMaterialInventories { get; set; }
         public DbSet<Material> Materials { get; set; }
         public DbSet<MaterialImage> MaterialImages { get; set; }
         public DbSet<SustainabilityCriteria> SustainabilityCriterias { get; set; }
@@ -168,6 +168,9 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(d => d.DesignTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Design>()
+                .Property(d => d.Price)
+                .HasPrecision(18, 2);
 
             #endregion
 
@@ -184,7 +187,9 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(m => m.TypeId)
                 .OnDelete(DeleteBehavior.Restrict);
-
+            modelBuilder.Entity<Material>()
+                .Property(m => m.PricePerUnit)
+                .HasPrecision(18, 2);
             modelBuilder.Entity<MaterialImage>()
                 .HasOne(mi => mi.Material)
                 .WithMany(m => m.MaterialImages)
@@ -211,9 +216,23 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(ms => ms.CriterionId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<DesignerMaterialInventory>()
+                .HasOne(dmi => dmi.Designer)
+                .WithMany()
+                .HasForeignKey(dmi => dmi.DesignerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<DesignerMaterialInventory>()
+                .HasOne(dmi => dmi.Material)
+                .WithMany()
+                .HasForeignKey(dmi => dmi.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<DesignerMaterialInventory>()
+                .Property(dmi => dmi.Cost)
+                .HasPrecision(18, 2);
             #endregion
             #region unique
-           
+
 
             modelBuilder.Entity<TypeSize>()
                 .HasKey(ts => new { ts.DesignTypeIdPk, ts.SizeIdPk }); 
