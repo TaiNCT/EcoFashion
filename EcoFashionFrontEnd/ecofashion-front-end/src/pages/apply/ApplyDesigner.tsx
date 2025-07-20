@@ -24,7 +24,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { applyDesignerSchema } from "../../schemas/applyDesignerSchema";
 import { useAuth } from "../../services/user/AuthContext";
 import { toast } from "react-toastify";
 import FileUpload from "../../components/FileUpload";
@@ -38,6 +37,7 @@ import {
 } from "@mui/icons-material";
 import PaletteIcon from "@mui/icons-material/Palette";
 import { applicationService } from "../../services/api/applicationService";
+import { applyApplicationSchema } from "../../schemas/applyApplicationSchema";
 
 const steps = [
   "Thông tin cơ bản",
@@ -53,6 +53,24 @@ export default function ApplyDesigner() {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const defaultValues = {
+    socialLinks: "",
+    agreedToTerms: false,
+    avatarFile: null,
+    bannerFile: null,
+    portfolioFiles: [],
+    identificationPictureFront: null,
+    identificationPictureBack: null,
+    phoneNumber: "0123456789",
+    address: "123 Ecofashion Lane, Green City, Country Vietnam",
+    bio: "",
+    certificates: "https://ecofashion.com/certificates",
+    specializationUrl: "https://ecofashion.com/specialization",
+    taxNumber: "0123456789",
+    portfolioUrl: "https://ecofashion.com/portfolio",
+    note: "",
+    identificationNumber: "",
+  };
   const {
     register,
     handleSubmit,
@@ -62,11 +80,8 @@ export default function ApplyDesigner() {
     formState: { errors },
     trigger,
   } = useForm({
-    resolver: zodResolver(applyDesignerSchema),
-    defaultValues: {
-      socialLinks: "",
-      agreedToTerms: false,
-    },
+    resolver: zodResolver(applyApplicationSchema),
+    defaultValues,
   });
 
   useEffect(() => {
@@ -115,27 +130,104 @@ export default function ApplyDesigner() {
   };
 
   const onSubmit = async (data) => {
-    // Debug: Log request
-    console.log("🚀 Sending request:", {
-      avatarFile: data.avatarFile?.[0]?.name,
-      bannerFile: data.bannerFile?.[0]?.name,
-      identificationPictureFront: data.identificationPictureFront?.[0]?.name,
-      identificationPictureBack: data.identificationPictureBack?.[0]?.name,
-      portfolioFiles: data.portfolioFiles?.map((f) => f.name),
-    });
+    // // Chuyển đổi data sang FormData để gửi file
+    // const formData = new FormData();
+
+    // // Các trường file đơn
+    // if (data.avatarFile && data.avatarFile.length > 0) {
+    //   formData.append("avatarFile", data.avatarFile[0]);
+    // }
+    // if (data.bannerFile && data.bannerFile.length > 0) {
+    //   formData.append("bannerFile", data.bannerFile[0]);
+    // }
+    // if (
+    //   data.identificationPictureFront &&
+    //   data.identificationPictureFront.length > 0
+    // ) {
+    //   formData.append(
+    //     "identificationPictureFront",
+    //     data.identificationPictureFront[0]
+    //   );
+    // }
+    // if (
+    //   data.identificationPictureBack &&
+    //   data.identificationPictureBack.length > 0
+    // ) {
+    //   formData.append(
+    //     "identificationPictureBack",
+    //     data.identificationPictureBack[0]
+    //   );
+    // }
+
+    // // Portfolio files (nhiều file)
+    // if (data.portfolioFiles && data.portfolioFiles.length > 0) {
+    //   data.portfolioFiles.forEach((file, idx) => {
+    //     formData.append("portfolioFiles", file);
+    //   });
+    // }
+
+    // // Các trường text
+    // const textFields = [
+    //   "portfolioUrl",
+    //   "specializationUrl",
+    //   "bio",
+    //   "socialLinks",
+    //   "identificationNumber",
+    //   "note",
+    //   "phoneNumber",
+    //   "address",
+    //   "taxNumber",
+    //   "certificates",
+    // ];
+    // textFields.forEach((field) => {
+    //   if (data[field] !== undefined && data[field] !== null) {
+    //     formData.append(field, data[field]);
+    //   }
+    // });
+
+    // // Checkbox
+    // if (data.agreedToTerms !== undefined) {
+    //   formData.append("agreedToTerms", data.agreedToTerms ? "true" : "false");
+    // }
+    // Đảm bảo các trường file đơn là File, không phải mảng hoặc undefined
+    const fixedData = {
+      ...data,
+      avatarFile:
+        Array.isArray(data.avatarFile) && data.avatarFile.length > 0
+          ? data.avatarFile[0]
+          : !Array.isArray(data.avatarFile) && data.avatarFile
+          ? data.avatarFile
+          : undefined,
+      bannerFile:
+        Array.isArray(data.bannerFile) && data.bannerFile.length > 0
+          ? data.bannerFile[0]
+          : !Array.isArray(data.bannerFile) && data.bannerFile
+          ? data.bannerFile
+          : undefined,
+      identificationPictureFront:
+        Array.isArray(data.identificationPictureFront) &&
+        data.identificationPictureFront.length > 0
+          ? data.identificationPictureFront[0]
+          : !Array.isArray(data.identificationPictureFront) &&
+            data.identificationPictureFront
+          ? data.identificationPictureFront
+          : undefined,
+      identificationPictureBack:
+        Array.isArray(data.identificationPictureBack) &&
+        data.identificationPictureBack.length > 0
+          ? data.identificationPictureBack[0]
+          : !Array.isArray(data.identificationPictureBack) &&
+            data.identificationPictureBack
+          ? data.identificationPictureBack
+          : undefined,
+      // portfolioFiles giữ nguyên là mảng
+    };
 
     try {
       setLoading(true);
       toast.info("Đang xử lý đơn đăng ký...");
-      const result = await applicationService.applyAsDesigner(data);
-
-      // Debug: Log received response
-      console.log("✅ Received response:", {
-        avatarUrl: result.avatarUrl,
-        bannerUrl: result.bannerUrl,
-        identificationPictureFront: result.identificationPictureFront,
-        identificationPictureBack: result.identificationPictureBack,
-      });
+      const result = await applicationService.applyAsDesigner(fixedData);
+      //const result = await applicationService.applyAsDesigner(formData);
 
       toast.success("Gửi đơn thành công!");
       navigate("/my-applications");
@@ -169,9 +261,17 @@ export default function ApplyDesigner() {
             <TextField
               fullWidth
               label="Số điện thoại *"
+              autoComplete="off"
+              name="phoneNumber"
+              defaultValue={defaultValues.phoneNumber}
+              placeholder="Nhập số điện thoại"
               {...register("phoneNumber")}
               error={Boolean(errors.phoneNumber)}
-              helperText={errors.phoneNumber?.message}
+              helperText={
+                typeof errors.phoneNumber?.message === "string"
+                  ? errors.phoneNumber?.message
+                  : ""
+              }
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -184,9 +284,17 @@ export default function ApplyDesigner() {
             <TextField
               fullWidth
               label="Địa chỉ *"
+              autoComplete="off"
+              name="address"
+              defaultValue={defaultValues.address}
+              placeholder="Nhập địa chỉ"
               {...register("address")}
               error={Boolean(errors.address)}
-              helperText={errors.address?.message}
+              helperText={
+                typeof errors.address?.message === "string"
+                  ? errors.address?.message
+                  : ""
+              }
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -210,26 +318,49 @@ export default function ApplyDesigner() {
               multiline
               rows={4}
               label="Mô tả về bản thân"
+              autoComplete="off"
+              name="bio"
+              defaultValue={defaultValues.bio}
+              placeholder="Nhập mô tả về bản thân"
               {...register("bio")}
               error={Boolean(errors.bio)}
-              helperText={errors.bio?.message}
+              helperText={
+                typeof errors.bio?.message === "string"
+                  ? errors.bio?.message
+                  : ""
+              }
             />
 
             <TextField
               fullWidth
               label="Chứng chỉ/Giải thưởng"
+              name="certificates"
+              autoComplete="off"
+              defaultValue={defaultValues.certificates}
+              placeholder="Nhập links chứng chỉ hoặc giải thưởng"
               {...register("certificates")}
               error={Boolean(errors.certificates)}
-              helperText={errors.certificates?.message}
+              helperText={
+                typeof errors.certificates?.message === "string"
+                  ? errors.certificates?.message
+                  : ""
+              }
             />
 
             <TextField
               fullWidth
               label="URL chuyên môn"
-              placeholder="https://www.ecofation-example.com"
+              name="specializationUrl"
+              autoComplete="off"
+              defaultValue={defaultValues.specializationUrl}
+              placeholder="https://ecofashion.com/specialization"
               {...register("specializationUrl")}
               error={Boolean(errors.specializationUrl)}
-              helperText={errors.specializationUrl?.message}
+              helperText={
+                typeof errors.specializationUrl?.message === "string"
+                  ? errors.specializationUrl?.message
+                  : ""
+              }
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -242,9 +373,17 @@ export default function ApplyDesigner() {
             <TextField
               fullWidth
               label="Mã số thuế"
+              autoComplete="off"
+              name="taxNumber"
+              defaultValue={defaultValues.taxNumber}
+              placeholder="Nhập mã số thuế"
               {...register("taxNumber")}
               error={Boolean(errors.taxNumber)}
-              helperText={errors.taxNumber?.message}
+              helperText={
+                typeof errors.taxNumber?.message === "string"
+                  ? errors.taxNumber?.message
+                  : ""
+              }
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -273,7 +412,13 @@ export default function ApplyDesigner() {
                 render={({ field }) => (
                   <FileUpload
                     label="Chọn ảnh đại diện"
-                    files={field.value ? [field.value] : []}
+                    files={
+                      Array.isArray(field.value)
+                        ? field.value
+                        : field.value
+                        ? [field.value]
+                        : []
+                    }
                     onFilesChange={(files) => field.onChange(files)}
                     accept="image/*"
                     maxSize={5}
@@ -293,7 +438,18 @@ export default function ApplyDesigner() {
                 render={({ field }) => (
                   <FileUpload
                     label="Chọn ảnh banner"
-                    files={field.value ? [field.value] : []}
+                    //Nếu field.value là một mảng (Array), thì truyền nguyên mảng đó cho prop files.
+                    //Nếu field.value không phải mảng nhưng có giá trị (ví dụ là 1 file), thì bọc nó thành mảng 1 phần tử
+                    //Nếu field.value là undefined/null, thì truyền mảng rỗng.
+                    //Mục đích: Đảm bảo prop files luôn là một mảng (File[]), tránh lỗi runtime khi FileUpload chỉ nhận mảng.
+                    //bảo vệ component custom FileUpload khỏi lỗi khi nhận kiểu dữ liệu không đúng (do react-hook-form có thể trả về undefined, 1 file, hoặc mảng file tùy cách dùng).
+                    files={
+                      Array.isArray(field.value)
+                        ? field.value
+                        : field.value
+                        ? [field.value]
+                        : []
+                    }
                     onFilesChange={(files) => field.onChange(files)}
                     accept="image/*"
                     maxSize={10}
@@ -305,10 +461,17 @@ export default function ApplyDesigner() {
             <TextField
               fullWidth
               label="Portfolio URL"
-              placeholder="https://www.ecofation-example.com"
+              autoComplete="off"
+              name="portfolioUrl"
+              defaultValue={defaultValues.portfolioUrl}
+              placeholder="https://..."
               {...register("portfolioUrl")}
               error={Boolean(errors.portfolioUrl)}
-              helperText={errors.portfolioUrl?.message}
+              helperText={
+                typeof errors.portfolioUrl?.message === "string"
+                  ? errors.portfolioUrl?.message
+                  : ""
+              }
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -341,9 +504,17 @@ export default function ApplyDesigner() {
             <TextField
               fullWidth
               label="Liên kết mạng xã hội (JSON)"
+              autoComplete="off"
+              name="socialLinks"
+              defaultValue={defaultValues.socialLinks}
+              placeholder='{"facebook": "https://facebook.com/...", "instagram": "https://instagram.com/..."}'
               {...register("socialLinks")}
               error={Boolean(errors.socialLinks)}
-              helperText={errors.socialLinks?.message}
+              helperText={
+                typeof errors.socialLinks?.message === "string"
+                  ? errors.socialLinks?.message
+                  : ""
+              }
             />
           </Box>
         );
@@ -358,9 +529,17 @@ export default function ApplyDesigner() {
             <TextField
               fullWidth
               label="Số CCCD/CMND *"
+              autoComplete="off"
+              name="identificationNumber"
+              defaultValue={defaultValues.identificationNumber}
+              placeholder="Nhập số CCCD/CMND"
               {...register("identificationNumber")}
               error={Boolean(errors.identificationNumber)}
-              helperText={errors.identificationNumber?.message}
+              helperText={
+                typeof errors.identificationNumber?.message === "string"
+                  ? errors.identificationNumber?.message
+                  : ""
+              }
             />
 
             <Paper elevation={1} sx={{ p: 3 }}>
@@ -373,7 +552,13 @@ export default function ApplyDesigner() {
                 render={({ field }) => (
                   <FileUpload
                     label="Chọn ảnh mặt trước"
-                    files={field.value ? [field.value] : []}
+                    files={
+                      Array.isArray(field.value)
+                        ? field.value
+                        : field.value
+                        ? [field.value]
+                        : []
+                    }
                     onFilesChange={(files) => field.onChange(files)}
                     accept="image/*"
                     maxSize={5}
@@ -393,7 +578,13 @@ export default function ApplyDesigner() {
                 render={({ field }) => (
                   <FileUpload
                     label="Chọn ảnh mặt sau"
-                    files={field.value ? [field.value] : []}
+                    files={
+                      Array.isArray(field.value)
+                        ? field.value
+                        : field.value
+                        ? [field.value]
+                        : []
+                    }
                     onFilesChange={(files) => field.onChange(files)}
                     accept="image/*"
                     maxSize={5}
@@ -418,9 +609,17 @@ export default function ApplyDesigner() {
               multiline
               rows={4}
               label="Ghi chú"
+              autoComplete="off"
+              name={`note-step${activeStep}`}
+              defaultValue={defaultValues.note}
+              placeholder="Nhập ghi chú (nếu có)"
               {...register("note")}
               error={Boolean(errors.note)}
-              helperText={errors.note?.message}
+              helperText={
+                typeof errors.note?.message === "string"
+                  ? errors.note?.message
+                  : ""
+              }
             />
 
             <FormControl error={Boolean(errors.agreedToTerms)}>
@@ -451,7 +650,7 @@ export default function ApplyDesigner() {
           <Box sx={{ textAlign: "center", mb: 4 }}>
             <PaletteIcon sx={{ fontSize: 48, color: "#4caf50" }} />
             <Typography variant="h4" fontWeight="bold">
-              Đăng ký Nhà Thiết Kế
+              Đăng ký làm Nhà Thiết Kế
             </Typography>
             <Typography color="text.secondary">
               Tham gia cộng đồng những nhà thiết kế thời trang bền vững

@@ -32,7 +32,7 @@ namespace EcoFashionBackEnd.Entities
         
         public DateTime? OTPExpiresAt { get; set; }
 
-       // [ForeignKey("UserRole")]
+        // [ForeignKey("UserRole")]
         public int RoleId { get; set; }
         public virtual UserRole? UserRole { get; set; }
 

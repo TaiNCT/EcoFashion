@@ -10,10 +10,10 @@ namespace EcoFashionBackEnd.Data.test
         {
             if (await context.Users.AnyAsync()) return;
 
-            var adminRole = await context.UserRoles.FirstOrDefaultAsync(r => r.RoleName == "Admin");
-            var designerRole = await context.UserRoles.FirstOrDefaultAsync(r => r.RoleName == "Designer");
-            var supplierRole = await context.UserRoles.FirstOrDefaultAsync(r => r.RoleName == "Supplier");
-            var customerRole = await context.UserRoles.FirstOrDefaultAsync(r => r.RoleName == "Customer");
+            var adminRole = await context.UserRoles.FirstOrDefaultAsync(r => r.RoleName == "admin");
+            var designerRole = await context.UserRoles.FirstOrDefaultAsync(r => r.RoleName == "designer");
+            var supplierRole = await context.UserRoles.FirstOrDefaultAsync(r => r.RoleName == "supplier");
+            var customerRole = await context.UserRoles.FirstOrDefaultAsync(r => r.RoleName == "customer");
 
             if (adminRole == null || designerRole == null || supplierRole == null || customerRole == null) return;
 

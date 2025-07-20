@@ -30,7 +30,6 @@ import ExploreDesigners from "./pages/explore/ExploreDesigners";
 import DesignerLandingPage from "./pages/explore/DesignerLandingPage";
 import ExploreSuppliers from "./pages/explore/ExploreSuppliers";
 import SupplierLandingPage from "./pages/explore/SupplierLandingPage";
-import TestAuth from "./pages/TestAuth";
 import FashionList from "./pages/design/FashionList";
 import DesingBrandProfile from "./pages/design/DesignBrandProfile";
 import AddDesign from "./pages/design/AddDesign";
@@ -53,9 +52,6 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/fashion" element={<FashionList />} />
-
-          {/* TEST ROUTE - Remove in production */}
-          <Route path="/test-auth" element={<TestAuth />} />
 
           {/* NEW APPLICATION ROUTES - Updated multi-step forms */}
           <Route path="/brand/:id" element={<DesingBrandProfile />} />
@@ -89,32 +85,32 @@ function App() {
 
           {/* Designer Routes */}
           {/* Designer Profile */}
-          <Route
-            path="/designer/profile"
-            element={
-              <ProtectedRoute allowedRoles={["designer"]}>
-                <DesignerProfile />
-              </ProtectedRoute>
-            }
-          />
+                      <Route
+              path="/designer/profile"
+              element={
+                <ProtectedRoute allowedRoles={["designer"]}>
+                  <DesignerProfile />
+                </ProtectedRoute>
+              }
+            />
           {/* Add New Design */}
-          <Route
-            path="/designer/dashboard/add"
-            element={
-              <ProtectedRoute allowedRoles={["designer"]}>
-                <AddDesign />
-              </ProtectedRoute>
-            }
-          />
+                      <Route
+              path="/designer/dashboard/add"
+              element={
+                <ProtectedRoute allowedRoles={["designer"]}>
+                  <AddDesign />
+                </ProtectedRoute>
+              }
+            />
           {/* Designer Dashboard */}
-          <Route
-            path="/designer/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={["designer"]}>
-                <DesginerDashboared />
-              </ProtectedRoute>
-            }
-          />
+                      <Route
+              path="/designer/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["designer"]}>
+                  <DesginerDashboared />
+                </ProtectedRoute>
+              }
+            />
 
           {/* EXPLORE ROUTES - Public access */}
           <Route path="/explore/designers" element={<ExploreDesigners />} />

@@ -1,114 +1,88 @@
 import apiClient, { handleApiResponse } from "./baseApi";
 import {
-  backendFieldMapping,
   applicationModelResponseSchema,
+  ApplyApplicationFormValues,
   type ApplicationModelResponse,
-} from "../../schemas/applyDesignerSchema";
+} from "../../schemas/applyApplicationSchema";
 
-// DTO for Designer Application in camelCase
-export interface ApplyDesignerRequest {
-  // Profile images for landing page
-  avatarFile?: File; // Ảnh đại diện
-  bannerFile?: File; // Ảnh banner/cover
+// // Model for Application data returned from API
+// // This matches the backend ApplicationModel structure
+// // Use camelCase for all properties to match backend API
+// export interface ApplicationModel {
+//   applicationId: number;
+//   userId: number;
+//   targetRoleId: number;
 
-  portfolioUrl?: string;
-  portfolioFiles?: File[]; // Multiple portfolio files
-  bio?: string;
-  specializationUrl?: string;
-  certificates?: string; // CSV or JSON string
-  taxNumber?: string;
-  address?: string;
-  phoneNumber?: string;
-  // Social media links as JSON string
-  socialLinks?: string; // {"instagram": "url", "behance": "url", "facebook": "url"}
+//   // Portfolio & Profile Images
+//   avatarUrl?: string;
+//   bannerUrl?: string;
+//   portfolioUrl?: string;
+//   portfolioFiles?: string; // JSON array of file urls
+//   specializationUrl?: string;
+//   bio?: string;
+//   certificates?: string;
+//   taxNumber?: string;
+//   address?: string;
 
-  identificationNumber: string;
-  identificationPictureFront?: File;
-  identificationPictureBack?: File;
-  note?: string;
-}
+//   // Social Media
+//   socialLinks?: string; // JSON object of social media links
 
-//DTO for Supplier Form
-export interface ApplySupplierRequest {
-  // Profile images for landing page
-  avatarFile?: File; // Ảnh đại diện
-  bannerFile?: File; // Ảnh banner/cover
+//   // Identification / Xác minh - 2 hình CCCD mat truoc và sau
 
-  portfolioUrl?: string;
-  portfolioFiles?: File[]; // Multiple portfolio files
-  bio?: string;
-  specializationUrl?: string;
-  certificates?: string; // CSV or JSON string
-  taxNumber?: string;
-  address?: string;
-  phoneNumber?: string;
-  // Social media links as JSON string
-  socialLinks?: string; // {"instagram": "url", "behance": "url", "facebook": "url"}
+//   identificationNumber?: string;
+//   identificationPictureFront?: string;
+//   identificationPictureBack?: string;
+//   isIdentificationVerified?: boolean;
 
-  identificationNumber: string;
-  identificationPictureFront?: File;
-  identificationPictureBack?: File;
-  note?: string;
-}
+//   //Tracking
+//   createdAt: string;
+//   processedAt?: string;
 
-// Model for Application data returned from API
-// This matches the backend ApplicationModel structure
-// Use camelCase for all properties to match backend API
-export interface ApplicationModel {
-  applicationId: number;
-  userId: number;
-  targetRoleId: number;
+//   // Kết quả xử lý
+//   processedBy?: number;
+//   rejectionReason?: string;
+//   note?: string;
 
-  // Portfolio & Profile Images
-  avatarUrl?: string;
-  bannerUrl?: string;
-  portfolioUrl?: string;
-  portfolioFiles?: string; // JSON array of file urls
-  specializationUrl?: string;
-  bio?: string;
-  certificates?: string;
-  taxNumber?: string;
-  address?: string;
+//   status: "pending" | "approved" | "rejected";
 
-  // Social Media
-  socialLinks?: string; // JSON object of social media links
+//   // Navigation properties
+//   user?: {
+//     userId: number;
+//     fullName?: string;
+//     email?: string;
+//   };
+//   role?: {
+//     roleId: number;
+//     roleName: string;
+//   };
+//   processedByUser?: {
+//     userId: number;
+//     fullName?: string;
+//     email?: string;
+//   };
 
-  // Identification / Xác minh - 2 hình CCCD mat truoc và sau
+//   phoneNumber?: string;
+// }
 
-  identificationNumber?: string;
-  identificationPictureFront?: string;
-  identificationPictureBack?: string;
-  isIdentificationVerified?: boolean;
-
-  //Tracking
-  createdAt: string;
-  processedAt?: string;
-
-  // Kết quả xử lý
-  processedBy?: number;
-  rejectionReason?: string;
-  note?: string;
-
-  status: "pending" | "approved" | "rejected";
-
-  // Navigation properties
-  user?: {
-    userId: number;
-    fullName?: string;
-    email?: string;
-  };
-  role?: {
-    roleId: number;
-    roleName: string;
-  };
-  processedByUser?: {
-    userId: number;
-    fullName?: string;
-    email?: string;
-  };
-
-  phoneNumber?: string;
-}
+// Mapping schema
+export const backendFieldMapping = {
+  // Frontend field -> Backend field
+  avatarFile: "AvatarFile", //File upload
+  bannerFile: "BannerFile", //File upload
+  portfolioUrl: "PortfolioUrl",
+  portfolioFiles: "PortfolioFiles",
+  bio: "Bio",
+  specializationUrl: "SpecializationUrl",
+  socialLinks: "SocialLinks",
+  identificationNumber: "IdentificationNumber",
+  identificationPictureFront: "IdentificationPictureFront", // File upload
+  identificationPictureBack: "IdentificationPictureBack", // File upload
+  note: "Note",
+  phoneNumber: "PhoneNumber",
+  address: "Address",
+  taxNumber: "TaxNumber",
+  certificates: "Certificates",
+} as const;
 
 export interface ApiResult<T> {
   success: boolean; // Backend response sử dụng camelCase
@@ -122,9 +96,7 @@ class ApplicationService {
   /**
    * Helper method to create FormData for file upload
    */
-  private createFormData(
-    request: ApplyDesignerRequest | ApplySupplierRequest
-  ): FormData {
+  private createFormData(request: ApplyApplicationFormValues): FormData {
     const formData = new FormData();
 
     // Profile images - match backend field names exactly
@@ -182,12 +154,20 @@ class ApplicationService {
     if (request.certificates)
       formData.append(backendFieldMapping.certificates, request.certificates);
 
+    // Checkbox: agreedToTerms (nếu có)
+    if (typeof (request as any).agreedToTerms !== "undefined") {
+      formData.append(
+        "agreedToTerms",
+        (request as any).agreedToTerms ? "true" : "false"
+      );
+    }
+
     return formData;
   }
 
   // User đăng ký làm Designer
   async applyAsDesigner(
-    request: ApplyDesignerRequest
+    request: ApplyApplicationFormValues
   ): Promise<ApplicationModelResponse> {
     const formData = this.createFormData(request);
 
@@ -207,7 +187,7 @@ class ApplicationService {
 
   // User đăng ký làm Supplier
   async applyAsSupplier(
-    request: ApplySupplierRequest
+    request: ApplyApplicationFormValues
   ): Promise<ApplicationModelResponse> {
     const formData = this.createFormData(request);
 
@@ -218,7 +198,7 @@ class ApplicationService {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        timeout: 300000, // 20 minutes for file upload
+        timeout: 300000, // 5 minutes for file upload
       }
     );
     const result = handleApiResponse<ApplicationModelResponse>(response);
@@ -244,8 +224,10 @@ class ApplicationService {
   // Admin - Xem tất cả đơn đăng ký
   async getAllApplications(): Promise<ApplicationModelResponse[]> {
     const response = await apiClient.get<any>(`${this.API_BASE}`);
-    const result = handleApiResponse<ApplicationModelResponse[]>(response);
-    return result.map((item) => applicationModelResponseSchema.parse(item));
+    const result = handleApiResponse<{
+      applications: ApplicationModelResponse[];
+    }>(response);
+    return result.applications.map((item) => applicationModelResponseSchema.parse(item));
   }
 
   // Admin - Lọc đơn đăng ký
@@ -254,7 +236,7 @@ class ApplicationService {
     targetRoleId?: number;
     createdFrom?: string;
     createdTo?: string;
-  }): Promise<ApplicationModel[]> {
+  }): Promise<ApplicationModelResponse[]> {
     const queryParams = new URLSearchParams();
 
     if (params.status) queryParams.append("status", params.status);
@@ -268,14 +250,16 @@ class ApplicationService {
       `${this.API_BASE}/Filter?${queryParams.toString()}`
     );
 
-    const result = handleApiResponse<{ applications: ApplicationModel[] }>(
-      response
-    );
-    return result.applications;
+    const result = handleApiResponse<{
+      applications: ApplicationModelResponse[];
+    }>(response);
+    return result.applications.map((item) => applicationModelResponseSchema.parse(item));
   }
 
   // Admin - Tìm kiếm đơn đăng ký
-  async searchApplications(keyword?: string): Promise<ApplicationModel[]> {
+  async searchApplications(
+    keyword?: string
+  ): Promise<ApplicationModelResponse[]> {
     const queryParams = new URLSearchParams();
     if (keyword) queryParams.append("keyword", keyword);
 
@@ -283,10 +267,10 @@ class ApplicationService {
       `${this.API_BASE}/Search?${queryParams.toString()}`
     );
 
-    const result = handleApiResponse<{ applications: ApplicationModel[] }>(
-      response
-    );
-    return result.applications;
+    const result = handleApiResponse<{
+      applications: ApplicationModelResponse[];
+    }>(response);
+    return result.applications.map((item) => applicationModelResponseSchema.parse(item));
   }
 
   // Admin - Phê duyệt Designer

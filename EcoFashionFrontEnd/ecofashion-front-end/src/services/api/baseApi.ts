@@ -26,12 +26,15 @@ apiClient.interceptors.request.use(
 
     // Log all requests in dev mode
     if (import.meta.env.DEV) {
-      console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
-        headers: config.headers,
-        data: config.data instanceof FormData ? "FormData" : config.data,
-        hasToken: !!token,
-        tokenStart: token?.substring(0, 20) + "..."
-      });
+      console.log(
+        `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`,
+        {
+          headers: config.headers,
+          data: config.data instanceof FormData ? "FormData" : config.data,
+          hasToken: !!token,
+          tokenStart: token?.substring(0, 20) + "...",
+        }
+      );
     }
 
     return config;
@@ -44,10 +47,15 @@ apiClient.interceptors.request.use(
 
 // Response interceptor
 apiClient.interceptors.response.use(
-    (response: AxiosResponse) => {
+  (response: AxiosResponse) => {
     // Log responses in dev mode
     if (import.meta.env.DEV) {
-      console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`, response.data);
+      console.log(
+        `✅ API Response: ${response.config.method?.toUpperCase()} ${
+          response.config.url
+        } - ${response.status}`,
+        response.data
+      );
     }
     return response;
   },
@@ -55,12 +63,17 @@ apiClient.interceptors.response.use(
     // Handle common errors
     if (error.response?.status === 401) {
       // Check if this is a legitimate auth failure vs missing authorization
-      const errorMessage = error.response?.data?.ErrorMessage || error.response?.data?.message || "";
-      
+      const errorMessage =
+        error.response?.data?.ErrorMessage ||
+        error.response?.data?.message ||
+        "";
+
       // Only auto-logout for actual token expiration, not missing authorization
-      if (errorMessage.toLowerCase().includes("token") || 
-          errorMessage.toLowerCase().includes("expired") ||
-          errorMessage.toLowerCase().includes("invalid token")) {
+      if (
+        errorMessage.toLowerCase().includes("token") ||
+        errorMessage.toLowerCase().includes("expired") ||
+        errorMessage.toLowerCase().includes("invalid token")
+      ) {
         console.warn("Token expired, logging out");
         localStorage.removeItem("authToken");
         localStorage.removeItem("tokenExpiresAt");
@@ -68,7 +81,10 @@ apiClient.interceptors.response.use(
         window.location.href = "/login";
       } else {
         // For other 401 errors (like missing authorization), just log but don't logout
-        console.warn("Authorization error but keeping user logged in:", errorMessage);
+        console.warn(
+          "Authorization error but keeping user logged in:",
+          errorMessage
+        );
       }
     }
 
@@ -76,7 +92,7 @@ apiClient.interceptors.response.use(
       status: error.response?.status,
       message: error.response?.data?.message || error.message,
       url: error.config?.url,
-      error: error
+      error: error,
     });
 
     return Promise.reject(error);

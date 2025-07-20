@@ -1,13 +1,13 @@
 import { z } from "zod";
 // Schema cho form Apply Designer
 // Sử dụng Zod để xác định các trường và kiểu dữ liệu
-export const applyDesignerSchema = z.object({
+export const applyApplicationSchema = z.object({
   // Basic Info (from user claims)
   phoneNumber: z
     .string()
     .min(1, "Số điện thoại là bắt buộc")
-    .regex(/^0\\d{9}$/, {
-      message: "Số điện thoại phải có 10 chữ số, bắt đầu bằng 0",
+    .regex(/^(0\d{9}|\+84\d{9,10})$/, {
+      message: "Số điện thoại phải bắt đầu bằng 0 (10 số) hoặc +84 (11-12 số)",
     }),
   address: z.string().min(1, "Địa chỉ là bắt buộc"),
 
@@ -18,7 +18,7 @@ export const applyDesignerSchema = z.object({
   taxNumber: z
     .string()
     .optional()
-    .refine((val) => val.length === 10 || val.length === 12, {
+    .refine((val) => !val || val.length === 10 || val.length === 12, {
       message: "Mã số thuế phải có 10 hoặc 12 chữ số",
     }),
 
@@ -28,9 +28,9 @@ export const applyDesignerSchema = z.object({
     .optional()
     .refine(
       (fileList) => {
-        if (!fileList || fileList.length === 0) return false;
+        if (!fileList || fileList.length === 0) return true; // optional
         const file = fileList[0];
-        return file.size <= 2 * 1024 * 1024; // 2MB -- 500x 500px
+        return file.size <= 2 * 1024 * 1024; // 2MB
       },
       {
         message: "Ảnh đại diện phải nhỏ hơn hoặc bằng 2MB",
@@ -41,12 +41,12 @@ export const applyDesignerSchema = z.object({
     .optional()
     .refine(
       (fileList) => {
-        if (!fileList || fileList.length === 0) return false; // bắt buộc
+        if (!fileList || fileList.length === 0) return true; // optional
         const file = fileList[0];
         return file.size <= 10 * 1024 * 1024; // 10MB
       },
       {
-        message: "Ảnh đại diện phải nhỏ hơn hoặc bằng 5MB",
+        message: "Ảnh banner phải nhỏ hơn hoặc bằng 10MB",
       }
     ),
   portfolioUrl: z.string().url().optional().or(z.literal("")),
@@ -55,7 +55,7 @@ export const applyDesignerSchema = z.object({
     .optional()
     .refine(
       (fileList) => {
-        if (!fileList) return true; // optional
+        if (!fileList || fileList.length === 0) return true; // optional
         const files = Array.from(fileList); // FileList hoặc File[]
         return files.every((file) => (file as File).size <= 7 * 1024 * 1024);
       },
@@ -63,20 +63,7 @@ export const applyDesignerSchema = z.object({
         message: "Mỗi file trong portfolio không được vượt quá 7MB",
       }
     ),
-  socialLinks: z
-    .string()
-    .optional()
-    .refine(
-      (val) => {
-        try {
-          const parsed = JSON.parse(val);
-          return typeof parsed === "object" && parsed !== null;
-        } catch {
-          return false;
-        }
-      },
-      { message: "Liên kết mạng xã hội phải là một đối tượng JSON hợp lệ" }
-    ),
+  socialLinks: z.string().optional(),
 
   // Identity Verification
   identificationNumber: z.string().min(1, "Số CCCD là bắt buộc"),
@@ -90,7 +77,7 @@ export const applyDesignerSchema = z.object({
     .refine((val) => val === true, "Bạn phải đồng ý với điều khoản"),
 });
 
-export type ApplyDesignerFormValues = z.infer<typeof applyDesignerSchema>;
+export type ApplyApplicationFormValues = z.infer<typeof applyApplicationSchema>;
 
 // Schema cho Response từ API
 export const applicationModelResponseSchema = z.object({
@@ -163,23 +150,3 @@ export const applicationModelResponseSchema = z.object({
 export type ApplicationModelResponse = z.infer<
   typeof applicationModelResponseSchema
 >;
-
-// Mapping schema
-export const backendFieldMapping = {
-  // Frontend field -> Backend field
-  avatarFile: "AvatarFile", //File upload
-  bannerFile: "BannerFile", //File upload
-  portfolioUrl: "PortfolioUrl",
-  portfolioFiles: "PortfolioFiles",
-  bio: "Bio",
-  specializationUrl: "SpecializationUrl",
-  socialLinks: "SocialLinks",
-  identificationNumber: "IdentificationNumber",
-  identificationPictureFront: "IdentificationPictureFront", // File upload
-  identificationPictureBack: "IdentificationPictureBack", // File upload
-  note: "Note",
-  phoneNumber: "PhoneNumber",
-  address: "Address",
-  taxNumber: "TaxNumber",
-  certificates: "Certificates",
-} as const;
