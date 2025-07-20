@@ -273,7 +273,13 @@ export default function ApplyDesigner() {
                 render={({ field }) => (
                   <FileUpload
                     label="Chọn ảnh đại diện"
-                    files={field.value ? [field.value] : []}
+                    files={
+                      field.value
+                        ? Array.isArray(field.value)
+                          ? field.value
+                          : [field.value]
+                        : []
+                    }
                     onFilesChange={(files) => field.onChange(files)}
                     accept="image/*"
                     maxSize={5}
@@ -293,7 +299,13 @@ export default function ApplyDesigner() {
                 render={({ field }) => (
                   <FileUpload
                     label="Chọn ảnh banner"
-                    files={field.value ? [field.value] : []}
+                    files={
+                      field.value
+                        ? Array.isArray(field.value)
+                          ? field.value
+                          : [field.value]
+                        : []
+                    }
                     onFilesChange={(files) => field.onChange(files)}
                     accept="image/*"
                     maxSize={10}
@@ -329,7 +341,13 @@ export default function ApplyDesigner() {
                   <FileUpload
                     label="Chọn ảnh portfolio"
                     multiple
-                    files={field.value || []}
+                    files={
+                      field.value
+                        ? Array.isArray(field.value)
+                          ? field.value
+                          : [field.value]
+                        : []
+                    }
                     onFilesChange={(files) => field.onChange(files)}
                     accept="image/*"
                     maxSize={5}
@@ -373,7 +391,13 @@ export default function ApplyDesigner() {
                 render={({ field }) => (
                   <FileUpload
                     label="Chọn ảnh mặt trước"
-                    files={field.value ? [field.value] : []}
+                    files={
+                      field.value
+                        ? Array.isArray(field.value)
+                          ? field.value
+                          : [field.value]
+                        : []
+                    }
                     onFilesChange={(files) => field.onChange(files)}
                     accept="image/*"
                     maxSize={5}
@@ -393,7 +417,13 @@ export default function ApplyDesigner() {
                 render={({ field }) => (
                   <FileUpload
                     label="Chọn ảnh mặt sau"
-                    files={field.value ? [field.value] : []}
+                    files={
+                      field.value
+                        ? Array.isArray(field.value)
+                          ? field.value
+                          : [field.value]
+                        : []
+                    }
                     onFilesChange={(files) => field.onChange(files)}
                     accept="image/*"
                     maxSize={5}

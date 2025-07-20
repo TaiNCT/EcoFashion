@@ -14,8 +14,15 @@ import {
   styled,
   Drawer,
 } from "@mui/material";
-
-import { AddToCart, EcoIcon } from "../../assets/icons/icon";
+import "./FashionCard.css";
+import {
+  AddToCart,
+  DressIcon,
+  EcoIcon,
+  ShirtIcon,
+  SkirtIcon,
+  TrouserIcon,
+} from "../../assets/icons/icon";
 import type { Fashion } from "../../types/Fashion";
 import { FavoriteBorderOutlined, LocalShipping } from "@mui/icons-material";
 import { grey } from "@mui/material/colors";
@@ -24,6 +31,7 @@ import type { Design } from "../../services/api/designService";
 import ao_linen from "../../assets/pictures/example/ao-linen.webp";
 interface FashionCardProps {
   product: Design;
+  type?: string;
   onSelect?: (product: Design) => void;
   onAddToCart?: (product: Design) => void;
   onToggleFavorite?: (product: Design) => void;
@@ -31,6 +39,7 @@ interface FashionCardProps {
 
 const FashionCard: React.FC<FashionCardProps> = ({
   product,
+  type,
   // onSelect,
   // onAddToCart,
   // onToggleFavorite,
@@ -41,6 +50,17 @@ const FashionCard: React.FC<FashionCardProps> = ({
       Quần: "#ff9800",
       Đầm: "#4caf50",
       Váy: "#9c27b0",
+    };
+
+    return colors[category.normalize("NFC")] || "#9e9e9e"; // default grey
+  };
+
+  const getCategoryIcon = (category: string): string => {
+    const colors: Record<string, any> = {
+      Áo: <ShirtIcon />,
+      Quần: <TrouserIcon />,
+      Đầm: <DressIcon />,
+      Váy: <SkirtIcon />,
     };
 
     return colors[category.normalize("NFC")] || "#9e9e9e"; // default grey
@@ -130,9 +150,11 @@ const FashionCard: React.FC<FashionCardProps> = ({
   return (
     <Card
       sx={{
-        width: "100%",
-        height: "100%",
-        position: "relative",
+        width: "95%",
+        height: "95%",
+
+        position: type === "special" ? "absolute" : "relative",
+
         overflow: "hidden",
         "&:hover": {
           transform: "translateY(-4px)",
@@ -192,6 +214,9 @@ const FashionCard: React.FC<FashionCardProps> = ({
           top: 8,
           right: 8,
           zIndex: 1,
+          "&:hover": {
+            position: "relative",
+          },
           backgroundColor: "white",
         }}
       >
@@ -222,12 +247,11 @@ const FashionCard: React.FC<FashionCardProps> = ({
           bottom: 0,
           left: 0,
           width: "100%",
-          height: "auto",
           background: "rgba(255, 255, 255, 1)",
-          textAlign: "left",
-          transition: "opacity 0.3s ease, transform 0.3s ease",
           opacity: 0,
           transform: "translateY(20px)",
+          transition: "opacity 0.3s ease, transform 0.3s ease",
+          zIndex: 2, // Lower than favorite button
           borderRadius: "10px",
           display: "flex",
           flexDirection: "column",
@@ -241,6 +265,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
             width: "90%",
             height: "90%",
             margin: "auto",
+            textAlign: "left",
           }}
         >
           <Link
@@ -259,13 +284,27 @@ const FashionCard: React.FC<FashionCardProps> = ({
               >
                 <Chip
                   // label={product.category.toUpperCase()}
-                  label={product.designTypeName.toUpperCase()}
+                  icon={
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "100%",
+                      }}
+                    >
+                      {getCategoryIcon(product.designTypeName)}
+                    </Box>
+                  }
+                  label={product.designTypeName}
                   size="small"
                   sx={{
                     bgcolor: getCategoryColor(product.designTypeName),
                     color: "white",
                     fontWeight: "bold",
-                    fontSize: "0.7rem",
+                    fontSize: "1rem",
+                    paddingTop: 2,
+                    paddingBottom: 2,
                   }}
                 />
                 <Typography variant="caption" color="text.secondary">
@@ -319,14 +358,14 @@ const FashionCard: React.FC<FashionCardProps> = ({
                   {formatPriceVND(product.price)}
                 </Typography>
                 {/* )}  */}
-                {/* {product.price.original && ( 
+                {/* {product.price.original && (
                 <Box>
                   <Typography
                     variant="h5"
                     component="div"
                     sx={{ fontWeight: "bold", color: "#2e7d32" }}
                   >
-                   
+
                     {product.price}
                   </Typography>
                   <Typography
@@ -337,7 +376,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
                       fontSize: "0.875rem",
                     }}
                   >
-                
+
                     {product.price}
                   </Typography>
                 </Box>
@@ -379,22 +418,6 @@ const FashionCard: React.FC<FashionCardProps> = ({
               </Box>
             </Box>
           </Link>
-
-          {/* Add To Cart */}
-          {/* <Button
-            variant="contained"
-            fullWidth
-            sx={{
-              backgroundColor: "rgba(22, 163, 74, 1)",
-            }}
-            onClick={(e) => {
-              e.stopPropagation(); // prevent navigation
-              e.preventDefault(); // prevent Link
-            }}
-          >
-            <AddToCart />
-            Thêm vào Cart
-          </Button> */}
         </Box>
       </CardContent>
     </Card>

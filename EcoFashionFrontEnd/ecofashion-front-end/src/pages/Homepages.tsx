@@ -1034,6 +1034,7 @@ export default function Homepage() {
         <FashionsSection
           products={designs}
           title="SẢN PHẨM NỔI BẬT"
+          type="special"
           onProductSelect={(product) => {
             console.log("Selected product:", product.name);
             // TODO: Navigate to product detail or open modal
@@ -1058,6 +1059,7 @@ export default function Homepage() {
         <FashionsSection
           products={designs}
           title="BÁN CHẠY NHẤT"
+          type="special"
           onProductSelect={(product) => {
             console.log("Selected product:", product.name);
             // TODO: Navigate to product detail or open modal
@@ -1226,17 +1228,6 @@ export default function Homepage() {
       </Box>
       {error && <div className="explore-error">{error}</div>}
       {loading && <div className="explore-loading">Đang tải...</div>}
-      {!loading && designs.length > 0 ? (
-        <div>
-          {designs.map((design) => (
-            <div key={design.designId}>
-              <h3>{design.name}</h3>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div>Error</div>
-      )}
     </Box>
   );
 }

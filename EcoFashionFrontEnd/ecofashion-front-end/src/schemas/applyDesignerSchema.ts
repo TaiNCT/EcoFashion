@@ -6,7 +6,7 @@ export const applyDesignerSchema = z.object({
   phoneNumber: z
     .string()
     .min(1, "Số điện thoại là bắt buộc")
-    .regex(/^0\\d{9}$/, {
+    .regex(/^0\d{9}$/, {
       message: "Số điện thoại phải có 10 chữ số, bắt đầu bằng 0",
     }),
   address: z.string().min(1, "Địa chỉ là bắt buộc"),
@@ -16,11 +16,14 @@ export const applyDesignerSchema = z.object({
   certificates: z.string().optional(),
   specializationUrl: z.string().url().optional().or(z.literal("")),
   taxNumber: z
-    .string()
-    .optional()
-    .refine((val) => val.length === 10 || val.length === 12, {
+  .string()
+  .optional()
+  .refine(
+    (val) => !val || val.length === 10 || val.length === 12,
+    {
       message: "Mã số thuế phải có 10 hoặc 12 chữ số",
-    }),
+    }
+  ),
 
   // Portfolio & Media
   avatarFile: z
@@ -65,18 +68,18 @@ export const applyDesignerSchema = z.object({
     ),
   socialLinks: z
     .string()
-    .optional()
-    .refine(
-      (val) => {
-        try {
-          const parsed = JSON.parse(val);
-          return typeof parsed === "object" && parsed !== null;
-        } catch {
-          return false;
-        }
-      },
-      { message: "Liên kết mạng xã hội phải là một đối tượng JSON hợp lệ" }
-    ),
+    .optional(),
+    // .refine(
+    //   (val) => {
+    //     try {
+    //       const parsed = JSON.parse(val);
+    //       return typeof parsed === "object" && parsed !== null;
+    //     } catch {
+    //       return false;
+    //     }
+    //   },
+    //   { message: "Liên kết mạng xã hội phải là một đối tượng JSON hợp lệ" }
+    // ),
 
   // Identity Verification
   identificationNumber: z.string().min(1, "Số CCCD là bắt buộc"),

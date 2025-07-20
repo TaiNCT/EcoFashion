@@ -23,6 +23,7 @@ import { FavoriteBorderOutlined } from "@mui/icons-material";
 interface ProductsSectionProps {
   products: Design[];
   id?: any;
+  type?: string;
   onProductSelect?: (product: Design) => void;
   onAddToCart?: (product: Design) => void;
   onToggleFavorite?: (product: Design) => void;
@@ -33,6 +34,7 @@ interface ProductsSectionProps {
 const DesignsSection: React.FC<ProductsSectionProps> = ({
   products,
   id,
+  type,
   onProductSelect,
   onAddToCart,
   onToggleFavorite,
@@ -103,6 +105,7 @@ const DesignsSection: React.FC<ProductsSectionProps> = ({
           <Grid key={product.designId} size={3}>
             <FashionCard
               product={product}
+              type={type}
               onSelect={onProductSelect}
               onAddToCart={onAddToCart}
               onToggleFavorite={onToggleFavorite}

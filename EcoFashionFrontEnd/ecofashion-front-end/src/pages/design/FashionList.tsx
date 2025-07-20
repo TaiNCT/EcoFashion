@@ -676,8 +676,8 @@ export default function DesignsList() {
             borderBottom: "1px solid black",
             display: "flex",
             flexDirection: "row",
-            top: { xs: 56, sm: 64 },
-            zIndex: (theme) => theme.zIndex.appBar,
+            // top: { xs: 56, sm: 64 },
+            // zIndex: (theme) => theme.zIndex.appBar,
             justifyContent: "space-between",
             paddingRight: 1,
             paddingLeft: 1,
@@ -963,7 +963,11 @@ export default function DesignsList() {
               flex={5}
               sx={{ width: "100%", margin: "auto", padding: 3, paddingTop: 0 }}
             >
-              <DesignsSection products={sortedProducts} id={"items"} />
+              <DesignsSection
+                products={sortedProducts}
+                id={"items"}
+                type="normal"
+              />
             </Box>
           </Box>
           <Divider />

@@ -7,6 +7,7 @@ import {
   IconButton,
   Grid,
 } from "@mui/material";
+import "./FashionCard.css";
 import FashionCard from "./FashionCard";
 import type { Fashion } from "../../types/Fashion";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
@@ -14,6 +15,7 @@ import { Design } from "../../services/api/designService";
 interface ProductsSectionProps {
   products: Design[];
   title?: string;
+  type?: string;
   onProductSelect?: (product: Design) => void;
   onAddToCart?: (product: Design) => void;
   onToggleFavorite?: (product: Design) => void;
@@ -24,6 +26,7 @@ interface ProductsSectionProps {
 const FashionsSection: React.FC<ProductsSectionProps> = ({
   products,
   title,
+  type,
   onProductSelect,
   onAddToCart,
   onToggleFavorite,
@@ -109,16 +112,29 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
           </IconButton>
         </Box>
       </Box>
-      <Box sx={{ width: "100%" }}>
+      <Box sx={{ width: "100%", gap: 2 }}>
         <Grid container spacing={2}>
           {visibleProducts.map((product) => (
             <Grid key={product.designId} size={3}>
-              <FashionCard
-                product={product}
-                onSelect={onProductSelect}
-                onAddToCart={onAddToCart}
-                onToggleFavorite={onToggleFavorite}
-              />
+              {type === "special" ? (
+                <div className="card">
+                  <FashionCard
+                    product={product}
+                    type={type}
+                    onSelect={onProductSelect}
+                    onAddToCart={onAddToCart}
+                    onToggleFavorite={onToggleFavorite}
+                  />
+                </div>
+              ) : (
+                <FashionCard
+                  product={product}
+                  type={type}
+                  onSelect={onProductSelect}
+                  onAddToCart={onAddToCart}
+                  onToggleFavorite={onToggleFavorite}
+                />
+              )}
             </Grid>
           ))}
         </Grid>

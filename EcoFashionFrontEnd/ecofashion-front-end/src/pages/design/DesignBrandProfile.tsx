@@ -779,8 +779,8 @@ export default function DesingBrandProfile() {
       {/* Banner */}
       <Box
         sx={{
-          backgroundImage: `url(${brand_banner})`, // replace with actual image path
-          backgroundSize: "cover",
+          backgroundImage: `url(${designer?.bannerUrl || brand_banner})`, // replace with actual image path
+          backgroundSize: "fit",
           height: "50vh",
         }}
       />
@@ -1024,8 +1024,8 @@ export default function DesingBrandProfile() {
             backgroundColor: "white",
             color: "black",
             width: "100%",
-            top: { xs: 56, sm: 64 },
-            zIndex: (theme) => theme.zIndex.appBar,
+            // top: { xs: 56, sm: 64 },
+            // zIndex: (theme) => theme.zIndex.appBar,
             borderBottom: "1px solid black",
           }}
         >
@@ -1108,7 +1108,7 @@ export default function DesingBrandProfile() {
         {/* Section */}
         <Box sx={{ width: "90%", margin: "auto" }}>
           {/*Danh sách Sản Phẩm */}
-          <Box sx={{ minHeight: "100vh", p: 3, display: "flex" }}>
+          <Box sx={{ minHeight: "100vh", display: "flex" }}>
             {/* Filter */}
             <Box flex={1} sx={{ textAlign: "left" }}>
               <Box sx={{ width: 300, padding: 3 }}>
@@ -1257,11 +1257,12 @@ export default function DesingBrandProfile() {
             </Box>
             <Divider orientation="vertical" flexItem />
             {/* Sản Phẩm */}
-            <Box flex={5} sx={{ margin: "0 30px", minHeight: "500px" }}>
+            <Box flex={5} sx={{ margin: "0 30px" }}>
               <Box sx={{ width: "100%", display: "flex", margin: "10px 0" }}>
                 <Typography variant="h4" fontWeight="bold">
                   Thời Trang
                 </Typography>
+                {/*Sắp xếp theo */}
                 <Box
                   sx={{
                     display: "flex",
