@@ -15,4 +15,4 @@ export interface ApplyDesignerRequest {
   address?: string;
   taxNumber?: string;
   certificates?: string;
-} 
+}
