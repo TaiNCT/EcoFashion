@@ -5,6 +5,18 @@ export default {
     './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
+    screems: {
+      xs: "540px",
+      sm: '640px',
+      md: '768px',
+      lg: '1025px',
+      xl: '1280px',
+      '2xl': '1536px',
+    },
+    variants: {
+    extend: {
+        display: ['last'], 
+    },
     extend: {
       colors: {
         primary: {
@@ -54,4 +66,5 @@ export default {
     },
   },
   plugins: [],
-}; 
+}
+}

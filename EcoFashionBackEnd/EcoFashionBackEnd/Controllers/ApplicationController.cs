@@ -80,7 +80,11 @@ namespace EcoFashionBackEnd.Controllers
             try
             {
                 var applications = await _applicationService.GetAllApplications();
-                return Ok(ApiResult<List<ApplicationModel>>.Succeed(applications.ToList()));
+                var response = new GetApplicationsResponse
+                {
+                    Applications = applications
+                };
+                return Ok(ApiResult<GetApplicationsResponse>.Succeed(response));
             }
             catch (Exception ex)
             {

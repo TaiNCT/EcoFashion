@@ -117,7 +117,7 @@ namespace EcoFashionBackEnd.Services
             var application = new Application
             {
                 UserId = userId,
-                TargetRoleId = 2,
+                TargetRoleId = 3,
                 AvatarUrl = avatarUrl,
                 PortfolioUrl = request.PortfolioUrl,
                 PortfolioFiles = portfolioFilesJson,
@@ -134,11 +134,13 @@ namespace EcoFashionBackEnd.Services
                 TaxNumber = request.TaxNumber,
                 Certificates = request.Certificates,
                 Bio = request.Bio,
+                Status = ApplicationStatus.pending,
+                CreatedAt = DateTime.UtcNow,
             };
 
             await _applicationRepository.AddAsync(application);
             var result = await _dbContext.SaveChangesAsync();
-            return result > 0 ? _mapper.Map<ApplicationModel>(application) : null;
+            return result > 0 ? await MapApplicationModelAsync(application) : null;
         }
 
         public async Task<ApplicationModel?> ApplyAsDesigner(int userId, ApplyDesignerRequest request)
@@ -172,16 +174,13 @@ namespace EcoFashionBackEnd.Services
                 TaxNumber = request.TaxNumber,
                 Certificates = request.Certificates,
                 Bio = request.Bio,
-                // Tracking
-                //Status = ApplicationStatus.pending,
+                Status = ApplicationStatus.pending,
                 CreatedAt = DateTime.UtcNow,
-
-
             };
 
             await _applicationRepository.AddAsync(application);
             var result = await _dbContext.SaveChangesAsync();
-            return result > 0 ? _mapper.Map<ApplicationModel>(application) : null;
+            return result > 0 ? await MapApplicationModelAsync(application) : null;
         }
 
         public async Task<ApplicationModel?> GetApplicationById(int id)
@@ -351,7 +350,12 @@ namespace EcoFashionBackEnd.Services
             }
 
             var applications = await query.ToListAsync();
-            return _mapper.Map<List<ApplicationModel>>(applications);
+            var result = new List<ApplicationModel>();
+            foreach (var app in applications)
+            {
+                result.Add(await MapApplicationModelAsync(app));
+            }
+            return result;
         }
 
         public async Task<IEnumerable<ApplicationModel>> SearchApplications(string? keyword)
@@ -383,7 +387,12 @@ namespace EcoFashionBackEnd.Services
             }
 
             var applications = await query.ToListAsync();
-            return _mapper.Map<List<ApplicationModel>>(applications);
+            var result = new List<ApplicationModel>();
+            foreach (var app in applications)
+            {
+                result.Add(await MapApplicationModelAsync(app));
+            }
+            return result;
         }
 
         public async Task<IEnumerable<ApplicationModel>> GetApplicationsByUserId(int userId)

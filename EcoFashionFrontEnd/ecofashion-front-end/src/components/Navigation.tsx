@@ -34,6 +34,7 @@ import CompostIcon from "@mui/icons-material/Compost";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import BusinessIcon from "@mui/icons-material/Business";
 
 import { useAuth } from "../services/user/AuthContext";
 import { toast } from "react-toastify";
@@ -569,14 +570,26 @@ export default function Navigation() {
                     </Box>
                   )}
                 </IconButton>
-                <Typography
-                  sx={{
-                    color: scrolled || !isHome ? "black" : "white",
-                    fontWeight: 500,
-                  }}
-                >
-                  {user.fullName || user.email}
-                </Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                  <Typography
+                    sx={{
+                      color: scrolled || !isHome ? "black" : "white",
+                      fontWeight: 500,
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    {user.fullName || user.email}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: scrolled || !isHome ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.8)",
+                      fontSize: "0.75rem",
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {user.role || "User"}
+                  </Typography>
+                </Box>
               </Box>
             ) : (
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -654,7 +667,7 @@ export default function Navigation() {
               {/* User Profile Link */}
               <MenuItem onClick={() => handleAuth("desiger-profile")}>
                 <Box sx={{ display: "flex" }}>
-                  <DesignServicesIcon />
+                  <PersonIcon />
                   <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
                 </Box>
               </MenuItem>
@@ -665,13 +678,8 @@ export default function Navigation() {
                   key="admin-dashboard"
                   onClick={() => handleAuth("admin-dashboard")}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      borderBottom: "1px solid black",
-                    }}
-                  >
-                    <CompostIcon />
+                  <Box sx={{ display: "flex" }}>
+                    <DashboardIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Quản Trị Hệ Thống
                     </Typography>
@@ -681,9 +689,7 @@ export default function Navigation() {
                   key="admin-applications"
                   onClick={() => handleAuth("admin-applications")}
                 >
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
+                  <Box sx={{ display: "flex" }}>
                     <AssignmentIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Quản Lý Đơn Đăng Ký
@@ -694,10 +700,8 @@ export default function Navigation() {
 
               {user.role?.toLowerCase() === "designer" && (
                 <MenuItem onClick={() => handleAuth("desiger-dashboard")}>
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
-                    <CompostIcon />
+                  <Box sx={{ display: "flex" }}>
+                    <DesignServicesIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Designer Dashboard
                     </Typography>
@@ -707,10 +711,8 @@ export default function Navigation() {
 
               {user.role?.toLowerCase() === "supplier" && (
                 <MenuItem onClick={() => handleAuth("supplier-profile")}>
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
-                    <CompostIcon />
+                  <Box sx={{ display: "flex" }}>
+                    <BusinessIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Supplier Dashboard
                     </Typography>
@@ -725,13 +727,8 @@ export default function Navigation() {
                   key="apply-designer"
                   onClick={() => handleAuth("applydesigner")}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      borderBottom: "1px solid black",
-                    }}
-                  >
-                    <CompostIcon />
+                  <Box sx={{ display: "flex" }}>
+                    <DesignServicesIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Đăng Ký Làm Nhà Thiết Kế
                     </Typography>
@@ -741,10 +738,8 @@ export default function Navigation() {
                   key="apply-supplier"
                   onClick={() => handleAuth("supplierregister")}
                 >
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
-                    <CompostIcon />
+                  <Box sx={{ display: "flex" }}>
+                    <HandshakeIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Đăng Ký Làm Nhà Cung Cấp
                     </Typography>
@@ -758,10 +753,8 @@ export default function Navigation() {
                 user.role?.toLowerCase() === "designer" ||
                 user.role?.toLowerCase() === "supplier") && (
                 <MenuItem onClick={() => handleAuth("my-applications")}>
-                  <Box
-                    sx={{ display: "flex", borderBottom: "1px solid black" }}
-                  >
-                    <DesignServicesIcon />
+                  <Box sx={{ display: "flex" }}>
+                    <FeedIcon />
                     <Typography sx={{ padding: "3px" }}>
                       Đơn Đăng Ký Của Tôi
                     </Typography>
@@ -783,111 +776,6 @@ export default function Navigation() {
                 </Box>
               </MenuItem>
             </Menu>
-            // <Menu
-            //   id="basic-menu"
-            //   anchorEl={anchorEl}
-            //   open={open}
-            //   onClose={handleClose}
-            //   slotProps={{
-            //     list: {
-            //       "aria-labelledby": "basic-button",
-            //     },
-            //   }}
-            // >
-            //   {/* <MenuItem onClick={() => handleAuth("designerregister")}> */}
-            //   <MenuItem onClick={() => handleAuth("desiger-profile")}>
-            //     <Box sx={{ display: "flex" }}>
-            //       <Icon>
-            //         <DesignServicesIcon />
-            //       </Icon>
-            //       <Typography sx={{ padding: "3px" }}>Trang Cá Nhân</Typography>
-            //     </Box>
-            //   </MenuItem>
-            //   {user.roleId === 1 ? (
-            //     <MenuItem>
-            //       <Box
-            //         sx={{ display: "flex", borderBottom: "1px solid black" }}
-            //       >
-            //         <Icon>
-            //           <CompostIcon />
-            //         </Icon>
-            //         <Typography sx={{ padding: "3px" }}>
-            //           Admin DashBoard
-            //         </Typography>
-            //       </Box>
-            //     </MenuItem>
-            //   ) : user.roleId === 2 ? (
-            //     <MenuItem onClick={() => handleAuth("desiger-dashboard")}>
-            //       <Box
-            //         sx={{ display: "flex", borderBottom: "1px solid black" }}
-            //       >
-            //         <Icon>
-            //           <CompostIcon />
-            //         </Icon>
-            //         <Typography sx={{ padding: "3px" }}>
-            //           Designer DashBoard
-            //         </Typography>
-            //       </Box>
-            //     </MenuItem>
-            //   ) : user.roleId === 3 ? (
-            //     <MenuItem>
-            //       <Box
-            //         sx={{ display: "flex", borderBottom: "1px solid black" }}
-            //       >
-            //         <Icon>
-            //           <CompostIcon />
-            //         </Icon>
-            //         <Typography sx={{ padding: "3px" }}>
-            //           Supplier DashBoard
-            //         </Typography>
-            //       </Box>
-            //     </MenuItem>
-            //   ) : (
-            //     <>
-            //       <MenuItem onClick={() => handleAuth("designerregister")}>
-            //         <Box
-            //           sx={{ display: "flex", borderBottom: "1px solid black" }}
-            //         >
-            //           <Icon>
-            //             <CompostIcon />
-            //           </Icon>
-            //           <Typography sx={{ padding: "3px" }}>
-            //             Đăng Kí Làm Nhà Thiết Kế
-            //           </Typography>
-            //         </Box>
-            //       </MenuItem>
-            //       <MenuItem onClick={() => handleAuth("designerregister")}>
-            //         <Box
-            //           sx={{ display: "flex", borderBottom: "1px solid black" }}
-            //         >
-            //           <Icon>
-            //             <CompostIcon />
-            //           </Icon>
-            //           <Typography sx={{ padding: "3px" }}>
-            //             Đăng Kí Làm Nhà Cung Cấp
-            //           </Typography>
-            //         </Box>
-            //       </MenuItem>
-            //     </>
-            //   )}
-
-            //   <MenuItem onClick={handleClose}>
-            //     <Box sx={{ display: "flex", width: "100%" }}>
-            //       <Icon>
-            //         <SettingsIcon />
-            //       </Icon>
-            //       <Typography sx={{ padding: "3px" }}>Cài Đặt</Typography>
-            //     </Box>
-            //   </MenuItem>
-            //   <MenuItem onClick={handleLogout}>
-            //     <Box sx={{ display: "flex", width: "100%" }}>
-            //       <Icon>
-            //         <LogoutIcon />
-            //       </Icon>
-            //       <Typography sx={{ padding: "3px" }}> Đăng Xuất</Typography>
-            //     </Box>
-            //   </MenuItem>
-            // </Menu>
           )}
         </Box>
       </Toolbar>

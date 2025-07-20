@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import {
   Box,
   Button,
@@ -7,12 +7,12 @@ import {
   Card,
   CardMedia,
   Alert,
-} from '@mui/material';
+} from "@mui/material";
 import {
   CloudUpload as CloudUploadIcon,
   Delete as DeleteIcon,
   Image as ImageIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 
 interface FileUploadProps {
   label: string;
@@ -29,7 +29,7 @@ interface FileUploadProps {
 export default function FileUpload({
   label,
   multiple = false,
-  accept = 'image/*',
+  accept = "image/*",
   maxSize = 5, // 5MB default
   files,
   onFilesChange,
@@ -55,7 +55,7 @@ export default function FileUpload({
       }
 
       // Check file type
-      if (accept && !file.type.match(accept.replace('*', '.*'))) {
+      if (accept && !file.type.match(accept.replace("*", ".*"))) {
         errors.push(`${file.name} không đúng định dạng`);
         return;
       }
@@ -64,7 +64,7 @@ export default function FileUpload({
     });
 
     if (errors.length > 0) {
-      alert(errors.join('\n'));
+      alert(errors.join("\n"));
       return;
     }
 
@@ -106,22 +106,22 @@ export default function FileUpload({
   return (
     <Box>
       <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-        {label} {required && <span style={{ color: 'red' }}>*</span>}
+        {label} {required && <span style={{ color: "red" }}>*</span>}
       </Typography>
 
       {/* Upload Area */}
       <Box
         sx={{
-          border: `2px dashed ${error ? 'red' : dragOver ? '#4caf50' : '#ddd'}`,
+          border: `2px dashed ${error ? "red" : dragOver ? "#4caf50" : "#ddd"}`,
           borderRadius: 2,
           p: 3,
-          textAlign: 'center',
-          cursor: 'pointer',
-          bgcolor: dragOver ? 'rgba(76, 175, 80, 0.1)' : 'transparent',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            borderColor: '#4caf50',
-            bgcolor: 'rgba(76, 175, 80, 0.05)',
+          textAlign: "center",
+          cursor: "pointer",
+          bgcolor: dragOver ? "rgba(76, 175, 80, 0.1)" : "transparent",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            borderColor: "#4caf50",
+            bgcolor: "rgba(76, 175, 80, 0.05)",
           },
         }}
         onClick={handleClick}
@@ -134,19 +134,19 @@ export default function FileUpload({
           type="file"
           accept={accept}
           multiple={multiple}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
           onChange={(e) => handleFileSelect(e.target.files)}
         />
 
-        <CloudUploadIcon sx={{ fontSize: 48, color: '#4caf50', mb: 2 }} />
+        <CloudUploadIcon sx={{ fontSize: 48, color: "#4caf50", mb: 2 }} />
         <Typography variant="body1" sx={{ mb: 1 }}>
           {dragOver
-            ? 'Thả file vào đây'
-            : 'Kéo thả file vào đây hoặc click để chọn'}
+            ? "Thả file vào đây"
+            : "Kéo thả file vào đây hoặc click để chọn"}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {accept.includes('image') && `Chỉ chấp nhận ảnh, tối đa ${maxSize}MB`}
-          {multiple && ', có thể chọn nhiều file'}
+          {accept.includes("image") && `Chỉ chấp nhận ảnh, tối đa ${maxSize}MB`}
+          {multiple && ", có thể chọn nhiều file"}
         </Typography>
       </Box>
 
@@ -159,7 +159,11 @@ export default function FileUpload({
 
       {/* Helper Text */}
       {helperText && (
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ mt: 1, display: "block" }}
+        >
           {helperText}
         </Typography>
       )}
@@ -170,39 +174,39 @@ export default function FileUpload({
           <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
             File đã chọn ({files.length}):
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
             {files.map((file, index) => (
-              <Card key={index} sx={{ position: 'relative', width: 120 }}>
-                {file.type.startsWith('image/') ? (
+              <Card key={index} sx={{ position: "relative", width: 120 }}>
+                {file.type.startsWith("image/") ? (
                   <CardMedia
                     component="img"
                     height="80"
                     image={getFilePreview(file)}
                     alt={file.name}
-                    sx={{ objectFit: 'cover' }}
+                    sx={{ objectFit: "cover" }}
                   />
                 ) : (
                   <Box
                     sx={{
                       height: 80,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      bgcolor: '#f5f5f5',
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      bgcolor: "#f5f5f5",
                     }}
                   >
-                    <ImageIcon sx={{ fontSize: 40, color: '#999' }} />
+                    <ImageIcon sx={{ fontSize: 40, color: "#999" }} />
                   </Box>
                 )}
                 <IconButton
                   size="small"
                   onClick={() => removeFile(index)}
                   sx={{
-                    position: 'absolute',
+                    position: "absolute",
                     top: 4,
                     right: 4,
-                    bgcolor: 'rgba(255, 255, 255, 0.8)',
-                    '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
+                    bgcolor: "rgba(255, 255, 255, 0.8)",
+                    "&:hover": { bgcolor: "rgba(255, 255, 255, 0.9)" },
                   }}
                 >
                   <DeleteIcon fontSize="small" />
@@ -211,10 +215,10 @@ export default function FileUpload({
                   variant="caption"
                   sx={{
                     p: 0.5,
-                    display: 'block',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
+                    display: "block",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {file.name}
@@ -226,4 +230,4 @@ export default function FileUpload({
       )}
     </Box>
   );
-} 
+}

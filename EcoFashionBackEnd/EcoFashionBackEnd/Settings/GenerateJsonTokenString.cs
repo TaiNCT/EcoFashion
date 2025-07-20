@@ -22,7 +22,6 @@ public static class GenerateJsonTokenString
             new Claim("roleId", user.RoleId.ToString()),
             new Claim("status", user.Status.ToString()),
             new Claim("createdAt", user.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")),
-
         };
         var token = new JwtSecurityToken(
             claims: claims,

@@ -11,10 +11,10 @@ namespace EcoFashionBackEnd.Data.test
 
             var roles = new List<UserRole>
         {
-            new UserRole { RoleName = "Admin" ,Description = "System administrator"},
-            new UserRole { RoleName = "Designer", Description = "Fashion designer"  },
-            new UserRole { RoleName = "Supplier", Description = "Material supplier"  },
-            new UserRole { RoleName = "Customer", Description = "Customer user"  }
+            new UserRole { RoleName = "admin" ,Description = "System administrator"},
+            new UserRole { RoleName = "designer", Description = "Fashion designer"  },
+            new UserRole { RoleName = "supplier", Description = "Material supplier"  },
+            new UserRole { RoleName = "customer", Description = "Customer user"  }
         };
 
             await context.UserRoles.AddRangeAsync(roles);

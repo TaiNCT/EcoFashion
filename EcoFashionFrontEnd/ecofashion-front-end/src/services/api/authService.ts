@@ -5,7 +5,8 @@ import type { BaseApiResponse } from "./baseApi";
 // Types for authentication
 export interface LoginRequest {
   email: string;
-  passwordHash: string; // ⚠️ Naming: Backend expects "passwordHash" field, but it's actually raw password
+  passwordHash: string;
+  // ⚠️ Naming: Backend expects "passwordHash" field, but it's actually raw password
 }
 
 export interface SignupRequest {
@@ -67,7 +68,8 @@ export class AuthService {
     try {
       const credentials: LoginRequest = {
         email,
-        passwordHash: password, // ⚠️ Raw password được gửi qua field "passwordHash"
+        passwordHash: password,
+        // ⚠️ Raw password được gửi qua field "passwordHash"
       };
 
       const response = await apiClient.post<BaseApiResponse<AuthResponse>>(
@@ -217,7 +219,9 @@ export class AuthService {
    */
   static async refreshUserProfile(): Promise<User> {
     try {
-      const response = await apiClient.get<BaseApiResponse<User>>("/User/profile");
+      const response = await apiClient.get<BaseApiResponse<User>>(
+        "/User/profile"
+      );
       const userProfile = handleApiResponse(response);
 
       // Update localStorage with fresh user data

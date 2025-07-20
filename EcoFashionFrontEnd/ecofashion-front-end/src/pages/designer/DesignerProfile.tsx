@@ -116,7 +116,7 @@ export default function DesignerProfile() {
             {error || "Không tìm thấy thông tin Designer Profile"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {user?.role !== "designer"
+            {user?.role?.toLowerCase() !== "designer"
               ? `Bạn cần có quyền Designer để xem trang này. Role hiện tại: ${user?.role}`
               : "Vui lòng liên hệ admin để tạo profile Designer"}
           </Typography>

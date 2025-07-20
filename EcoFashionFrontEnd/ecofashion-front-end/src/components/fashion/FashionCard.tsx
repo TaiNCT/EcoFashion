@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardMedia,
@@ -9,7 +10,6 @@ import {
   Rating,
   IconButton,
   Button,
-  Link,
   SwipeableDrawer,
   styled,
   Drawer,
@@ -44,6 +44,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
   // onAddToCart,
   // onToggleFavorite,
 }) => {
+  const navigate = useNavigate();
   const getCategoryColor = (category: string): string => {
     const colors: Record<string, string> = {
       Áo: "#2196f3",
@@ -224,21 +225,18 @@ const FashionCard: React.FC<FashionCardProps> = ({
       </IconButton>
 
       {/* Product Image */}
-      <Link
-        href={`/detail/${product.designId}`}
-        sx={{ textDecoration: "none" }}
-      >
-        <CardMedia
-          component="img"
-          image={product.imageUrls[0]}
-          alt={product.name}
-          sx={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
-        />
-      </Link>
+      <CardMedia
+        component="img"
+        image={product.imageUrls[0]}
+        alt={product.name}
+        sx={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          cursor: "pointer",
+        }}
+        onClick={() => navigate(`/detail/${product.designId}`)}
+      />
       {/* Content */}
       <CardContent
         className="card-hover-content"
@@ -268,11 +266,10 @@ const FashionCard: React.FC<FashionCardProps> = ({
             textAlign: "left",
           }}
         >
-          <Link
-            href={`/detail/${product.designId}`}
-            sx={{ textDecoration: "none", flexGrow: 1 }}
+          <Box
+            onClick={() => navigate(`/detail/${product.designId}`)}
+            sx={{ cursor: "pointer" }}
           >
-            <Box component="a">
               {/* Category and Brand */}
               <Box
                 sx={{
@@ -418,6 +415,22 @@ const FashionCard: React.FC<FashionCardProps> = ({
               </Box>
             </Box>
           </Link>
+
+          {/* Add To Cart */}
+          {/* <Button
+            variant="contained"
+            fullWidth
+            sx={{
+              backgroundColor: "rgba(22, 163, 74, 1)",
+            }}
+            onClick={(e) => {
+              e.stopPropagation(); // prevent navigation
+              e.preventDefault(); // prevent Link
+            }}
+          >
+            <AddToCart />
+            Thêm vào Cart
+          </Button> */}
         </Box>
       </CardContent>
     </Card>
