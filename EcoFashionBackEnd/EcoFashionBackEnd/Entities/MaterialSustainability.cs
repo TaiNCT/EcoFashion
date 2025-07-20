@@ -13,13 +13,13 @@ namespace EcoFashionBackEnd.Entities
         [Key, Column(Order = 1)]
         public int CriterionId { get; set; }
 
-        public float Value { get; set; }
+        public decimal Value { get; set; }
 
         [ForeignKey("MaterialId")]
-        public virtual Material Material { get; set; }
+        public virtual Material Material { get; set; } = null!;
 
         [ForeignKey("CriterionId")]
-        public virtual SustainabilityCriteria SustainabilityCriterion { get; set; }
+        public virtual SustainabilityCriteria SustainabilityCriterion { get; set; } = null!;
     }
 
 }

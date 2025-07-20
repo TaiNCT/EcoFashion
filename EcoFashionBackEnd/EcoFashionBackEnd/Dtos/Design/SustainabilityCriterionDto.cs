@@ -3,6 +3,6 @@
     public class SustainabilityCriterionDto
     {
         public string Criterion { get; set; } = string.Empty;
-        public double Value { get; set; }
+        public decimal Value { get; set; }
     }
 }

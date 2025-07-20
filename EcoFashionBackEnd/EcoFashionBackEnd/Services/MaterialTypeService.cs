@@ -10,6 +10,7 @@ namespace EcoFashionBackEnd.Services
     public class MaterialTypeService
     {
         private readonly IRepository<MaterialType, int> _materialTypeRepository;
+
         private readonly IMapper _mapper;
         private readonly AppDbContext _appDbContext;
         public MaterialTypeService(IRepository<MaterialType, int> materialTypeRepository,

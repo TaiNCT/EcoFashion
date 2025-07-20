@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250719062249_v1")]
+    [Migration("20250719112123_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -539,6 +539,9 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaterialId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -555,14 +558,12 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<int>("QuantityAvailable")
                         .HasColumnType("int");
 
-                    b.Property<float>("RecycledPercentage")
-                        .HasColumnType("real");
+                    b.Property<decimal>("RecycledPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<Guid>("SupplierId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<float>("SustainabilityScore")
-                        .HasColumnType("real");
 
                     b.Property<int>("TypeId")
                         .HasColumnType("int");
@@ -586,8 +587,9 @@ namespace EcoFashionBackEnd.Migrations
                         .HasColumnType("int")
                         .HasColumnOrder(1);
 
-                    b.Property<float>("Value")
-                        .HasColumnType("real");
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("MaterialId", "CriterionId");
 
@@ -610,6 +612,33 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasKey("TypeId");
 
                     b.ToTable("MaterialTypes");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialTypeBenchmark", b =>
+                {
+                    b.Property<int>("BenchmarkId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BenchmarkId"));
+
+                    b.Property<int>("CriteriaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TypeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("BenchmarkId");
+
+                    b.HasIndex("CriteriaId");
+
+                    b.HasIndex("TypeId");
+
+                    b.ToTable("MaterialTypeBenchmarks");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Supplier", b =>
@@ -1068,6 +1097,25 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("Material");
 
                     b.Navigation("SustainabilityCriterion");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialTypeBenchmark", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.SustainabilityCriteria", "SustainabilityCriteria")
+                        .WithMany()
+                        .HasForeignKey("CriteriaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcoFashionBackEnd.Entities.MaterialType", "MaterialType")
+                        .WithMany()
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MaterialType");
+
+                    b.Navigation("SustainabilityCriteria");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Supplier", b =>

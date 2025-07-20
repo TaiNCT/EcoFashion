@@ -80,6 +80,33 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MaterialTypeBenchmarks",
+                columns: table => new
+                {
+                    BenchmarkId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TypeId = table.Column<int>(type: "int", nullable: false),
+                    CriteriaId = table.Column<int>(type: "int", nullable: false),
+                    Value = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MaterialTypeBenchmarks", x => x.BenchmarkId);
+                    table.ForeignKey(
+                        name: "FK_MaterialTypeBenchmarks_MaterialTypes_TypeId",
+                        column: x => x.TypeId,
+                        principalTable: "MaterialTypes",
+                        principalColumn: "TypeId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MaterialTypeBenchmarks_Sustainability_Criteria_CriteriaId",
+                        column: x => x.CriteriaId,
+                        principalTable: "Sustainability_Criteria",
+                        principalColumn: "CriterionId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -275,11 +302,11 @@ namespace EcoFashionBackEnd.Migrations
                     TypeId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SustainabilityScore = table.Column<float>(type: "real", nullable: false),
-                    RecycledPercentage = table.Column<float>(type: "real", nullable: false),
+                    RecycledPercentage = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: false),
                     QuantityAvailable = table.Column<int>(type: "int", nullable: false),
                     PricePerUnit = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    DocumentationUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    DocumentationUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -521,7 +548,7 @@ namespace EcoFashionBackEnd.Migrations
                 {
                     MaterialId = table.Column<int>(type: "int", nullable: false),
                     CriterionId = table.Column<int>(type: "int", nullable: false),
-                    Value = table.Column<float>(type: "real", nullable: false)
+                    Value = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -739,6 +766,16 @@ namespace EcoFashionBackEnd.Migrations
                 column: "CriterionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_MaterialTypeBenchmarks_CriteriaId",
+                table: "MaterialTypeBenchmarks",
+                column: "CriteriaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MaterialTypeBenchmarks_TypeId",
+                table: "MaterialTypeBenchmarks",
+                column: "TypeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Saved_Supplier_DesignerId",
                 table: "Saved_Supplier",
                 column: "DesignerId");
@@ -798,6 +835,9 @@ namespace EcoFashionBackEnd.Migrations
 
             migrationBuilder.DropTable(
                 name: "MaterialSustainabilitys");
+
+            migrationBuilder.DropTable(
+                name: "MaterialTypeBenchmarks");
 
             migrationBuilder.DropTable(
                 name: "Saved_Supplier");

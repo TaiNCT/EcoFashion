@@ -33,6 +33,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<SustainabilityCriteria> SustainabilityCriterias { get; set; }
         public DbSet<MaterialSustainability> MaterialSustainabilities { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
+        public DbSet<MaterialTypeBenchmark> MaterialTypesBenchmarks { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -181,7 +182,6 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(m => m.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Material>()
                 .HasOne(m => m.MaterialType)
                 .WithMany()
@@ -190,6 +190,10 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<Material>()
                 .Property(m => m.PricePerUnit)
                 .HasPrecision(18, 2);
+            modelBuilder.Entity<Material>()
+                .Property(m => m.RecycledPercentage)
+                .HasPrecision(5, 2);
+
             modelBuilder.Entity<MaterialImage>()
                 .HasOne(mi => mi.Material)
                 .WithMany(m => m.MaterialImages)
@@ -216,7 +220,10 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(ms => ms.CriterionId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+            modelBuilder.Entity<MaterialSustainability>()
+                .Property(ms => ms.Value)
+                .HasPrecision(18, 2);
+
             modelBuilder.Entity<DesignerMaterialInventory>()
                 .HasOne(dmi => dmi.Designer)
                 .WithMany()
@@ -229,6 +236,20 @@ namespace EcoFashionBackEnd.Entities
                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<DesignerMaterialInventory>()
                 .Property(dmi => dmi.Cost)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<MaterialTypeBenchmark>()
+                .HasOne(mt => mt.MaterialType)
+                .WithMany()
+                .HasForeignKey(mt => mt.TypeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MaterialTypeBenchmark>()
+                .HasOne(mt => mt.SustainabilityCriteria)
+                .WithMany()
+                .HasForeignKey(mt => mt.CriteriaId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MaterialTypeBenchmark>()
+                .Property(mt => mt.Value)
                 .HasPrecision(18, 2);
             #endregion
             #region unique

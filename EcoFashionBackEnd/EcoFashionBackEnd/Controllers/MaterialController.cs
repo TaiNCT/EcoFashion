@@ -1,5 +1,6 @@
 ﻿using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Common.Payloads.Requests;
+using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +26,14 @@ namespace EcoFashionBackEnd.Controllers
 
             return Ok(ApiResult<MaterialModel>.Succeed(material));
         }
+        [HttpGet("Detail/{id}")]
+        public async Task<IActionResult> GetMaterialDetail(int id)
+        {
+            var dto = await _materialService.GetMaterialDetailByIdAsync(id);
+            if (dto == null)
+                return NotFound(ApiResult<MaterialDetailResponse>.Fail("Không tìm thấy vật liệu"));
+            return Ok(ApiResult<MaterialDetailResponse>.Succeed(dto));
+        }
         [HttpGet]
         public async Task<IActionResult> GetAllMaterials()
         {
@@ -45,7 +54,7 @@ namespace EcoFashionBackEnd.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ApiResult<object>.Fail("Dữ liệu không hợp lệ"));
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
                 return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
             try
             {
