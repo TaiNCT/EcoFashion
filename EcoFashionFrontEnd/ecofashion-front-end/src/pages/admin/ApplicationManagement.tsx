@@ -30,10 +30,7 @@ import {
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../services/user/AuthContext";
-import {
-  applicationService,
-  type ApplicationModel,
-} from "../../services/api/applicationService";
+
 import { toast } from "react-toastify";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -43,6 +40,8 @@ import BusinessIcon from "@mui/icons-material/Business";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import SearchIcon from "@mui/icons-material/Search";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import { ApplicationModelResponse } from "../../schemas/applyApplicationSchema";
+import { applicationService } from "../../services/api/applicationService";
 
 interface FilterOptions {
   status: string;
@@ -54,11 +53,13 @@ interface FilterOptions {
 
 export default function ApplicationManagement() {
   const { user } = useAuth();
-  const [applications, setApplications] = useState<ApplicationModel[]>([]);
+  const [applications, setApplications] = useState<ApplicationModelResponse[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [selectedApplication, setSelectedApplication] =
-    useState<ApplicationModel | null>(null);
+    useState<ApplicationModelResponse | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -74,12 +75,11 @@ export default function ApplicationManagement() {
     fetchApplications();
   }, []);
 
-
-
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      let data: ApplicationModel[];
+      
+      let data: ApplicationModelResponse[];
 
       if (
         filters.status ||
@@ -100,7 +100,7 @@ export default function ApplicationManagement() {
       } else {
         data = await applicationService.getAllApplications();
       }
-
+      
       setApplications(data);
     } catch (error: any) {
       console.error("Error fetching applications:", error);
@@ -182,7 +182,7 @@ export default function ApplicationManagement() {
     }
   };
 
-  const openRejectDialog = (application: ApplicationModel) => {
+  const openRejectDialog = (application: ApplicationModelResponse) => {
     setSelectedApplication(application);
     setRejectDialogOpen(true);
   };
@@ -249,7 +249,7 @@ export default function ApplicationManagement() {
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Alert severity="error">
           Bạn không có quyền truy cập trang này. Chỉ admin mới có thể quản lý
-          đơn đăng ký.
+          đơn đăng ký. Role hiện tại: {user?.role || "Không có"}
         </Alert>
       </Container>
     );
@@ -443,10 +443,15 @@ export default function ApplicationManagement() {
                   <TableCell>
                     <Box>
                       <Typography variant="body2" fontWeight="bold">
-                        {application.user?.fullName || `User ID: ${application.userId}`}
+                        {application.user?.fullName ||
+                          `User ID: ${application.userId}`}
                       </Typography>
                       {application.user?.email && (
-                        <Typography variant="caption" color="text.secondary" display="block">
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          display="block"
+                        >
                           {application.user.email}
                         </Typography>
                       )}
@@ -454,7 +459,9 @@ export default function ApplicationManagement() {
                   </TableCell>
                   <TableCell>{getRoleChip(application.targetRoleId)}</TableCell>
                   <TableCell>
-                    {new Date(application.createdAt).toLocaleDateString("vi-VN")}
+                    {new Date(application.createdAt).toLocaleDateString(
+                      "vi-VN"
+                    )}
                   </TableCell>
                   <TableCell>{getStatusChip(application.status)}</TableCell>
                   <TableCell>
@@ -539,7 +546,8 @@ export default function ApplicationManagement() {
                       <strong>Họ tên:</strong>
                     </Typography>
                     <Typography variant="body1">
-                      {selectedApplication.user?.fullName || `User ID: ${selectedApplication.userId}`}
+                      {selectedApplication.user?.fullName ||
+                        `User ID: ${selectedApplication.userId}`}
                     </Typography>
                   </Box>
                   <Box sx={{ minWidth: 200 }}>
@@ -555,21 +563,27 @@ export default function ApplicationManagement() {
                       <strong>Loại đăng ký:</strong>
                     </Typography>
                     <Typography variant="body1">
-                      {selectedApplication.targetRoleId === 2 ? "Designer" : "Supplier"}
+                      {selectedApplication.targetRoleId === 2
+                        ? "Designer"
+                        : "Supplier"}
                     </Typography>
                   </Box>
                   <Box sx={{ minWidth: 200 }}>
                     <Typography variant="body2" color="text.secondary">
                       <strong>Trạng thái:</strong>
                     </Typography>
-                    <Box sx={{ mt: 0.5 }}>{getStatusChip(selectedApplication.status)}</Box>
+                    <Box sx={{ mt: 0.5 }}>
+                      {getStatusChip(selectedApplication.status)}
+                    </Box>
                   </Box>
                   <Box sx={{ minWidth: 200 }}>
                     <Typography variant="body2" color="text.secondary">
                       <strong>Ngày gửi:</strong>
                     </Typography>
                     <Typography variant="body1">
-                      {new Date(selectedApplication.createdAt).toLocaleString("vi-VN")}
+                      {new Date(selectedApplication.createdAt).toLocaleString(
+                        "vi-VN"
+                      )}
                     </Typography>
                   </Box>
                   {selectedApplication.processedAt && (
@@ -578,7 +592,9 @@ export default function ApplicationManagement() {
                         <strong>Ngày xử lý:</strong>
                       </Typography>
                       <Typography variant="body1">
-                        {new Date(selectedApplication.processedAt).toLocaleString("vi-VN")}
+                        {new Date(
+                          selectedApplication.processedAt
+                        ).toLocaleString("vi-VN")}
                       </Typography>
                     </Box>
                   )}
@@ -593,10 +609,35 @@ export default function ApplicationManagement() {
                     </Box>
                   )}
                 </Box>
-                
-                {/* Complex fields temporarily commented out to avoid render issues */}
-                {/* TODO: Add back detailed view for portfolio, images, social links etc. */}
-                
+
+                {/* Avatar & Banner */}
+                {selectedApplication.avatarUrl && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Avatar:</strong>
+                    </Typography>
+                    <img
+                      src={selectedApplication.avatarUrl}
+                      alt="Avatar"
+                      width={60}
+                      style={{ borderRadius: 8 }}
+                    />
+                  </Box>
+                )}
+                {selectedApplication.bannerUrl && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Banner:</strong>
+                    </Typography>
+                    <img
+                      src={selectedApplication.bannerUrl}
+                      alt="Banner"
+                      width={120}
+                      style={{ borderRadius: 8 }}
+                    />
+                  </Box>
+                )}
+                {/* Portfolio URL & Files */}
                 {selectedApplication.portfolioUrl && (
                   <Box>
                     <Typography variant="body2" color="text.secondary">
@@ -604,29 +645,181 @@ export default function ApplicationManagement() {
                     </Typography>
                     <Typography
                       variant="body2"
-                      sx={{ color: "#1976d2", textDecoration: "underline", cursor: "pointer", wordBreak: "break-all" }}
-                      onClick={() => window.open(selectedApplication.portfolioUrl, "_blank")}
+                      sx={{
+                        color: "#1976d2",
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                        wordBreak: "break-all",
+                      }}
+                      onClick={() =>
+                        window.open(selectedApplication.portfolioUrl, "_blank")
+                      }
                     >
                       {selectedApplication.portfolioUrl}
                     </Typography>
                   </Box>
                 )}
-                
-                {selectedApplication.specializationUrl && (
+                {selectedApplication.portfolioFiles && (
                   <Box>
                     <Typography variant="body2" color="text.secondary">
-                      <strong>Chuyên môn:</strong>
+                      <strong>Ảnh Portfolio:</strong>
                     </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#1976d2", textDecoration: "underline", cursor: "pointer", wordBreak: "break-all" }}
-                      onClick={() => window.open(selectedApplication.specializationUrl, "_blank")}
-                    >
-                      {selectedApplication.specializationUrl}
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      {(() => {
+                        try {
+                          const files = JSON.parse(
+                            selectedApplication.portfolioFiles
+                          );
+                          if (Array.isArray(files)) {
+                            return files.map((url: string, idx: number) => (
+                              <img
+                                key={idx}
+                                src={url}
+                                alt={`Portfolio ${idx + 1}`}
+                                width={50}
+                                style={{ borderRadius: 4 }}
+                              />
+                            ));
+                          }
+                        } catch {}
+                        return null;
+                      })()}
+                    </Box>
+                  </Box>
+                )}
+                {/* Social Links */}
+                {selectedApplication.socialLinks && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Mạng xã hội:</strong>
+                    </Typography>
+                    {(() => {
+                      try {
+                        const links = JSON.parse(
+                          selectedApplication.socialLinks
+                        );
+                        return Object.entries(links).map(([platform, url]) => (
+                          <Typography key={platform} variant="body2">
+                            <strong>{platform}:</strong>{" "}
+                            <a
+                              href={String(url)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {String(url)}
+                            </a>
+                          </Typography>
+                        ));
+                      } catch {
+                        return (
+                          <Typography variant="body2">
+                            {selectedApplication.socialLinks}
+                          </Typography>
+                        );
+                      }
+                    })()}
+                  </Box>
+                )}
+                {/* Thông tin liên hệ, thuế, chứng chỉ, bio */}
+                {selectedApplication.phoneNumber && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Số điện thoại:</strong>
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedApplication.phoneNumber}
                     </Typography>
                   </Box>
                 )}
-                
+                {selectedApplication.address && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Địa chỉ:</strong>
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedApplication.address}
+                    </Typography>
+                  </Box>
+                )}
+                {selectedApplication.taxNumber && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Mã số thuế:</strong>
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedApplication.taxNumber}
+                    </Typography>
+                  </Box>
+                )}
+                {selectedApplication.certificates && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Chứng chỉ:</strong>
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedApplication.certificates}
+                    </Typography>
+                  </Box>
+                )}
+                {selectedApplication.bio && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Giới thiệu:</strong>
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedApplication.bio}
+                    </Typography>
+                  </Box>
+                )}
+                {/* Xác minh định danh */}
+                {typeof selectedApplication.isIdentificationVerified ===
+                  "boolean" && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Xác minh định danh:</strong>
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      color={
+                        selectedApplication.isIdentificationVerified
+                          ? "success.main"
+                          : "warning.main"
+                      }
+                    >
+                      {selectedApplication.isIdentificationVerified
+                        ? "Đã xác minh"
+                        : "Chưa xác minh"}
+                    </Typography>
+                  </Box>
+                )}
+                {/* Ảnh định danh */}
+                {selectedApplication.identificationPictureFront && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Ảnh mặt trước CCCD/CMND:</strong>
+                    </Typography>
+                    <img
+                      src={selectedApplication.identificationPictureFront}
+                      alt="ID Front"
+                      width={60}
+                      style={{ borderRadius: 4 }}
+                    />
+                  </Box>
+                )}
+                {selectedApplication.identificationPictureBack && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Ảnh mặt sau CCCD/CMND:</strong>
+                    </Typography>
+                    <img
+                      src={selectedApplication.identificationPictureBack}
+                      alt="ID Back"
+                      width={60}
+                      style={{ borderRadius: 4 }}
+                    />
+                  </Box>
+                )}
+                {/* Ghi chú, lý do từ chối */}
                 {selectedApplication.note && (
                   <Box>
                     <Typography variant="body2" color="text.secondary">
@@ -637,16 +830,19 @@ export default function ApplicationManagement() {
                     </Typography>
                   </Box>
                 )}
-                {selectedApplication.status === "rejected" && selectedApplication.rejectionReason && (
-                  <Box>
-                    <Alert severity="error">
-                      <Typography variant="body2">
-                        <strong>Lý do từ chối:</strong>
-                      </Typography>
-                      <Typography variant="body1">{selectedApplication.rejectionReason}</Typography>
-                    </Alert>
-                  </Box>
-                )}
+                {selectedApplication.status === "rejected" &&
+                  selectedApplication.rejectionReason && (
+                    <Box>
+                      <Alert severity="error">
+                        <Typography variant="body2">
+                          <strong>Lý do từ chối:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {selectedApplication.rejectionReason}
+                        </Typography>
+                      </Alert>
+                    </Box>
+                  )}
               </Box>
             </Box>
           )}

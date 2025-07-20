@@ -12,10 +12,6 @@ import {
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../services/user/AuthContext";
-import {
-  applicationService,
-  type ApplicationModel,
-} from "../../services/api/applicationService";
 import { toast } from "react-toastify";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PendingIcon from "@mui/icons-material/Pending";
@@ -23,10 +19,14 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import PaletteIcon from "@mui/icons-material/Palette";
 import BusinessIcon from "@mui/icons-material/Business";
+import { ApplicationModelResponse } from "../../schemas/applyApplicationSchema";
+import { applicationService } from "../../services/api/applicationService";
 
 export default function MyApplications() {
   const { user, refreshUserFromServer } = useAuth();
-  const [applications, setApplications] = useState<ApplicationModel[]>([]);
+  const [applications, setApplications] = useState<ApplicationModelResponse[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
 
   // Nếu user đã là designer hoặc supplier thì chỉ hiển thị thông báo
@@ -37,7 +37,7 @@ export default function MyApplications() {
     return (
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Alert severity="info">
-          Bạn đã là {user.role === "designer" ? "Designer" : "Supplier"}.<br />
+          Bạn đã là {user.role?.toLowerCase() === "designer" ? "Designer" : "Supplier"}.<br />
           Không còn đơn đăng ký nào cần theo dõi.
         </Alert>
       </Container>
@@ -125,15 +125,16 @@ export default function MyApplications() {
   };
 
   const getRoleIcon = (targetRoleId: number) => {
-    return targetRoleId === 2 ? (
-      <PaletteIcon sx={{ color: "#9c27b0" }} />
-    ) : (
-      <BusinessIcon sx={{ color: "#2196f3" }} />
-    );
+    if (targetRoleId === 2) return <PaletteIcon sx={{ color: "#9c27b0" }} />;
+    if (targetRoleId === 3) return <BusinessIcon sx={{ color: "#2196f3" }} />;
+    // fallback icon
+    return <BusinessIcon sx={{ color: "#757575" }} />;
   };
 
   const getRoleName = (targetRoleId: number) => {
-    return targetRoleId === 2 ? "Designer" : "Supplier";
+    if (targetRoleId === 2) return "Designer";
+    if (targetRoleId === 3) return "Supplier";
+    return `Role ${targetRoleId}`;
   };
 
   if (!user) {
@@ -269,6 +270,19 @@ export default function MyApplications() {
                           src={application.avatarUrl}
                           alt="Logo"
                           width={60}
+                          style={{ borderRadius: 8 }}
+                        />
+                      </Box>
+                    )}
+                    {application.bannerUrl && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Banner:</strong>
+                        </Typography>
+                        <img
+                          src={application.bannerUrl}
+                          alt="Banner"
+                          width={120}
                           style={{ borderRadius: 8 }}
                         />
                       </Box>
@@ -439,6 +453,83 @@ export default function MyApplications() {
                         </Typography>
                       </Box>
                     )}
+                    {application.rejectionReason && (
+                      <Box>
+                        <Typography variant="body2" color="error">
+                          <strong>Lý do từ chối:</strong>
+                        </Typography>
+                        <Typography variant="body1" color="error">
+                          {application.rejectionReason}
+                        </Typography>
+                      </Box>
+                    )}
+                    {typeof application.isIdentificationVerified ===
+                      "boolean" && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Xác minh định danh:</strong>
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          color={
+                            application.isIdentificationVerified
+                              ? "success.main"
+                              : "warning.main"
+                          }
+                        >
+                          {application.isIdentificationVerified
+                            ? "Đã xác minh"
+                            : "Chưa xác minh"}
+                        </Typography>
+                      </Box>
+                    )}
+                    {application.user && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Người nộp đơn:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {application.user.fullName || ""}{" "}
+                          {application.user.email
+                            ? `(${application.user.email})`
+                            : ""}
+                        </Typography>
+                      </Box>
+                    )}
+                    {application.role && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Vai trò đăng ký:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {application.role.roleName}
+                        </Typography>
+                      </Box>
+                    )}
+                    {application.processedByUser && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Người xử lý:</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          {application.processedByUser.fullName || ""}{" "}
+                          {application.processedByUser.email
+                            ? `(${application.processedByUser.email})`
+                            : ""}
+                        </Typography>
+                      </Box>
+                    )}
+                    {application.processedBy &&
+                      !application.processedByUser && (
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>ID người xử lý:</strong>
+                          </Typography>
+                          <Typography variant="body1">
+                            {application.processedBy}
+                          </Typography>
+                        </Box>
+                      )}
                   </Box>
                 </Box>
               </CardContent>
