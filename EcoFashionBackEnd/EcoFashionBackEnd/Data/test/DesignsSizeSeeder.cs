@@ -15,7 +15,7 @@ namespace EcoFashionBackEnd.Data
                 new DesignsSize { SizeName = "M", SizeDescription = "Medium" },
                 new DesignsSize { SizeName = "L", SizeDescription = "Large" },
                 new DesignsSize { SizeName = "XL", SizeDescription = "Extra Large" },
-                new DesignsSize { SizeName = "XXL", SizeDescription = "Double Extra Large" }
+              
             };
 
             await context.DesignsSizes.AddRangeAsync(sizes);

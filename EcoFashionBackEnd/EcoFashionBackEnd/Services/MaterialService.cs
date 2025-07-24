@@ -105,11 +105,11 @@ namespace EcoFashionBackEnd.Services
                           Actual = actual.Value
                       })
                 .Where(x => x.Benchmark > 0)
-                .Select(x => ((x.Benchmark - x.Actual) * 100m) / x.Benchmark)
+                .Select(x => (x.Benchmark - x.Actual) * 100 / x.Benchmark)
                 .ToList();
 
-            material.RecycledPercentage = improvements.Any()
-                ? Math.Round(improvements.Average(), 2) : 0;
+            material.RecycledPercentage = (decimal)(improvements.Count != 0
+                ? Math.Round(improvements.Average(), 2) : 0);
 
             await _dbContext.SaveChangesAsync();
 
@@ -170,12 +170,12 @@ namespace EcoFashionBackEnd.Services
                           Actual = actual.Value
                       })
                 .Where(x => x.Benchmark > 0)
-                .Select(x => ((x.Benchmark - x.Actual) * 100m) / x.Benchmark)
+                .Select(x => ((x.Benchmark - x.Actual) * 100) / x.Benchmark)
                 .ToList();
 
-            material.RecycledPercentage = improvements.Any()
+            material.RecycledPercentage = (decimal)(improvements.Count != 0
                 ? Math.Round(improvements.Average(), 2)
-                : 0;
+                : 0);
             await _dbContext.SaveChangesAsync();
             return _mapper.Map<MaterialModel>(material);
         }

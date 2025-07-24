@@ -23,7 +23,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<DesignsColor> DesignsColors { get; set; }
         public DbSet<DesignImage> DesignImages { get; set; }
         public DbSet<Image> Images { get; set; }
-        public DbSet<TypeSize> TypeSizes { get; set; }
+        public DbSet<DesignTypeSizeRatio> TypeSizes { get; set; }
         public DbSet<DesignFeature> DesignFeatures { get; set; }
         public DbSet<DesignsSize> DesignsSizes { get; set; }
         public DbSet<DesignsType> DesignsTypes { get; set; }
@@ -101,31 +101,22 @@ namespace EcoFashionBackEnd.Entities
                 .HasMany(c => c.Variants)
                 .WithOne(v => v.DesignsColor)
                 .HasForeignKey(v => v.ColorId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict); 
 
             modelBuilder.Entity<DesignsSize>()
                 .HasMany(s => s.Variants)
                 .WithOne(v => v.DesignsSize)
                 .HasForeignKey(v => v.SizeId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict); 
 
             modelBuilder.Entity<DesignsVariant>()
                 .HasOne(v => v.Design)
                 .WithMany(d => d.DesignsVariants)
                 .HasForeignKey(v => v.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<DesignsVariant>()
-                .HasOne(v => v.DesignsSize)
-                .WithMany()
-                .HasForeignKey(v => v.SizeId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<DesignsVariant>()
-                .HasOne(v => v.DesignsColor)
-                .WithMany()
-                .HasForeignKey(v => v.ColorId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasIndex(v => new { v.DesignId, v.SizeId, v.ColorId })
+                .IsUnique(); 
 
             modelBuilder.Entity<DesignsMaterial>()
                 .HasKey(dm => new { dm.DesignId, dm.MaterialId });
@@ -172,6 +163,26 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<Design>()
                 .Property(d => d.Price)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<DesignTypeSizeRatio>()
+                 .HasOne(x => x.DesignType)
+                 .WithMany(dt => dt.TypeSizeRatios)
+                 .HasForeignKey(x => x.DesignTypeId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignTypeSizeRatio>()
+                .HasOne(x => x.Size)
+                .WithMany(sz => sz.TypeSizeRatios)
+                .HasForeignKey(x => x.SizeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Unique constraint: 1 cặp (DesignTypeId, SizeId) chỉ có 1 hệ số
+            modelBuilder.Entity<DesignTypeSizeRatio>()
+                .HasIndex(x => new { x.DesignTypeId, x.SizeId })
+                .IsUnique();
+
+
+
 
             #endregion
 
@@ -255,18 +266,7 @@ namespace EcoFashionBackEnd.Entities
             #region unique
 
 
-            modelBuilder.Entity<TypeSize>()
-                .HasKey(ts => new { ts.DesignTypeIdPk, ts.SizeIdPk }); 
-
-            modelBuilder.Entity<TypeSize>()
-                .HasOne<DesignsSize>()
-                .WithMany()
-                .HasForeignKey(ts => ts.SizeId);
-
-            modelBuilder.Entity<TypeSize>()
-                .HasOne<DesignsType>()
-                .WithMany()
-                .HasForeignKey(ts => ts.DesignTypeId);
+           
             #endregion
 
         }

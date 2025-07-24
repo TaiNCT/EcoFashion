@@ -116,7 +116,7 @@ namespace EcoFashionBackEnd.Services
                         .Select(ms => new SustainabilityCriterionDto
                         {
                             Criterion = ms.SustainabilityCriterion?.Name?.Trim().ToLower().Replace(" ", "_") ?? "",
-                            Value = ms.Value
+                            Value = (decimal)ms.Value
                         })
                         .Where(dto => !string.IsNullOrEmpty(dto.Criterion))
                         .ToList() ?? new()
@@ -285,12 +285,6 @@ namespace EcoFashionBackEnd.Services
             }).ToList();
         }
 
-        public async Task<DesignModel?> GetDesignById(int id)
-        {
-            var design = await _designRepository.GetByIdAsync(id);
-            return _mapper.Map<DesignModel>(design);
-        }
-
         public async Task<bool> UpdateDesignVariants(int designId, UpdateDesignRequest request)
         {
             var design = await _dbContext.Designs
@@ -299,14 +293,10 @@ namespace EcoFashionBackEnd.Services
 
             if (design == null) return false;
 
-            // Update thông tin thiết kế nếu cần
             design.Name = request.Name;
             design.Description = request.Description;
-            //design.DesignTypeId = request.DesignTypeId;
 
-            // Đồng bộ variant
             var existingVariants = design.DesignsVariants.ToList();
-
             foreach (var variantRequest in request.Variants)
             {
                 if (variantRequest.Id.HasValue)
@@ -333,11 +323,269 @@ namespace EcoFashionBackEnd.Services
             return true;
         }
 
+        public async Task<DesignModel?> GetDesignById(int id)
+        {
+            var design = await _designRepository.GetByIdAsync(id);
+            return _mapper.Map<DesignModel>(design);
+        }
+
         public async Task<bool> DeleteDesign(int id)
         {
             var result = _designRepository.Remove(id);
             await _designRepository.Commit();
             return result != null;
         }
+
+        //public async Task<bool> AddVariantAndUpdateMaterialsAsync(CreateDesignVariantRequest request, int userId)
+        //{
+        //    var designerId = await _dbContext.Designers
+        //.Where(d => d.UserId == userId)
+        //.Select(d => d.DesignerId)
+        //.FirstOrDefaultAsync();
+
+        //    if (designerId == Guid.Empty)
+        //        throw new Exception("Người dùng không phải là nhà thiết kế.");
+
+        //    var design = await _dbContext.Designs
+        //        .Include(d => d.DesignsMaterials)
+        //            .ThenInclude(dm => dm.Materials)
+        //                .ThenInclude(m => m.MaterialSustainabilityMetrics)
+        //                    .ThenInclude(m => m.SustainabilityCriterion)
+        //        .FirstOrDefaultAsync(d => d.DesignId == request.DesignId);
+
+        //    if (design == null || design.DesignerId != designerId)
+        //        throw new Exception("Không tìm thấy thiết kế hoặc bạn không có quyền tạo biến thể cho thiết kế này.");
+
+        //    float sizeMultiplier = await _dbContext.TypeSizes
+        //        .Where(ts => ts.DesignTypeId == design.DesignTypeId && ts.SizeId == request.SizeId)
+        //        .Select(ts => ts.Ratio)
+        //        .FirstOrDefaultAsync();
+
+        //    if (sizeMultiplier == 0)
+        //        throw new Exception("Không tìm thấy hệ số size phù hợp.");
+
+        //    // Check variant đã tồn tại chưa
+        //    var existingVariant = await _dbContext.DesignsVarients
+        //        .FirstOrDefaultAsync(v =>
+        //            v.DesignId == request.DesignId &&
+        //            v.SizeId == request.SizeId &&
+        //            v.ColorId == request.ColorId);
+
+        //    // Tính footprint + kiểm tra tồn kho
+        //    float totalCarbon = 0;
+        //    float totalWater = 0;
+        //    float totalWaste = 0;
+
+        //    foreach (var dm in design.DesignsMaterials)
+        //    {
+        //        float required = (float)(dm.MeterUsed * sizeMultiplier * request.Quantity);
+        //        var inventory = await _dbContext.DesignerMaterialInventories
+        //            .FirstOrDefaultAsync(inv => inv.DesignerId == designerId && inv.MaterialId == dm.MaterialId);
+
+        //        if (inventory == null || inventory.Quantity == null || inventory.Quantity < required)
+        //            throw new Exception($"Không đủ vật liệu [{dm.Materials.Name}] trong kho.");
+
+        //        // Trừ kho
+        //        inventory.Quantity -= (int)Math.Ceiling(required);
+
+        //        if (existingVariant != null)
+        //        {
+        //            existingVariant.Quantity += request.Quantity;
+
+        //            // Không cập nhật lại footprint vì chỉ tính khi tạo mới
+        //        }
+        //        else
+        //        {
+        //            // Chỉ tính footprint ở đây — cho đúng 1 đơn vị sản phẩm
+        //            foreach (var dessignmaterial in design.DesignsMaterials)
+        //            {
+        //                foreach (var metric in dm.Materials.MaterialSustainabilityMetrics)
+        //                {
+        //                    var name = metric.SustainabilityCriterion?.Name?.Trim().ToLower();
+        //                    float impactPerVariant = (float)(dessignmaterial.MeterUsed * sizeMultiplier * (float)metric.Value);
+
+        //                    switch (name)
+        //                    {
+        //                        case "carbon":
+        //                        case "carbon_footprint":
+        //                            totalCarbon += impactPerVariant;
+        //                            break;
+        //                        case "water":
+        //                        case "water_usage":
+        //                            totalWater += impactPerVariant;
+        //                            break;
+        //                        case "waste":
+        //                        case "waste_diverted":
+        //                            totalWaste += impactPerVariant;
+        //                            break;
+        //                    }
+        //                }
+        //            }
+
+        //            var newVariant = new DesignsVariant
+        //            {
+        //                DesignId = request.DesignId,
+        //                SizeId = request.SizeId,
+        //                ColorId = request.ColorId,
+        //                Quantity = request.Quantity,
+        //                CarbonFootprint = totalCarbon,
+        //                WaterUsage = totalWater,
+        //                WasteDiverted = totalWaste
+        //            };
+        //            _dbContext.DesignsVarients.Add(newVariant);
+        //        }
+
+        //    }
+
+        //    await _dbContext.SaveChangesAsync();
+        //    return true;
+        //}
+        public async Task<bool> AddVariantAndUpdateMaterialsAsync(CreateDesignVariantRequest request, int userId)
+        {
+            // Lấy DesignerId từ user
+            var designerId = await _dbContext.Designers
+                .Where(d => d.UserId == userId)
+                .Select(d => d.DesignerId)
+                .FirstOrDefaultAsync();
+
+            if (designerId == Guid.Empty)
+                throw new Exception("Người dùng không phải là nhà thiết kế.");
+
+            // Lấy thiết kế và thông tin liên quan
+            var design = await _dbContext.Designs
+                .Include(d => d.DesignsMaterials)
+                    .ThenInclude(dm => dm.Materials)
+                        .ThenInclude(m => m.MaterialSustainabilityMetrics)
+                            .ThenInclude(msm => msm.SustainabilityCriterion)
+                .FirstOrDefaultAsync(d => d.DesignId == request.DesignId);
+
+            if (design == null || design.DesignerId != designerId)
+                throw new Exception("Không tìm thấy thiết kế hoặc bạn không có quyền tạo biến thể cho thiết kế này.");
+
+            // Lấy size multiplier
+            float sizeMultiplier = await _dbContext.TypeSizes
+                .Where(ts => ts.DesignTypeId == design.DesignTypeId && ts.SizeId == request.SizeId)
+                .Select(ts => ts.Ratio)
+                .FirstOrDefaultAsync();
+
+            if (sizeMultiplier == 0)
+                throw new Exception("Không tìm thấy hệ số size phù hợp.");
+
+            // Kiểm tra variant đã tồn tại chưa
+            var existingVariant = await _dbContext.DesignsVarients
+                .FirstOrDefaultAsync(v =>
+                    v.DesignId == request.DesignId &&
+                    v.SizeId == request.SizeId &&
+                    v.ColorId == request.ColorId);
+
+            // Tính tổng nguyên vật liệu cần dùng và kiểm tra kho
+            foreach (var dm in design.DesignsMaterials)
+            {
+                float required = (float)(dm.MeterUsed * sizeMultiplier * request.Quantity);
+                var inventory = await _dbContext.DesignerMaterialInventories
+                    .FirstOrDefaultAsync(inv => inv.DesignerId == designerId && inv.MaterialId == dm.MaterialId);
+
+                if (inventory == null || inventory.Quantity == null || inventory.Quantity < required)
+                    throw new Exception($"Không đủ vật liệu [{dm.Materials.Name}] trong kho.");
+
+                inventory.Quantity -= (int)Math.Ceiling(required);
+            }
+
+            if (existingVariant != null)
+            {
+                // Nếu đã tồn tại thì chỉ cộng thêm số lượng
+                existingVariant.Quantity += request.Quantity;
+            }
+            else
+            {
+                // Tính footprint cho variant mới
+                float totalCarbon = 0;
+                float totalWater = 0;
+                float totalWaste = 0;
+
+                foreach (var dm in design.DesignsMaterials)
+                {
+                    var meterAdjusted = dm.MeterUsed * sizeMultiplier;
+
+                    foreach (var metric in dm.Materials.MaterialSustainabilityMetrics)
+                    {
+                        // Lấy tên tiêu chí, xử lý chuỗi: bỏ null, trim, lowercase, loại bỏ kí tự không phải chữ/số
+                        string rawName = metric.SustainabilityCriterion?.Name ?? "";
+                        string criterionName = new string(rawName
+                            .Trim()
+                            .ToLower()
+                            .Where(char.IsLetterOrDigit) // giữ lại chỉ chữ và số
+                            .ToArray());
+
+                        // Logging để debug
+                        Console.WriteLine($"🔍 Raw criterion: '{rawName}', Normalized: '{criterionName}'");
+
+                        if (string.IsNullOrEmpty(criterionName))
+                        {
+                            Console.WriteLine("⚠️ Criterion name is null or empty, skipping metric.");
+                            continue;
+                        }
+
+                        var value = (float)metric.Value;
+                        var impact = meterAdjusted * value;
+
+                        switch (criterionName)
+                        {
+                            case "carbon":
+                            case "carbonfootprint":
+                                totalCarbon += impact;
+                                Console.WriteLine($"✅ Matched 'carbon'. +{impact:F2}kgCO2 (Total: {totalCarbon:F2})");
+                                break;
+
+                            case "water":
+                            case "waterusage":
+                                totalWater += impact;
+                                Console.WriteLine($"✅ Matched 'water'. +{impact:F2}L (Total: {totalWater:F2})");
+                                break;
+
+                            case "waste":
+                            case "wastediverted":
+                                totalWaste += impact;
+                                Console.WriteLine($"✅ Matched 'waste'. +{impact:F2}kg (Total: {totalWaste:F2})");
+                                break;
+
+                            default:
+                                Console.WriteLine($"❌ Unknown criterion: '{criterionName}' → Skipped");
+                                break;
+                        }
+                    }
+                }
+
+                // Final footprint log
+                Console.WriteLine($"--- ✅ Final Sustainability Impact ---");
+                Console.WriteLine($"Carbon Footprint: {totalCarbon:F2} kg CO2");
+                Console.WriteLine($"Water Usage: {totalWater:F2} L");
+                Console.WriteLine($"Waste Diverted: {totalWaste:F2} kg");
+
+                // Tạo variant mới
+                var newVariant = new DesignsVariant
+                {
+                    DesignId = request.DesignId,
+                    SizeId = request.SizeId,
+                    ColorId = request.ColorId,
+                    Quantity = request.Quantity,
+                    CarbonFootprint = totalCarbon,
+                    WaterUsage = totalWater,
+                    WasteDiverted = totalWaste
+                };
+
+                _dbContext.DesignsVarients.Add(newVariant);
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+
+
+
+
+
+
     }
 }
