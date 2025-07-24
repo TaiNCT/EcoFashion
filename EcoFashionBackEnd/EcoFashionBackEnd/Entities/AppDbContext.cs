@@ -23,16 +23,17 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<DesignsColor> DesignsColors { get; set; }
         public DbSet<DesignImage> DesignImages { get; set; }
         public DbSet<Image> Images { get; set; }
-        public DbSet<TypeSize> TypeSizes { get; set; }
+        public DbSet<DesignTypeSizeRatio> TypeSizes { get; set; }
         public DbSet<DesignFeature> DesignFeatures { get; set; }
         public DbSet<DesignsSize> DesignsSizes { get; set; }
         public DbSet<DesignsType> DesignsTypes { get; set; }
-        public DbSet<DesignMaterialInventory> DesignMaterialInventorys { get; set; }
+        public DbSet<DesignerMaterialInventory> DesignerMaterialInventories { get; set; }
         public DbSet<Material> Materials { get; set; }
         public DbSet<MaterialImage> MaterialImages { get; set; }
         public DbSet<SustainabilityCriteria> SustainabilityCriterias { get; set; }
         public DbSet<MaterialSustainability> MaterialSustainabilities { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
+        public DbSet<MaterialTypeBenchmark> MaterialTypesBenchmarks { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -100,31 +101,22 @@ namespace EcoFashionBackEnd.Entities
                 .HasMany(c => c.Variants)
                 .WithOne(v => v.DesignsColor)
                 .HasForeignKey(v => v.ColorId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict); 
 
             modelBuilder.Entity<DesignsSize>()
                 .HasMany(s => s.Variants)
                 .WithOne(v => v.DesignsSize)
                 .HasForeignKey(v => v.SizeId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict); 
 
             modelBuilder.Entity<DesignsVariant>()
                 .HasOne(v => v.Design)
                 .WithMany(d => d.DesignsVariants)
                 .HasForeignKey(v => v.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<DesignsVariant>()
-                .HasOne(v => v.DesignsSize)
-                .WithMany()
-                .HasForeignKey(v => v.SizeId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<DesignsVariant>()
-                .HasOne(v => v.DesignsColor)
-                .WithMany()
-                .HasForeignKey(v => v.ColorId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasIndex(v => new { v.DesignId, v.SizeId, v.ColorId })
+                .IsUnique(); 
 
             modelBuilder.Entity<DesignsMaterial>()
                 .HasKey(dm => new { dm.DesignId, dm.MaterialId });
@@ -168,6 +160,29 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(d => d.DesignTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Design>()
+                .Property(d => d.Price)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<DesignTypeSizeRatio>()
+                 .HasOne(x => x.DesignType)
+                 .WithMany(dt => dt.TypeSizeRatios)
+                 .HasForeignKey(x => x.DesignTypeId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DesignTypeSizeRatio>()
+                .HasOne(x => x.Size)
+                .WithMany(sz => sz.TypeSizeRatios)
+                .HasForeignKey(x => x.SizeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Unique constraint: 1 cặp (DesignTypeId, SizeId) chỉ có 1 hệ số
+            modelBuilder.Entity<DesignTypeSizeRatio>()
+                .HasIndex(x => new { x.DesignTypeId, x.SizeId })
+                .IsUnique();
+
+
+
 
             #endregion
 
@@ -178,12 +193,17 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(m => m.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Material>()
                 .HasOne(m => m.MaterialType)
                 .WithMany()
                 .HasForeignKey(m => m.TypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Material>()
+                .Property(m => m.PricePerUnit)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<Material>()
+                .Property(m => m.RecycledPercentage)
+                .HasPrecision(5, 2);
 
             modelBuilder.Entity<MaterialImage>()
                 .HasOne(mi => mi.Material)
@@ -211,22 +231,42 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(ms => ms.CriterionId)
                 .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MaterialSustainability>()
+                .Property(ms => ms.Value)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<DesignerMaterialInventory>()
+                .HasOne(dmi => dmi.Designer)
+                .WithMany()
+                .HasForeignKey(dmi => dmi.DesignerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<DesignerMaterialInventory>()
+                .HasOne(dmi => dmi.Material)
+                .WithMany()
+                .HasForeignKey(dmi => dmi.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<DesignerMaterialInventory>()
+                .Property(dmi => dmi.Cost)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<MaterialTypeBenchmark>()
+                .HasOne(mt => mt.MaterialType)
+                .WithMany()
+                .HasForeignKey(mt => mt.TypeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MaterialTypeBenchmark>()
+                .HasOne(mt => mt.SustainabilityCriteria)
+                .WithMany()
+                .HasForeignKey(mt => mt.CriteriaId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MaterialTypeBenchmark>()
+                .Property(mt => mt.Value)
+                .HasPrecision(18, 2);
             #endregion
             #region unique
+
+
            
-
-            modelBuilder.Entity<TypeSize>()
-                .HasKey(ts => new { ts.DesignTypeIdPk, ts.SizeIdPk }); 
-
-            modelBuilder.Entity<TypeSize>()
-                .HasOne<DesignsSize>()
-                .WithMany()
-                .HasForeignKey(ts => ts.SizeId);
-
-            modelBuilder.Entity<TypeSize>()
-                .HasOne<DesignsType>()
-                .WithMany()
-                .HasForeignKey(ts => ts.DesignTypeId);
             #endregion
 
         }

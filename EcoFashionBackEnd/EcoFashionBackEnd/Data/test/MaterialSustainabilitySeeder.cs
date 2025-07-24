@@ -18,17 +18,17 @@ namespace EcoFashionBackEnd.Data.test
 
             var materialSustainabilities = new List<MaterialSustainability>
         {
-            new MaterialSustainability { MaterialId = materials[0].MaterialId, CriterionId = criterias[0].CriterionId, Value = 1.2f },
-            new MaterialSustainability { MaterialId = materials[0].MaterialId, CriterionId = criterias[1].CriterionId, Value = 2.3f },
-            new MaterialSustainability { MaterialId = materials[0].MaterialId, CriterionId = criterias[2].CriterionId, Value = 1.5f },
+            new MaterialSustainability { MaterialId = materials[0].MaterialId, CriterionId = criterias[0].CriterionId, Value = 1.2m },
+            new MaterialSustainability { MaterialId = materials[0].MaterialId, CriterionId = criterias[1].CriterionId, Value = 2.3m },
+            new MaterialSustainability { MaterialId = materials[0].MaterialId, CriterionId = criterias[2].CriterionId, Value = 1.5m },
 
-            new MaterialSustainability { MaterialId = materials[1].MaterialId, CriterionId = criterias[0].CriterionId, Value = 2.2f },
-            new MaterialSustainability { MaterialId = materials[1].MaterialId, CriterionId = criterias[1].CriterionId, Value = 1.8f },
-            new MaterialSustainability { MaterialId = materials[1].MaterialId, CriterionId = criterias[2].CriterionId, Value = 2.9f },
+            new MaterialSustainability { MaterialId = materials[1].MaterialId, CriterionId = criterias[0].CriterionId, Value = 2.2m },
+            new MaterialSustainability { MaterialId = materials[1].MaterialId, CriterionId = criterias[1].CriterionId, Value = 1.8m },
+            new MaterialSustainability { MaterialId = materials[1].MaterialId, CriterionId = criterias[2].CriterionId, Value = 2.9m },
 
-            new MaterialSustainability { MaterialId = materials[2].MaterialId, CriterionId = criterias[0].CriterionId, Value = 2.1f },
-            new MaterialSustainability { MaterialId = materials[2].MaterialId, CriterionId = criterias[1].CriterionId, Value = 3.2f },
-            new MaterialSustainability { MaterialId = materials[2].MaterialId, CriterionId = criterias[2].CriterionId, Value = 1.1f }
+            new MaterialSustainability { MaterialId = materials[2].MaterialId, CriterionId = criterias[0].CriterionId, Value = 2.1m },
+            new MaterialSustainability { MaterialId = materials[2].MaterialId, CriterionId = criterias[1].CriterionId, Value = 3.2m },
+            new MaterialSustainability { MaterialId = materials[2].MaterialId, CriterionId = criterias[2].CriterionId, Value = 1.1m }
         };
 
             await context.MaterialSustainabilities.AddRangeAsync(materialSustainabilities);

@@ -79,7 +79,7 @@ public class DesignController : ControllerBase
         return CreatedAtAction(nameof(GetDesignById), new { id = response.DesignId }, ApiResult<CreateDesignResponse>.Succeed(response));
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("update-dessignVariant-By{id}")]
     public async Task<IActionResult> UpdateDesign(int id, [FromBody] UpdateDesignRequest request)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -133,4 +133,28 @@ public class DesignController : ControllerBase
             return Ok(ApiResult<object>.Succeed("Thiết kế đã được xóa."));
         return BadRequest(ApiResult<object>.Fail("Xóa thiết kế thất bại."));
     }
+
+    [HttpPost("variants")]
+    public async Task<IActionResult> AddVariant([FromBody] CreateDesignVariantRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            return Unauthorized(ApiResult<object>.Fail("Không xác định được người dùng."));
+
+        try
+        {
+            var result = await _designService.AddVariantAndUpdateMaterialsAsync(request, userId);
+            if (result)
+                return Ok(ApiResult<object>.Succeed("Thêm biến thể thành công."));
+            return BadRequest(ApiResult<object>.Fail("Thêm biến thể thất bại."));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<object>.Fail($"Lỗi: {ex.Message}"));
+        }
+    }
+
+
+
+
 }

@@ -12,5 +12,6 @@ namespace EcoFashionBackEnd.Entities
         public int DesignTypeId { get; set; }
 
         public string DesignName { get; set; }
+        public virtual ICollection<DesignTypeSizeRatio> TypeSizeRatios { get; set; } = new List<DesignTypeSizeRatio>();
     }
 }
