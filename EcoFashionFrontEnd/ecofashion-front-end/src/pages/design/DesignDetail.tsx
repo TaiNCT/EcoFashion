@@ -517,6 +517,10 @@ export default function DesignDetail() {
     fetchDesigner();
   }, [id]);
 
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [designDetail]);
+
   // if (!designDetail) {
   //   return (
   //     <Box sx={{ p: 4 }}>

@@ -559,17 +559,19 @@ export default function DesingBrandProfile() {
       try {
         setLoading(true);
         const data = await DesignerService.getDesignerPublicProfile(id);
-        const allDesign = await DesignService.getAllDesign();
-        // Count design types
-        const counts: Record<string, number> = {};
-        allDesign.forEach((design: any) => {
-          const typeName = design.designTypeName || "Khác"; // fallback if null/undefined
-          counts[typeName] = (counts[typeName] || 0) + 1;
-        });
+        if (data) {
+          const allDesign = await DesignService.getAllDesign();
+          // Count design types
+          const counts: Record<string, number> = {};
+          allDesign.forEach((design: any) => {
+            const typeName = design.designTypeName || "Khác"; // fallback if null/undefined
+            counts[typeName] = (counts[typeName] || 0) + 1;
+          });
+          setTypeCounts(counts);
+          setDesigns(allDesign);
+        }
 
-        setTypeCounts(counts);
         setDesigner(data);
-        setDesigns(allDesign);
       } catch (err: any) {
         const msg = err.message || "Không thể tải thông tin nhà thiết kế.";
         setError(msg);

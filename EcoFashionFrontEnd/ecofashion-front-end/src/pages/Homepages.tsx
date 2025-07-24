@@ -28,552 +28,25 @@ import {
   Divider,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+//Image
 import banner from "../assets/pictures/homepage/banner.jpg";
 import post from "../assets/pictures/homepage/product-post.png";
 import fashion from "../assets/pictures/homepage/fashion.png";
 import material from "../assets/pictures/homepage/material.png";
 import information from "../assets/pictures/homepage/information.png";
-
-import { ArrowBack, ArrowForward } from "@mui/icons-material";
+import sustain from "../assets/pictures/homepage/sustain.png";
+//Api
 import { useAuth } from "../services/user/AuthContext";
-
+import { Design, DesignService } from "../services/api/designService";
+import { toast } from "react-toastify";
 //Icon
 import { AddToCart, EcoIcon, FavoriteBorderIcon } from "../assets/icons/icon";
 import { useEffect, useState } from "react";
-
-//
+import SearchIcon from "@mui/icons-material/Search";
+//Card
 import MaterialsSection from "../components/materials/MaterialsSection";
 import { materials } from "../data/materialsData";
 import FashionsSection from "../components/fashion/FashionsSection";
-//example
-import ao_linen from "../assets/pictures/example/ao-linen.webp";
-import chan_vay_dap from "../assets/pictures/example/chan-vay-dap.webp";
-import dam_con_trung from "../assets/pictures/example/dam-con-trung.webp";
-import type { Fashion } from "../types/Fashion";
-import SearchIcon from "@mui/icons-material/Search";
-import { Design, DesignService } from "../services/api/designService";
-import { toast } from "react-toastify";
-
-const products: Fashion[] = [
-  {
-    id: 1,
-    name: "Áo thun Organic Cotton",
-    category: "clothing",
-    brand: { id: 1, name: "EcoWear" },
-    image: ao_linen,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 18,
-  },
-  {
-    id: 2,
-    name: "Chân Váy Đắp",
-    brand: { id: 2, name: "Nguyễn Công Trí" },
-    category: "clothing",
-    image: chan_vay_dap,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 18,
-  },
-  {
-    id: 3,
-    name: "Đầm Côn Trùng",
-    brand: { id: 2, name: "Nguyễn Công Trí" },
-    category: "clothing",
-    image: dam_con_trung,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 18,
-  },
-  {
-    id: 4,
-    name: "Đầm Côn Trùng11",
-    brand: { id: 2, name: "Nguyễn Công Trí" },
-    category: "clothing",
-    image: dam_con_trung,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 18,
-  },
-  {
-    id: 5,
-    name: "Đầm Côn Trùng12",
-    brand: { id: 2, name: "Nguyễn Công Trí" },
-    category: "clothing",
-    image: dam_con_trung,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 18,
-  },
-];
-const bestSellerProducts: Fashion[] = [
-  {
-    id: 1,
-    name: "Áo thun Organic Cotton",
-    category: "clothing",
-    brand: { id: 1, name: "EcoWear" },
-    image: ao_linen,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: true,
-    isNew: false,
-    discountPercentage: 18,
-  },
-  {
-    id: 2,
-    name: "Chân Váy Đắp",
-    brand: { id: 2, name: "Nguyễn Công Trí" },
-    category: "clothing",
-    image: chan_vay_dap,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: true,
-    isNew: false,
-    discountPercentage: 18,
-  },
-  {
-    id: 3,
-    name: "Đầm Côn Trùng",
-    brand: { id: 2, name: "Nguyễn Công Trí" },
-    category: "clothing",
-    image: dam_con_trung,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: true,
-    isNew: false,
-    discountPercentage: 18,
-  },
-  {
-    id: 4,
-    name: "Đầm Côn Trùng",
-    brand: { id: 2, name: "Nguyễn Công Trí" },
-    category: "clothing",
-    image: dam_con_trung,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: true,
-    isNew: false,
-    discountPercentage: 18,
-  },
-  {
-    id: 5,
-    name: "Đầm Côn Trùng",
-    brand: { id: 1, name: "EcoWear" },
-    category: "clothing",
-    image: dam_con_trung,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: true,
-    isNew: false,
-    discountPercentage: 18,
-  },
-  {
-    id: 6,
-    name: "Đầm Côn Trùng134",
-    brand: { id: 1, name: "EcoWear" },
-    category: "clothing",
-    image: dam_con_trung,
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400&h=500&fit=crop",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop",
-    ],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: true,
-    isNew: false,
-    discountPercentage: 18,
-  },
-];
 
 const StyledInput = styled(InputBase)({
   borderRadius: 20,
@@ -622,6 +95,26 @@ export default function Homepage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const CountUp = ({ end, duration = 1000 }) => {
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+      let start = 0;
+      const totalSteps = end;
+      const stepTime = Math.max(1, Math.floor(duration / totalSteps)); // ensure stepTime ≥ 1ms
+
+      const timer = setInterval(() => {
+        start += 1;
+        setCount(start);
+        if (start >= end) clearInterval(timer);
+      }, stepTime);
+
+      return () => clearInterval(timer);
+    }, [end, duration]);
+
+    return <>{count.toLocaleString()}</>;
   };
 
   return (
@@ -849,34 +342,15 @@ export default function Homepage() {
       {/* Thông Tin Bền Vững */}
       <Box
         sx={{
-          backgroundColor: "#f3f3f3",
           padding: "40px 10px",
           position: "relative",
           backgroundImage: `
-          linear-gradient(0deg,
-            transparent 24%,
-            #e1e1e1 25%,
-            #e1e1e1 26%,
-            transparent 27%,
-            transparent 74%,
-            #e1e1e1 75%,
-            #e1e1e1 76%,
-            transparent 77%,
-            transparent
-          ),
-          linear-gradient(90deg,
-            transparent 24%,
-            #e1e1e1 25%,
-            #e1e1e1 26%,
-            transparent 27%,
-            transparent 74%,
-            #e1e1e1 75%,
-            #e1e1e1 76%,
-            transparent 77%,
-            transparent
-          )
-        `,
-          backgroundSize: "55px 55px",
+            linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)),
+            url('${sustain}')
+          `,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       >
         <Grid
@@ -889,7 +363,7 @@ export default function Homepage() {
           {[
             { quantity: "500", unit: "+", label: "Nhà Thiết Kế" },
             { quantity: "500", unit: "+", label: "Vật Liệu Tái Chế" },
-            { quantity: "5000", unit: "+", label: "Sản Phẩm Bền Vững" },
+            { quantity: designs.length, unit: "+", label: "Sản Phẩm Bền Vững" },
             { quantity: "300", unit: "t", label: "NL Tái Sử Dụng" },
           ].map((item, index) => (
             <Grid key={index} textAlign="center">
@@ -898,7 +372,11 @@ export default function Homepage() {
                 component="div"
                 sx={{ color: "rgba(52, 168, 83, 1)", fontWeight: "bold" }}
               >
-                {item.quantity}
+                {item.label === "Sản Phẩm Bền Vững" ? (
+                  <CountUp end={item.quantity} />
+                ) : (
+                  item.quantity
+                )}
                 <Typography
                   component="span"
                   sx={{ fontSize: "2.5rem", marginLeft: "4px" }}

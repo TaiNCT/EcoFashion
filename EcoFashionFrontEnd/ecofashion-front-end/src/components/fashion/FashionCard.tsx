@@ -24,7 +24,11 @@ import {
   TrouserIcon,
 } from "../../assets/icons/icon";
 import type { Fashion } from "../../types/Fashion";
-import { FavoriteBorderOutlined, LocalShipping } from "@mui/icons-material";
+import {
+  FavoriteBorderOutlined,
+  Gradient,
+  LocalShipping,
+} from "@mui/icons-material";
 import { grey } from "@mui/material/colors";
 import type { Design } from "../../services/api/designService";
 //example
@@ -238,6 +242,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
         onClick={() => navigate(`/detail/${product.designId}`)}
       />
       {/* Content */}
+
       <CardContent
         className="card-hover-content"
         sx={{
@@ -256,6 +261,31 @@ const FashionCard: React.FC<FashionCardProps> = ({
           justifyContent: "center",
           alignItems: "center",
           paddingTop: 2,
+          backgroundImage: `
+          linear-gradient(0deg,
+            transparent 24%,
+            #e1e1e1 26%,
+            #e1e1e1 26%,
+            transparent 27%,
+            transparent 74%,
+            #e1e1e1 75%,
+            #e1e1e1 76%,
+            transparent 77%,
+            transparent
+          ),
+          linear-gradient(90deg,
+            transparent 24%,
+            #e1e1e1 25%,
+            #e1e1e1 26%,
+            transparent 27%,
+            transparent 74%,
+            #e1e1e1 75%,
+            #e1e1e1 76%,
+            transparent 77%,
+            transparent
+          )
+        `,
+          backgroundSize: "55px 55px",
         }}
       >
         <Box
@@ -270,92 +300,92 @@ const FashionCard: React.FC<FashionCardProps> = ({
             onClick={() => navigate(`/detail/${product.designId}`)}
             sx={{ cursor: "pointer" }}
           >
-              {/* Category and Brand */}
-              <Box
+            {/* Category and Brand */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 1,
+              }}
+            >
+              <Chip
+                // label={product.category.toUpperCase()}
+                icon={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "100%",
+                    }}
+                  >
+                    {getCategoryIcon(product.designTypeName)}
+                  </Box>
+                }
+                label={product.designTypeName}
+                size="small"
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 1,
+                  bgcolor: getCategoryColor(product.designTypeName),
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  paddingTop: 2,
+                  paddingBottom: 2,
                 }}
-              >
-                <Chip
-                  // label={product.category.toUpperCase()}
-                  icon={
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "100%",
-                      }}
-                    >
-                      {getCategoryIcon(product.designTypeName)}
-                    </Box>
-                  }
-                  label={product.designTypeName}
-                  size="small"
-                  sx={{
-                    bgcolor: getCategoryColor(product.designTypeName),
-                    color: "white",
-                    fontWeight: "bold",
-                    fontSize: "1rem",
-                    paddingTop: 2,
-                    paddingBottom: 2,
-                  }}
-                />
-                <Typography variant="caption" color="text.secondary">
-                  {product.designer.designerName}
-                </Typography>
-              </Box>
-              {/* Design Name */}
-              <Typography
-                fontWeight="bold"
-                sx={{
-                  fontSize: "25px",
-                  width: "100%",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  color: "black",
-                }}
-              >
-                {product.name}
+              />
+              <Typography variant="caption" color="text.secondary">
+                {product.designer.designerName}
               </Typography>
-              {/* Rating */}
-              <Box display="flex" alignItems="center">
-                <Rating
-                  value={Math.round(product.productScore)}
-                  readOnly
-                  size="small"
-                />
-                <Typography variant="body2" ml={1}>
-                  ({product.productScore})
-                </Typography>
-              </Box>
-              {/* Design Price */}
-              <Box
+            </Box>
+            {/* Design Name */}
+            <Typography
+              fontWeight="bold"
+              sx={{
+                fontSize: "25px",
+                width: "100%",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                color: "black",
+              }}
+            >
+              {product.name}
+            </Typography>
+            {/* Rating */}
+            <Box display="flex" alignItems="center">
+              <Rating
+                value={Math.round(product.productScore)}
+                readOnly
+                size="small"
+              />
+              <Typography variant="body2" ml={1}>
+                ({product.productScore})
+              </Typography>
+            </Box>
+            {/* Design Price */}
+            <Box
+              sx={{
+                mb: 1,
+                minHeight: 56,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* {!product.price.original && (*/}
+              <Typography
+                component="div"
                 sx={{
-                  mb: 1,
-                  minHeight: 56,
-                  display: "flex",
-                  flexDirection: "column",
+                  fontWeight: "bold",
+                  color: "#2e7d32",
+                  margin: "auto 0",
+                  fontSize: "28px",
                 }}
               >
-                {/* {!product.price.original && (*/}
-                <Typography
-                  component="div"
-                  sx={{
-                    fontWeight: "bold",
-                    color: "#2e7d32",
-                    margin: "auto 0",
-                    fontSize: "28px",
-                  }}
-                >
-                  {formatPriceVND(product.price)}
-                </Typography>
-                {/* )}  */}
-                {/* {product.price.original && (
+                {formatPriceVND(product.price)}
+              </Typography>
+              {/* )}  */}
+              {/* {product.price.original && (
                 <Box>
                   <Typography
                     variant="h5"
@@ -378,43 +408,42 @@ const FashionCard: React.FC<FashionCardProps> = ({
                   </Typography>
                 </Box>
               )} */}
-              </Box>
-              {/* Material */}
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 1,
-                  mt: 1,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {product.materials.map((mat, index) => (
-                  <Chip
-                    key={index}
-                    label={`${mat.materialName} (${Math.round(
-                      mat.persentageUsed
-                    )}%)`}
-                    size="small"
-                    sx={{
-                      backgroundColor: "rgba(220, 252, 231, 1)",
-                      color: "rgba(29, 106, 58, 1)",
-                    }}
-                  />
-                ))}
-              </Box>
-              {/* Available */}
-              <Box sx={{ margin: "10px 0" }}>
-                <Chip
-                  label={getAvailabilityText(product.status)}
-                  size="small"
-                  color={getAvailabilityColor(product.status)}
-                  icon={<LocalShipping sx={{ fontSize: 16 }} />}
-                />
-              </Box>
             </Box>
-          </Link>
+            {/* Material */}
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1,
+                mt: 1,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {product.materials.map((mat, index) => (
+                <Chip
+                  key={index}
+                  label={`${mat.materialName} (${Math.round(
+                    mat.persentageUsed
+                  )}%)`}
+                  size="small"
+                  sx={{
+                    backgroundColor: "rgba(220, 252, 231, 1)",
+                    color: "rgba(29, 106, 58, 1)",
+                  }}
+                />
+              ))}
+            </Box>
+            {/* Available */}
+            <Box sx={{ margin: "10px 0" }}>
+              <Chip
+                label={getAvailabilityText(product.status)}
+                size="small"
+                color={getAvailabilityColor(product.status)}
+                icon={<LocalShipping sx={{ fontSize: 16 }} />}
+              />
+            </Box>
+          </Box>
 
           {/* Add To Cart */}
           {/* <Button
