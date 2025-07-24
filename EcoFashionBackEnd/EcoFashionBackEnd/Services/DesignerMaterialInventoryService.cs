@@ -41,10 +41,7 @@ namespace EcoFashionBackEnd.Services
         }
         public async Task<DesignerMaterialInventoryModel> CreateDesignerMaterialInventoryAsync(int userId, CreateDesignerMaterialInventoryRequest request)
         {
-            var designer = await _dbContext.Designers
-                            .FirstOrDefaultAsync(d => d.UserId == userId);
-            if (designer == null)
-                throw new ArgumentException("Người dùng không phải là nhà thiết kế");
+            var designer = await GetDesignerOrThrowAsync(userId);
             var inventory = _mapper.Map<DesignerMaterialInventory>(request);
             inventory.Status = inventory.Quantity != 0
                 ? "in_stock"
@@ -62,10 +59,7 @@ namespace EcoFashionBackEnd.Services
         }
         public async Task<DesignerMaterialInventoryModel?> UpdateDesignerMaterialInventoryAsync(int userId, int inventoryId, UpdateDesignerMaterialInventoryRequest request)
         {
-            var designer = await _dbContext.Designers
-                            .FirstOrDefaultAsync(d => d.UserId == userId);
-            if (designer == null)
-                throw new ArgumentException("Người dùng không phải là nhà thiết kế");
+            var designer = await GetDesignerOrThrowAsync(userId);
             var inventory = await _inventoryRepository.GetByIdAsync(inventoryId);
             if (inventory == null)
                 return null;
@@ -81,10 +75,7 @@ namespace EcoFashionBackEnd.Services
         }
         public async Task<bool> DeleteDesignerMaterialInventoryAsync(int userId, int inventoryId)
         {
-            var designer = await _dbContext.Designers
-                            .FirstOrDefaultAsync(d => d.UserId == userId);
-            if (designer == null)
-                throw new ArgumentException("Người dùng không phải là nhà thiết kế");
+            var designer = await GetDesignerOrThrowAsync(userId);
             var inventory = await _inventoryRepository.GetByIdAsync(inventoryId);
             if (inventory == null)
                 return false;
@@ -94,5 +85,16 @@ namespace EcoFashionBackEnd.Services
             await _dbContext.SaveChangesAsync();
             return true;
         }
+        private async Task<Designer> GetDesignerOrThrowAsync(int userId)
+        {
+            var designer = await _dbContext.Designers
+                .FirstOrDefaultAsync(d => d.UserId == userId);
+
+            if (designer == null)
+                throw new ArgumentException("Người dùng không phải là nhà thiết kế");
+
+            return designer;
+        }
+
     }
 }

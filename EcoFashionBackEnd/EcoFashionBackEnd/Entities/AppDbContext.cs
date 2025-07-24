@@ -34,6 +34,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<MaterialSustainability> MaterialSustainabilities { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
         public DbSet<MaterialTypeBenchmark> MaterialTypesBenchmarks { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -251,6 +252,17 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<MaterialTypeBenchmark>()
                 .Property(mt => mt.Value)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Blog>()
+                .HasOne(b => b.Supplier)
+                .WithMany(s => s.Blogs)
+                .HasForeignKey(b => b.SupplierId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Blog>()
+                .HasOne(b => b.Material)
+                .WithOne(m => m.Blog)
+                .HasForeignKey<Blog>(b => b.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
             #endregion
             #region unique
 

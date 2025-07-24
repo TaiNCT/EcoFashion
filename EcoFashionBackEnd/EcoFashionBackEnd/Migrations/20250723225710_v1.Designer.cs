@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250719112123_v1")]
+    [Migration("20250723225710_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -133,6 +133,44 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasIndex("MaterialId");
 
                     b.ToTable("DesignsMaterials");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Blog", b =>
+                {
+                    b.Property<int>("BlogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BlogId"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SupplierId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("BlogId");
+
+                    b.HasIndex("MaterialId")
+                        .IsUnique();
+
+                    b.HasIndex("SupplierId");
+
+                    b.ToTable("Blogs");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>
@@ -904,6 +942,25 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("Materials");
                 });
 
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Blog", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.Material", "Material")
+                        .WithOne("Blog")
+                        .HasForeignKey("EcoFashionBackEnd.Entities.Blog", "MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Supplier", "Supplier")
+                        .WithMany("Blogs")
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Material");
+
+                    b.Navigation("Supplier");
+                });
+
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>
                 {
                     b.HasOne("EcoFashionBackEnd.Entities.DesignsType", "DesignTypes")
@@ -1202,9 +1259,16 @@ namespace EcoFashionBackEnd.Migrations
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Material", b =>
                 {
+                    b.Navigation("Blog");
+
                     b.Navigation("MaterialImages");
 
                     b.Navigation("MaterialSustainabilityMetrics");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Supplier", b =>
+                {
+                    b.Navigation("Blogs");
                 });
 #pragma warning restore 612, 618
         }

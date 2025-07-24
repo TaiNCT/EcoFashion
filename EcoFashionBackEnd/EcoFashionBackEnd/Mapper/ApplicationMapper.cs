@@ -3,6 +3,7 @@ using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Dtos.Design;
+using EcoFashionBackEnd.Dtos.Material;
 using EcoFashionBackEnd.Entities;
 
 namespace EcoFashionBackEnd.Mapper
@@ -18,6 +19,7 @@ namespace EcoFashionBackEnd.Mapper
             // ---------- Supplier & Designer ----------
             CreateMap<Supplier, SupplierModel>().ReverseMap();
             CreateMap<Designer, DesignerModel>().ReverseMap();
+            CreateMap<Supplier, SupplierPublicDto>();
 
             // ---------- Design ----------
             CreateMap<Design, DesignModel>().ReverseMap();
@@ -42,6 +44,7 @@ namespace EcoFashionBackEnd.Mapper
             CreateMap<DesignMaterialRequest, DesignMaterialModel>();    
             CreateMap<DesignMaterialModel, DesignsMaterial>();
             CreateMap<Material, MaterialModel>();
+            CreateMap<Material, MaterialDetailDto>();
             CreateMap<MaterialRequest, Material>();
             CreateMap<MaterialType, MaterialTypeModel>();
             CreateMap<MaterialTypeRequest, MaterialType>();
@@ -60,6 +63,12 @@ namespace EcoFashionBackEnd.Mapper
             // ---------- Application ----------
             CreateMap<Application, ApplicationModel>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+
+            // ---------- Blog ----------
+            CreateMap<CreateBlogRequest, Blog>();
+            CreateMap<Blog, BlogModel>();
+            CreateMap<Blog, BlogdDetailResponse>();
+            CreateMap<Blog, CreateBlogResponse>();
         }
     }
 }

@@ -88,6 +88,7 @@ public static class ServicesExtensions
         services.AddScoped<MaterialService>();
         services.AddScoped<MaterialTypeService>();
         services.AddScoped<DesignerMaterialInventoryService>();
+        services.AddScoped<BlogService>();
         //services.AddScoped<IVnPayService, VnPayService>();
 
 

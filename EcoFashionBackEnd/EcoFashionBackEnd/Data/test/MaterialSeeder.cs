@@ -1,5 +1,4 @@
 ﻿using EcoFashionBackEnd.Entities;
-using EcoFashionBackEnd.Entities.EcoFashionBackEnd.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace EcoFashionBackEnd.Data.test

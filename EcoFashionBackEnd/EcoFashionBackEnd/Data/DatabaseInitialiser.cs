@@ -16,18 +16,18 @@
 
 //    public class DatabaseInitialiser : IDataaseInitialiser
 //    {
-//        private readonly AppDbContext _context;
+//        private readonly AppDbContext _dbContext;
 
 //        public DatabaseInitialiser(AppDbContext context)
 //        {
-//            _context = context;
+//            _dbContext = context;
 //        }
 
 //        public async Task InitialiseAsync()
 //        {
 //            try
 //            {
-//                await _context.Database.MigrateAsync();
+//                await _dbContext.Database.MigrateAsync();
 //            }
 //            catch (Exception ex)
 //            {
@@ -51,7 +51,7 @@
 
 //        public async Task TrySeedAsync()
 //        {
-//            if (_context.UserRoles.Any() || _context.Users.Any() || _context.DesignsColors.Any()) return;
+//            if (_dbContext.UserRoles.Any() || _dbContext.Users.Any() || _dbContext.DesignsColors.Any()) return;
 
 //            var now = DateTime.UtcNow;
 
@@ -60,8 +60,8 @@
 //            var designerRole = new UserRole { RoleName = "designer", Description = "Fashion designer" };
 //            var supplierRole = new UserRole { RoleName = "supplier", Description = "Material supplier" };
 //            var customerRole = new UserRole { RoleName = "customer", Description = "Customer user" };
-//            await _context.UserRoles.AddRangeAsync(adminRole, designerRole, supplierRole, customerRole);
-//            await _context.SaveChangesAsync();
+//            await _dbContext.UserRoles.AddRangeAsync(adminRole, designerRole, supplierRole, customerRole);
+//            await _dbContext.SaveChangesAsync();
 
 //            // Users
 //            var users = new List<User>
@@ -71,8 +71,8 @@
 //                new User { Email = "supplier@example.com", PasswordHash = SecurityUtil.Hash("supplier"), FullName = "Supplier One", RoleId = supplierRole.RoleId, Status = UserStatus.Active },
 //                new User { Email = "customer@example.com", PasswordHash = SecurityUtil.Hash("customer"), FullName = "Customer One", RoleId = customerRole.RoleId, Status = UserStatus.Active }
 //            };
-//            await _context.Users.AddRangeAsync(users);
-//            await _context.SaveChangesAsync();
+//            await _dbContext.Users.AddRangeAsync(users);
+//            await _dbContext.SaveChangesAsync();
 
 //            var designerUser = users.First(u => u.Email == "designer@example.com");
 //            var supplierUser = users.First(u => u.Email == "supplier@example.com");
@@ -100,8 +100,8 @@
 //                Status = "active",
 //                CreatedAt = now
 //            };
-//            await _context.Designers.AddAsync(designer);
-//            await _context.SaveChangesAsync();
+//            await _dbContext.Designers.AddAsync(designer);
+//            await _dbContext.SaveChangesAsync();
 
 //            // Supplier
 //            var supplier = new Supplier
@@ -125,7 +125,7 @@
 //                Status = "active",
 //                CreatedAt = DateTime.UtcNow
 //            };
-//            await _context.SaveChangesAsync();
+//            await _dbContext.SaveChangesAsync();
 
 //            //// Seed DesignsColor
 //            //var colors = new List<DesignsColor>
@@ -134,8 +134,8 @@
 //            //    new DesignsColor { ColorName = "Blue", ColorCode = "#0000FF" },
 //            //    new DesignsColor { ColorName = "Green", ColorCode = "#008000" }
 //            //};
-//            //await _context.DesignsColors.AddRangeAsync(colors);
-//            //await _context.SaveChangesAsync();
+//            //await _dbContext.DesignsColors.AddRangeAsync(colors);
+//            //await _dbContext.SaveChangesAsync();
 
 //            //// Seed DesignsSize
 //            //var sizes = new List<DesignsSize>
@@ -144,8 +144,8 @@
 //            //    new DesignsSize { SizeName = "M", SizeDescription = "Medium" },
 //            //    new DesignsSize { SizeName = "L", SizeDescription = "Large" }
 //            //};
-//            //await _context.DesignsSizes.AddRangeAsync(sizes);
-//            //await _context.SaveChangesAsync();
+//            //await _dbContext.DesignsSizes.AddRangeAsync(sizes);
+//            //await _dbContext.SaveChangesAsync();
 
 //            //// Seed DesignType
 //            //var designTypes = new List<DesignsType>
@@ -153,8 +153,8 @@
 //            //   // new DesignsType { DesignName = "T-Shirt", SizeId = sizes.First(s => s.SizeName == "M").Id, Meter = 1.5f },
 //            //    // new DesignsType { DesignName = "Jeans", SizeId = sizes.First(s => s.SizeName == "L").Id, Meter = 2.5f }
 //            //};
-//            //await _context.DesignsTypes.AddRangeAsync(designTypes);
-//            //await _context.SaveChangesAsync();
+//            //await _dbContext.DesignsTypes.AddRangeAsync(designTypes);
+//            //await _dbContext.SaveChangesAsync();
 
 //            //// Seed a Design
 //            //var design = new Design
@@ -170,8 +170,8 @@
 //            //    Status = "approved",
 //            //    CreatedAt = DateTime.UtcNow
 //            //};
-//            //await _context.Designs.AddAsync(design);
-//            //await _context.SaveChangesAsync();
+//            //await _dbContext.Designs.AddAsync(design);
+//            //await _dbContext.SaveChangesAsync();
 
 //            // Seed Images
 //            //var images = new List<Image>
@@ -179,8 +179,8 @@
 //            //    new Image { ImageUrl = "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400" },
 //            //    new Image { ImageUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400" }
 //            //};
-//            //await _context.Images.AddRangeAsync(images);
-//            //await _context.SaveChangesAsync();
+//            //await _dbContext.Images.AddRangeAsync(images);
+//            //await _dbContext.SaveChangesAsync();
 
 //            // Seed DesignImages 
 //            //var designImages = new List<DesignImage>
@@ -188,8 +188,8 @@
 //            //    new DesignImage { DesignId = design.DesignId, ImageId = images[0].ImageId },
 //            //    new DesignImage { DesignId = design.DesignId, ImageId = images[1].ImageId }
 //            //};
-//            //await _context.DesignImages.AddRangeAsync(designImages);
-//            //await _context.SaveChangesAsync();
+//            //await _dbContext.DesignImages.AddRangeAsync(designImages);
+//            //await _dbContext.SaveChangesAsync();
 //        }
 //    }
 

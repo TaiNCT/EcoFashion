@@ -48,6 +48,7 @@ namespace EcoFashionBackEnd.Data.test
                 await SupplierSeeder.SeedAsync(_context);
                 await MaterialTypeSeeder.SeedAsync(_context);
                 await MaterialSeeder.SeedAsync(_context);
+                await BlogSeeder.SeedAsync(_context);
                 await MaterialImageSeeder.SeedAsync(_context);
                 await DesignColorSeeder.SeedAsync(_context);
                 await DesignsSizeSeeder.SeedAsync(_context);

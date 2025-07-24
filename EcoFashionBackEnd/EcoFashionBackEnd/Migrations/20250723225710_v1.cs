@@ -461,6 +461,36 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Blogs",
+                columns: table => new
+                {
+                    BlogId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SupplierId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MaterialId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Blogs", x => x.BlogId);
+                    table.ForeignKey(
+                        name: "FK_Blogs_Materials_MaterialId",
+                        column: x => x.MaterialId,
+                        principalTable: "Materials",
+                        principalColumn: "MaterialId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Blogs_Supplier_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "Supplier",
+                        principalColumn: "SupplierId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DesignerMaterialInventories",
                 columns: table => new
                 {
@@ -654,6 +684,17 @@ namespace EcoFashionBackEnd.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Blogs_MaterialId",
+                table: "Blogs",
+                column: "MaterialId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Blogs_SupplierId",
+                table: "Blogs",
+                column: "SupplierId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Designer_UserId",
                 table: "Designer",
                 column: "UserId");
@@ -811,6 +852,9 @@ namespace EcoFashionBackEnd.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Applications");
+
+            migrationBuilder.DropTable(
+                name: "Blogs");
 
             migrationBuilder.DropTable(
                 name: "DesignerMaterialInventories");

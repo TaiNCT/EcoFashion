@@ -30,5 +30,6 @@ namespace EcoFashionBackEnd.Entities
 
         public virtual ICollection<MaterialImage> MaterialImages { get; set; }
         public virtual ICollection<MaterialSustainability> MaterialSustainabilityMetrics { get; set; }
+        public virtual Blog? Blog { get; set; }
     }
 }

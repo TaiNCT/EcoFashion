@@ -1,4 +1,5 @@
-﻿using EcoFashionBackEnd.Dtos.Material;
+﻿using EcoFashionBackEnd.Dtos;
+using EcoFashionBackEnd.Dtos.Material;
 
 namespace EcoFashionBackEnd.Common.Payloads.Responses
 {
@@ -15,5 +16,6 @@ namespace EcoFashionBackEnd.Common.Payloads.Responses
         public DateTime CreatedAt { get; set; }
         public List<string>? ImageUrls { get; set; }
         public SupplierPublicDto Supplier { get; set; }
+        public BlogModel? Blog { get; set; }
     }
 }

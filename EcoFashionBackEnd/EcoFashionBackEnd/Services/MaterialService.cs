@@ -35,6 +35,7 @@ namespace EcoFashionBackEnd.Services
                 .Include(m => m.MaterialImages).ThenInclude(mi => mi.Image)
                 .Include(m => m.MaterialSustainabilityMetrics)
                 .Include(m => m.MaterialType)
+                .Include(m => m.Blog)
                 .FirstOrDefaultAsync(m => m.MaterialId == id);
             if (material == null) return null;
             return new MaterialDetailResponse
@@ -62,6 +63,7 @@ namespace EcoFashionBackEnd.Services
                     ReviewCount = material.SupplierProfile.ReviewCount,
                     Certificates = material.SupplierProfile.Certificates
                 },
+                Blog = material.Blog != null ? _mapper.Map<BlogModel>(material.Blog) : null
             };
         }
         public async Task<IEnumerable<MaterialModel>> GetAllMaterialsAsync()
