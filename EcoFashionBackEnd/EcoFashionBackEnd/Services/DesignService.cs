@@ -243,7 +243,7 @@ namespace EcoFashionBackEnd.Services
         //    var designs = await _designRepository.GetAll().ToListAsync();
         //    return _mapper.Map<List<DesignModel>>(designs);
         //}
-        public async Task<IEnumerable<DesignDetailDto?>> GetAllDesigns1()
+        public async Task<IEnumerable<DesignDetailDto?>> GetAllDesigns()
         {
             var designs = await _dbContext.Designs
                 .Include(d => d.DesignTypes)

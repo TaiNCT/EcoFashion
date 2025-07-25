@@ -32,7 +32,7 @@ public class DesignController : ControllerBase
     [HttpGet("GetAll")]
     public async Task<IActionResult> GetAllDesigns()
     {
-        var designs = await _designService.GetAllDesigns1();
+        var designs = await _designService.GetAllDesigns();
         //return Ok(ApiResult<IEnumerable<DesignModel>>.Succeed(designs));
         var response = _mapper.Map<IEnumerable<DesignDetailResponse>>(designs);
         return Ok(ApiResult<IEnumerable<DesignDetailResponse>>.Succeed(response));

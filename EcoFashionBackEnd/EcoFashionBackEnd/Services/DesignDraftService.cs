@@ -127,6 +127,7 @@ namespace EcoFashionBackEnd.Services
                 .GetAll()
                 .Include(d => d.DraftParts)
                 .Include(d => d.DraftSketches)
+                .ThenInclude(s => s.Image)
                 .FirstOrDefaultAsync(d => d.DesignId == designId && d.DesignerId == designerId && d.Stage == DesignStage.Draft);
 
             if (design == null) return null;
@@ -147,7 +148,7 @@ namespace EcoFashionBackEnd.Services
                     MaterialId = p.MaterialId,
                     MaterialStatus = p.MaterialStatus
                 }).ToList(),
-                //SketchImageUrls = design.DraftSketches.Select(s => s.Image.ImageUrl).ToList()
+                SketchImageUrls = design.DraftSketches.Select(s => s.Image.ImageUrl).ToList()
             };
         }
 
