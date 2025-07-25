@@ -17,6 +17,9 @@ namespace EcoFashionBackEnd.Dtos.Material
         public float? AvgRating { get; set; }
         public int? ReviewCount { get; set; }
         public DateTime CreatedAt { get; set; }
+        public List<string> ImageUrls { get; set; } = new List<string>();
+        public List<SustainabilityCriterionDto> SustainabilityCriteria { get; set; } = new List<SustainabilityCriterionDto>();
+        public List<MaterialTypeBenchmarkDto> Benchmarks { get; set; } = new List<MaterialTypeBenchmarkDto>();
         public SupplierPublicDto Supplier { get; set; }
     }
 }

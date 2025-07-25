@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EcoFashionBackEnd.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class LoginTokenController : ControllerBase
     {
         private readonly UserService _userService;

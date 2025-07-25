@@ -6,6 +6,7 @@ using EcoFashionBackEnd.Dtos.Material;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -33,10 +34,17 @@ namespace EcoFashionBackEnd.Services
             var material = await _dbContext.Materials
                 .Include(m => m.SupplierProfile)
                 .Include(m => m.MaterialImages).ThenInclude(mi => mi.Image)
-                .Include(m => m.MaterialSustainabilityMetrics)
+                .Include(m => m.MaterialSustainabilityMetrics).ThenInclude(ms => ms.SustainabilityCriterion)
                 .Include(m => m.MaterialType)
                 .FirstOrDefaultAsync(m => m.MaterialId == id);
             if (material == null) return null;
+
+            // Get benchmarks for this material type
+            var benchmarks = await _dbContext.MaterialTypesBenchmarks
+                .Include(b => b.SustainabilityCriteria)
+                .Where(b => b.TypeId == material.TypeId)
+                .ToListAsync();
+
             return new MaterialDetailResponse
             {
                 MaterialId = material.MaterialId,
@@ -48,6 +56,28 @@ namespace EcoFashionBackEnd.Services
                 DocumentationUrl = material.DocumentationUrl,
                 MaterialTypeName = material.MaterialType?.TypeName,
                 ImageUrls = material.MaterialImages.Select(mi => mi.Image.ImageUrl).ToList(),
+                SustainabilityCriteria = material.MaterialSustainabilityMetrics.Select(ms => new SustainabilityCriterionDto
+                {
+                    CriterionId = ms.SustainabilityCriterion.CriterionId,
+                    Name = ms.SustainabilityCriterion.Name,
+                    Description = ms.SustainabilityCriterion.Description,
+                    Unit = ms.SustainabilityCriterion.Unit,
+                    Value = ms.Value
+                }).ToList(),
+                Benchmarks = benchmarks.Select(b => {
+                    var actualValue = material.MaterialSustainabilityMetrics
+                        .FirstOrDefault(ms => ms.CriterionId == b.CriteriaId)?.Value ?? 0;
+                    var improvementPercentage = b.Value > 0 ? ((b.Value - actualValue) * 100 / b.Value) : 0;
+                    
+                    return new MaterialTypeBenchmarkDto
+                    {
+                        CriterionId = b.CriteriaId,
+                        CriterionName = b.SustainabilityCriteria.Name,
+                        BenchmarkValue = b.Value,
+                        ActualValue = actualValue,
+                        ImprovementPercentage = Math.Round(improvementPercentage, 2)
+                    };
+                }).ToList(),
                 CreatedAt = material.CreatedAt,
                 Supplier = new SupplierPublicDto
                 {
@@ -64,10 +94,72 @@ namespace EcoFashionBackEnd.Services
                 },
             };
         }
-        public async Task<IEnumerable<MaterialModel>> GetAllMaterialsAsync()
+        public async Task<IEnumerable<MaterialDetailDto>> GetAllMaterialsAsync()
         {
-            var materials = await _materialRepository.GetAll().ToListAsync();
-            return _mapper.Map<List<MaterialModel>>(materials);
+            var materials = await _dbContext.Materials
+                .Include(m => m.SupplierProfile)
+                .Include(m => m.MaterialImages).ThenInclude(mi => mi.Image)
+                .Include(m => m.MaterialSustainabilityMetrics).ThenInclude(ms => ms.SustainabilityCriterion)
+                .Include(m => m.MaterialType)
+                .ToListAsync();
+
+            // Get all benchmarks for the material types
+            var materialTypeIds = materials.Select(m => m.TypeId).Distinct().ToList();
+            var benchmarks = await _dbContext.MaterialTypesBenchmarks
+                .Include(b => b.SustainabilityCriteria)
+                .Where(b => materialTypeIds.Contains(b.TypeId))
+                .ToListAsync();
+
+            return materials.Select(material => new MaterialDetailDto
+            {
+                MaterialId = material.MaterialId,
+                Name = material.Name,
+                Description = material.Description,
+                RecycledPercentage = (float)material.RecycledPercentage,
+                QuantityAvailable = material.QuantityAvailable,
+                PricePerUnit = material.PricePerUnit,
+                DocumentationUrl = material.DocumentationUrl,
+                MaterialTypeName = material.MaterialType?.TypeName,
+                ImageUrls = material.MaterialImages.Select(mi => mi.Image.ImageUrl).ToList(),
+                SustainabilityCriteria = material.MaterialSustainabilityMetrics.Select(ms => new SustainabilityCriterionDto
+                {
+                    CriterionId = ms.SustainabilityCriterion.CriterionId,
+                    Name = ms.SustainabilityCriterion.Name,
+                    Description = ms.SustainabilityCriterion.Description,
+                    Unit = ms.SustainabilityCriterion.Unit,
+                    Value = ms.Value
+                }).ToList(),
+                Benchmarks = benchmarks
+                    .Where(b => b.TypeId == material.TypeId)
+                    .Select(b => {
+                        var actualValue = material.MaterialSustainabilityMetrics
+                            .FirstOrDefault(ms => ms.CriterionId == b.CriteriaId)?.Value ?? 0;
+                        var improvementPercentage = b.Value > 0 ? ((b.Value - actualValue) * 100 / b.Value) : 0;
+                        
+                        return new MaterialTypeBenchmarkDto
+                        {
+                            CriterionId = b.CriteriaId,
+                            CriterionName = b.SustainabilityCriteria.Name,
+                            BenchmarkValue = b.Value,
+                            ActualValue = actualValue,
+                            ImprovementPercentage = Math.Round(improvementPercentage, 2)
+                        };
+                    }).ToList(),
+                CreatedAt = material.CreatedAt,
+                Supplier = new SupplierPublicDto
+                {
+                    SupplierId = material.SupplierProfile.SupplierId,
+                    SupplierName = material.SupplierProfile.SupplierName,
+                    AvatarUrl = material.SupplierProfile.AvatarUrl,
+                    Bio = material.SupplierProfile.Bio,
+                    SpecializationUrl = material.SupplierProfile.SpecializationUrl,
+                    PortfolioUrl = material.SupplierProfile.PortfolioUrl,
+                    BannerUrl = material.SupplierProfile.BannerUrl,
+                    Rating = material.SupplierProfile.Rating,
+                    ReviewCount = material.SupplierProfile.ReviewCount,
+                    Certificates = material.SupplierProfile.Certificates
+                }
+            }).ToList();
         }
         public async Task<MaterialModel> CreateMaterialAsync(int userId, MaterialRequest request)
         {

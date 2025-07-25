@@ -102,7 +102,7 @@ export class DesignService {
       //     `/${this.API_BASE}/Detail/${designId}`
       //   );
         const response = await apiClient.get<BaseApiResponse<Design[]>>(
-          `/${this.API_BASE}/GetAll`
+          `${this.API_BASE}/GetAll`
         );   
         return  handleApiResponse(response);
       } catch (error) {
@@ -118,7 +118,7 @@ export class DesignService {
       //     `/${this.API_BASE}/Detail/${designId}`
       //   );
         const response = await apiClient.get<BaseApiResponse<Design>>(
-          `/${this.API_BASE}/Detail/${id}`
+          `${this.API_BASE}/Detail/${id}`
         );   
         return  handleApiResponse(response);
       } catch (error) {

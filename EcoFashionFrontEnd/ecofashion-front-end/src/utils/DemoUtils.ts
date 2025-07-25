@@ -1,71 +1,8 @@
-import type { Material } from "../types/Material";
-
 // Utility functions for demo purposes - keeping only essential functions
 export class DemoUtils {
   // Simulate API delay for realistic UX
   static async simulateApiDelay(ms: number = 1000): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  // Filter materials by type - used by useMaterials hook
-  static filterMaterialsByType(
-    materials: Material[],
-    type: Material["type"]
-  ): Material[] {
-    return materials.filter((material) => material.type === type);
-  }
-
-  // Filter materials by availability - used by useMaterials hook
-  static filterMaterialsByAvailability(
-    materials: Material[],
-    availability: Material["availability"]
-  ): Material[] {
-    return materials.filter(
-      (material) => material.availability === availability
-    );
-  }
-
-  // Get sustainable materials - used by useMaterials hook
-  static getSustainableMaterials(materials: Material[]): Material[] {
-    return materials.filter((material) => {
-      const { sustainability } = material;
-      return (
-        sustainability.carbonFootprint === "very-low" ||
-        sustainability.carbonFootprint === "negative" ||
-        (sustainability.recycledContent &&
-          sustainability.recycledContent >= 70) ||
-        sustainability.biodegradable === true
-      );
-    });
-  }
-
-  // Calculate sustainability score for a material
-  static calculateSustainabilityScore(
-    sustainability: Material["sustainability"]
-  ): number {
-    let score = 0;
-
-    if (
-      sustainability.carbonFootprint === "very-low" ||
-      sustainability.carbonFootprint === "negative"
-    )
-      score += 30;
-    else if (sustainability.carbonFootprint === "low") score += 20;
-
-    if (sustainability.recycledContent && sustainability.recycledContent >= 80)
-      score += 25;
-    else if (
-      sustainability.recycledContent &&
-      sustainability.recycledContent >= 50
-    )
-      score += 15;
-
-    if (sustainability.biodegradable) score += 20;
-    if (sustainability.durability === "high") score += 15;
-    if (sustainability.energySaved && sustainability.energySaved >= 50)
-      score += 10;
-
-    return Math.min(score, 100);
   }
 
   // Generate random ID for demo purposes
@@ -76,6 +13,33 @@ export class DemoUtils {
   // Simulate error for testing error handling
   static simulateError(errorRate: number = 0.1): boolean {
     return Math.random() < errorRate;
+  }
+
+  // Format price to Vietnamese currency
+  static formatPrice(price: number): string {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(price);
+  }
+
+  // Format percentage
+  static formatPercentage(value: number): string {
+    return `${value.toFixed(1)}%`;
+  }
+
+  // Get availability status text
+  static getAvailabilityText(quantity: number): string {
+    if (quantity === 0) return 'Hết hàng';
+    if (quantity <= 10) return 'Số lượng có hạn';
+    return 'Còn hàng';
+  }
+
+  // Get availability status color
+  static getAvailabilityColor(quantity: number): string {
+    if (quantity === 0) return '#f44336';
+    if (quantity <= 10) return '#ff9800';
+    return '#4caf50';
   }
 }
 
