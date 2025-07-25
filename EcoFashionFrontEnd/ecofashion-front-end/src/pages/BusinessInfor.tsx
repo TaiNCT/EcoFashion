@@ -86,38 +86,37 @@ export default function BusinessInfor() {
           <Box sx={{ display: "flex" }}>
             <Box sx={{ px: 3, py: 4, width: "100%", mx: "auto" }}>
               {/* Header */}
-              {!user?.role && (
-                <>
-                  <Typography variant="h5" fontWeight="bold" mb={2}>
-                    Dành Cho Nhà Thiết Kế
-                  </Typography>
+              <Typography variant="h5" fontWeight="bold" mb={2}>
+                Dành Cho Nhà Thiết Kế
+              </Typography>
 
-                  <Box
-                    sx={{
-                      backgroundColor: "#D1FADF",
-                      borderRadius: 2,
-                      p: 3,
-                      mb: 4,
-                    }}
+              <Box
+                sx={{
+                  backgroundColor: "#D1FADF",
+                  borderRadius: 2,
+                  p: 3,
+                  mb: 4,
+                }}
+              >
+                <Typography variant="h6" fontWeight="bold" mb={1}>
+                  Thiết Kế Trang Phục Bền Vững Cùng Với EcoFashion
+                </Typography>
+                <Typography mb={2}>
+                  Tham gia cộng đồng các nhà thiết kế thân thiện với môi trường
+                  và giới thiệu sản phẩm thời trang từ vật liệu tái chế của bạn
+                  đến mọi người.
+                </Typography>
+                {user?.role.toLocaleLowerCase() === "customer" && (
+                  <Button
+                    variant="contained"
+                    sx={{ backgroundColor: "#12B76A" }}
+                    onClick={() => handleClick("desginer")}
                   >
-                    <Typography variant="h6" fontWeight="bold" mb={1}>
-                      Thiết Kế Trang Phục Bền Vững Cùng Với EcoFashion
-                    </Typography>
-                    <Typography mb={2}>
-                      Tham gia cộng đồng các nhà thiết kế thân thiện với môi
-                      trường và giới thiệu sản phẩm thời trang từ vật liệu tái
-                      chế của bạn đến mọi người.
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      sx={{ backgroundColor: "#12B76A" }}
-                      onClick={() => handleClick("desginer")}
-                    >
-                      Trở thành nhà thiết kế
-                    </Button>
-                  </Box>
-                </>
-              )}
+                    Trở thành nhà thiết kế
+                  </Button>
+                )}
+              </Box>
+
               {/* Benefits Section */}
               <Typography variant="h6" fontWeight="bold" mb={2}>
                 Lợi ích dành cho Nhà Thiết Kế
@@ -250,23 +249,23 @@ export default function BusinessInfor() {
               </Grid>
 
               {/* CTA */}
-              {!user?.role && (
-                <Box
-                  mt={5}
-                  p={4}
-                  sx={{
-                    textAlign: "center",
-                    backgroundColor: "#D1FADF",
-                    borderRadius: 2,
-                  }}
-                >
-                  <Typography variant="h6" fontWeight="bold" mb={2}>
-                    Sẵn Sàng Tham Gia EcoFashion
-                  </Typography>
-                  <Typography mb={2}>
-                    Bắt đầu hành trình trở thành nhà thiết kế thời trang bền
-                    vững của bạn ngay hôm nay.
-                  </Typography>
+              <Box
+                mt={5}
+                p={4}
+                sx={{
+                  textAlign: "center",
+                  backgroundColor: "#D1FADF",
+                  borderRadius: 2,
+                }}
+              >
+                <Typography variant="h6" fontWeight="bold" mb={2}>
+                  Sẵn Sàng Tham Gia EcoFashion
+                </Typography>
+                <Typography mb={2}>
+                  Bắt đầu hành trình trở thành nhà thiết kế thời trang bền vững
+                  của bạn ngay hôm nay.
+                </Typography>
+                {user?.role.toLocaleLowerCase() === "customer" && (
                   <Button
                     variant="contained"
                     sx={{ backgroundColor: "#12B76A" }}
@@ -274,8 +273,8 @@ export default function BusinessInfor() {
                   >
                     Trở thành nhà thiết kế
                   </Button>
-                </Box>
-              )}
+                )}
+              </Box>
             </Box>
           </Box>
         )}
@@ -284,42 +283,42 @@ export default function BusinessInfor() {
             <Box sx={{ display: "flex" }}>
               <Box sx={{ px: 3, py: 4, width: "100%", mx: "auto" }}>
                 {/* Header */}
-                {!user?.role && (
-                  <>
-                    <Typography variant="h5" fontWeight="bold" mb={2}>
-                      Dành Cho Nhà Cung Cấp
-                    </Typography>
 
-                    <Box
-                      sx={{
-                        backgroundColor: " #2563eb",
-                        borderRadius: 2,
-                        p: 3,
-                        mb: 4,
-                      }}
+                <Typography variant="h5" fontWeight="bold" mb={2}>
+                  Dành Cho Nhà Cung Cấp
+                </Typography>
+
+                <Box
+                  sx={{
+                    backgroundColor: " #2563eb",
+                    borderRadius: 2,
+                    p: 3,
+                    mb: 4,
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    mb={1}
+                    color="white"
+                  >
+                    Cung Cấp Vật Liệu Chất Lượng Thân Thiện Với Môi Trường
+                  </Typography>
+                  <Typography mb={2} color="white">
+                    Tham gia nền tảng của chúng tôi để giới thiệu và bán các vật
+                    liệu tái chế của bạn đến các nhà thiết kế thời trang thân
+                    thiện với môi trường trên toàn thế giới.
+                  </Typography>
+                  {user?.role.toLocaleLowerCase() === "customer" && (
+                    <Button
+                      variant="contained"
+                      sx={{ backgroundColor: "white", color: "#2563eb" }}
                     >
-                      <Typography
-                        variant="h6"
-                        fontWeight="bold"
-                        mb={1}
-                        color="white"
-                      >
-                        Cung Cấp Vật Liệu Chất Lượng Thân Thiện Với Môi Trường
-                      </Typography>
-                      <Typography mb={2} color="white">
-                        Tham gia nền tảng của chúng tôi để giới thiệu và bán các
-                        vật liệu tái chế của bạn đến các nhà thiết kế thời trang
-                        thân thiện với môi trường trên toàn thế giới.
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        sx={{ backgroundColor: "white", color: "#2563eb" }}
-                      >
-                        Trở thành nhà cung cấp
-                      </Button>
-                    </Box>
-                  </>
-                )}
+                      Trở thành nhà cung cấp
+                    </Button>
+                  )}
+                </Box>
+
                 {/* Benefits Section */}
                 <Typography variant="h6" fontWeight="bold" mb={2}>
                   Lợi ích dành cho Nhà Cung Cấp
@@ -453,31 +452,32 @@ export default function BusinessInfor() {
                 </Grid>
 
                 {/* CTA */}
-                {!user?.role && (
-                  <Box
-                    mt={5}
-                    p={4}
-                    sx={{
-                      textAlign: "center",
-                      backgroundColor: "#D1FADF",
-                      borderRadius: 2,
-                    }}
-                  >
-                    <Typography variant="h6" fontWeight="bold" mb={2}>
-                      Sẵn Sàng Tham Gia EcoFashion
-                    </Typography>
-                    <Typography mb={2}>
-                      Bắt đầu kết nối với những khách hàng tiềm năng bền vững
-                      ngay hôm nay.
-                    </Typography>
+
+                <Box
+                  mt={5}
+                  p={4}
+                  sx={{
+                    textAlign: "center",
+                    backgroundColor: "#D1FADF",
+                    borderRadius: 2,
+                  }}
+                >
+                  <Typography variant="h6" fontWeight="bold" mb={2}>
+                    Sẵn Sàng Tham Gia EcoFashion
+                  </Typography>
+                  <Typography mb={2}>
+                    Bắt đầu kết nối với những khách hàng tiềm năng bền vững ngay
+                    hôm nay.
+                  </Typography>
+                  {user?.role.toLocaleLowerCase() === "customer" && (
                     <Button
                       variant="contained"
                       sx={{ backgroundColor: "#12B76A" }}
                     >
                       Trở thành nhà cung cấp
                     </Button>
-                  </Box>
-                )}
+                  )}
+                </Box>
               </Box>
             </Box>
           </Box>

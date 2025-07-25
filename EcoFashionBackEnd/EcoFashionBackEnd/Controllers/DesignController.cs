@@ -32,11 +32,20 @@ public class DesignController : ControllerBase
     [HttpGet("GetAll")]
     public async Task<IActionResult> GetAllDesigns()
     {
-        var designs = await _designService.GetAllDesigns();
+        var designs = await _designService.GetAllDesigns1();
         //return Ok(ApiResult<IEnumerable<DesignModel>>.Succeed(designs));
         var response = _mapper.Map<IEnumerable<DesignDetailResponse>>(designs);
-        return Ok(ApiResult< IEnumerable<DesignDetailResponse>>.Succeed(response));
+        return Ok(ApiResult<IEnumerable<DesignDetailResponse>>.Succeed(response));
     }
+
+    [HttpGet("GetAllPagination")]
+    public async Task<IActionResult> GetAllDesignPagination([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
+    {
+        var designs = await _designService.GetAllDesignsPagination(page, pageSize);
+        var response = _mapper.Map<IEnumerable<DesignDetailResponse>>(designs);
+        return Ok(ApiResult<IEnumerable<DesignDetailResponse>>.Succeed(response));
+    }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetDesignById(int id)

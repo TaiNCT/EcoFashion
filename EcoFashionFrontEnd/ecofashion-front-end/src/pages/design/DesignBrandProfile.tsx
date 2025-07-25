@@ -22,6 +22,7 @@ import {
   Checkbox,
   Select,
   MenuItem,
+  Pagination,
 } from "@mui/material";
 //example
 import ao_linen from "../../assets/pictures/example/ao-linen.webp";
@@ -534,6 +535,7 @@ const reviews = [
   },
   // Add more reviews as needed
 ];
+
 export default function DesingBrandProfile() {
   //Change image
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -553,23 +555,50 @@ export default function DesingBrandProfile() {
   //Count type
   const [typeCounts, setTypeCounts] = useState<Record<string, number>>({});
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  //Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState<number>();
+  const pageSize = 12;
+  const [page, setPage] = useState(currentPage);
+  const handlePageScrollChange = (id: string, value: number) => {
+    setPage(value);
+    setCurrentPage(value);
+    const element = document.getElementById(id);
+    const navbarHeight =
+      document.querySelector(".MuiAppBar-root")?.clientHeight || 0;
+
+    if (element) {
+      const y =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
   useEffect(() => {
     if (!id) return;
     const fetchDesigner = async () => {
       try {
         setLoading(true);
         const data = await DesignerService.getDesignerPublicProfile(id);
-        const allDesign = await DesignService.getAllDesign();
-        // Count design types
-        const counts: Record<string, number> = {};
-        allDesign.forEach((design: any) => {
-          const typeName = design.designTypeName || "Khác"; // fallback if null/undefined
-          counts[typeName] = (counts[typeName] || 0) + 1;
-        });
+        if (data) {
+          const total = await DesignService.getAllDesign();
+          setTotalPage(Math.ceil(total.length / pageSize));
+          const data = await DesignService.getAllDesignPagination(
+            currentPage,
+            pageSize
+          );
+          // Count design types
+          const counts: Record<string, number> = {};
+          data.forEach((design: any) => {
+            const typeName = design.designTypeName || "Khác"; // fallback if null/undefined
+            counts[typeName] = (counts[typeName] || 0) + 1;
+          });
+          setTypeCounts(counts);
+          setDesigns(data);
+        }
 
-        setTypeCounts(counts);
         setDesigner(data);
-        setDesigns(allDesign);
       } catch (err: any) {
         const msg = err.message || "Không thể tải thông tin nhà thiết kế.";
         setError(msg);
@@ -779,8 +808,8 @@ export default function DesingBrandProfile() {
       {/* Banner */}
       <Box
         sx={{
-          backgroundImage: `url(${brand_banner})`, // replace with actual image path
-          backgroundSize: "cover",
+          backgroundImage: `url(${designer?.bannerUrl || brand_banner})`, // replace with actual image path
+          backgroundSize: "fit",
           height: "50vh",
         }}
       />
@@ -1024,8 +1053,8 @@ export default function DesingBrandProfile() {
             backgroundColor: "white",
             color: "black",
             width: "100%",
-            top: { xs: 56, sm: 64 },
-            zIndex: (theme) => theme.zIndex.appBar,
+            // top: { xs: 56, sm: 64 },
+            // zIndex: (theme) => theme.zIndex.appBar,
             borderBottom: "1px solid black",
           }}
         >
@@ -1108,7 +1137,7 @@ export default function DesingBrandProfile() {
         {/* Section */}
         <Box sx={{ width: "90%", margin: "auto" }}>
           {/*Danh sách Sản Phẩm */}
-          <Box sx={{ minHeight: "100vh", p: 3, display: "flex" }}>
+          <Box sx={{ minHeight: "100vh", display: "flex" }}>
             {/* Filter */}
             <Box flex={1} sx={{ textAlign: "left" }}>
               <Box sx={{ width: 300, padding: 3 }}>
@@ -1257,11 +1286,12 @@ export default function DesingBrandProfile() {
             </Box>
             <Divider orientation="vertical" flexItem />
             {/* Sản Phẩm */}
-            <Box flex={5} sx={{ margin: "0 30px", minHeight: "500px" }}>
+            <Box flex={5} sx={{ margin: "0 30px" }}>
               <Box sx={{ width: "100%", display: "flex", margin: "10px 0" }}>
                 <Typography variant="h4" fontWeight="bold">
                   Thời Trang
                 </Typography>
+                {/*Sắp xếp theo */}
                 <Box
                   sx={{
                     display: "flex",
@@ -1303,7 +1333,35 @@ export default function DesingBrandProfile() {
                   </Typography>
                 </Box>
               </Box>
-              <DesignsSection products={sortedProducts} id={"items"} />
+              <DesignsSection
+                products={sortedProducts}
+                id={"items"}
+                pageSize={pageSize}
+                currentPage={currentPage}
+                totalPages={totalPage}
+              />
+              <Box
+                mt={4}
+                sx={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "left",
+                  alignItems: "center",
+                  margin: "20px 0",
+                }}
+              >
+                <Pagination
+                  count={totalPage}
+                  page={page}
+                  variant="outlined"
+                  shape="rounded"
+                  onChange={(e, value) => {
+                    handlePageScrollChange("items", value);
+                  }}
+                  color="primary"
+                  size="large"
+                />
+              </Box>
             </Box>
           </Box>
           <Divider />

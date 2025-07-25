@@ -20,7 +20,8 @@ export const applyApplicationSchema = z.object({
     .optional()
     .refine((val) => !val || val.length === 10 || val.length === 12, {
       message: "Mã số thuế phải có 10 hoặc 12 chữ số",
-    }),
+    }
+  ),
 
   // Portfolio & Media
   avatarFile: z

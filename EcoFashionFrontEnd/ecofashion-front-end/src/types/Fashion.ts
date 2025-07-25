@@ -20,7 +20,7 @@ export interface Fashion {
   };
   sizes?: string[]; // e.g., ["XS", "S", "M", "L", "XL"]
   colors?: string[]; // e.g., ["Black", "White", "Navy"]
-  availability: "in-stock" | "limited" | "pre-order" | "out-of-stock";
+  availability: "in-stock" | "limited" | "out-of-stock";
   rating: {
     average: number; // 1-5 scale
     count: number;

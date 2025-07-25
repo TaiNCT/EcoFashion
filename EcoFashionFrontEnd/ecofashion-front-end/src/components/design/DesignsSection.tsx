@@ -23,20 +23,30 @@ import { FavoriteBorderOutlined } from "@mui/icons-material";
 interface ProductsSectionProps {
   products: Design[];
   id?: any;
+  type?: string;
+
   onProductSelect?: (product: Design) => void;
   onAddToCart?: (product: Design) => void;
   onToggleFavorite?: (product: Design) => void;
   onViewMore?: () => void;
   showViewMore?: boolean;
+  //Pagination
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 const DesignsSection: React.FC<ProductsSectionProps> = ({
   products,
   id,
+  type,
+  currentPage,
+  pageSize,
   onProductSelect,
   onAddToCart,
   onToggleFavorite,
   onViewMore,
+  totalPages,
   // showViewMore = true,
 }) => {
   if (!products) {
@@ -60,10 +70,44 @@ const DesignsSection: React.FC<ProductsSectionProps> = ({
       </Container>
     );
   }
-  //Pagination
-  const productsPerPage = 12; // 9 rows * 4 per row
-  const [page, setPage] = useState(1);
-  //Jump To Anchor
+  // //Pagination
+  // const productsPerPage = 12; // 9 rows * 4 per row
+  const [page, setPage] = useState(currentPage);
+  // //Jump e, setPage] = useState(currentPage);
+  // //Jump To Anchor
+  // const handlePageScrollChange = (id: string, value: number) => {
+  //   setPage(value);
+
+  //   const element = document.getElementById(id);
+  //   const navbarHeight =
+  //     document.querySelector(".MuiAppBar-root")?.clientHeight || 0;
+
+  //   if (element) {
+  //     const y =
+  //       element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+
+  //     window.scrollTo({ top: y, behavior: "smooth" });
+  //   }
+  // };
+  // const paginatedProducts = useMemo(() => {
+  //   const start = (page - 1) * productsPerPage;
+  //   return products.slice(start, start + productsPerPage);
+  // }, [page, products]);
+
+  // const totalPages = Math.ceil(products.length / productsPerPage);
+  // const totalPages = Math.ceil(totalPages / pageSize);
+
+  //testing
+  const getCategoryColor = (category: Design["designTypeName"]) => {
+    const colors = {
+      Áo: "#2196f3",
+      Quần: "#ff9800",
+      Đầm: "#4caf50",
+      Váy: "#9c27b0",
+    };
+    return colors[category] || "#9e9e9e";
+  };
+
   const handlePageScrollChange = (id: string, value: number) => {
     setPage(value);
 
@@ -78,31 +122,15 @@ const DesignsSection: React.FC<ProductsSectionProps> = ({
       window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
-  const paginatedProducts = useMemo(() => {
-    const start = (page - 1) * productsPerPage;
-    return products.slice(start, start + productsPerPage);
-  }, [page, products]);
-
-  const totalPages = Math.ceil(products.length / productsPerPage);
-
-  //testing
-  const getCategoryColor = (category: Design["designTypeName"]) => {
-    const colors = {
-      Áo: "#2196f3",
-      Quần: "#ff9800",
-      Đầm: "#4caf50",
-      Váy: "#9c27b0",
-    };
-    return colors[category] || "#9e9e9e";
-  };
-
   return (
     <Box sx={{ width: "100%", textAlign: "center" }}>
       <Grid container spacing={2}>
-        {paginatedProducts.map((product) => (
+        {/* {paginatedProducts.map((product) => ( */}
+        {products.map((product) => (
           <Grid key={product.designId} size={3}>
             <FashionCard
               product={product}
+              type={type}
               onSelect={onProductSelect}
               onAddToCart={onAddToCart}
               onToggleFavorite={onToggleFavorite}
@@ -110,10 +138,10 @@ const DesignsSection: React.FC<ProductsSectionProps> = ({
           </Grid>
         ))}
       </Grid>
-      <Box mt={4}>
+      {/* <Box mt={4}>
         <Pagination
-          count={totalPages}
-          page={page}
+          count={pageSize}
+          page={currentPage}
           variant="outlined"
           shape="rounded"
           onChange={(e, value) => {
@@ -122,7 +150,7 @@ const DesignsSection: React.FC<ProductsSectionProps> = ({
           color="primary"
           size="large"
         />
-      </Box>
+      </Box> */}
     </Box>
   );
 };

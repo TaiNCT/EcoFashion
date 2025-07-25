@@ -16,6 +16,7 @@ import {
   FormGroup,
   Link,
   MenuItem,
+  Pagination,
   Select,
   Typography,
 } from "@mui/material";
@@ -37,426 +38,426 @@ import { Fashion } from "../../types/Fashion";
 import { GridExpandMoreIcon } from "@mui/x-data-grid";
 import { Design, DesignService } from "../../services/api/designService";
 import { toast } from "react-toastify";
-const products: Fashion[] = [
-  {
-    id: 1,
-    name: "Áo thun Organic Cotton",
-    category: "clothing",
-    brand: { id: 1, name: "EcoWear" },
-    image: ao_linen,
-    images: [ao_linen, dam_con_trung, chan_vay_dap],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 18,
-  },
-  {
-    id: 2,
-    name: "Chân Váy Đắp",
-    brand: { id: 2, name: "Nguyễn Công Trí" },
-    category: "clothing",
-    image: chan_vay_dap,
-    images: [ao_linen, dam_con_trung, chan_vay_dap],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 18,
-  },
-  {
-    id: 3,
-    name: "Đầm Côn Trùng",
-    brand: { id: 2, name: "Nguyễn Công Trí" },
-    category: "clothing",
-    image: dam_con_trung,
-    images: [ao_linen, dam_con_trung, chan_vay_dap],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 18,
-  },
-  {
-    id: 4,
-    name: "Đầm Côn Trùng",
-    brand: { id: 2, name: "Nguyễn Công Trí" },
-    category: "clothing",
-    image: dam_con_trung,
-    images: [ao_linen, dam_con_trung, chan_vay_dap],
-    sustainability: 85,
-    materials: [
-      {
-        name: "Cotton hữu cơ",
-        percentageUse: 40,
-      },
-      {
-        name: "Vải Nilon",
-        percentageUse: 60,
-      },
-    ],
-    price: {
-      current: 450000,
-      original: 550000,
-      currency: "VND",
-    },
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
-    availability: "in-stock",
-    rating: {
-      average: 4.5,
-      count: 127,
-    },
-    description:
-      "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
-    features: [
-      "100% Cotton hữu cơ",
-      "Thoáng khí",
-      "Co giãn nhẹ",
-      "Dễ chăm sóc",
-    ],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 18,
-  },
-  {
-    id: 5,
-    name: "Quần jeans tái chế",
-    category: "clothing",
-    brand: { id: 2, name: "GreenStyle" },
-    sustainability: 78,
-    materials: [
-      { name: "Vải denim tái chế", percentageUse: 80 },
-      { name: "Spandex", percentageUse: 20 },
-    ],
-    price: { current: 620000, currency: "VND" },
-    sizes: ["S", "M", "L", "XL"],
-    colors: ["Xanh Đậm", "Xám", "Đen"],
-    availability: "in-stock",
-    rating: { average: 4.5, count: 96 },
-    description: "Quần jeans thân thiện với môi trường, độ co giãn tốt và bền.",
-    features: ["Vải tái chế", "Co giãn", "Chống nhăn"],
-    isFeatured: false,
-    isBestSeller: true,
-    isNew: false,
-    discountPercentage: 10,
-    image: dam_con_trung,
-    images: [dam_con_trung, ao_linen, chan_vay_dap],
-  },
-  {
-    id: 6,
-    name: "Đầm vải lanh mùa hè",
-    category: "clothing",
-    brand: { id: 3, name: "NatureWear" },
-    sustainability: 92,
-    materials: [{ name: "Lanh", percentageUse: 100 }],
-    price: { current: 720000, currency: "VND" },
-    sizes: ["S", "M", "L"],
-    colors: ["Kem", "Hồng Nhạt"],
-    availability: "in-stock",
-    rating: { average: 4.7, count: 212 },
-    description: "Đầm nhẹ nhàng, thoáng mát, phù hợp cho thời tiết nóng bức.",
-    features: ["Chống tia UV", "Thoáng mát", "Thiết kế nữ tính"],
-    isFeatured: true,
-    isBestSeller: true,
-    isNew: true,
-    discountPercentage: 20,
-    image: chan_vay_dap,
-    images: [chan_vay_dap, ao_linen],
-  },
-  {
-    id: 7,
-    name: "Áo khoác PET tái chế",
-    category: "clothing",
-    brand: { id: 4, name: "RecycleFit" },
-    sustainability: 88,
-    materials: [{ name: "Polyester tái chế (PET)", percentageUse: 100 }],
-    price: { current: 890000, currency: "VND" },
-    sizes: ["M", "L", "XL"],
-    colors: ["Xanh Lá", "Đen"],
-    availability: "in-stock",
-    rating: { average: 4.2, count: 68 },
-    description: "Áo khoác chắn gió từ chai nhựa tái chế, nhẹ và bền.",
-    features: ["Chống gió", "Chống nước nhẹ", "Bền"],
-    isFeatured: false,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 15,
-    image: ao_linen,
-    images: [ao_linen, dam_con_trung],
-  },
-  {
-    id: 8,
-    name: "Chân váy đắp chéo",
-    category: "clothing",
-    brand: { id: 1, name: "EcoWear" },
-    sustainability: 81,
-    materials: [
-      { name: "Cotton hữu cơ", percentageUse: 60 },
-      { name: "Hemp", percentageUse: 40 },
-    ],
-    price: { current: 510000, currency: "VND" },
-    sizes: ["XS", "S", "M", "L"],
-    colors: ["Be", "Xanh Rêu"],
-    availability: "in-stock",
-    rating: { average: 4.6, count: 143 },
-    description: "Chân váy đắp nhẹ nhàng, phong cách thanh lịch, dễ kết hợp.",
-    features: ["Cotton hữu cơ", "Thiết kế đa năng"],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: false,
-    discountPercentage: 12,
-    image: chan_vay_dap,
-    images: [chan_vay_dap, ao_linen],
-  },
-  {
-    id: 9,
-    name: "Áo sơ mi Hemp thoáng khí",
-    category: "clothing",
-    brand: { id: 2, name: "GreenStyle" },
-    sustainability: 90,
-    materials: [{ name: "Hemp", percentageUse: 100 }],
-    price: { current: 640000, currency: "VND" },
-    sizes: ["S", "M", "L", "XL"],
-    colors: ["Trắng", "Xanh Nhạt"],
-    availability: "in-stock",
-    rating: { average: 4.8, count: 119 },
-    description: "Áo sơ mi chất liệu hemp mát mẻ và cực kỳ thoải mái.",
-    features: ["Thoáng khí", "Thấm hút mồ hôi tốt", "Thân thiện môi trường"],
-    isFeatured: false,
-    isBestSeller: true,
-    isNew: false,
-    discountPercentage: 0,
-    image: dam_con_trung,
-    images: [dam_con_trung, ao_linen],
-  },
-  {
-    id: 10,
-    name: "Quần short thể thao tái chế",
-    category: "clothing",
-    brand: { id: 3, name: "NatureWear" },
-    sustainability: 86,
-    materials: [
-      { name: "Polyester tái chế", percentageUse: 90 },
-      { name: "Spandex", percentageUse: 10 },
-    ],
-    price: { current: 370000, currency: "VND" },
-    sizes: ["S", "M", "L"],
-    colors: ["Xám", "Xanh Dương"],
-    availability: "in-stock",
-    rating: { average: 4.1, count: 55 },
-    description: "Quần short nhẹ, thoáng khí, lý tưởng cho vận động hàng ngày.",
-    features: ["Thân thiện môi trường", "Co giãn", "Thoáng khí"],
-    isFeatured: false,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 5,
-    image: ao_linen,
-    images: [ao_linen, chan_vay_dap],
-  },
-  {
-    id: 11,
-    name: "Đồ bộ ngủ Bamboo",
-    category: "clothing",
-    brand: { id: 5, name: "SoftEarth" },
-    sustainability: 95,
-    materials: [{ name: "Sợi tre", percentageUse: 100 }],
-    price: { current: 560000, currency: "VND" },
-    sizes: ["M", "L", "XL"],
-    colors: ["Hồng", "Kem", "Xám"],
-    availability: "in-stock",
-    rating: { average: 4.9, count: 189 },
-    description:
-      "Chất liệu bamboo cực kỳ mềm mại, thoáng mát, lý tưởng cho giấc ngủ.",
-    features: ["Siêu mềm", "Kháng khuẩn", "Tự phân hủy sinh học"],
-    isFeatured: true,
-    isBestSeller: true,
-    isNew: true,
-    discountPercentage: 25,
-    image: dam_con_trung,
-    images: [dam_con_trung, chan_vay_dap],
-  },
-  {
-    id: 12,
-    name: "Áo croptop tái chế",
-    category: "clothing",
-    brand: { id: 1, name: "EcoWear" },
-    sustainability: 84,
-    materials: [
-      { name: "Cotton tái chế", percentageUse: 70 },
-      { name: "Polyester", percentageUse: 30 },
-    ],
-    price: { current: 330000, currency: "VND" },
-    sizes: ["XS", "S", "M"],
-    colors: ["Tím", "Hồng"],
-    availability: "in-stock",
-    rating: { average: 4.3, count: 74 },
-    description: "Phong cách trẻ trung, cá tính, thích hợp cho mùa hè.",
-    features: ["Nhẹ", "Bền màu", "Thân thiện môi trường"],
-    isFeatured: false,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 8,
-    image: ao_linen,
-    images: [ao_linen, dam_con_trung],
-  },
-  {
-    id: 13,
-    name: "Áo khoác gió không thấm nước",
-    category: "clothing",
-    brand: { id: 4, name: "RecycleFit" },
-    sustainability: 80,
-    materials: [{ name: "Nylon tái chế", percentageUse: 100 }],
-    price: { current: 950000, currency: "VND" },
-    sizes: ["M", "L", "XL"],
-    colors: ["Xám", "Xanh Đậm"],
-    availability: "in-stock",
-    rating: { average: 4.6, count: 101 },
-    description: "Áo khoác nhẹ, chống thấm, lý tưởng cho thời tiết ẩm ướt.",
-    features: ["Chống thấm", "Có mũ trùm", "Dễ vệ sinh"],
-    isFeatured: true,
-    isBestSeller: true,
-    isNew: false,
-    discountPercentage: 18,
-    image: chan_vay_dap,
-    images: [chan_vay_dap, ao_linen],
-  },
-  {
-    id: 14,
-    name: "Áo hai dây Organic",
-    category: "clothing",
-    brand: { id: 5, name: "SoftEarth" },
-    sustainability: 91,
-    materials: [{ name: "Cotton hữu cơ", percentageUse: 100 }],
-    price: { current: 290000, currency: "VND" },
-    sizes: ["XS", "S", "M"],
-    colors: ["Trắng", "Nâu", "Hồng"],
-    availability: "in-stock",
-    rating: { average: 4.4, count: 87 },
-    description: "Áo hai dây nhẹ nhàng, thoáng mát, phù hợp thời tiết nóng.",
-    features: ["Cotton hữu cơ", "Thoáng khí", "Dễ phối đồ"],
-    isFeatured: false,
-    isBestSeller: false,
-    isNew: true,
-    discountPercentage: 10,
-    image: ao_linen,
-    images: [ao_linen, dam_con_trung],
-  },
-  {
-    id: 15,
-    name: "Set đồ công sở tái chế",
-    category: "clothing",
-    brand: { id: 2, name: "GreenStyle" },
-    sustainability: 89,
-    materials: [
-      { name: "Vải tái chế", percentageUse: 85 },
-      { name: "Polyamide", percentageUse: 15 },
-    ],
-    price: { current: 1250000, currency: "VND" },
-    sizes: ["S", "M", "L", "XL"],
-    colors: ["Đen", "Xám", "Xanh Navy"],
-    availability: "in-stock",
-    rating: { average: 4.5, count: 132 },
-    description: "Trang phục công sở sang trọng, thân thiện với môi trường.",
-    features: ["Thiết kế thanh lịch", "Co giãn nhẹ", "Chống nhăn"],
-    isFeatured: true,
-    isBestSeller: false,
-    isNew: false,
-    discountPercentage: 22,
-    image: dam_con_trung,
-    images: [dam_con_trung, ao_linen, chan_vay_dap],
-  },
-];
+// const products: Fashion[] = [
+//   {
+//     id: 1,
+//     name: "Áo thun Organic Cotton",
+//     category: "clothing",
+//     brand: { id: 1, name: "EcoWear" },
+//     image: ao_linen,
+//     images: [ao_linen, dam_con_trung, chan_vay_dap],
+//     sustainability: 85,
+//     materials: [
+//       {
+//         name: "Cotton hữu cơ",
+//         percentageUse: 40,
+//       },
+//       {
+//         name: "Vải Nilon",
+//         percentageUse: 60,
+//       },
+//     ],
+//     price: {
+//       current: 450000,
+//       currency: "VND",
+//     },
+//     sizes: ["XS", "S", "M", "L", "XL"],
+//     colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+//     availability: "in-stock",
+//     rating: {
+//       average: 4,
+//       count: 127,
+//     },
+//     description:
+//       "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+//     features: [
+//       "100% Cotton hữu cơ",
+//       "Thoáng khí",
+//       "Co giãn nhẹ",
+//       "Dễ chăm sóc",
+//     ],
+//     isFeatured: true,
+//     isBestSeller: false,
+//     isNew: true,
+//     discountPercentage: 18,
+//   },
+//   {
+//     id: 2,
+//     name: "Chân Váy Đắp",
+//     brand: { id: 2, name: "Nguyễn Công Trí" },
+//     category: "clothing",
+//     image: chan_vay_dap,
+//     images: [ao_linen, dam_con_trung, chan_vay_dap],
+//     sustainability: 85,
+//     materials: [
+//       {
+//         name: "Cotton hữu cơ",
+//         percentageUse: 40,
+//       },
+//       {
+//         name: "Vải Nilon",
+//         percentageUse: 60,
+//       },
+//     ],
+//     price: {
+//       current: 450000,
+//       original: 550000,
+//       currency: "VND",
+//     },
+//     sizes: ["XS", "S", "M", "L", "XL"],
+//     colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+//     availability: "in-stock",
+//     rating: {
+//       average: 4.5,
+//       count: 127,
+//     },
+//     description:
+//       "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+//     features: [
+//       "100% Cotton hữu cơ",
+//       "Thoáng khí",
+//       "Co giãn nhẹ",
+//       "Dễ chăm sóc",
+//     ],
+//     isFeatured: true,
+//     isBestSeller: false,
+//     isNew: true,
+//     discountPercentage: 18,
+//   },
+//   {
+//     id: 3,
+//     name: "Đầm Côn Trùng",
+//     brand: { id: 2, name: "Nguyễn Công Trí" },
+//     category: "clothing",
+//     image: dam_con_trung,
+//     images: [ao_linen, dam_con_trung, chan_vay_dap],
+//     sustainability: 85,
+//     materials: [
+//       {
+//         name: "Cotton hữu cơ",
+//         percentageUse: 40,
+//       },
+//       {
+//         name: "Vải Nilon",
+//         percentageUse: 60,
+//       },
+//     ],
+//     price: {
+//       current: 450000,
+//       original: 550000,
+//       currency: "VND",
+//     },
+//     sizes: ["XS", "S", "M", "L", "XL"],
+//     colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+//     availability: "in-stock",
+//     rating: {
+//       average: 4.5,
+//       count: 127,
+//     },
+//     description:
+//       "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+//     features: [
+//       "100% Cotton hữu cơ",
+//       "Thoáng khí",
+//       "Co giãn nhẹ",
+//       "Dễ chăm sóc",
+//     ],
+//     isFeatured: true,
+//     isBestSeller: false,
+//     isNew: true,
+//     discountPercentage: 18,
+//   },
+//   {
+//     id: 4,
+//     name: "Đầm Côn Trùng",
+//     brand: { id: 2, name: "Nguyễn Công Trí" },
+//     category: "clothing",
+//     image: dam_con_trung,
+//     images: [ao_linen, dam_con_trung, chan_vay_dap],
+//     sustainability: 85,
+//     materials: [
+//       {
+//         name: "Cotton hữu cơ",
+//         percentageUse: 40,
+//       },
+//       {
+//         name: "Vải Nilon",
+//         percentageUse: 60,
+//       },
+//     ],
+//     price: {
+//       current: 450000,
+//       original: 550000,
+//       currency: "VND",
+//     },
+//     sizes: ["XS", "S", "M", "L", "XL"],
+//     colors: ["Trắng", "Đen", "Xanh Navy", "Xám"],
+//     availability: "in-stock",
+//     rating: {
+//       average: 4.5,
+//       count: 127,
+//     },
+//     description:
+//       "Áo thun làm từ 100% cotton hữu cơ, thoáng mát và thân thiện với môi trường. Thiết kế minimalist phù hợp với mọi phong cách.",
+//     features: [
+//       "100% Cotton hữu cơ",
+//       "Thoáng khí",
+//       "Co giãn nhẹ",
+//       "Dễ chăm sóc",
+//     ],
+//     isFeatured: true,
+//     isBestSeller: false,
+//     isNew: true,
+//     discountPercentage: 18,
+//   },
+//   {
+//     id: 5,
+//     name: "Quần jeans tái chế",
+//     category: "clothing",
+//     brand: { id: 2, name: "GreenStyle" },
+//     sustainability: 78,
+//     materials: [
+//       { name: "Vải denim tái chế", percentageUse: 80 },
+//       { name: "Spandex", percentageUse: 20 },
+//     ],
+//     price: { current: 620000, currency: "VND" },
+//     sizes: ["S", "M", "L", "XL"],
+//     colors: ["Xanh Đậm", "Xám", "Đen"],
+//     availability: "in-stock",
+//     rating: { average: 4.5, count: 96 },
+//     description: "Quần jeans thân thiện với môi trường, độ co giãn tốt và bền.",
+//     features: ["Vải tái chế", "Co giãn", "Chống nhăn"],
+//     isFeatured: false,
+//     isBestSeller: true,
+//     isNew: false,
+//     discountPercentage: 10,
+//     image: dam_con_trung,
+//     images: [dam_con_trung, ao_linen, chan_vay_dap],
+//   },
+//   {
+//     id: 6,
+//     name: "Đầm vải lanh mùa hè",
+//     category: "clothing",
+//     brand: { id: 3, name: "NatureWear" },
+//     sustainability: 92,
+//     materials: [{ name: "Lanh", percentageUse: 100 }],
+//     price: { current: 720000, currency: "VND" },
+//     sizes: ["S", "M", "L"],
+//     colors: ["Kem", "Hồng Nhạt"],
+//     availability: "in-stock",
+//     rating: { average: 4.7, count: 212 },
+//     description: "Đầm nhẹ nhàng, thoáng mát, phù hợp cho thời tiết nóng bức.",
+//     features: ["Chống tia UV", "Thoáng mát", "Thiết kế nữ tính"],
+//     isFeatured: true,
+//     isBestSeller: true,
+//     isNew: true,
+//     discountPercentage: 20,
+//     image: chan_vay_dap,
+//     images: [chan_vay_dap, ao_linen],
+//   },
+//   {
+//     id: 7,
+//     name: "Áo khoác PET tái chế",
+//     category: "clothing",
+//     brand: { id: 4, name: "RecycleFit" },
+//     sustainability: 88,
+//     materials: [{ name: "Polyester tái chế (PET)", percentageUse: 100 }],
+//     price: { current: 890000, currency: "VND" },
+//     sizes: ["M", "L", "XL"],
+//     colors: ["Xanh Lá", "Đen"],
+//     availability: "in-stock",
+//     rating: { average: 4.2, count: 68 },
+//     description: "Áo khoác chắn gió từ chai nhựa tái chế, nhẹ và bền.",
+//     features: ["Chống gió", "Chống nước nhẹ", "Bền"],
+//     isFeatured: false,
+//     isBestSeller: false,
+//     isNew: true,
+//     discountPercentage: 15,
+//     image: ao_linen,
+//     images: [ao_linen, dam_con_trung],
+//   },
+//   {
+//     id: 8,
+//     name: "Chân váy đắp chéo",
+//     category: "clothing",
+//     brand: { id: 1, name: "EcoWear" },
+//     sustainability: 81,
+//     materials: [
+//       { name: "Cotton hữu cơ", percentageUse: 60 },
+//       { name: "Hemp", percentageUse: 40 },
+//     ],
+//     price: { current: 510000, currency: "VND" },
+//     sizes: ["XS", "S", "M", "L"],
+//     colors: ["Be", "Xanh Rêu"],
+//     availability: "in-stock",
+//     rating: { average: 4.6, count: 143 },
+//     description: "Chân váy đắp nhẹ nhàng, phong cách thanh lịch, dễ kết hợp.",
+//     features: ["Cotton hữu cơ", "Thiết kế đa năng"],
+//     isFeatured: true,
+//     isBestSeller: false,
+//     isNew: false,
+//     discountPercentage: 12,
+//     image: chan_vay_dap,
+//     images: [chan_vay_dap, ao_linen],
+//   },
+//   {
+//     id: 9,
+//     name: "Áo sơ mi Hemp thoáng khí",
+//     category: "clothing",
+//     brand: { id: 2, name: "GreenStyle" },
+//     sustainability: 90,
+//     materials: [{ name: "Hemp", percentageUse: 100 }],
+//     price: { current: 640000, currency: "VND" },
+//     sizes: ["S", "M", "L", "XL"],
+//     colors: ["Trắng", "Xanh Nhạt"],
+//     availability: "in-stock",
+//     rating: { average: 4.8, count: 119 },
+//     description: "Áo sơ mi chất liệu hemp mát mẻ và cực kỳ thoải mái.",
+//     features: ["Thoáng khí", "Thấm hút mồ hôi tốt", "Thân thiện môi trường"],
+//     isFeatured: false,
+//     isBestSeller: true,
+//     isNew: false,
+//     discountPercentage: 0,
+//     image: dam_con_trung,
+//     images: [dam_con_trung, ao_linen],
+//   },
+//   {
+//     id: 10,
+//     name: "Quần short thể thao tái chế",
+//     category: "clothing",
+//     brand: { id: 3, name: "NatureWear" },
+//     sustainability: 86,
+//     materials: [
+//       { name: "Polyester tái chế", percentageUse: 90 },
+//       { name: "Spandex", percentageUse: 10 },
+//     ],
+//     price: { current: 370000, currency: "VND" },
+//     sizes: ["S", "M", "L"],
+//     colors: ["Xám", "Xanh Dương"],
+//     availability: "in-stock",
+//     rating: { average: 4.1, count: 55 },
+//     description: "Quần short nhẹ, thoáng khí, lý tưởng cho vận động hàng ngày.",
+//     features: ["Thân thiện môi trường", "Co giãn", "Thoáng khí"],
+//     isFeatured: false,
+//     isBestSeller: false,
+//     isNew: true,
+//     discountPercentage: 5,
+//     image: ao_linen,
+//     images: [ao_linen, chan_vay_dap],
+//   },
+//   {
+//     id: 11,
+//     name: "Đồ bộ ngủ Bamboo",
+//     category: "clothing",
+//     brand: { id: 5, name: "SoftEarth" },
+//     sustainability: 95,
+//     materials: [{ name: "Sợi tre", percentageUse: 100 }],
+//     price: { current: 560000, currency: "VND" },
+//     sizes: ["M", "L", "XL"],
+//     colors: ["Hồng", "Kem", "Xám"],
+//     availability: "in-stock",
+//     rating: { average: 4.9, count: 189 },
+//     description:
+//       "Chất liệu bamboo cực kỳ mềm mại, thoáng mát, lý tưởng cho giấc ngủ.",
+//     features: ["Siêu mềm", "Kháng khuẩn", "Tự phân hủy sinh học"],
+//     isFeatured: true,
+//     isBestSeller: true,
+//     isNew: true,
+//     discountPercentage: 25,
+//     image: dam_con_trung,
+//     images: [dam_con_trung, chan_vay_dap],
+//   },
+//   {
+//     id: 12,
+//     name: "Áo croptop tái chế",
+//     category: "clothing",
+//     brand: { id: 1, name: "EcoWear" },
+//     sustainability: 84,
+//     materials: [
+//       { name: "Cotton tái chế", percentageUse: 70 },
+//       { name: "Polyester", percentageUse: 30 },
+//     ],
+//     price: { current: 330000, currency: "VND" },
+//     sizes: ["XS", "S", "M"],
+//     colors: ["Tím", "Hồng"],
+//     availability: "in-stock",
+//     rating: { average: 4.3, count: 74 },
+//     description: "Phong cách trẻ trung, cá tính, thích hợp cho mùa hè.",
+//     features: ["Nhẹ", "Bền màu", "Thân thiện môi trường"],
+//     isFeatured: false,
+//     isBestSeller: false,
+//     isNew: true,
+//     discountPercentage: 8,
+//     image: ao_linen,
+//     images: [ao_linen, dam_con_trung],
+//   },
+//   {
+//     id: 13,
+//     name: "Áo khoác gió không thấm nước",
+//     category: "clothing",
+//     brand: { id: 4, name: "RecycleFit" },
+//     sustainability: 80,
+//     materials: [{ name: "Nylon tái chế", percentageUse: 100 }],
+//     price: { current: 950000, currency: "VND" },
+//     sizes: ["M", "L", "XL"],
+//     colors: ["Xám", "Xanh Đậm"],
+//     availability: "in-stock",
+//     rating: { average: 4.6, count: 101 },
+//     description: "Áo khoác nhẹ, chống thấm, lý tưởng cho thời tiết ẩm ướt.",
+//     features: ["Chống thấm", "Có mũ trùm", "Dễ vệ sinh"],
+//     isFeatured: true,
+//     isBestSeller: true,
+//     isNew: false,
+//     discountPercentage: 18,
+//     image: chan_vay_dap,
+//     images: [chan_vay_dap, ao_linen],
+//   },
+//   {
+//     id: 14,
+//     name: "Áo hai dây Organic",
+//     category: "clothing",
+//     brand: { id: 5, name: "SoftEarth" },
+//     sustainability: 91,
+//     materials: [{ name: "Cotton hữu cơ", percentageUse: 100 }],
+//     price: { current: 290000, currency: "VND" },
+//     sizes: ["XS", "S", "M"],
+//     colors: ["Trắng", "Nâu", "Hồng"],
+//     availability: "in-stock",
+//     rating: { average: 4.4, count: 87 },
+//     description: "Áo hai dây nhẹ nhàng, thoáng mát, phù hợp thời tiết nóng.",
+//     features: ["Cotton hữu cơ", "Thoáng khí", "Dễ phối đồ"],
+//     isFeatured: false,
+//     isBestSeller: false,
+//     isNew: true,
+//     discountPercentage: 10,
+//     image: ao_linen,
+//     images: [ao_linen, dam_con_trung],
+//   },
+//   {
+//     id: 15,
+//     name: "Set đồ công sở tái chế",
+//     category: "clothing",
+//     brand: { id: 2, name: "GreenStyle" },
+//     sustainability: 89,
+//     materials: [
+//       { name: "Vải tái chế", percentageUse: 85 },
+//       { name: "Polyamide", percentageUse: 15 },
+//     ],
+//     price: { current: 1250000, currency: "VND" },
+//     sizes: ["S", "M", "L", "XL"],
+//     colors: ["Đen", "Xám", "Xanh Navy"],
+//     availability: "in-stock",
+//     rating: { average: 4.5, count: 132 },
+//     description: "Trang phục công sở sang trọng, thân thiện với môi trường.",
+//     features: ["Thiết kế thanh lịch", "Co giãn nhẹ", "Chống nhăn"],
+//     isFeatured: true,
+//     isBestSeller: false,
+//     isNew: false,
+//     discountPercentage: 22,
+//     image: dam_con_trung,
+//     images: [dam_con_trung, ao_linen, chan_vay_dap],
+//   },
+// ];
 
 export default function DesignsList() {
   //Design Data
@@ -468,16 +469,28 @@ export default function DesignsList() {
   //Count type
   const [typeCounts, setTypeCounts] = useState<Record<string, number>>({});
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  //Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState<number>();
+  const pageSize = 12;
+  const [page, setPage] = useState(currentPage);
 
   useEffect(() => {
     loadDesigners();
-  }, []);
+    window.scrollTo(0, 0);
+  }, [currentPage]);
 
   const loadDesigners = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await DesignService.getAllDesign();
+      // const data = await DesignService.getAllDesign();
+      const total = await DesignService.getAllDesign();
+      setTotalPage(Math.ceil(total.length / pageSize));
+      const data = await DesignService.getAllDesignPagination(
+        currentPage,
+        pageSize
+      );
       // Count design types
       const counts: Record<string, number> = {};
       data.forEach((design: any) => {
@@ -496,14 +509,31 @@ export default function DesignsList() {
       setLoading(false);
     }
   };
+
+  //Pagination
+  const handlePageScrollChange = (id: string, value: number) => {
+    setPage(value);
+    setCurrentPage(value);
+    const element = document.getElementById(id);
+    const navbarHeight =
+      document.querySelector(".MuiAppBar-root")?.clientHeight || 0;
+
+    if (element) {
+      const y =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
   //filter color
   const colorCounts: Record<string, number> = {};
 
-  products.forEach((product: any) => {
-    product.colors.forEach((color: string) => {
-      colorCounts[color] = (colorCounts[color] || 0) + 1;
-    });
-  });
+  // products.forEach((product: any) => {
+  //   product.colors.forEach((color: string) => {
+  //     colorCounts[color] = (colorCounts[color] || 0) + 1;
+  //   });
+  // });
 
   const dynamicColorFilterOptions = Object.entries(colorCounts).map(
     ([label, count]) => ({
@@ -676,8 +706,8 @@ export default function DesignsList() {
             borderBottom: "1px solid black",
             display: "flex",
             flexDirection: "row",
-            top: { xs: 56, sm: 64 },
-            zIndex: (theme) => theme.zIndex.appBar,
+            // top: { xs: 56, sm: 64 },
+            // zIndex: (theme) => theme.zIndex.appBar,
             justifyContent: "space-between",
             paddingRight: 1,
             paddingLeft: 1,
@@ -963,10 +993,38 @@ export default function DesignsList() {
               flex={5}
               sx={{ width: "100%", margin: "auto", padding: 3, paddingTop: 0 }}
             >
-              <DesignsSection products={sortedProducts} id={"items"} />
+              <DesignsSection
+                products={sortedProducts}
+                id={"items"}
+                pageSize={pageSize}
+                currentPage={currentPage}
+                totalPages={totalPage}
+              />
             </Box>
           </Box>
           <Divider />
+        </Box>
+        <Box
+          mt={4}
+          sx={{
+            width: "100%",
+            display: "flex", // ✅ Added
+            justifyContent: "center", // ✅ Added
+            alignItems: "center", // Optional
+            margin: "20px 0",
+          }}
+        >
+          <Pagination
+            count={totalPage}
+            page={page}
+            variant="outlined"
+            shape="rounded"
+            onChange={(e, value) => {
+              handlePageScrollChange("items", value);
+            }}
+            color="primary"
+            size="large"
+          />
         </Box>
       </Box>
     </Box>

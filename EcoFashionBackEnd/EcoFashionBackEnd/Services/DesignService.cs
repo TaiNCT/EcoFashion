@@ -108,9 +108,10 @@ namespace EcoFashionBackEnd.Services
                     MaterialId = dm.MaterialId,
                     PersentageUsed = dm.PersentageUsed,
                     MeterUsed = dm.MeterUsed,
-
                     MaterialName = dm.Materials?.Name,
+                    MaterialDescription = dm.Materials?.Description,
                     MaterialTypeName = dm.Materials?.MaterialType?.TypeName,
+
 
                     SustainabilityCriteria = dm.Materials?.MaterialSustainabilityMetrics?
                         .Select(ms => new SustainabilityCriterionDto
@@ -242,13 +243,12 @@ namespace EcoFashionBackEnd.Services
         //    var designs = await _designRepository.GetAll().ToListAsync();
         //    return _mapper.Map<List<DesignModel>>(designs);
         //}
-        public async Task<IEnumerable<DesignDetailDto?>> GetAllDesigns()
+        public async Task<IEnumerable<DesignDetailDto?>> GetAllDesigns1()
         {
             var designs = await _dbContext.Designs
                 .Include(d => d.DesignTypes)
                 .Include(d => d.DesignImages).ThenInclude(di => di.Image)
                 .Include(d => d.DesignsMaterials)
-                    .ThenInclude(dm => dm.Materials)
                 .Include(d => d.DesignsRatings)
                 .Include(d => d.DesignerProfile)
                 .ToListAsync();
@@ -257,9 +257,7 @@ namespace EcoFashionBackEnd.Services
             {
                 DesignId = design.DesignId,
                 Name = design.Name,
-                Description = design.Description,
                 RecycledPercentage = design.RecycledPercentage,
-                CareInstructions = design.CareInstructions,
                 Price = design.Price,
                 ProductScore = design.ProductScore,
                 Status = design.Status,
@@ -270,7 +268,6 @@ namespace EcoFashionBackEnd.Services
 
                 Materials = design.DesignsMaterials.Select(dm => new MaterialDto
                 {
-                    MaterialId = dm.MaterialId,
                     PersentageUsed = dm.PersentageUsed,
                     MaterialName = dm.Materials?.Name,
                 }).ToList(),
@@ -283,6 +280,52 @@ namespace EcoFashionBackEnd.Services
                     DesignerName = design.DesignerProfile.DesignerName,
                 }
             }).ToList();
+        }
+
+        public async Task<IEnumerable<DesignDetailDto?>> GetAllDesignsPagination(int page = 1, int pageSize = 12)
+        {
+            var designs = await _dbContext.Designs
+                .AsNoTracking()
+                .OrderByDescending(d => d.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(design => new DesignDetailDto
+                {
+                    DesignId = design.DesignId,
+                    Name = design.Name,
+                    RecycledPercentage = design.RecycledPercentage,
+                    Price = design.Price,
+                    ProductScore = design.ProductScore,
+                    Status = design.Status,
+                    CreatedAt = design.CreatedAt,
+
+                    DesignTypeName = design.DesignTypes != null ? design.DesignTypes.DesignName : null,
+                    ImageUrls = design.DesignImages
+                        .Select(di => di.Image.ImageUrl)
+                        .ToList(),
+
+                    Materials = design.DesignsMaterials
+                        .Select(dm => new MaterialDto
+                        {
+                            PersentageUsed = dm.PersentageUsed,
+                            MaterialName = dm.Materials != null ? dm.Materials.Name : null
+                        })
+                        .ToList(),
+
+                    AvgRating = design.DesignsRatings.Any() ? design.DesignsRatings.Average(r => r.RatingScore) : null,
+
+                    ReviewCount = design.DesignsRatings.Count(),
+
+                    Designer = design.DesignerProfile != null
+                        ? new DesignerPublicDto
+                        {
+                            DesignerName = design.DesignerProfile.DesignerName
+                        }
+                        : null
+                })
+                .ToListAsync();
+
+            return designs;
         }
 
         public async Task<bool> UpdateDesignVariants(int designId, UpdateDesignRequest request)
@@ -409,12 +452,5 @@ namespace EcoFashionBackEnd.Services
             await _dbContext.SaveChangesAsync();
             return true;
         }
-
-
-
-
-
-
-
     }
 }

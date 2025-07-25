@@ -195,7 +195,7 @@ export default function Navigation() {
   // ===================== Return RENDER =====================
   return (
     <AppBar
-      position={"sticky"}
+      position={"relative"}
       elevation={scrolled || !isHome ? 4 : 0}
       sx={{
         backgroundColor: scrolled || !isHome ? "#fff" : "transparent",
