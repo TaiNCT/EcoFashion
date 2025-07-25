@@ -31,6 +31,11 @@ where TEntity : class
         var entityEntry = await _dbContext.Set<TEntity>().AddAsync(entity);
         return entityEntry.Entity;
     }
+    
+    public async Task AddRangeAsync(IEnumerable<TEntity> entities)
+    {
+        await _dbSet.AddRangeAsync(entities);
+    }
 
     public TEntity Update(TEntity entity)
     {
@@ -56,6 +61,14 @@ where TEntity : class
     {
         return await _dbSet.Where(predicate).SumAsync(selector);
     }
+
+}
+
+
+
+
+
+
     //public async Task<IEnumerable<TEntity>> GetLastSevenDaysTransactionsAsync()
     //{
     //    var sevenDaysAgo = DateTime.UtcNow.Date.AddDays(-6);
@@ -97,4 +110,3 @@ where TEntity : class
     //    return await _dbSet.Cast<PaymentTransaction>()
     //        .CountAsync(pt => pt.Status.ToUpper() == status.ToUpper());
     //}
-}

@@ -11,5 +11,6 @@ namespace EcoFashionBackEnd.Entities
         public int ImageId { get; set; }
 
         public string? ImageUrl { get; set; }
+     
     }
 }

@@ -12,6 +12,34 @@ namespace EcoFashionBackEnd.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "DesignsColors",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ColorName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ColorCode = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DesignsColors", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DesignsSizes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SizeName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SizeDescription = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DesignsSizes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DesignsTypes",
                 columns: table => new
                 {
@@ -77,6 +105,33 @@ namespace EcoFashionBackEnd.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_UserRole", x => x.RoleId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DesignTypeSizeRatios",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DesignTypeId = table.Column<int>(type: "int", nullable: false),
+                    SizeId = table.Column<int>(type: "int", nullable: false),
+                    Ratio = table.Column<float>(type: "real", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DesignTypeSizeRatios", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DesignTypeSizeRatios_DesignsSizes_SizeId",
+                        column: x => x.SizeId,
+                        principalTable: "DesignsSizes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DesignTypeSizeRatios_DesignsTypes_DesignTypeId",
+                        column: x => x.DesignTypeId,
+                        principalTable: "DesignsTypes",
+                        principalColumn: "DesignTypeId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -272,6 +327,7 @@ namespace EcoFashionBackEnd.Migrations
                     Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     ProductScore = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Stage = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DesignTypeId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -400,26 +456,6 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DesignsColors",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ColorName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ColorCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DesignId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DesignsColors", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DesignsColors_Designs_DesignId",
-                        column: x => x.DesignId,
-                        principalTable: "Designs",
-                        principalColumn: "DesignId");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "DesignsRating",
                 columns: table => new
                 {
@@ -441,23 +477,66 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DesignsSizes",
+                name: "DesignsVariants",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    SizeName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SizeDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DesignId = table.Column<int>(type: "int", nullable: true)
+                    SizeId = table.Column<int>(type: "int", nullable: false),
+                    DesignId = table.Column<int>(type: "int", nullable: false),
+                    ColorId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    CarbonFootprint = table.Column<float>(type: "real", nullable: false),
+                    WaterUsage = table.Column<float>(type: "real", nullable: false),
+                    WasteDiverted = table.Column<float>(type: "real", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DesignsSizes", x => x.Id);
+                    table.PrimaryKey("PK_DesignsVariants", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DesignsSizes_Designs_DesignId",
+                        name: "FK_DesignsVariants_DesignsColors_ColorId",
+                        column: x => x.ColorId,
+                        principalTable: "DesignsColors",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DesignsVariants_DesignsSizes_SizeId",
+                        column: x => x.SizeId,
+                        principalTable: "DesignsSizes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DesignsVariants_Designs_DesignId",
                         column: x => x.DesignId,
                         principalTable: "Designs",
-                        principalColumn: "DesignId");
+                        principalColumn: "DesignId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DraftSketches",
+                columns: table => new
+                {
+                    SketchImageId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DesignId = table.Column<int>(type: "int", nullable: false),
+                    ImageId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DraftSketches", x => x.SketchImageId);
+                    table.ForeignKey(
+                        name: "FK_DraftSketches_Designs_DesignId",
+                        column: x => x.DesignId,
+                        principalTable: "Designs",
+                        principalColumn: "DesignId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DraftSketches_Image_ImageId",
+                        column: x => x.ImageId,
+                        principalTable: "Image",
+                        principalColumn: "ImageId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -517,6 +596,37 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DraftParts",
+                columns: table => new
+                {
+                    PartId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DesignId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Length = table.Column<float>(type: "real", nullable: false),
+                    Width = table.Column<float>(type: "real", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    MaterialId = table.Column<int>(type: "int", nullable: false),
+                    MaterialStatus = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DraftParts", x => x.PartId);
+                    table.ForeignKey(
+                        name: "FK_DraftParts_Designs_DesignId",
+                        column: x => x.DesignId,
+                        principalTable: "Designs",
+                        principalColumn: "DesignId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DraftParts_Materials_MaterialId",
+                        column: x => x.MaterialId,
+                        principalTable: "Materials",
+                        principalColumn: "MaterialId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "MaterialImages",
                 columns: table => new
                 {
@@ -564,70 +674,6 @@ namespace EcoFashionBackEnd.Migrations
                         column: x => x.CriterionId,
                         principalTable: "Sustainability_Criteria",
                         principalColumn: "CriterionId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DesignsVariants",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    SizeId = table.Column<int>(type: "int", nullable: false),
-                    DesignId = table.Column<int>(type: "int", nullable: false),
-                    ColorId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    CarbonFootprint = table.Column<float>(type: "real", nullable: false),
-                    WaterUsage = table.Column<float>(type: "real", nullable: false),
-                    WasteDiverted = table.Column<float>(type: "real", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DesignsVariants", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DesignsVariants_DesignsColors_ColorId",
-                        column: x => x.ColorId,
-                        principalTable: "DesignsColors",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_DesignsVariants_DesignsSizes_SizeId",
-                        column: x => x.SizeId,
-                        principalTable: "DesignsSizes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_DesignsVariants_Designs_DesignId",
-                        column: x => x.DesignId,
-                        principalTable: "Designs",
-                        principalColumn: "DesignId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DesignTypeSizeRatios",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    DesignTypeId = table.Column<int>(type: "int", nullable: false),
-                    SizeId = table.Column<int>(type: "int", nullable: false),
-                    Ratio = table.Column<float>(type: "real", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DesignTypeSizeRatios", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DesignTypeSizeRatios_DesignsSizes_SizeId",
-                        column: x => x.SizeId,
-                        principalTable: "DesignsSizes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DesignTypeSizeRatios_DesignsTypes_DesignTypeId",
-                        column: x => x.DesignTypeId,
-                        principalTable: "DesignsTypes",
-                        principalColumn: "DesignTypeId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -684,11 +730,6 @@ namespace EcoFashionBackEnd.Migrations
                 column: "DesignTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DesignsColors_DesignId",
-                table: "DesignsColors",
-                column: "DesignId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_DesignsMaterials_MaterialId",
                 table: "DesignsMaterials",
                 column: "MaterialId");
@@ -696,11 +737,6 @@ namespace EcoFashionBackEnd.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_DesignsRating_DesignId",
                 table: "DesignsRating",
-                column: "DesignId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DesignsSizes_DesignId",
-                table: "DesignsSizes",
                 column: "DesignId");
 
             migrationBuilder.CreateIndex(
@@ -729,6 +765,27 @@ namespace EcoFashionBackEnd.Migrations
                 name: "IX_DesignTypeSizeRatios_SizeId",
                 table: "DesignTypeSizeRatios",
                 column: "SizeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DraftParts_DesignId",
+                table: "DraftParts",
+                column: "DesignId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DraftParts_MaterialId",
+                table: "DraftParts",
+                column: "MaterialId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DraftSketches_DesignId_ImageId",
+                table: "DraftSketches",
+                columns: new[] { "DesignId", "ImageId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DraftSketches_ImageId",
+                table: "DraftSketches",
+                column: "ImageId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MaterialImages_ImageId",
@@ -814,6 +871,12 @@ namespace EcoFashionBackEnd.Migrations
                 name: "DesignTypeSizeRatios");
 
             migrationBuilder.DropTable(
+                name: "DraftParts");
+
+            migrationBuilder.DropTable(
+                name: "DraftSketches");
+
+            migrationBuilder.DropTable(
                 name: "MaterialImages");
 
             migrationBuilder.DropTable(
@@ -832,6 +895,9 @@ namespace EcoFashionBackEnd.Migrations
                 name: "DesignsSizes");
 
             migrationBuilder.DropTable(
+                name: "Designs");
+
+            migrationBuilder.DropTable(
                 name: "Image");
 
             migrationBuilder.DropTable(
@@ -841,19 +907,16 @@ namespace EcoFashionBackEnd.Migrations
                 name: "Sustainability_Criteria");
 
             migrationBuilder.DropTable(
-                name: "Designs");
+                name: "Designer");
+
+            migrationBuilder.DropTable(
+                name: "DesignsTypes");
 
             migrationBuilder.DropTable(
                 name: "MaterialTypes");
 
             migrationBuilder.DropTable(
                 name: "Supplier");
-
-            migrationBuilder.DropTable(
-                name: "Designer");
-
-            migrationBuilder.DropTable(
-                name: "DesignsTypes");
 
             migrationBuilder.DropTable(
                 name: "Users");
