@@ -16,6 +16,7 @@ import {
   FormGroup,
   Link,
   MenuItem,
+  Pagination,
   Select,
   Typography,
 } from "@mui/material";
@@ -468,16 +469,28 @@ export default function DesignsList() {
   //Count type
   const [typeCounts, setTypeCounts] = useState<Record<string, number>>({});
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  //Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState<number>();
+  const pageSize = 12;
+  const [page, setPage] = useState(currentPage);
 
   useEffect(() => {
     loadDesigners();
-  }, []);
+    window.scrollTo(0, 0);
+  }, [currentPage]);
 
   const loadDesigners = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await DesignService.getAllDesign();
+      // const data = await DesignService.getAllDesign();
+      const total = await DesignService.getAllDesign();
+      setTotalPage(Math.ceil(total.length / pageSize));
+      const data = await DesignService.getAllDesignPagination(
+        currentPage,
+        pageSize
+      );
       // Count design types
       const counts: Record<string, number> = {};
       data.forEach((design: any) => {
@@ -496,6 +509,23 @@ export default function DesignsList() {
       setLoading(false);
     }
   };
+
+  //Pagination
+  const handlePageScrollChange = (id: string, value: number) => {
+    setPage(value);
+    setCurrentPage(value);
+    const element = document.getElementById(id);
+    const navbarHeight =
+      document.querySelector(".MuiAppBar-root")?.clientHeight || 0;
+
+    if (element) {
+      const y =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
   //filter color
   const colorCounts: Record<string, number> = {};
 
@@ -963,10 +993,38 @@ export default function DesignsList() {
               flex={5}
               sx={{ width: "100%", margin: "auto", padding: 3, paddingTop: 0 }}
             >
-              <DesignsSection products={sortedProducts} id={"items"} />
+              <DesignsSection
+                products={sortedProducts}
+                id={"items"}
+                pageSize={pageSize}
+                currentPage={currentPage}
+                totalPages={totalPage}
+              />
             </Box>
           </Box>
           <Divider />
+        </Box>
+        <Box
+          mt={4}
+          sx={{
+            width: "100%",
+            display: "flex", // ✅ Added
+            justifyContent: "center", // ✅ Added
+            alignItems: "center", // Optional
+            margin: "20px 0",
+          }}
+        >
+          <Pagination
+            count={totalPage}
+            page={page}
+            variant="outlined"
+            shape="rounded"
+            onChange={(e, value) => {
+              handlePageScrollChange("items", value);
+            }}
+            color="primary"
+            size="large"
+          />
         </Box>
       </Box>
     </Box>

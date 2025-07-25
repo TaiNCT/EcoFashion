@@ -8,6 +8,9 @@ import {
   CardContent,
   CardMedia,
   Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Divider,
   Grid,
   IconButton,
@@ -17,7 +20,14 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  Paper,
   Rating,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Tabs,
   ToggleButton,
   ToggleButtonGroup,
@@ -31,7 +41,7 @@ import {
   ArrowForwardIcon,
 } from "../../assets/icons/icon";
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { data, useNavigate, useParams } from "react-router-dom";
 // Icon
 import StarIcon from "@mui/icons-material/Star";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -491,11 +501,10 @@ export default function DesignDetail() {
     const formatted = new Intl.NumberFormat("vi-VN").format(price.original);
     return `${formatted}₫`;
   };
-  //Chart
-  const sizeChart = {
-    width: 180,
-    height: 200,
-  };
+
+  //Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 12;
 
   useEffect(() => {
     if (!id) return;
@@ -503,7 +512,10 @@ export default function DesignDetail() {
       try {
         setLoading(true);
         const data = await DesignService.getDesignDetailById(Number(id));
-        const relatedData = await DesignService.getAllDesign();
+        const relatedData = await DesignService.getAllDesignPagination(
+          currentPage,
+          pageSize
+        );
         setDesignDetail(data);
         setRelatedDesign(relatedData);
       } catch (err: any) {
@@ -528,6 +540,8 @@ export default function DesignDetail() {
   //     </Box>
   //   );
   // }
+  //Open popup
+  const [open, setOpen] = useState(false);
   if (loading) return <div className="designer-loading">Đang tải...</div>;
   if (error || !designDetail)
     return (
@@ -587,6 +601,14 @@ export default function DesignDetail() {
       </ListItem>
     ));
   };
+
+  //Chart
+  const sizeChart = {
+    width: 180,
+    height: 200,
+  };
+  const valueFormatter = (item: { value: number }) => `${item.value}%`;
+  const data = { data: materialData, valueFormatter };
 
   return (
     <Box
@@ -854,7 +876,7 @@ export default function DesignDetail() {
                     arcLabel: (item) => `${item.value}%`,
                     arcLabelMinAngle: 35,
                     arcLabelRadius: "60%",
-                    data: materialData,
+                    ...data,
                   },
                 ]}
                 sx={{
@@ -906,9 +928,138 @@ export default function DesignDetail() {
                   <ToggleButton value="M">M</ToggleButton>
                   <ToggleButton value="L">L</ToggleButton>
                 </ToggleButtonGroup>
-                <Link sx={{ margin: "auto 0", marginLeft: "auto" }}>
+                <Link
+                  sx={{
+                    margin: "auto 0",
+                    marginLeft: "auto",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setOpen(true)}
+                >
                   Hướng dẫn chọn size
-                </Link>{" "}
+                </Link>
+                <Dialog
+                  open={open}
+                  onClose={() => setOpen(false)}
+                  maxWidth="lg"
+                  fullWidth
+                >
+                  <DialogTitle>Hướng dẫn chọn size</DialogTitle>
+                  <DialogContent dividers>
+                    <Typography sx={{ mb: 2 }}>
+                      Dùng thước dây để lấy số đo 3 vòng: ngực - eo - mông rồi
+                      đối chiếu với bảng số đo bên dưới để chọn kích cỡ.
+                    </Typography>
+
+                    <Box>
+                      {/* Bảng nữ */}
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="bold"
+                        sx={{ mb: 1 }}
+                      >
+                        Bảng size nữ
+                      </Typography>
+                      <TableContainer component={Paper} sx={{ mb: 3 }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Ký hiệu / Thông số (cm)</TableCell>
+                              <TableCell>XS</TableCell>
+                              <TableCell>S</TableCell>
+                              <TableCell>M</TableCell>
+                              <TableCell>L</TableCell>
+                              <TableCell>XL</TableCell>
+                              <TableCell>XXL</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>NGỰC</TableCell>
+                              <TableCell>76 - 80</TableCell>
+                              <TableCell>82 - 86</TableCell>
+                              <TableCell>88 - 92</TableCell>
+                              <TableCell>94 - 97</TableCell>
+                              <TableCell>100 - 103</TableCell>
+                              <TableCell>106 - 109</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>EO</TableCell>
+                              <TableCell>62 - 66</TableCell>
+                              <TableCell>68 - 72</TableCell>
+                              <TableCell>74 - 78</TableCell>
+                              <TableCell>92 - 96</TableCell>
+                              <TableCell>98 - 102</TableCell>
+                              <TableCell>104 - 108</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>MÔNG</TableCell>
+                              <TableCell>80 - 84</TableCell>
+                              <TableCell>86 - 90</TableCell>
+                              <TableCell>92 - 96</TableCell>
+                              <TableCell>98 - 102</TableCell>
+                              <TableCell>104 - 108</TableCell>
+                              <TableCell>110 - 114</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+
+                      {/* Bảng nam */}
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="bold"
+                        sx={{ mb: 1 }}
+                      >
+                        Bảng size nam
+                      </Typography>
+                      <TableContainer component={Paper}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Ký hiệu / Thông số (cm)</TableCell>
+                              <TableCell>XS</TableCell>
+                              <TableCell>S</TableCell>
+                              <TableCell>M</TableCell>
+                              <TableCell>L</TableCell>
+                              <TableCell>XL</TableCell>
+                              <TableCell>XXL</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>NGỰC</TableCell>
+                              <TableCell>88 - 92</TableCell>
+                              <TableCell>94 - 98</TableCell>
+                              <TableCell>100 - 104</TableCell>
+                              <TableCell>106 - 110</TableCell>
+                              <TableCell>112 - 116</TableCell>
+                              <TableCell>118 - 122</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>EO</TableCell>
+                              <TableCell>73 - 77</TableCell>
+                              <TableCell>79 - 83</TableCell>
+                              <TableCell>85 - 89</TableCell>
+                              <TableCell>91 - 95</TableCell>
+                              <TableCell>97 - 101</TableCell>
+                              <TableCell>103 - 107</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>MÔNG</TableCell>
+                              <TableCell>88 - 94</TableCell>
+                              <TableCell>96 - 99</TableCell>
+                              <TableCell>101 - 103</TableCell>
+                              <TableCell>105 - 107</TableCell>
+                              <TableCell>109 - 113</TableCell>
+                              <TableCell>115 - 119</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Box>
+                  </DialogContent>
+                </Dialog>
               </Box>
             </Box>
 
@@ -1275,24 +1426,26 @@ export default function DesignDetail() {
                 {/* Mô Tả */}
                 <Grid sx={{ width: "40%", marginRight: "auto" }}>
                   <Typography variant="subtitle1" fontWeight="bold">
-                    Hành Trình Nguyên Liệu
+                    Thông Tin Nguyên Liệu
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    component="div"
-                    sx={{ whiteSpace: "pre-line", mt: 1 }}
-                  >
-                    Chất liệu denim tái chế của chúng tôi bắt đầu từ những chiếc
-                    quần jean đã qua sử dụng được thu gom thông qua các chương
-                    trình quyên góp quần áo. Những món đồ này được phân loại,
-                    làm sạch và xử lý để tách sợi vải.
-                    {"\n"}Sau đó, các sợi vải được xoắn thành sợi chỉ mới và dệt
-                    thành vải denim. Quá trình này sử dụng lượng nước, năng
-                    lượng và hóa chất ít hơn đáng kể so với sản xuất denim thông
-                    thường. Các thành phần polyester tái chế được làm từ những
-                    chai nhựa đã được thu thập, làm sạch và xử lý thành sợi
-                    polyester.
-                  </Typography>
+                  {designDetail.materials.map((mat, index) => (
+                    <Box key={index} sx={{ mt: 2 }}>
+                      <Typography
+                        variant="body2"
+                        fontWeight="bold"
+                        sx={{ mb: 0.5 }}
+                      >
+                        {mat.materialName}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        component="div"
+                        sx={{ whiteSpace: "pre-line" }}
+                      >
+                        {mat.materialDescription}
+                      </Typography>
+                    </Box>
+                  ))}
                 </Grid>
 
                 {/* Đặc điểm và Bảo quản */}

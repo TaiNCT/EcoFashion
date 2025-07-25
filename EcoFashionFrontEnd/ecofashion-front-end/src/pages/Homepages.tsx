@@ -47,6 +47,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import MaterialsSection from "../components/materials/MaterialsSection";
 import { materials } from "../data/materialsData";
 import FashionsSection from "../components/fashion/FashionsSection";
+import { useNavigate } from "react-router-dom";
 
 const StyledInput = styled(InputBase)({
   borderRadius: 20,
@@ -77,6 +78,14 @@ export default function Homepage() {
   const [loading, setLoading] = useState(true);
   //Error
   const [error, setError] = useState<string | null>(null);
+  //Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState<number>();
+  const pageSize = 12;
+  const [page, setPage] = useState(currentPage);
+
+  const navigate = useNavigate();
+
   useEffect(() => {
     loadDesigners();
   }, []);
@@ -85,7 +94,10 @@ export default function Homepage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await DesignService.getAllDesign();
+      const data = await DesignService.getAllDesignPagination(
+        currentPage,
+        pageSize
+      );
       setDesigns(data);
     } catch (error: any) {
       const errorMessage =
@@ -231,6 +243,7 @@ export default function Homepage() {
                   width: "50%",
                   marginTop: "30px",
                 }}
+                href="/fashion"
               >
                 <Typography
                   sx={{
@@ -552,6 +565,7 @@ export default function Homepage() {
           }}
           onViewMore={() => {
             console.log("View more featured products");
+            navigate("/fashion");
             // TODO: Navigate to featured products page
           }}
         />

@@ -22,6 +22,7 @@ import {
   Checkbox,
   Select,
   MenuItem,
+  Pagination,
 } from "@mui/material";
 //example
 import ao_linen from "../../assets/pictures/example/ao-linen.webp";
@@ -534,6 +535,7 @@ const reviews = [
   },
   // Add more reviews as needed
 ];
+
 export default function DesingBrandProfile() {
   //Change image
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -553,6 +555,26 @@ export default function DesingBrandProfile() {
   //Count type
   const [typeCounts, setTypeCounts] = useState<Record<string, number>>({});
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  //Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState<number>();
+  const pageSize = 12;
+  const [page, setPage] = useState(currentPage);
+  const handlePageScrollChange = (id: string, value: number) => {
+    setPage(value);
+    setCurrentPage(value);
+    const element = document.getElementById(id);
+    const navbarHeight =
+      document.querySelector(".MuiAppBar-root")?.clientHeight || 0;
+
+    if (element) {
+      const y =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
   useEffect(() => {
     if (!id) return;
     const fetchDesigner = async () => {
@@ -560,15 +582,20 @@ export default function DesingBrandProfile() {
         setLoading(true);
         const data = await DesignerService.getDesignerPublicProfile(id);
         if (data) {
-          const allDesign = await DesignService.getAllDesign();
+          const total = await DesignService.getAllDesign();
+          setTotalPage(Math.ceil(total.length / pageSize));
+          const data = await DesignService.getAllDesignPagination(
+            currentPage,
+            pageSize
+          );
           // Count design types
           const counts: Record<string, number> = {};
-          allDesign.forEach((design: any) => {
+          data.forEach((design: any) => {
             const typeName = design.designTypeName || "Khác"; // fallback if null/undefined
             counts[typeName] = (counts[typeName] || 0) + 1;
           });
           setTypeCounts(counts);
-          setDesigns(allDesign);
+          setDesigns(data);
         }
 
         setDesigner(data);
@@ -1306,7 +1333,35 @@ export default function DesingBrandProfile() {
                   </Typography>
                 </Box>
               </Box>
-              <DesignsSection products={sortedProducts} id={"items"} />
+              <DesignsSection
+                products={sortedProducts}
+                id={"items"}
+                pageSize={pageSize}
+                currentPage={currentPage}
+                totalPages={totalPage}
+              />
+              <Box
+                mt={4}
+                sx={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "left",
+                  alignItems: "center",
+                  margin: "20px 0",
+                }}
+              >
+                <Pagination
+                  count={totalPage}
+                  page={page}
+                  variant="outlined"
+                  shape="rounded"
+                  onChange={(e, value) => {
+                    handlePageScrollChange("items", value);
+                  }}
+                  color="primary"
+                  size="large"
+                />
+              </Box>
             </Box>
           </Box>
           <Divider />

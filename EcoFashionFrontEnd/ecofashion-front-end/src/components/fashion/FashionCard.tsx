@@ -157,40 +157,52 @@ const FashionCard: React.FC<FashionCardProps> = ({
       sx={{
         width: "95%",
         height: "95%",
-
         position: type === "special" ? "absolute" : "relative",
-
         overflow: "hidden",
+        zIndex: 1,
         "&:hover": {
           transform: "translateY(-4px)",
           transition: "all 0.3s ease",
           boxShadow: 3,
         },
-        "&:hover .card-hover-content": {
+        "&:hover .hover-trigger:hover + .card-hover-content": {
           opacity: 1,
           transform: "translateY(0)",
         },
         borderRadius: "10px",
       }}
     >
-      {/* Product Tag */}
       <Box
         sx={{
-          position: "absolute",
           top: 8,
           left: 8,
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          alignItems: "center",
+          width: "100%",
         }}
       >
-        {/* {product.isNew && (
+        {/* Product Tag */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            justifyContent: "space-between",
+          }}
+        >
+          {/* {product.isNew && (
           <Chip
             label="Mới"
             size="small"
             sx={{ mb: 1, bgcolor: "#e91e63", color: "white" }}
           />
         )} */}
-        {/* {product.isBestSeller && (
+          {/* {product.isBestSeller && (
           <Chip
             label="Bán Chạy Nhất"
             size="small"
@@ -201,33 +213,33 @@ const FashionCard: React.FC<FashionCardProps> = ({
             }}
           />
         )} */}
-        <Chip
-          icon={<EcoIcon />}
-          label={`${product.recycledPercentage}% Tái Chế`}
-          size="small"
+          <Chip
+            icon={<EcoIcon />}
+            label={`${product.recycledPercentage}% Tái Chế`}
+            size="small"
+            sx={{
+              backgroundColor: "rgba(200, 248, 217, 1)",
+              color: "rgba(22, 103, 86, 1)",
+              fontSize: "15px",
+              paddingTop: 2,
+              paddingBottom: 2,
+            }}
+          />
+        </Box>
+        {/* Favorite */}
+        <IconButton
+          className="favorite-button"
           sx={{
-            backgroundColor: "rgba(200, 248, 217, 1)",
-            color: "rgba(22, 103, 86, 1)",
-            fontSize: "15px",
+            position: "absolute",
+            top: 8,
+            right: 8,
+            zIndex: 1,
+            backgroundColor: "white",
           }}
-        />
+        >
+          <FavoriteBorderOutlined />
+        </IconButton>
       </Box>
-      {/* Favorite */}
-      <IconButton
-        sx={{
-          position: "absolute",
-          top: 8,
-          right: 8,
-          zIndex: 1,
-          "&:hover": {
-            position: "relative",
-          },
-          backgroundColor: "white",
-        }}
-      >
-        <FavoriteBorderOutlined />
-      </IconButton>
-
       {/* Product Image */}
       <CardMedia
         component="img"
@@ -241,8 +253,23 @@ const FashionCard: React.FC<FashionCardProps> = ({
         }}
         onClick={() => navigate(`/detail/${product.designId}`)}
       />
-      {/* Content */}
 
+      <Box
+        className="hover-trigger"
+        sx={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          height: "70%", // Adjust as needed
+          width: "100%",
+          zIndex: 2,
+          marginTop: "auto",
+          cursor: "pointer",
+        }}
+        onClick={() => navigate(`/detail/${product.designId}`)}
+      />
+
+      {/* Content */}
       <CardContent
         className="card-hover-content"
         sx={{
@@ -250,9 +277,10 @@ const FashionCard: React.FC<FashionCardProps> = ({
           bottom: 0,
           left: 0,
           width: "100%",
+          height: "auto",
           background: "rgba(255, 255, 255, 1)",
           opacity: 0,
-          transform: "translateY(20px)",
+          // transform: "translateY(20px)",
           transition: "opacity 0.3s ease, transform 0.3s ease",
           zIndex: 2, // Lower than favorite button
           borderRadius: "10px",
@@ -286,6 +314,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
           )
         `,
           backgroundSize: "55px 55px",
+          pointerEvents: "none",
         }}
       >
         <Box
