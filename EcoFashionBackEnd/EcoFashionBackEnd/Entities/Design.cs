@@ -16,11 +16,14 @@ namespace EcoFashionBackEnd.Entities
 
         public string? Name { get; set; }
         public string? Description { get; set; }
+
         public float RecycledPercentage { get; set; }
         public string? CareInstructions { get; set; }
+
         public decimal Price { get; set; }
         public int ProductScore { get; set; }
-        public string? Status { get; set; } 
+        public string? Status { get; set; }
+        public DesignStage Stage { get; set; } = DesignStage.Draft;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [ForeignKey("DesignsTypes")]
@@ -29,11 +32,20 @@ namespace EcoFashionBackEnd.Entities
         public virtual DesignsType DesignTypes { get; set; }
         public virtual ICollection<DesignsVariant> DesignsVariants { get; set; } = new List<DesignsVariant>();
         public virtual DesignFeature DesignsFeature { get; set; }
-        public virtual ICollection<DesignsMaterial> DesignsMaterials { get; set; }
-        public virtual ICollection<DesignsRating> DesignsRatings { get; set; }
-        public virtual ICollection<DesignImage> DesignImages { get; set; }
-         public virtual ICollection<DesignsColor> DesignsColors { get; set; } 
-         public virtual ICollection<DesignsSize> DesignsSizes { get; set; }   
-         
+        public virtual ICollection<DesignsMaterial> DesignsMaterials { get; set; } = new List<DesignsMaterial>();
+
+        public virtual ICollection<DesignsRating> DesignsRatings { get; set; } = new List<DesignsRating>();
+        public virtual ICollection<DesignImage> DesignImages { get; set; } = new List<DesignImage>();
+
+        public virtual ICollection<DraftSketch> DraftSketches { get; set; } = new List<DraftSketch>();
+
+        public virtual ICollection<DraftPart> DraftParts { get; set; } = new List<DraftPart>();
+    }
+    public enum DesignStage
+    {
+        Draft,
+        InProgress,
+        Finalized,
+        Archived
     }
 }

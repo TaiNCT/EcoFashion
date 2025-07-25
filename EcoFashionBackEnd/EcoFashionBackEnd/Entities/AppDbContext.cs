@@ -180,8 +180,44 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<DesignTypeSizeRatio>()
                 .HasIndex(x => new { x.DesignTypeId, x.SizeId })
                 .IsUnique();
+            // ------------------ DRAFT PART ------------------
+            modelBuilder.Entity<DraftPart>()
+                .HasOne(dp => dp.Design)
+                .WithMany(d => d.DraftParts)
+                .HasForeignKey(dp => dp.DesignId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<DraftPart>()
+                .HasOne(dp => dp.Material)
+                .WithMany()
+                .HasForeignKey(dp => dp.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict); // không xoá Material nếu xoá Part
 
+            // ------------------ DRAFT SKETCH ------------------
+            modelBuilder.Entity<DraftSketch>()
+                .HasOne(ds => ds.Design)
+                .WithMany(d => d.DraftSketches)
+                .HasForeignKey(ds => ds.DesignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DraftSketch>()
+                .HasOne(ds => ds.Image)
+                .WithMany()
+                .HasForeignKey(ds => ds.ImageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Optional: đảm bảo 1 ảnh sketch không bị trùng với cùng 1 design
+            modelBuilder.Entity<DraftSketch>()
+                .HasIndex(ds => new { ds.DesignId, ds.ImageId })
+                .IsUnique();
+
+            modelBuilder.Entity<DraftPart>()
+                .Property(dp => dp.MaterialStatus)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Design>()
+                .Property(d => d.Stage)
+                .HasConversion<string>();
 
 
             #endregion
