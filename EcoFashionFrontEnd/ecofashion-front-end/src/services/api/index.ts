@@ -1,11 +1,11 @@
 // API Services Index
 // Export all services from a single entry point
 
-// Core API utilities
+// ===== Core API utilities =====
 export { apiClient, ApiError } from "./baseApi";
 export type { BaseApiResponse } from "./baseApi";
 
-// Authentication service
+// ===== Authentication service =====
 export { AuthService } from "./authService";
 export type {
   LoginRequest,
@@ -18,7 +18,7 @@ export type {
   OTPResponse,
 } from "./authService";
 
-// Designer service
+// ===== Designer service =====
 export { DesignerService } from "./designerService";
 export type {
   DesignerProfile,
@@ -28,13 +28,27 @@ export type {
   DesignerListResponse,
 } from "./designerService";
 
-// Import for re-export
+// ===== Design service =====
+export { DesignService } from "./designService";
+
+// ===== Supplier service =====
+export { SupplierService } from "./supplierService";
+
+// ===== Material service =====
+export { materialService } from "./materialService";
+
+// ===== Application service =====
+export { applicationService } from "./applicationService";
+
+// ===== API objects for backward compatibility =====
 import { AuthService } from "./authService";
 import { DesignerService } from "./designerService";
 import { DesignService } from "./designService";
+import { materialService } from "./materialService";
+import { SupplierService } from "./supplierService";
+import { applicationService } from "./applicationService";
 import { apiClient } from "./baseApi";
 
-// Re-export for backward compatibility with existing code
 export const authApi = {
   login: AuthService.login.bind(AuthService),
   register: AuthService.signup.bind(AuthService),
@@ -46,7 +60,6 @@ export const authApi = {
   getToken: AuthService.getToken.bind(AuthService),
 };
 
-// Designer API object
 export const designerApi = {
   getProfile: DesignerService.getDesignerProfile.bind(DesignerService),
   getById: DesignerService.getDesignerById.bind(DesignerService),
@@ -59,5 +72,14 @@ export const designerApi = {
   getStats: DesignerService.getDesignerStats.bind(DesignerService),
 };
 
-// Default export (keep existing compatibility)
+export const materialApi = {
+  getAll: materialService.getAllMaterials.bind(materialService),
+  getById: materialService.getMaterialById.bind(materialService),
+  getDetail: materialService.getMaterialDetail.bind(materialService),
+  create: materialService.createMaterial.bind(materialService),
+  update: materialService.updateMaterial.bind(materialService),
+  delete: materialService.deleteMaterial.bind(materialService),
+};
+
+// ===== Default export (keep existing compatibility) =====
 export default apiClient;

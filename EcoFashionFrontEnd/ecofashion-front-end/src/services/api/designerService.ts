@@ -103,7 +103,7 @@ export class DesignerService {
   static async getDesignerProfile(): Promise<DesignerProfile> {
     try {
       const response = await apiClient.get<BaseApiResponse<DesignerProfile>>(
-        `/${this.API_BASE}/profile`
+        `${this.API_BASE}/profile`
       );
       const data = handleApiResponse(response);
 
@@ -119,7 +119,7 @@ export class DesignerService {
   static async getDesignerById(designerId: string): Promise<DesignerProfile> {
     try {
       const response = await apiClient.get<BaseApiResponse<DesignerResponse>>(
-        `/${this.API_BASE}/${designerId}`
+        `${this.API_BASE}/${designerId}`
       );
       const data = handleApiResponse(response);
 
@@ -137,7 +137,7 @@ export class DesignerService {
   ): Promise<DesignerProfile> {
     try {
       const response = await apiClient.post<BaseApiResponse<DesignerResponse>>(
-        `/${this.API_BASE}/create`,
+        `${this.API_BASE}/create`,
         profileData
       );
       const data = handleApiResponse(response);
@@ -156,7 +156,7 @@ export class DesignerService {
   ): Promise<DesignerProfile> {
     try {
       const response = await apiClient.put<BaseApiResponse<string>>(
-        `/${this.API_BASE}/profile`,
+        `${this.API_BASE}/profile`,
         profileData
       );
       const data = handleApiResponse(response);
@@ -173,7 +173,7 @@ export class DesignerService {
    */
   static async deleteDesignerProfile(designerId: string): Promise<void> {
     try {
-      await apiClient.delete(`/${this.API_BASE}/delete/${designerId}`);
+      await apiClient.delete(`${this.API_BASE}/delete/${designerId}`);
     } catch (error) {
       return handleApiError(error);
     }
@@ -199,7 +199,7 @@ export class DesignerService {
 
       const response = await apiClient.get<
         BaseApiResponse<DesignerListResponse>
-      >(`/${this.API_BASE}/list?${params.toString()}`);
+      >(`${this.API_BASE}/list?${params.toString()}`);
 
       return handleApiResponse(response);
     } catch (error) {
@@ -222,7 +222,7 @@ export class DesignerService {
 
       const response = await apiClient.post<
         BaseApiResponse<{ imageUrl: string }>
-      >(`/${this.API_BASE}/upload-image/${designerId}`, formData, {
+      >(`${this.API_BASE}/upload-image/${designerId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -243,7 +243,7 @@ export class DesignerService {
   ): Promise<DesignerProfile> {
     try {
       const response = await apiClient.patch<BaseApiResponse<DesignerResponse>>(
-        `/${this.API_BASE}/status/${designerId}`,
+        `${this.API_BASE}/status/${designerId}`,
         { status }
       );
       const data = handleApiResponse(response);
@@ -271,7 +271,7 @@ export class DesignerService {
           pendingDesigners: number;
           rejectedDesigners: number;
         }>
-      >(`/${this.API_BASE}/statistics`);
+      >(`${this.API_BASE}/statistics`);
 
       return handleApiResponse(response);
     } catch (error) {
@@ -288,7 +288,7 @@ export class DesignerService {
   ): Promise<DesignerSummary[]> {
     try {
       const response = await apiClient.get<BaseApiResponse<DesignerSummary[]>>(
-        `/${this.API_BASE}/public?page=${page}&pageSize=${pageSize}`
+        `${this.API_BASE}/public?page=${page}&pageSize=${pageSize}`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -304,7 +304,7 @@ export class DesignerService {
   ): Promise<DesignerPublic> {
     try {
       const response = await apiClient.get<BaseApiResponse<DesignerPublic>>(
-        `/${this.API_BASE}/public/${designerId}`
+        `${this.API_BASE}/public/${designerId}`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -331,7 +331,7 @@ export class DesignerService {
       }
 
       const response = await apiClient.get<BaseApiResponse<DesignerSummary[]>>(
-        `/${this.API_BASE}/public/search?${params.toString()}`
+        `${this.API_BASE}/public/search?${params.toString()}`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -347,7 +347,7 @@ export class DesignerService {
   ): Promise<DesignerSummary[]> {
     try {
       const response = await apiClient.get<BaseApiResponse<DesignerSummary[]>>(
-        `/${this.API_BASE}/public/featured?count=${count}`
+        `${this.API_BASE}/public/featured?count=${count}`
       );
       return handleApiResponse(response);
     } catch (error) {

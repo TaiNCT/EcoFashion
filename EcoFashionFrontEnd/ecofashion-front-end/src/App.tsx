@@ -33,29 +33,35 @@ import SupplierLandingPage from "./pages/explore/SupplierLandingPage";
 import FashionList from "./pages/design/FashionList";
 import DesingBrandProfile from "./pages/design/DesignBrandProfile";
 import AddDesign from "./pages/design/AddDesign";
+import Explore from "./pages/explore/Explore";
+import MaterialDetails from "./pages/material/MaterialDetails";
 function App() {
   const location = useLocation();
   // Hide Nav and Footer on these routes
-  const hideLayout = ["/login", "/signup"].includes(location.pathname);
+  const hideLayout = ["/login", "/signup","/explore"].includes(location.pathname) ||
+    location.pathname.endsWith("/profile");
 
   return (
     <AuthContextProvider>
       <div className="app">
         {!hideLayout && <Navigation />}
         <Routes>
+          {/* ===== PUBLIC ROUTES ===== */}
           <Route path="/" element={<Homepages />} />
           <Route path="/about" element={<About />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/detail/:id" element={<DesignDetail />} />
-          <Route path="/businessinfor" element={<BusinessInfor />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
-          <Route path="/fashion" element={<FashionList />} />
 
-          {/* NEW APPLICATION ROUTES - Updated multi-step forms */}
+          {/* ===== DESIGN and MATERIAL ROUTES ===== */}
+          <Route path="/fashion" element={<FashionList />} />
+          <Route path="/detail/:id" element={<DesignDetail />} />
           <Route path="/brand/:id" element={<DesingBrandProfile />} />
-          {/* Application Routes */}
+          <Route path="/material/:id" element={<MaterialDetails />} />
+
+          {/* ===== APPLICATION ROUTES ===== */}
+          <Route path="/businessinfor" element={<BusinessInfor />} />
           <Route
             path="/apply/designer"
             element={
@@ -83,48 +89,60 @@ function App() {
             }
           />
 
-          {/* Designer Routes */}
-          {/* Designer Profile */}
-                      <Route
-              path="/designer/profile"
-              element={
-                <ProtectedRoute allowedRoles={["designer"]}>
-                  <DesignerProfile />
-                </ProtectedRoute>
-              }
-            />
-          {/* Add New Design */}
-                      <Route
-              path="/designer/dashboard/add"
-              element={
-                <ProtectedRoute allowedRoles={["designer"]}>
-                  <AddDesign />
-                </ProtectedRoute>
-              }
-            />
-          {/* Designer Dashboard */}
-                      <Route
-              path="/designer/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["designer"]}>
-                  <DesginerDashboared />
-                </ProtectedRoute>
-              }
-            />
+          {/* ===== DESIGNER ROUTES ===== */}
+          <Route
+            path="/designer/profile"
+            element={
+              <ProtectedRoute allowedRoles={["designer"]}>
+                <DesignerProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/designer/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["designer"]}>
+                <DesginerDashboared />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/designer/dashboard/add"
+            element={
+              <ProtectedRoute allowedRoles={["designer"]}>
+                <AddDesign />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* EXPLORE ROUTES - Public access */}
+          {/* ===== SUPPLIER ROUTES ===== */}
+          <Route
+            path="/supplier/profile"
+            element={
+              <ProtectedRoute allowedRoles={["supplier"]}>
+                <SupplierProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ===== CUSTOMER ROUTES ===== */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute allowedRoles={["customer", "user"]}>
+                <CustomerProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ===== EXPLORE ROUTES ===== */}
+          <Route path="/explore" element={<Explore />} />
           <Route path="/explore/designers" element={<ExploreDesigners />} />
-          <Route
-            path="/explore/designers/:id"
-            element={<DesignerLandingPage />}
-          />
+          <Route path="/explore/designers/:id" element={<DesignerLandingPage />} />
           <Route path="/explore/suppliers" element={<ExploreSuppliers />} />
-          <Route
-            path="/explore/suppliers/:id"
-            element={<SupplierLandingPage />}
-          />
+          <Route path="/explore/suppliers/:id" element={<SupplierLandingPage />} />
 
-          {/* Admin Routes */}
+          {/* ===== ADMIN ROUTES ===== */}
           <Route
             path="/admin/dashboard"
             element={
@@ -138,26 +156,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <ApplicationManagement />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Supplier Routes */}
-          <Route
-            path="/supplier/profile"
-            element={
-              <ProtectedRoute allowedRoles={["supplier"]}>
-                <SupplierProfile />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Customer Routes */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute allowedRoles={["customer", "user"]}>
-                <CustomerProfile />
               </ProtectedRoute>
             }
           />

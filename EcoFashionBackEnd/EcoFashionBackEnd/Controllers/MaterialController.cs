@@ -2,6 +2,7 @@
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos;
+using EcoFashionBackEnd.Dtos.Material;
 using EcoFashionBackEnd.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -40,7 +41,7 @@ namespace EcoFashionBackEnd.Controllers
             try
             {
                 var materials = await _materialService.GetAllMaterialsAsync();
-                return Ok(ApiResult<List<MaterialModel>>.Succeed(materials.ToList()));
+                return Ok(ApiResult<List<MaterialDetailDto>>.Succeed(materials.ToList()));
             }
             catch (Exception ex)
             {

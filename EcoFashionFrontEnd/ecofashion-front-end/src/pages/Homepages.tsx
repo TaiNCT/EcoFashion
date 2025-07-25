@@ -36,15 +36,16 @@ import information from "../assets/pictures/homepage/information.png";
 
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import { useAuth } from "../services/user/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 //Icon
 import { AddToCart, EcoIcon, FavoriteBorderIcon } from "../assets/icons/icon";
 import { useEffect, useState } from "react";
 
 //
-import MaterialsSection from "../components/materials/MaterialsSection";
-import { materials } from "../data/materialsData";
+import MaterialsSectionHomepage from "../components/materials/MaterialsSectionHomepage";
 import FashionsSection from "../components/fashion/FashionsSection";
+import { useMaterial } from "../hooks/useMaterial";
 //example
 import ao_linen from "../assets/pictures/example/ao-linen.webp";
 import chan_vay_dap from "../assets/pictures/example/chan-vay-dap.webp";
@@ -598,6 +599,16 @@ const StyledInput = styled(InputBase)({
 
 export default function Homepage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  // Materials Data using API
+  const { 
+    materials, 
+    filteredMaterials, 
+    loading: materialsLoading, 
+    error: materialsError 
+  } = useMaterial();
+  
   //Design Data
   const [designs, setDesigns] = useState<Design[]>([]);
   //Loading
@@ -1079,11 +1090,13 @@ export default function Homepage() {
           sx={{ height: "2px", backgroundColor: "black", opacity: "20%" }}
         />
         {/* Nguyên Vật Liệu */}
-        <MaterialsSection
-          materials={materials.slice(0, 4)} // Show first 4 materials for homepage
+        <MaterialsSectionHomepage
+          materials={materials} // Truyền toàn bộ materials để next/back hoạt động
+          title="NGUYÊN LIỆU NỔI BẬT"
+          loading={materialsLoading}
+          error={materialsError}
           onMaterialSelect={(material) => {
-            console.log("Selected material:", material.name);
-            // TODO: Navigate to material detail or open modal
+            navigate(`/material/${material.materialId}`);
           }}
           onViewMore={() => {
             console.log("View more materials");

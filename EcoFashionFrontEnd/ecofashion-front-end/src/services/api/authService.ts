@@ -161,7 +161,7 @@ export class AuthService {
    */
   static async logout(): Promise<void> {
     try {
-      await apiClient.post("/User/logout");
+      await apiClient.post("User/logout");
     } catch (error) {
       console.warn("Logout API call failed, but continuing with local logout");
     } finally {

@@ -1,3 +1,4 @@
+// ===== MUI COMPONENTS =====
 import {
   AppBar,
   Box,
@@ -12,18 +13,16 @@ import {
   styled,
   Divider,
 } from "@mui/material";
+// ===== REACT ROUTER =====
 import { Link, matchPath, useLocation, useNavigate } from "react-router-dom";
-//Image
+// ===== IMAGE =====
 import logo from "../assets/pictures/homepage/logo2.png";
-//Icon Login
+// ===== ICONS =====
 import DesignServicesIcon from "@mui/icons-material/DesignServices";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-//Icon Register
 import LoginIcon from "@mui/icons-material/Login";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
-
-import { useEffect, useState } from "react";
 import PersonIcon from "@mui/icons-material/Person";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -35,277 +34,165 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import BusinessIcon from "@mui/icons-material/Business";
-
+import MenuIcon from "@mui/icons-material/Menu";
+import Drawer from "@mui/material/Drawer";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemButton from "@mui/material/ListItemButton";
+// ===== REACT HOOKS =====
+import { useEffect, useState } from "react";
+// ===== AUTH HOOK =====
 import { useAuth } from "../services/user/AuthContext";
+// ===== TOAST =====
 import { toast } from "react-toastify";
 
+// ===================== COMPONENT =====================
 export default function Navigation() {
+  // ===== HOOKS =====
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+  const { user, logout, refreshUserFromServer } = useAuth();
 
+  // ===== STATE: Menu Anchor =====
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [anchorE2, setAnchorE2] = useState<null | HTMLElement>(null);
+  const [anchorE3, setAnchorE3] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const openShop = Boolean(anchorE2);
+  const openExplore = Boolean(anchorE3);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
+
+  // ===== STATE: Scroll =====
+  const [scrolled, setScrolled] = useState(false);
+
+  // ===== HANDLERS: Menu =====
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
-    // Remove automatic refresh to prevent logout issues
   };
-  const handleClose = () => {
-    setAnchorEl(null);
+  const handleClose = () => setAnchorEl(null);
+  const handleClickShop = (event: React.MouseEvent<HTMLButtonElement>) => setAnchorE2(event.currentTarget);
+  const handleCloseShop = () => setAnchorE2(null);
+  const handleClickExplore = (event: React.MouseEvent<HTMLButtonElement>) => setAnchorE3(event.currentTarget);
+  const handleCloseExplore = () => setAnchorE3(null);
+
+  // ===== HANDLER: Logout =====
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+      toast.success("Đăng xuất thành công!", { position: "top-center" });
+    } catch (error: any) {
+      toast.error("Lỗi khi đăng xuất", { position: "bottom-center" });
+    }
+    handleClose();
   };
 
-  const [anchorE2, setAnchorE2] = useState<null | HTMLElement>(null);
-  const openShop = Boolean(anchorE2);
-  const handleClickShop = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorE2(event.currentTarget);
-  };
-  const handleCloseShop = () => {
-    setAnchorE2(null);
-  };
-
-  const [anchorE3, setAnchorE3] = useState<null | HTMLElement>(null);
-  const openExplore = Boolean(anchorE3);
-  const handleClickExplore = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorE3(event.currentTarget);
-  };
-  const handleCloseExplore = () => {
-    setAnchorE3(null);
-  };
-
+  // ===== HANDLER: Auth Navigation =====
   const handleAuth = (type: any) => {
     handleClose();
     handleCloseShop();
     window.scrollTo(0, 0);
-    // Get current user role for profile navigation
     const userRole = user?.role?.toLowerCase();
-
     switch (type) {
-      case "signup":
-        navigate("/signup");
-        break;
-      case "login":
-        navigate("/login");
-        break;
-      case "applydesigner":
-        navigate("/apply/designer");
-        break;
-      case "supplierregister":
-        navigate("/apply/supplier");
-        break;
+      case "signup": navigate("/signup"); break;
+      case "login": navigate("/login"); break;
+      case "applydesigner": navigate("/apply/designer"); break;
+      case "supplierregister": navigate("/apply/supplier"); break;
       case "desiger-profile":
-        // Navigate based on user role
-        if (userRole === "designer") {
-          navigate("/designer/profile");
-        } else if (userRole === "supplier") {
-          navigate("/supplier/profile");
-        } else if (userRole === "admin") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/profile"); // Customer profile
-        }
+        if (userRole === "designer") navigate("/designer/profile");
+        else if (userRole === "supplier") navigate("/supplier/profile");
+        else if (userRole === "admin") navigate("/admin/dashboard");
+        else navigate("/profile");
         break;
-      case "desiger-dashboard":
-        navigate("/designer/dashboard");
-        break;
-      case "admin-dashboard":
-        navigate("/admin/dashboard");
-        break;
-      case "admin-applications":
-        navigate("/admin/applications");
-        break;
-      case "supplier-profile":
-        navigate("/supplier/profile");
-        break;
-      case "my-applications":
-        navigate("/my-applications");
-        break;
-      case "explore-designers":
-        navigate("/explore/designers");
-        break;
-      case "explore-suppliers":
-        navigate("/explore/suppliers");
-        break;
-      case "fashion":
-        navigate("/fashion");
-        break;
+      case "desiger-dashboard": navigate("/designer/dashboard"); break;
+      case "admin-dashboard": navigate("/admin/dashboard"); break;
+      case "admin-applications": navigate("/admin/applications"); break;
+      case "supplier-profile": navigate("/supplier/profile"); break;
+      case "my-applications": navigate("/my-applications"); break;
+      case "explore-designers": navigate("/explore/designers"); break;
+      case "explore-suppliers": navigate("/explore/suppliers"); break;
+      case "fashion": navigate("/fashion"); break;
     }
   };
 
+  // ===== STYLED NAVLINK =====
   const NavLink = styled(MuiLink)(({ theme }) => ({
     marginRight: theme.spacing(2),
     color: theme.palette.text.primary,
     textDecoration: "none",
     fontWeight: 500,
-    "&:hover": {
-      color: "rgba(94, 224, 159, 1)",
-    },
+    "&:hover": { color: "rgba(94, 224, 159, 1)" },
   }));
 
-  const { user, logout, refreshUserFromServer } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/");
-      toast.success("Đăng xuất thành công!", {
-        position: "top-center",
-      });
-    } catch (error: any) {
-      toast.error("Lỗi khi đăng xuất", {
-        position: "bottom-center",
-      });
-    }
-    handleClose();
-  };
-
-  const location = useLocation();
-  const isHome = location.pathname === "/";
-
-  const [scrolled, setScrolled] = useState(false);
-
+  // ===== SCROLL EFFECT =====
   useEffect(() => {
     if (!isHome) return;
-
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 100);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 100);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isHome]);
 
-  // Function để lấy menu items dựa trên role
+  // ===== MENU ITEMS BY ROLE =====
   const getMenuItems = () => {
     if (!user) return [];
-
     const role = user.role?.toLowerCase();
     const menuItems = [];
-
     switch (role) {
       case "designer":
         menuItems.push(
-          {
-            label: "Hồ Sơ Designer",
-            path: "/designer/profile",
-            icon: (
-              <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-            ),
-          },
-          {
-            label: "Sản Phẩm Cá Nhân",
-            path: "/designer/products",
-            icon: (
-              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-            ),
-          },
-          {
-            label: "Bảng Điều Khiển",
-            path: "/designer/dashboard",
-            icon: (
-              <DashboardIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-            ),
-          }
+          { label: "Hồ Sơ Designer", path: "/designer/profile", icon: <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> },
+          { label: "Sản Phẩm Cá Nhân", path: "/designer/products", icon: <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> },
+          { label: "Bảng Điều Khiển", path: "/designer/dashboard", icon: <DashboardIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> },
         );
         break;
-
       case "admin":
         menuItems.push(
-          {
-            label: "Bảng Điều Khiển",
-            path: "/admin/dashboard",
-            icon: (
-              <DashboardIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-            ),
-          },
-          {
-            label: "Quản Lý Đơn Đăng Ký",
-            path: "/admin/applications",
-            icon: (
-              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-            ),
-          },
-          {
-            label: "Quản Lý Users",
-            path: "/admin/users",
-            icon: (
-              <PeopleIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-            ),
-          }
+          { label: "Bảng Điều Khiển", path: "/admin/dashboard", icon: <DashboardIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> },
+          { label: "Quản Lý Đơn Đăng Ký", path: "/admin/applications", icon: <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> },
+          { label: "Quản Lý Users", path: "/admin/users", icon: <PeopleIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> },
         );
         break;
-
       case "supplier":
         menuItems.push(
-          {
-            label: "Hồ Sơ Nhà Cung Cấp",
-            path: "/supplier/profile",
-            icon: (
-              <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-            ),
-          },
-          {
-            label: "Quản Lý Kho Hàng",
-            path: "/supplier/inventory",
-            icon: (
-              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-            ),
-          }
+          { label: "Hồ Sơ Nhà Cung Cấp", path: "/supplier/profile", icon: <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> },
+          { label: "Quản Lý Kho Hàng", path: "/supplier/inventory", icon: <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> },
         );
         break;
-
       case "customer":
       case "user":
       default:
         menuItems.push(
-          {
-            label: "Hồ Sơ Cá Nhân",
-            path: "/profile",
-            icon: (
-              <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-            ),
-          },
-          {
-            label: "Đơn Hàng",
-            path: "/orders",
-            icon: (
-              <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-            ),
-          }
+          { label: "Hồ Sơ Cá Nhân", path: "/profile", icon: <PersonIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> },
+          { label: "Đơn Hàng", path: "/orders", icon: <InventoryIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> },
         );
         break;
     }
-    // Thêm menu "Xem đơn đăng ký" cho tất cả user (trừ admin)
     if (role !== "admin") {
-      menuItems.push({
-        label: "Xem đơn đăng ký",
-        path: "/my-applications",
-        icon: <FeedIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />,
-      });
+      menuItems.push({ label: "Xem đơn đăng ký", path: "/my-applications", icon: <FeedIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> });
     }
-
-    // Thêm menu "Đăng ký tham gia" cho user chưa có role Designer/Supplier
     if (role !== "designer" && role !== "admin" && role !== "supplier") {
-      menuItems.push({
-        label: "Đăng ký làm Nhà Thiết Kế",
-        path: "/apply/designer",
-        icon: (
-          <DesignServicesIcon
-            sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }}
-          />
-        ),
-      });
+      menuItems.push({ label: "Đăng ký làm Nhà Thiết Kế", path: "/apply/designer", icon: <DesignServicesIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> });
     }
-
     if (role !== "supplier" && role !== "admin" && role !== "designer") {
-      menuItems.push({
-        label: "Đăng ký làm Nhà Cung Cấp",
-        path: "/apply/supplier",
-        icon: (
-          <HandshakeIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} />
-        ),
-      });
+      menuItems.push({ label: "Đăng ký làm Nhà Cung Cấp", path: "/apply/supplier", icon: <HandshakeIcon sx={{ mr: 1.5, fontSize: 20, color: "#4a5568" }} /> });
     }
-
     return menuItems;
   };
+
+  // Menu items cho Drawer mobile
+  const mainMenuItems = [
+    { label: "TRANG CHỦ", path: "/" },
+    { label: "CỬA HÀNG", path: "/fashion" },
+    { label: "KHÁM PHÁ", path: "/explore" },
+    { label: "THÔNG TIN KINH DOANH", path: "/businessinfor" },
+    { label: "VỀ CHÚNG TÔI", path: "/about" },
+    { label: "LIÊN LẠC", path: "/contact" },
+  ];
+
+  // ===================== Return RENDER =====================
   return (
     <AppBar
       position={"sticky"}
@@ -317,14 +204,10 @@ export default function Navigation() {
         paddingLeft: 3,
         paddingRight: 3,
         zIndex: (theme) => theme.zIndex.appBar + 1,
+        fontFamily: "'Julyit', ui-sans-serif, system-ui, sans-serif",
       }}
     >
-      <Toolbar
-        disableGutters
-        sx={{
-          display: "flex",
-        }}
-      >
+      <Toolbar disableGutters sx={{ display: "flex", fontFamily: "'Julyit', ui-sans-serif, system-ui, sans-serif" }}>
         {/* Logo */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Box
@@ -335,19 +218,20 @@ export default function Navigation() {
               height: 60,
               transition: "transform 0.3s ease",
               "&:hover": {
-                transform: "scale(1.05)", // slightly zoom on hover
-                cursor: "pointer", // optional
+                transform: "scale(1.05)",
+                cursor: "pointer",
               },
             }}
             onClick={() => navigate("/")}
           />
         </Box>
+        {/* Menu desktop */}
         <Box
           sx={{
             flexGrow: 1,
-            display: "flex",
+            display: { xs: "none", md: "flex" }, // Ẩn trên mobile
             justifyContent: "space-evenly",
-            maxWidth: "70%", // optional: limit width
+            maxWidth: "70%",
           }}
         >
           <NavLink
@@ -494,6 +378,21 @@ export default function Navigation() {
           >
             LIÊN LẠC
           </NavLink>
+        </Box>
+        {/* Hamburger menu cho mobile */}
+        <Box sx={{ display: { xs: "flex", md: "none" } }}>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="end"
+            onClick={handleDrawerToggle}
+            sx={{
+              color: '#22c55e', // EcoFashion green
+              '&:hover': { color: '#16a34a' },
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
         </Box>
         <Box
           sx={{
@@ -779,6 +678,30 @@ export default function Navigation() {
           )}
         </Box>
       </Toolbar>
+      {/* Drawer cho mobile */}
+      <Drawer
+        anchor="right"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{ keepMounted: true }}
+      >
+        <Box sx={{ width: 250 }} role="presentation" onClick={handleDrawerToggle}>
+          <List>
+            {mainMenuItems.map((item) => (
+              <ListItemButton key={item.label} onClick={() => navigate(item.path)}>
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            ))}
+            {/* Nếu user đã đăng nhập, hiển thị menu động theo role */}
+            {user && getMenuItems().map((item) => (
+              <ListItemButton key={item.label} onClick={() => navigate(item.path)}>
+                {item.icon}
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
     </AppBar>
   );
 }

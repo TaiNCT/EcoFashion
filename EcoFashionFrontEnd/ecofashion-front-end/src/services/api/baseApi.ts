@@ -5,7 +5,7 @@ import type { AxiosResponse } from "axios";
 // Determine API base URL based on environment
 const API_BASE_URL = import.meta.env.DEV
   ? "http://localhost:5148/api"
-  : import.meta.env.VITE_API_URL || "https://your-production-api.com/api";
+  : "https://yourdomain.com/api";
 
 // Create axios instance with common config
 export const apiClient = axios.create({
@@ -13,7 +13,9 @@ export const apiClient = axios.create({
   timeout: 30000,
   headers: {
     "Content-Type": "application/json",
+    "Accept": "application/json",
   },
+  withCredentials: false, // Disable credentials for CORS
 });
 
 // Request interceptor
@@ -27,13 +29,7 @@ apiClient.interceptors.request.use(
     // Log all requests in dev mode
     if (import.meta.env.DEV) {
       console.log(
-        `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`,
-        {
-          headers: config.headers,
-          data: config.data instanceof FormData ? "FormData" : config.data,
-          hasToken: !!token,
-          tokenStart: token?.substring(0, 20) + "...",
-        }
+        `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`
       );
     }
 
@@ -53,8 +49,7 @@ apiClient.interceptors.response.use(
       console.log(
         `✅ API Response: ${response.config.method?.toUpperCase()} ${
           response.config.url
-        } - ${response.status}`,
-        response.data
+        } - ${response.status}`
       );
     }
     return response;

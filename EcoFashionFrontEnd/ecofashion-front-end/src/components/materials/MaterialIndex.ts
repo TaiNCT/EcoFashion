@@ -1,2 +1,2 @@
-export { default as MaterialCard } from "./MaterialCard";
-export { default as MaterialsSection } from "./MaterialsSection";
+export { default as MaterialsSectionHomepage } from "./MaterialsSectionHomepage";
+export { default as MaterialCardHomepage } from "./MaterialCardHomepage";

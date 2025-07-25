@@ -73,14 +73,14 @@ class SupplierService {
     page: number = 1,
     pageSize: number = 12
   ): Promise<SupplierSummary[]> {
-    const response = await apiClient.get<any>(
-      `/${this.API_BASE}/public?page=${page}&pageSize=${pageSize}`
-    );
+          const response = await apiClient.get<any>(
+        `${this.API_BASE}/public?page=${page}&pageSize=${pageSize}`
+      );
     return handleApiResponse<SupplierSummary[]>(response);
   }
 
   static async getSupplierPublicProfile(id: string): Promise<SupplierPublic> {
-    const response = await apiClient.get<any>(`/${this.API_BASE}/public/${id}`);
+          const response = await apiClient.get<any>(`${this.API_BASE}/public/${id}`);
     return handleApiResponse<SupplierPublic>(response);
   }
 
@@ -99,7 +99,7 @@ class SupplierService {
     }
 
     const response = await apiClient.get<any>(
-      `/${this.API_BASE}/public/search?${params}`
+      `${this.API_BASE}/public/search?${params}`
     );
     return handleApiResponse<SupplierSummary[]>(response);
   }
@@ -108,14 +108,14 @@ class SupplierService {
     count: number = 6
   ): Promise<SupplierSummary[]> {
     const response = await apiClient.get<any>(
-      `/${this.API_BASE}/public/featured?count=${count}`
+      `${this.API_BASE}/public/featured?count=${count}`
     );
     return handleApiResponse<SupplierSummary[]>(response);
   }
 
   // Authenticated APIs
   static async getSupplierProfile(): Promise<SupplierModel> {
-    const response = await apiClient.get<any>(`/${this.API_BASE}/profile`);
+    const response = await apiClient.get<any>(`${this.API_BASE}/profile`);
     // Backend trả về: { success: true, data: SupplierModel }
     // Chúng ta cần access data directly
     const result = handleApiResponse<SupplierModel>(response);
@@ -124,7 +124,7 @@ class SupplierService {
 
   static async updateSupplierProfile(request: any): Promise<void> {
     const response = await apiClient.put<any>(
-      `/${this.API_BASE}/profile`,
+      `${this.API_BASE}/profile`,
       request
     );
     handleApiResponse<void>(response);
