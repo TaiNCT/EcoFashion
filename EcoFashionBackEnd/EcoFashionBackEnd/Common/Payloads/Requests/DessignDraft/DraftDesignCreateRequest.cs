@@ -17,10 +17,10 @@ namespace EcoFashionBackEnd.Common.Payloads.Requests.DessignDraft
     }
 }
 
-//  [{ 
+//[{ 
 //    "name": "Thân áo", "length": 20, "width": 10, "quantity": 2, "materialId": 1, "materialStatus": 0 
 //  },
-//  { 
-//    "name": "Tay áo", "length": 20, "width": 20, "quantity": 1, "materialId": 2, "materialStatus": 0 
+//  {
+//    "name": "Tay áo", "length": 20, "width": 20, "quantity": 1, "materialId": 2, "materialStatus": 0
 //  }
 //   ]

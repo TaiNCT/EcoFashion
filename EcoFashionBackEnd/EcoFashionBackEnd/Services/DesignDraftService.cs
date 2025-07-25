@@ -101,6 +101,55 @@ namespace EcoFashionBackEnd.Services
             return design.DesignId;
         }
 
+        public async Task<List<DesignDraftDto>> GetAllDraftsAsync(Guid designerId)
+        {
+            var drafts = await _designRepository
+                .GetAll()
+                .Where(d => d.DesignerId == designerId && d.Stage == DesignStage.Draft)
+                .Include(d => d.DraftSketches)
+                  .ThenInclude(ds => ds.Image)
+                .OrderByDescending(d => d.CreatedAt)
+                .ToListAsync();
+
+            return drafts.Select(d => new DesignDraftDto
+            {
+                DesignId = d.DesignId,
+                Name = d.Name,
+                Stage = d.Stage,
+                CreatedAt = d.CreatedAt,
+                SketchImageUrls = d.DraftSketches.Select(ds => ds.Image.ImageUrl).ToList()
+            }).ToList();
+        }
+
+        public async Task<DraftDesignDetailDto?> GetDraftDetailAsync(int designId, Guid designerId)
+        {
+            var design = await _designRepository
+                .GetAll()
+                .Include(d => d.DraftParts)
+                .Include(d => d.DraftSketches)
+                .FirstOrDefaultAsync(d => d.DesignId == designId && d.DesignerId == designerId && d.Stage == DesignStage.Draft);
+
+            if (design == null) return null;
+
+            return new DraftDesignDetailDto
+            {
+                DesignId = design.DesignId,
+                Name = design.Name,
+                Description = design.Description,
+                RecycledPercentage = design.RecycledPercentage,
+                DesignTypeId = design.DesignTypeId ?? 0,
+                DraftParts = design.DraftParts.Select(p => new DraftPartDto
+                {
+                    Name = p.Name,
+                    Length = p.Length,
+                    Width = p.Width,
+                    Quantity = p.Quantity,
+                    MaterialId = p.MaterialId,
+                    MaterialStatus = p.MaterialStatus
+                }).ToList(),
+                //SketchImageUrls = design.DraftSketches.Select(s => s.Image.ImageUrl).ToList()
+            };
+        }
 
 
 
