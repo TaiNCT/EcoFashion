@@ -44,10 +44,11 @@ import { AddToCart, EcoIcon, FavoriteBorderIcon } from "../assets/icons/icon";
 import { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 //Card
-import MaterialsSection from "../components/materials/MaterialsSection";
-import { materials } from "../data/materialsData";
+
 import FashionsSection from "../components/fashion/FashionsSection";
 import { useNavigate } from "react-router-dom";
+import useMaterial from "../hooks/useMaterial";
+import MaterialsSectionHomepage from "../components/materials/MaterialsSectionHomepage";
 
 const StyledInput = styled(InputBase)({
   borderRadius: 20,
@@ -93,8 +94,6 @@ export default function Homepage() {
   const [totalPage, setTotalPage] = useState<number>();
   const pageSize = 12;
   const [page, setPage] = useState(currentPage);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadDesigners();
