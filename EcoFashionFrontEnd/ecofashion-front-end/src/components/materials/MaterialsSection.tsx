@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Box,
   Container,
@@ -7,27 +7,32 @@ import {
   IconButton,
   Grid,
   CircularProgress,
+  Chip,
 } from "@mui/material";
-import MaterialCardHomepage from "./MaterialCardHomepage";
-import type { MaterialDetailDto } from "../../types/Material";
+import MaterialCard from "./MaterialCard";
+import type { MaterialDetailDto } from "../../schemas/materialSchema";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
-interface MaterialsSectionHomepageProps {
+interface MaterialsSectionProps {
   materials: MaterialDetailDto[];
   title?: string;
+  type?: string;
   onMaterialSelect?: (material: MaterialDetailDto) => void;
   onViewMore?: () => void;
   loading?: boolean;
   error?: string | null;
+  showViewMore?: boolean;
 }
 
-const MaterialsSectionHomepage: React.FC<MaterialsSectionHomepageProps> = ({
+const MaterialsSection: React.FC<MaterialsSectionProps> = ({
   materials,
-  title = "NGUYÊN LIỆU",
+  title,
+  type,
   onMaterialSelect,
   onViewMore,
   loading = false,
   error = null,
+  // showViewMore = true,
 }) => {
   const [startIndex, setStartIndex] = useState(0);
   const visibleCount = 4;
@@ -164,14 +169,52 @@ const MaterialsSectionHomepage: React.FC<MaterialsSectionHomepageProps> = ({
           </IconButton>
         </Box>
       </Box>
-      <Box sx={{ width: "100%" }}>
+      
+      {/* Sustainability Stats */}
+      {materials.length > 0 && (
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "center", gap: 2 }}>
+          <Chip
+            label={`${materials.filter(m => (m.sustainabilityScore || 0) >= 80).length} Xuất sắc`}
+            color="success"
+            size="small"
+          />
+          <Chip
+            label={`${materials.filter(m => (m.sustainabilityScore || 0) >= 60 && (m.sustainabilityScore || 0) < 80).length} Tốt`}
+            color="warning"
+            size="small"
+          />
+          <Chip
+            label={`${materials.filter(m => (m.sustainabilityScore || 0) >= 40 && (m.sustainabilityScore || 0) < 60).length} Trung bình`}
+            color="info"
+            size="small"
+          />
+          <Chip
+            label={`${materials.filter(m => (m.sustainabilityScore || 0) < 40).length} Cần cải thiện`}
+            color="error"
+            size="small"
+          />
+        </Box>
+      )}
+      
+      <Box sx={{ width: "100%", gap: 2 }}>
         <Grid container spacing={2}>
           {visibleMaterials.map((material) => (
             <Grid key={material.materialId} size={3}>
-              <MaterialCardHomepage
-                material={material}
-                onSelect={onMaterialSelect}
-              />
+              {type === "special" ? (
+                <div className="card">
+                  <MaterialCard
+                    material={material}
+                    type={type}
+                    onSelect={onMaterialSelect}
+                  />
+                </div>
+              ) : (
+                <MaterialCard
+                  material={material}
+                  type={type}
+                  onSelect={onMaterialSelect}
+                />
+              )}
             </Grid>
           ))}
         </Grid>
@@ -195,4 +238,4 @@ const MaterialsSectionHomepage: React.FC<MaterialsSectionHomepageProps> = ({
   );
 };
 
-export default MaterialsSectionHomepage; 
+export default MaterialsSection; 

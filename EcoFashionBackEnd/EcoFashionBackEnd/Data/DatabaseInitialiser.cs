@@ -160,8 +160,7 @@
 //            //var design = new Design
 //            //{
 //            //    DesignerId = designer.DesignerId,
-//            //    Name = "Sample T-Shirt",
-//            //    Description = "A basic sample t-shirt.",
+
 //            //    RecycledPercentage = 50.0f,
 //            //    CareInstructions = "Machine wash cold.",
 //            //    Price = 25.99m,

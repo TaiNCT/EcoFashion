@@ -74,7 +74,7 @@ export default function Login() {
   };
 
   const handleGoogleSignIn = async () => {
-    // Demo function - không có chức năng thực tế
+
     toast.info(
       "Chức năng đăng nhập Google sẽ được phát triển trong tương lai!",
       {

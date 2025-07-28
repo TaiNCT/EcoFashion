@@ -74,11 +74,11 @@ export const designerApi = {
 
 export const materialApi = {
   getAll: materialService.getAllMaterials.bind(materialService),
-  getById: materialService.getMaterialById.bind(materialService),
   getDetail: materialService.getMaterialDetail.bind(materialService),
-  create: materialService.createMaterial.bind(materialService),
-  update: materialService.updateMaterial.bind(materialService),
+  createWithSustainability: materialService.createMaterialWithSustainability.bind(materialService),
   delete: materialService.deleteMaterial.bind(materialService),
+  getSustainability: materialService.getMaterialSustainability.bind(materialService),
+  getAllMaterialTypes: materialService.getAllMaterialTypes.bind(materialService),
 };
 
 // ===== Default export (keep existing compatibility) =====

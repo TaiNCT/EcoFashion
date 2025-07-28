@@ -48,7 +48,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import FashionsSection from "../components/fashion/FashionsSection";
 import { useNavigate } from "react-router-dom";
 import useMaterial from "../hooks/useMaterial";
-import MaterialsSectionHomepage from "../components/materials/MaterialsSectionHomepage";
+import MaterialsSection from "../components/materials/MaterialsSection";
+
 
 const StyledInput = styled(InputBase)({
   borderRadius: 20,
@@ -94,6 +95,8 @@ export default function Homepage() {
   const [totalPage, setTotalPage] = useState<number>();
   const pageSize = 12;
   const [page, setPage] = useState(currentPage);
+  
+
 
   useEffect(() => {
     loadDesigners();
@@ -382,30 +385,26 @@ export default function Homepage() {
           alignItems="center"
           sx={{ maxWidth: 1200, margin: "0 auto" }}
         >
-          {[
-            { quantity: "500", unit: "+", label: "Nhà Thiết Kế" },
-            { quantity: "500", unit: "+", label: "Vật Liệu Tái Chế" },
-            { quantity: designs.length, unit: "+", label: "Sản Phẩm Bền Vững" },
-            { quantity: "300", unit: "t", label: "NL Tái Sử Dụng" },
-          ].map((item, index) => (
+                        {[
+                          { quantity: materials.length, unit: "+", label: "Vật Liệu" },
+                          { quantity: designs.length, unit: "+", label: "Thiết Kế" },
+                          { quantity: 1, unit: "+", label: "Nhà Thiết Kế" },
+                          { quantity: 1, unit: "+", label: "Nhà Cung Cấp" },
+                        ].map((item, index) => (
             <Grid key={index} textAlign="center">
-              <Typography
-                variant="h3"
-                component="div"
-                sx={{ color: "rgba(52, 168, 83, 1)", fontWeight: "bold" }}
-              >
-                {item.label === "Sản Phẩm Bền Vững" ? (
-                  <CountUp end={item.quantity} />
-                ) : (
-                  item.quantity
-                )}
-                <Typography
-                  component="span"
-                  sx={{ fontSize: "2.5rem", marginLeft: "4px" }}
-                >
-                  {item.unit}
-                </Typography>
-              </Typography>
+                                <Typography
+                    variant="h3"
+                    component="div"
+                    sx={{ color: "rgba(52, 168, 83, 1)", fontWeight: "bold" }}
+                  >
+                    <CountUp end={item.quantity} />
+                    <Typography
+                      component="span"
+                      sx={{ fontSize: "2.5rem", marginLeft: "4px" }}
+                    >
+                      {item.unit}
+                    </Typography>
+                  </Typography>
               <Typography
                 variant="h5"
                 component="div"
@@ -582,9 +581,10 @@ export default function Homepage() {
           sx={{ height: "2px", backgroundColor: "black", opacity: "20%" }}
         />
         {/* Nguyên Vật Liệu */}
-        <MaterialsSectionHomepage
+        <MaterialsSection
           materials={materials} // Truyền toàn bộ materials để next/back hoạt động
           title="NGUYÊN LIỆU NỔI BẬT"
+          type="special"
           loading={materialsLoading}
           error={materialsError}
           onMaterialSelect={(material) => {
@@ -595,6 +595,8 @@ export default function Homepage() {
             // TODO: Navigate to materials page
           }}
         />
+        
+
       </Box>
       {/* Thông Tin Chi Tiết */}
       <Box sx={{ bgcolor: "#fff", py: 6, px: 4, display: "flex" }}>
@@ -654,9 +656,11 @@ export default function Homepage() {
               bgcolor: "#00a651",
               "&:hover": { bgcolor: "#008b45" },
             }}
+            onClick={() => navigate("/explore")}
           >
             Tìm hiểu thêm ➞
           </Button>
+          
         </Grid>
 
         {/* Image Section */}
@@ -723,8 +727,22 @@ export default function Homepage() {
                   borderColor: "#ddd",
                 },
               }}
+              onClick={() => navigate("/explore")}
             >
-              Về Chúng Tôi
+              Khám Phá
+            </Button>
+            <Button
+              variant="outlined"
+              sx={{
+                color: "white",
+                borderColor: "white",
+                "&:hover": {
+                  borderColor: "#ddd",
+                },
+              }}
+              onClick={() => navigate("/about")}
+            >
+              Về Chúng Tôi
             </Button>
           </Stack>
         </Container>

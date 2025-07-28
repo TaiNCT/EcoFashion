@@ -21,7 +21,7 @@ namespace EcoFashionBackEnd.Data.test
                 {
                     Email = "customer@example.com",
                     PasswordHash = SecurityUtil.Hash("customer"),
-                    FullName = "Test Customer",
+                    FullName = "Customer Example",
                     RoleId = customerRole.RoleId,
                     Status = UserStatus.Active,
                     CreatedAt = DateTime.UtcNow
@@ -74,7 +74,7 @@ namespace EcoFashionBackEnd.Data.test
             await context.Applications.AddRangeAsync(applications);
             await context.SaveChangesAsync();
             
-            Console.WriteLine($"✅ Seeded {applications.Count} test applications");
+            Console.WriteLine($"✅ Seeded {applications.Count} applications");
         }
     }
 } 

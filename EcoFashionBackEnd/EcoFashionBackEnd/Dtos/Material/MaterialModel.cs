@@ -1,20 +1,14 @@
-﻿using EcoFashionBackEnd.Dtos.Material;
-using System;
-
-namespace EcoFashionBackEnd.Common.Payloads.Responses
+﻿namespace EcoFashionBackEnd.Dtos
 {
-    public class MaterialDetailResponse
+    public class MaterialModel
     {
         public int MaterialId { get; set; }
-        public string? MaterialTypeName { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public decimal RecycledPercentage { get; set; }
         public int QuantityAvailable { get; set; }
         public decimal PricePerUnit { get; set; }
         public string? DocumentationUrl { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime LastUpdated { get; set; }
         public decimal? CarbonFootprint { get; set; }
         public string? CarbonFootprintUnit { get; set; }
         public decimal? WaterUsage { get; set; }
@@ -28,9 +22,9 @@ namespace EcoFashionBackEnd.Common.Payloads.Responses
         public string? ApprovalStatus { get; set; }
         public string? AdminNote { get; set; }
         public bool IsAvailable { get; set; }
-        public List<string>? ImageUrls { get; set; }
-        public List<MaterialSustainabilityCriterionDto> SustainabilityCriteria { get; set; } = new List<MaterialSustainabilityCriterionDto>();
-        public List<MaterialTypeBenchmarkModel> Benchmarks { get; set; } = new List<MaterialTypeBenchmarkModel>();
-        public Dtos.SupplierModel? Supplier { get; set; }
+        public DateTime LastUpdated { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public MaterialTypeModel? MaterialType { get; set; }
+        public SupplierModel? Supplier { get; set; }
     }
 }

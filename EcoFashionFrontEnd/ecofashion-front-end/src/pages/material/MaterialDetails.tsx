@@ -35,9 +35,64 @@ import {
 } from "@mui/icons-material";
 import { EcoIcon } from "../../assets/icons/icon";
 import { materialService } from "../../services/api/materialService";
-import type { MaterialDetailDto } from "../../types/Material";
-import { DemoUtils } from "../../utils/DemoUtils";
+import type { MaterialDetailResponse } from "../../schemas/materialSchema";
+
 import { toast } from "react-toastify";
+
+// Component để hiển thị chi tiết chứng nhận
+const CertificationDetails = ({ certificationDetails }: { certificationDetails: string }) => {
+  const certifications = certificationDetails.split(',').map(c => c.trim());
+  
+  const getCertificationLink = (cert: string) => {
+    const certMap: { [key: string]: string } = {
+      'GOTS': 'https://global-standard.org/',
+      'OEKO-TEX': 'https://www.oeko-tex.com/',
+      'GRS': 'https://textileexchange.org/standards/grs/',
+      'RWS': 'https://textileexchange.org/standards/rws/',
+      'USDA': 'https://www.usda.gov/topics/organic',
+      'EU Ecolabel': 'https://ec.europa.eu/environment/ecolabel/',
+      'Soil Association': 'https://www.soilassociation.org/'
+    };
+    
+    return certMap[cert] || null;
+  };
+
+  return (
+    <Box>
+      <Typography variant="body2" sx={{ mb: 1 }}>
+        {certificationDetails}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+        Các tổ chức cấp chứng nhận:
+      </Typography>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        {certifications.map((cert, index) => {
+          const link = getCertificationLink(cert);
+          return link ? (
+            <Link 
+              key={index}
+              href={link} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              sx={{ 
+                fontSize: '0.75rem',
+                color: 'primary.main',
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' }
+              }}
+            >
+              {cert}
+            </Link>
+          ) : (
+            <Typography key={index} variant="caption" color="text.secondary">
+              {cert}
+            </Typography>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+};
 
 export default function MaterialDetails() {
   const { id } = useParams();
@@ -46,8 +101,8 @@ export default function MaterialDetails() {
   // State
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [materialDetail, setMaterialDetail] = useState<MaterialDetailDto | null>(null);
-  const [relatedMaterials, setRelatedMaterials] = useState<MaterialDetailDto[]>([]);
+  const [materialDetail, setMaterialDetail] = useState<any>(null);
+  const [relatedMaterials, setRelatedMaterials] = useState<any[]>([]);
 
   // UI State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -61,19 +116,30 @@ export default function MaterialDetails() {
     const fetchMaterialDetail = async () => {
       try {
         setLoading(true);
+        setError(null);
+        
         const data = await materialService.getMaterialDetail(Number(id));
         const allMaterials = await materialService.getAllMaterials();
+        
+        // Debug logging
+        console.log("MaterialDetail data:", data);
+        console.log("MaterialDetail benchmarks:", data.benchmarks);
+        console.log("MaterialDetail benchmarks length:", data.benchmarks?.length);
+        console.log("MaterialDetail recycledPercentage:", data.recycledPercentage);
+        console.log("MaterialDetail type:", typeof data.recycledPercentage);
         
         setMaterialDetail({
           ...data,
           imageUrls: data.imageUrls ?? [],
         });
+        
         // Get related materials (same type, different supplier)
         const related = allMaterials
           .filter(m => m.materialId !== Number(id) && m.materialTypeName === data.materialTypeName)
-          .slice(0, 4);
+          .slice(0, 3);
         setRelatedMaterials(related);
       } catch (err: any) {
+        console.error("Error fetching material detail:", err);
         const msg = err.message || "Không thể tải thông tin nguyên liệu.";
         setError(msg);
         toast.error(msg);
@@ -105,6 +171,12 @@ export default function MaterialDetails() {
 
   // Calculate sustainability score
   const getSustainabilityScore = (recycledPercentage: number) => {
+    // Ưu tiên sử dụng sustainability score từ backend
+    if (materialDetail.sustainabilityScore !== undefined && materialDetail.sustainabilityScore !== null) {
+      return materialDetail.sustainabilityScore;
+    }
+    
+    // Fallback: tính toán local như cũ
     let score = recycledPercentage;
     if (recycledPercentage >= 80) score += 20;
     else if (recycledPercentage >= 50) score += 10;
@@ -302,7 +374,7 @@ export default function MaterialDetails() {
             {/* Price and Availability */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mb: 1 }}>
-                {DemoUtils.formatPrice(materialDetail.pricePerUnit)}
+                {(materialDetail.pricePerUnit * 1000)?.toLocaleString('vi-VN')} ₫/mét
               </Typography>
               <Chip
                 label={materialDetail.quantityAvailable > 0 ? "Còn hàng" : "Hết hàng"}
@@ -311,7 +383,7 @@ export default function MaterialDetails() {
                 sx={{ mb: 2 }}
               />
               <Typography variant="body2" color="text.secondary">
-                Còn lại: {materialDetail.quantityAvailable} đơn vị
+                                  Còn lại: {materialDetail.quantityAvailable.toLocaleString('vi-VN')} mét
               </Typography>
             </Box>
 
@@ -383,75 +455,72 @@ export default function MaterialDetails() {
 
           {/* Tab Content */}
           <Box sx={{ p: 4 }}>
-            {/* Tab 1: Thông tin chi tiết */}
+            {/* Tab 1: Thông số kỹ thuật */}
             {tabIndex === 0 && (
-              <Grid container spacing={4}>
-                <Grid >
-                  <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-                    Mô tả
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 3 }}>
-                    {materialDetail.description || "Chưa có mô tả chi tiết."}
-                  </Typography>
-
-                  <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-                    Thông số kỹ thuật
-                  </Typography>
-                  <List dense>
+              <Box>
+                <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
+                  Thông số kỹ thuật
+                </Typography>
+                
+                <List>
+                  <ListItem>
+                    <ListItemText 
+                      primary="Tỷ lệ tái chế" 
+                      secondary={`${(materialDetail.recycledPercentage || 0).toFixed(1)}%`} 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText 
+                      primary="Số lượng có sẵn" 
+                      secondary={`${materialDetail.quantityAvailable.toLocaleString('vi-VN')} mét`} 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText 
+                      primary="Giá trên đơn vị" 
+                      secondary={`${(materialDetail.pricePerUnit * 1000)?.toLocaleString('vi-VN')} ₫/mét`} 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText 
+                      primary="Tổng giá trị kho" 
+                      secondary={`${((materialDetail.quantityAvailable || 0) * (materialDetail.pricePerUnit || 0) * 1000).toLocaleString('vi-VN')} ₫`} 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText 
+                      primary="Ngày tạo" 
+                      secondary={materialDetail.createdAt ? new Date(materialDetail.createdAt).toLocaleDateString('vi-VN') : 'N/A'} 
+                    />
+                  </ListItem>
+                  
+                  {/* Chứng nhận bền vững */}
+                  {materialDetail.certificationDetails && (
                     <ListItem>
                       <ListItemText 
-                        primary="Loại nguyên liệu" 
-                        secondary={materialDetail.materialTypeName || "Chưa cập nhật"} 
+                        primary="Chứng nhận bền vững" 
+                        secondary={<CertificationDetails certificationDetails={materialDetail.certificationDetails} />} 
                       />
                     </ListItem>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Tỷ lệ tái chế" 
-                        secondary={`${materialDetail.recycledPercentage.toFixed(1)}%`} 
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Giá trên đơn vị" 
-                        secondary={DemoUtils.formatPrice(materialDetail.pricePerUnit)} 
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Ngày tạo" 
-                        secondary={new Date(materialDetail.createdAt).toLocaleDateString('vi-VN')} 
-                      />
-                    </ListItem>
-                  </List>
-                </Grid>
-
-                <Grid >
-                  <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-                    Tiêu chí bền vững
-                  </Typography>
-                  {materialDetail.sustainabilityCriteria.length > 0 ? (
-                    <List dense>
-                      {materialDetail.sustainabilityCriteria.map((criterion, index) => (
-                        <ListItem key={index}>
-                          <ListItemIcon>
-                            <Box sx={{ color: "success.main" }}>
-                              <EcoIcon />
-                            </Box>
-                          </ListItemIcon>
-                          <ListItemText 
-                            primary={criterion.name || `Tiêu chí ${index + 1}`}
-                            secondary={`${criterion.value} ${criterion.unit || ''}`}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      Chưa có thông tin tiêu chí bền vững.
-                    </Typography>
                   )}
-                </Grid>
-              </Grid>
+                  {/* Sustainability Score */}
+                  <ListItem>
+                    <ListItemText 
+                      primary="Sustainability Score" 
+                      secondary={
+                        <Box>
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            {sustainabilityScore}% - Điểm đánh giá bền vững tổng hợp từ 5 tiêu chí
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Dựa trên: Carbon Footprint, Water Usage, Waste Diverted, Organic Certification, Recycled Content
+                          </Typography>
+                        </Box>
+                      } 
+                    />
+                  </ListItem>
+                </List>
+              </Box>
             )}
 
             {/* Tab 2: Tính bền vững */}
@@ -461,35 +530,82 @@ export default function MaterialDetails() {
                   Thông tin bền vững
                 </Typography>
                 
-                {materialDetail.benchmarks.length > 0 ? (
+                {/* Debug logging */}
+                {(() => {
+                  console.log("Rendering benchmarks check:", {
+                    hasMaterialDetail: !!materialDetail,
+                    benchmarks: materialDetail?.benchmarks,
+                    benchmarksLength: materialDetail?.benchmarks?.length,
+                    condition: materialDetail?.benchmarks && materialDetail.benchmarks.length > 0
+                  });
+                  return null;
+                })()}
+                
+                {materialDetail?.benchmarks && materialDetail.benchmarks.length > 0 ? (
                   <Grid container spacing={3}>
                     {materialDetail.benchmarks.map((benchmark, index) => (
-                      <Grid >
+                      <Grid key={index}>
                         <Card>
                           <CardContent>
                             <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
-                              {benchmark.criterionName || `Benchmark ${index + 1}`}
+                              {benchmark.sustainabilityCriteria?.name || `Tiêu chí ${index + 1}`}
                             </Typography>
-                            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                              <Typography variant="body2">Giá trị thực tế:</Typography>
-                              <Typography variant="body2" fontWeight="bold">
-                                {benchmark.actualValue}
-                              </Typography>
-                            </Box>
+                            
+                            {/* Giá trị chuẩn */}
                             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                               <Typography variant="body2">Giá trị chuẩn:</Typography>
                               <Typography variant="body2" fontWeight="bold">
-                                {benchmark.benchmarkValue}
+                                {benchmark.criteriaId === 4 ? 
+                                  (benchmark.value >= 1 ? "Có" : "Không") : 
+                                  `${benchmark.value} ${benchmark.sustainabilityCriteria?.unit || ''}`
+                                }
                               </Typography>
                             </Box>
+                            
+                            {/* Giá trị thực tế */}
+                            {benchmark.actualValue !== null && benchmark.actualValue !== undefined && (
+                              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                                <Typography variant="body2">Giá trị thực tế:</Typography>
+                                <Typography variant="body2" fontWeight="bold">
+                                  {benchmark.criteriaId === 4 ? 
+                                    (benchmark.actualValue >= 1 ? "Có" : "Không") : 
+                                    `${benchmark.actualValue} ${benchmark.sustainabilityCriteria?.unit || ''}`
+                                  }
+                                </Typography>
+                              </Box>
+                            )}
+                            
+                            {/* So sánh cải thiện */}
+                            {benchmark.improvementPercentage !== null && benchmark.improvementPercentage !== undefined && (
+                              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                                <Typography variant="body2">Cải thiện:</Typography>
+                                <Typography 
+                                  variant="body2" 
+                                  fontWeight="bold"
+                                  color={benchmark.improvementColor === 'success' ? 'success.main' : 
+                                         benchmark.improvementColor === 'error' ? 'error.main' : 'warning.main'}
+                                >
+                                  {benchmark.criteriaId === 4 ? 
+                                    `(${benchmark.improvementStatus})` :
+                                    `${benchmark.improvementPercentage > 0 ? '+' : ''}${benchmark.improvementPercentage.toFixed(1)}% (${benchmark.improvementStatus})`
+                                  }
+                                </Typography>
+                              </Box>
+                            )}
+                            
+                            {/* Loại vật liệu */}
+                            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                              <Typography variant="body2">Loại vật liệu:</Typography>
+                              <Typography variant="body2" fontWeight="bold">
+                                {benchmark.materialType?.typeName || 'N/A'}
+                              </Typography>
+                            </Box>
+                            
+                            {/* Tiêu chí ID */}
                             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                              <Typography variant="body2">Cải thiện:</Typography>
-                              <Typography 
-                                variant="body2" 
-                                fontWeight="bold"
-                                color={benchmark.improvementPercentage > 0 ? "success.main" : "error.main"}
-                              >
-                                {benchmark.improvementPercentage > 0 ? '+' : ''}{benchmark.improvementPercentage.toFixed(1)}%
+                              <Typography variant="body2">Tiêu chí ID:</Typography>
+                              <Typography variant="body2" fontWeight="bold">
+                                {benchmark.criteriaId}
                               </Typography>
                             </Box>
                           </CardContent>
@@ -573,7 +689,7 @@ export default function MaterialDetails() {
                         {material.supplier.supplierName}
                       </Typography>
                       <Typography variant="h6" color="primary" fontWeight="bold">
-                        {DemoUtils.formatPrice(material.pricePerUnit)}
+                        {(material.pricePerUnit * 1000)?.toLocaleString('vi-VN')} ₫/mét
                       </Typography>
                       <Chip
                         label={`${material.recycledPercentage.toFixed(1)}% tái chế`}

@@ -225,7 +225,7 @@ namespace EcoFashionBackEnd.Entities
             #region Material 
             // Configure relationships for Materials
             modelBuilder.Entity<Material>()
-                .HasOne(m => m.SupplierProfile)
+                .HasOne(m => m.Supplier)
                 .WithMany()
                 .HasForeignKey(m => m.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);

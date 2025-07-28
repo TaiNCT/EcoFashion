@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { Product, ProductFilter, ProductSort } from "../types/Product";
-import { DemoUtils } from "../utils/DemoUtils";
+
 import {
   products as allProducts,
   filterProducts,
@@ -164,7 +164,7 @@ export const useProducts = (
 
     try {
       // Simulate API call
-      await DemoUtils.simulateApiDelay(800);
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       // In a real app, this would refetch from the API
     } catch (err) {

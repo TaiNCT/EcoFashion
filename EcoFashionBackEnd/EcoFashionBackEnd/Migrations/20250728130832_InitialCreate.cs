@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EcoFashionBackEnd.Migrations
 {
     /// <inheritdoc />
-    public partial class v1 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -71,7 +71,14 @@ namespace EcoFashionBackEnd.Migrations
                 {
                     TypeId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TypeName = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    TypeName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Category = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsOrganic = table.Column<bool>(type: "bit", nullable: false),
+                    IsRecycled = table.Column<bool>(type: "bit", nullable: false),
+                    SustainabilityNotes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DisplayOrder = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -86,7 +93,11 @@ namespace EcoFashionBackEnd.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Weight = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Thresholds = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    DisplayOrder = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -362,6 +373,20 @@ namespace EcoFashionBackEnd.Migrations
                     QuantityAvailable = table.Column<int>(type: "int", nullable: false),
                     PricePerUnit = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     DocumentationUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CarbonFootprint = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    CarbonFootprintUnit = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    WaterUsage = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    WaterUsageUnit = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    WasteDiverted = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    WasteDivertedUnit = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProductionCountry = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ManufacturingProcess = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CertificationDetails = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CertificationExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ApprovalStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AdminNote = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsAvailable = table.Column<bool>(type: "bit", nullable: false),
+                    LastUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
