@@ -12,6 +12,7 @@ using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Dtos.Design;
 using CloudinaryDotNet.Actions;
 using Newtonsoft.Json;
+using NuGet.Protocol;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -262,7 +263,7 @@ namespace EcoFashionBackEnd.Services
                 ProductScore = design.ProductScore,
                 Status = design.Status,
                 CreatedAt = design.CreatedAt,
-
+                Stage = design.Stage,
                 DesignTypeName = design.DesignTypes?.DesignName,
                 ImageUrls = design.DesignImages.Select(di => di.Image.ImageUrl).ToList(),
 

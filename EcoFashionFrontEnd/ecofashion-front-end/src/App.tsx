@@ -35,10 +35,14 @@ import DesingBrandProfile from "./pages/design/DesignBrandProfile";
 import AddDesign from "./pages/design/AddDesign";
 import Explore from "./pages/explore/Explore";
 import MaterialDetails from "./pages/material/MaterialDetails";
+import AddDesignDraft from "./pages/design/AddDesignDraft";
+//test
+import TestingCreate from "./pages/design/testingCreate";
 function App() {
   const location = useLocation();
   // Hide Nav and Footer on these routes
-  const hideLayout = ["/login", "/signup","/explore"].includes(location.pathname) ||
+  const hideLayout =
+    ["/login", "/signup", "/explore"].includes(location.pathname) ||
     location.pathname.endsWith("/profile");
 
   return (
@@ -114,7 +118,22 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/designer/dashboard/create"
+            element={
+              <ProtectedRoute allowedRoles={["designer"]}>
+                <AddDesignDraft />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/designer/dashboard/testing"
+            element={
+              <ProtectedRoute allowedRoles={["designer"]}>
+                <TestingCreate />
+              </ProtectedRoute>
+            }
+          />
           {/* ===== SUPPLIER ROUTES ===== */}
           <Route
             path="/supplier/profile"
@@ -138,9 +157,15 @@ function App() {
           {/* ===== EXPLORE ROUTES ===== */}
           <Route path="/explore" element={<Explore />} />
           <Route path="/explore/designers" element={<ExploreDesigners />} />
-          <Route path="/explore/designers/:id" element={<DesignerLandingPage />} />
+          <Route
+            path="/explore/designers/:id"
+            element={<DesignerLandingPage />}
+          />
           <Route path="/explore/suppliers" element={<ExploreSuppliers />} />
-          <Route path="/explore/suppliers/:id" element={<SupplierLandingPage />} />
+          <Route
+            path="/explore/suppliers/:id"
+            element={<SupplierLandingPage />}
+          />
 
           {/* ===== ADMIN ROUTES ===== */}
           <Route

@@ -1,85 +1,87 @@
 import { z } from "zod";
-// Schema cho form Apply Designer
-// Sử dụng Zod để xác định các trường và kiểu dữ liệu
-export const MaterialSchema = z.object({
+
+export const materialItemSchema = z.object({
   materialId: z.number(),
   persentageUsed: z.number().min(0).max(100),
   meterUsed: z.number().min(0),
 });
 
-// Schema cho feature (tương ứng CreateDesignFeatureRequest)
-export const DesignFeatureSchema = z.object({
-  ReduceWaste: z.boolean(),
-  LowImpactDyes: z.boolean(),
-  Durable: z.boolean(),
-  EthicallyManufactured: z.boolean(),
+export const featureSchema = z.object({
+  reduceWaste: z.boolean(),
+  lowImpactDyes: z.boolean(),
+  durable: z.boolean(),
+  ethicallyManufactured: z.boolean(),
 });
 
-export const CreateDesignSchema = z.object({
-  Name: z.string().optional(),
-  Description: z.string().optional(),
-  RecycledPercentage: z.number().min(0).max(100),
-  CareInstructions: z.string().optional(),
-  Price: z.number().min(0),
-  ProductScore: z.number().int().min(0),
-  Status: z.string().optional(),
-  DesignTypeId: z.number().int().optional(),
+export const createDesignSchema = z.object({
+  name: z.string().min(1, { message: "Cần Thêm Tên Của Sản Phẩm" }),
+  description: z.string().min(1, { message: "Cần Thêm Mô Tả Sản Phẩm" }),
+  recycledPercentage: z
+    .number({ message: "Cần Thêm Phần Trăn Bền Vững" })
+    .min(0, { message: "Phần Trăn Bền Vững Ít Nhất Là 0" })
+    .max(100, { message: "Phần Trăn Bền Vững Nhiều Nhất Là 100" }),
+  careInstructions: z
+    .string()
+    .min(1, { message: "Cần Thêm Cách Bảo Quản Sản Phẩm" }),
+  price: z
+    .number({ message: "Cần Thêm Giá Tiền" })
+    .min(10000, { message: "Giá Tiền Nhỏ Nhất là 10.000đ" }),
+  productScore: z
+    .number({ message: "Cần Thêm Điểm Của Sản Phẩm" })
+    .int({ message: "Product score must be an integer" })
+    .min(0, { message: "Product score must be at least 0" })
+    .max(5, { message: "Product score must be at most 5" }),
+  status: z.string().min(1, { message: "Status is required" }),
+  designTypeId: z.number({ message: "Cần Chọn Loại Thời Trang" }),
 
-  Feature: DesignFeatureSchema,
+  feature: featureSchema,
 
-  MaterialsJson: z.string().refine(
+  materialsJson: z.any().refine(
     (val) => {
       try {
         const parsed = JSON.parse(val);
         return (
           Array.isArray(parsed) &&
-          parsed.every((m) => MaterialSchema.safeParse(m).success)
+          parsed.every((item) => materialItemSchema.safeParse(item).success)
         );
       } catch {
         return false;
       }
     },
     {
-      message: "materialsJson must be a valid JSON string of material objects",
+      message: "Cần Thêm Chất Liệu",
     }
   ),
 
-  imageFiles: z.any().optional(), // Bạn sẽ xử lý file bên ngoài, ví dụ thông qua `FormData` và `input[type=file]`
+  imageFiles: z
+    .any()
+    .refine((files) => Array.isArray(files) && files.length > 0, {
+      message: "Cần Thêm Hình",
+    }),
 });
-
-export type CreateDesignFormValues = z.infer<typeof CreateDesignSchema>;
+export type CreateDesignFormValues = z.infer<typeof createDesignSchema>;
 
 // Schema cho Response từ API
+// Define the material response item schema
+const materialResponseSchema = z.object({
+  materialId: z.number(),
+  name: z.string(),
+  usagePercentage: z.number(),
+  recycledPercentage: z.number(),
+});
+
+// Response schema
 export const createDesignModelResponseSchema = z.object({
-  Name: z.string().optional(),
-  Description: z.string().optional(),
-  RecycledPercentage: z.number().min(0).max(100),
-  CareInstructions: z.string().optional(),
-  Price: z.number().min(0),
-  ProductScore: z.number().int().min(0),
-  Status: z.string().optional(),
-  DesignTypeId: z.number().int().optional(),
-
-  Feature: DesignFeatureSchema,
-
-  MaterialsJson: z.string().refine(
-    (val) => {
-      try {
-        const parsed = JSON.parse(val);
-        return (
-          Array.isArray(parsed) &&
-          parsed.every((m) => MaterialSchema.safeParse(m).success)
-        );
-      } catch {
-        return false;
-      }
-    },
-    {
-      message: "materialsJson must be a valid JSON string of material objects",
-    }
-  ),
-
-  ImageFiles: z.string().url().optional().or(z.literal("")),
+  name: z.string(),
+  recycledPercentage: z.number(),
+  price: z.number(),
+  productScore: z.number(),
+  status: z.string().nullable().optional(),
+  designTypeId: z.number().nullable().optional(),
+  feature: featureSchema,
+  materials: z.array(materialResponseSchema),
+  imageUrls: z.array(z.string().url()),
+  createdAt: z.string(), // or z.coerce.date() if you want to parse it into a Date
 });
 
 export type CreateDesignModelResponse = z.infer<

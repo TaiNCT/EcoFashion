@@ -28,7 +28,10 @@ import type { BaseApiResponse } from "./baseApi";
 // }
 
 export interface SustainabilityCriterion {
-  criterion: string;
+  criterionId: number;
+  name: string;
+  description: string;
+  unit: string;
   value: number;
 }
 
@@ -48,6 +51,7 @@ export interface StoredMaterial {
   supplierId: string;
   name: string;
   recycledPercentage: number;
+  sustainabilityCriteria: SustainabilityCriterion[];
 }
 
 export interface Designer {
@@ -94,6 +98,7 @@ export interface Design {
   avgRating: number | null;
   reviewCount: number;
   designer: Designer;
+  stage: string;
 }
 
 export interface DesignResponse {
@@ -132,9 +137,6 @@ export class DesignService {
    */
   static async getAllDesign(): Promise<Design[]> {
     try {
-      //   const response = await apiClient.get<BaseApiResponse<DesignerResponse>>(
-      //     `/${this.API_BASE}/Detail/${designId}`
-      //   );
       const response = await apiClient.get<BaseApiResponse<Design[]>>(
         `/${this.API_BASE}/GetAll`
       );
@@ -176,6 +178,20 @@ export class DesignService {
     }
   }
   /**
+   * Get material
+   */
+  static async getMaterial(): Promise<StoredMaterial[]> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<StoredMaterial[]>>(
+        `/Materials`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
    * Get stored material
    */
   static async getStoredMaterial(): Promise<StoredMaterial[]> {
@@ -196,51 +212,51 @@ export class DesignService {
     const formData = new FormData();
 
     // Text/number fields
-    if (request.Name) formData.append(designFieldMapping.name, request.Name);
-    if (request.Description)
-      formData.append(designFieldMapping.description, request.Description);
+    if (request.name) formData.append(designFieldMapping.name, request.name);
+    if (request.description)
+      formData.append(designFieldMapping.description, request.description);
     formData.append(
       designFieldMapping.recycledPercentage,
-      request.RecycledPercentage.toString()
+      request.recycledPercentage.toString()
     );
-    if (request.CareInstructions)
+    if (request.careInstructions)
       formData.append(
         designFieldMapping.careInstructions,
-        request.CareInstructions
+        request.careInstructions
       );
-    formData.append(designFieldMapping.price, request.Price.toString());
+    formData.append(designFieldMapping.price, request.price.toString());
     formData.append(
       designFieldMapping.productScore,
-      request.ProductScore.toString()
+      request.productScore.toString()
     );
-    if (request.Status)
-      formData.append(designFieldMapping.status, request.Status);
-    if (request.DesignTypeId !== undefined)
+    if (request.status)
+      formData.append(designFieldMapping.status, request.status);
+    if (request.designTypeId)
       formData.append(
         designFieldMapping.designTypeId,
-        request.DesignTypeId.toString()
+        request.designTypeId.toString()
       );
 
     // Feature
     formData.append(
       designFieldMapping.reduceWaste,
-      request.Feature.ReduceWaste.toString()
+      request.feature.reduceWaste.toString()
     );
     formData.append(
       designFieldMapping.lowImpactDyes,
-      request.Feature.LowImpactDyes.toString()
+      request.feature.lowImpactDyes.toString()
     );
     formData.append(
       designFieldMapping.durable,
-      request.Feature.Durable.toString()
+      request.feature.durable.toString()
     );
     formData.append(
       designFieldMapping.ethicallyManufactured,
-      request.Feature.EthicallyManufactured.toString()
+      request.feature.ethicallyManufactured.toString()
     );
 
     // Materials (as JSON string)
-    const materialsJson = JSON.stringify(request.MaterialsJson);
+    const materialsJson = JSON.stringify(request.materialsJson);
     formData.append(designFieldMapping.materialsJson, materialsJson);
 
     // Image files
@@ -259,18 +275,23 @@ export class DesignService {
   ): Promise<CreateDesignModelResponse> {
     const formData = this.createFormData(request);
 
-    const response = await apiClient.post<any>(
-      `/${this.API_BASE}/Create`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        timeout: 300000, // 5 minutes for file upload
-      }
-    );
-    const result = handleApiResponse<CreateDesignModelResponse>(response);
-    return createDesignModelResponseSchema.parse(result);
+    try {
+      const response = await apiClient.post<any>(
+        `/${this.API_BASE}/Create`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          timeout: 300000, // 5 minutes for file upload
+        }
+      );
+      // const result = handleApiResponse<CreateDesignModelResponse>(response);
+      // return createDesignModelResponseSchema.parse(result);
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
   }
 }
 export default DesignService;
