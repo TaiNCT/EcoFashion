@@ -1356,7 +1356,7 @@ export default function DesignDetail() {
         {/* Related Products */}
         <FashionsSection
           products={relatedDesign}
-          title="SẢN PHẨM NỔI BẬT"
+          title="SẢN PHẨM LIÊN QUAN"
           // onProductSelect={(product) => {
           //   console.log("Selected product:", product.name);
           //   // TODO: Navigate to product detail or open modal

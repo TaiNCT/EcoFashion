@@ -67,10 +67,16 @@ export interface Designer {
   certificates: string; // or string[] if you parse JSON
 }
 
-// export interface DesignType {
-//   designTypeId: number;
-//   designTypeName: string;
-// }
+export interface DesignType {
+  designTypeId: number;
+  designName: string;
+}
+
+export interface MaterialType {
+  typeId: number;
+  typeName: string;
+}
+
 export interface Feature {
   reduceWaste?: boolean;
   lowImpactDyes?: boolean;
@@ -145,6 +151,7 @@ export class DesignService {
       return handleApiError(error);
     }
   }
+
   /**
    * Get all design with pagination
    */
@@ -161,6 +168,7 @@ export class DesignService {
       return handleApiError(error);
     }
   }
+
   /**
    * Get designer profile by designer ID
    */
@@ -177,6 +185,7 @@ export class DesignService {
       return handleApiError(error);
     }
   }
+
   /**
    * Get material
    */
@@ -288,6 +297,34 @@ export class DesignService {
       );
       // const result = handleApiResponse<CreateDesignModelResponse>(response);
       // return createDesignModelResponseSchema.parse(result);
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Get Design Type
+   */
+  static async getDesignType(): Promise<DesignType[]> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<DesignType[]>>(
+        `/DesignTypes`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Get Material Type
+   */
+  static async getMaterialType(): Promise<MaterialType[]> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<MaterialType[]>>(
+        `/MaterialTypes`
+      );
       return handleApiResponse(response);
     } catch (error) {
       return handleApiError(error);

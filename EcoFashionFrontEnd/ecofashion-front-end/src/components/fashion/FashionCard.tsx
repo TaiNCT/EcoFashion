@@ -288,7 +288,6 @@ const FashionCard: React.FC<FashionCardProps> = ({
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          paddingTop: 2,
           backgroundImage: `
           linear-gradient(0deg,
             transparent 24%,

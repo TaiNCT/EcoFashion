@@ -84,9 +84,9 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
         textAlign: "center",
         display: "flex",
         flexDirection: "column",
-        width: "90%",
+        width: "100%",
         margin: "auto",
-        paddingTop: 2,
+        padding: 2,
       }}
     >
       <Box

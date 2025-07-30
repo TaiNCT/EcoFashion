@@ -804,7 +804,7 @@ export default function DesignerDashBoard() {
           <Typography>Chào mừng trở lại, {user?.fullName}</Typography>
         </Box>
         {/* Button */}
-        <Box sx={{ display: "flex", marginLeft: "auto", gap: 2 }}>
+        <Box sx={{ display: "flex", marginLeft: "auto", gap: 2, padding: 2 }}>
           <Button
             variant="outlined"
             sx={{
