@@ -27,7 +27,7 @@ namespace EcoFashionBackEnd.Mapper
             CreateMap<CreateDesignVariantRequest, DesignVariantModel>();
             CreateMap<DesignVariantModel, DesignsVariant>();
             CreateMap<CreateDesignVariantRequest, DesignsVariant>();
-
+            CreateMap<DesignsType, DesignTypeDto>();
             // CreateDesign mapping
             CreateMap<CreateDesignRequest, DesignModel>();
             CreateMap<CreateDesignRequest, DesignFeatureModel>()
