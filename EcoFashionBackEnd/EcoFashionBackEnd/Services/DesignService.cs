@@ -234,7 +234,7 @@ namespace EcoFashionBackEnd.Services
 
         public async Task<List<DesignListItemDto>> GetAllDesignsByDesignerIdAsync(Guid designerId)
         {
-            var designs = await _designRepository.GetAll().Where(d => d.DesignerId == designerId)
+            var designs = await _designRepository.GetAll().AsNoTracking().Where(d => d.DesignerId == designerId)
                 .Include(d => d.DesignTypes)
                 .Include(d => d.DesignImages).ThenInclude(di => di.Image)
                 .Include(d => d.DesignsFeature)
