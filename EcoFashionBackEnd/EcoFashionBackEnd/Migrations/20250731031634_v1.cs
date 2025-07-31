@@ -45,7 +45,9 @@ namespace EcoFashionBackEnd.Migrations
                 {
                     DesignTypeId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    DesignName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    DesignName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LaborHours = table.Column<float>(type: "real", nullable: true),
+                    LaborCostPerHour = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -324,7 +326,8 @@ namespace EcoFashionBackEnd.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RecycledPercentage = table.Column<float>(type: "real", nullable: false),
                     CareInstructions = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    SalePrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     ProductScore = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Stage = table.Column<string>(type: "nvarchar(max)", nullable: false),

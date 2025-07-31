@@ -66,6 +66,17 @@ public class DesignController : ControllerBase
         return Ok(ApiResult<DesignDetailResponse>.Succeed(response));
     }
 
+    [HttpGet("Designs-by-designer/{designerId}")]
+    public async Task<IActionResult> GetAllDesignsByDesignerId(Guid designerId)
+    {
+        var designs = await _designService.GetAllDesignsByDesignerIdAsync(designerId);
+
+        if (designs == null || !designs.Any())
+            return NotFound(ApiResult<List<DesignListItemDto>>.Fail("Không tìm thấy thiết kế nào cho nhà thiết kế này."));
+
+        return Ok(ApiResult<List<DesignListItemDto>>.Succeed(designs));
+    }
+
 
 
     [HttpPost("Create")]
