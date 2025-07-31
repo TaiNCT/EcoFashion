@@ -161,7 +161,7 @@ namespace EcoFashionBackEnd.Entities
                 .HasForeignKey(d => d.DesignTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Design>()
-                .Property(d => d.Price)
+                .Property(d => d.SalePrice)
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<DesignTypeSizeRatio>()

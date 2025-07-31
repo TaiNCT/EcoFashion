@@ -38,7 +38,7 @@ namespace EcoFashionBackEnd.Data.test
                     DesignerId = designer.DesignerId,
                     RecycledPercentage = 100 - i, // giảm dần cho đa dạng
                     CareInstructions = $"{designNames[i]} phải giặt bằng nước, ít xài hóa chất",
-                    Price = random.Next(min, max + 1),
+                    SalePrice = random.Next(min, max + 1),
                     ProductScore = 5,
                     Status = "in stock",
                     DesignTypeId = 1, 

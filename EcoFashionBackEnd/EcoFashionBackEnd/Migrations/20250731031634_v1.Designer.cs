@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250725113908_v1")]
+    [Migration("20250731031634_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -161,15 +161,15 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Price")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("ProductScore")
                         .HasColumnType("int");
 
                     b.Property<float>("RecycledPercentage")
                         .HasColumnType("real");
+
+                    b.Property<decimal?>("SalePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Stage")
                         .IsRequired()
@@ -177,6 +177,9 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("DesignId");
 
@@ -457,6 +460,12 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("DesignName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("LaborCostPerHour")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<float?>("LaborHours")
+                        .HasColumnType("real");
 
                     b.HasKey("DesignTypeId");
 

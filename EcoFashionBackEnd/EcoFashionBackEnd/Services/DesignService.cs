@@ -1,16 +1,10 @@
-﻿using EcoFashionBackEnd.Common.Payloads.Requests;
-using EcoFashionBackEnd.Entities;
-using EcoFashionBackEnd.Repositories;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Dtos.Design;
-using CloudinaryDotNet.Actions;
+using EcoFashionBackEnd.Entities;
+using EcoFashionBackEnd.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace EcoFashionBackEnd.Services
@@ -76,7 +70,7 @@ namespace EcoFashionBackEnd.Services
                 Description = design.Description,
                 RecycledPercentage = design.RecycledPercentage,
                 CareInstructions = design.CareInstructions,
-                Price = design.Price,
+                Price = (decimal)design.SalePrice,
                 ProductScore = design.ProductScore,
                 Status = design.Status,
                 CreatedAt = design.CreatedAt,
@@ -238,11 +232,71 @@ namespace EcoFashionBackEnd.Services
 
         }
 
-        //public async Task<IEnumerable<DesignModel>> GetAllDesigns()
-        //{
-        //    var designs = await _designRepository.GetAll().ToListAsync();
-        //    return _mapper.Map<List<DesignModel>>(designs);
-        //}
+        public async Task<List<DesignListItemDto>> GetAllDesignsByDesignerIdAsync(Guid designerId)
+        {
+            var designs = await _designRepository.GetAll().Where(d => d.DesignerId == designerId)
+                .Include(d => d.DesignTypes)
+                .Include(d => d.DesignImages).ThenInclude(di => di.Image)
+                .Include(d => d.DesignsFeature)
+                .Include(d => d.DesignsVariants).ThenInclude(v => v.DesignsColor)
+                .Include(d => d.DesignsVariants).ThenInclude(v => v.DesignsSize)
+                .Include(d => d.DesignsMaterials).ThenInclude(dm => dm.Materials).ThenInclude(m => m.MaterialType)
+                .Include(d => d.DesignsMaterials).ThenInclude(dm => dm.Materials).ThenInclude(m => m.MaterialSustainabilityMetrics).ThenInclude(ms => ms.SustainabilityCriterion)
+                .Include(d => d.DesignsRatings)
+                .ToListAsync();
+
+            var result = designs.Select(d => new DesignListItemDto
+            {
+                DesignId = d.DesignId,
+                Name = d.Name,
+                Description = d.Description,
+                CreatedAt = d.CreatedAt,
+                DesignTypeName = d.DesignTypes?.DesignName,
+                ImageUrls = d.DesignImages?.Select(di => di.Image?.ImageUrl).ToList(),
+
+                AvgRating = d.DesignsRatings.Any() ? d.DesignsRatings.Average(r => r.RatingScore) : null,
+                ReviewCount = d.DesignsRatings.Count,
+                Feature = d.DesignsFeature == null ? null : new DesignFeatureDto
+                {
+                    ReduceWaste = d.DesignsFeature.ReduceWaste,
+                    LowImpactDyes = d.DesignsFeature.LowImpactDyes,
+                    Durable = d.DesignsFeature.Durable,
+                    EthicallyManufactured = d.DesignsFeature.EthicallyManufactured
+                },
+                Variants = d.DesignsVariants.Select(v => new VariantDto
+                {
+                    SizeName = v.DesignsSize?.SizeName ?? "",
+                    ColorName = v.DesignsColor?.ColorName ?? "",
+                    ColorCode = v.DesignsColor?.ColorCode ?? "",
+                    Quantity = v.Quantity,
+                    CarbonFootprint = v.CarbonFootprint,
+                    WaterUsage = v.WaterUsage,
+                    WasteDiverted = v.WasteDiverted
+                }).ToList(),
+
+                Materials = d.DesignsMaterials.Select(dm => new MaterialDto
+                {
+                    MaterialId = dm.MaterialId,
+                    PersentageUsed = dm.PersentageUsed,
+                    MeterUsed = dm.MeterUsed,
+                    MaterialName = dm.Materials?.Name,
+                    MaterialDescription = dm.Materials?.Description,
+                    MaterialTypeName = dm.Materials?.MaterialType?.TypeName,
+
+                    SustainabilityCriteria = dm.Materials?.MaterialSustainabilityMetrics?
+                        .Select(ms => new SustainabilityCriterionDto
+                        {
+                            Criterion = ms.SustainabilityCriterion?.Name?.Trim().ToLower().Replace(" ", "_") ?? "",
+                            Value = (decimal)ms.Value
+                        })
+                        .Where(dto => !string.IsNullOrEmpty(dto.Criterion))
+                        .ToList() ?? new()
+                }).ToList()
+            }).ToList();
+
+            return result;
+        }
+
         public async Task<IEnumerable<DesignDetailDto?>> GetAllDesigns()
         {
             var designs = await _dbContext.Designs
@@ -258,7 +312,7 @@ namespace EcoFashionBackEnd.Services
                 DesignId = design.DesignId,
                 Name = design.Name,
                 RecycledPercentage = design.RecycledPercentage,
-                Price = design.Price,
+                Price = (decimal)design.SalePrice,
                 ProductScore = design.ProductScore,
                 Status = design.Status,
                 CreatedAt = design.CreatedAt,
@@ -294,7 +348,7 @@ namespace EcoFashionBackEnd.Services
                     DesignId = design.DesignId,
                     Name = design.Name,
                     RecycledPercentage = design.RecycledPercentage,
-                    Price = design.Price,
+                    Price = (decimal)design.SalePrice,
                     ProductScore = design.ProductScore,
                     Status = design.Status,
                     CreatedAt = design.CreatedAt,

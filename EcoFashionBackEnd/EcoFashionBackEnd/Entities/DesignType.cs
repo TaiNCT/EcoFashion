@@ -12,6 +12,9 @@ namespace EcoFashionBackEnd.Entities
         public int DesignTypeId { get; set; }
 
         public string DesignName { get; set; }
+        public float? LaborHours { get; set; }
+
+        public decimal? LaborCostPerHour { get; set; }
         public virtual ICollection<DesignTypeSizeRatio> TypeSizeRatios { get; set; } = new List<DesignTypeSizeRatio>();
     }
 }
