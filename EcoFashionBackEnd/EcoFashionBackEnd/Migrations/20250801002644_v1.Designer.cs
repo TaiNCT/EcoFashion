@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250731031634_v1")]
+    [Migration("20250801002644_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -133,6 +133,62 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasIndex("MaterialId");
 
                     b.ToTable("DesignsMaterials");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Blog", b =>
+                {
+                    b.Property<int>("BlogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BlogId"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("BlogId");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("Blogs");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.BlogImage", b =>
+                {
+                    b.Property<int>("BlogImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BlogImageId"));
+
+                    b.Property<int>("BlogId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ImageId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BlogImageId");
+
+                    b.HasIndex("ImageId");
+
+                    b.HasIndex("BlogId", "ImageId")
+                        .IsUnique();
+
+                    b.ToTable("BlogImages");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>
@@ -961,6 +1017,36 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("Materials");
                 });
 
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Blog", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.BlogImage", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.Blog", "Blog")
+                        .WithMany("BlogImages")
+                        .HasForeignKey("BlogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Image", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Blog");
+
+                    b.Navigation("Image");
+                });
+
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>
                 {
                     b.HasOne("EcoFashionBackEnd.Entities.DesignsType", "DesignTypes")
@@ -1247,6 +1333,11 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("Designer");
 
                     b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Blog", b =>
+                {
+                    b.Navigation("BlogImages");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>
