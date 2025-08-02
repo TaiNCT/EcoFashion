@@ -49,9 +49,9 @@ public class BlogController : ControllerBase
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
             return Unauthorized(ApiResult<CreateDesignResponse>.Fail("Không thể xác định người dùng."));
         var result = await _blogService.UpdateBlogAsync(id, userId, request);
-        if (!result)
-            return BadRequest("Cập nhật blog thất bại.");
-        return Ok(ApiResult<object>.Succeed("Blog đã được cập nhật."));
+        if (result)
+            return Ok(ApiResult<object>.Succeed("Blog đã được cập nhật."));
+        return BadRequest("Cập nhật blog thất bại.");
     }
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBlog(int id)
@@ -59,8 +59,8 @@ public class BlogController : ControllerBase
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
             return Unauthorized(ApiResult<CreateDesignResponse>.Fail("Không thể xác định người dùng."));
         var result = await _blogService.DeleteBlogAsync(id, userId);
-        if (!result)
-            return BadRequest("Xóa blog thất bại.");
-        return Ok(ApiResult<object>.Succeed("Blog đã được xóa."));
+        if (result)
+            return Ok(ApiResult<object>.Succeed("Blog đã được xóa."));
+        return BadRequest("Xóa blog thất bại.");
     }
 }

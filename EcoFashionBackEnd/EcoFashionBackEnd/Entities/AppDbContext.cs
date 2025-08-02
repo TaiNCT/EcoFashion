@@ -36,6 +36,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<MaterialTypeBenchmark> MaterialTypesBenchmarks { get; set; }
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<BlogImage> BlogImages { get; set; }
+        public DbSet<Order> Orders { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -223,7 +224,6 @@ namespace EcoFashionBackEnd.Entities
 
 
             #endregion
-
             #region Material 
             // Configure relationships for Materials
             modelBuilder.Entity<Material>()
@@ -301,6 +301,20 @@ namespace EcoFashionBackEnd.Entities
                 .Property(mt => mt.Value)
                 .HasPrecision(18, 2);
             #endregion
+            #region Order
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.TotalPrice)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Status)
+                .HasConversion<string>();
+
+            #endregion Order
             #region unique
             modelBuilder.Entity<Blog>()
                 .HasOne(b => b.User)
