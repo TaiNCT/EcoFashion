@@ -72,9 +72,21 @@ public class DesignController : ControllerBase
         var designs = await _designService.GetAllDesignsByDesignerIdAsync(designerId);
 
         if (designs == null || !designs.Any())
-            return NotFound(ApiResult<List<DesignListItemDto>>.Fail("Không tìm thấy thiết kế nào cho nhà thiết kế này."));
+            return NotFound(ApiResult<List<DesignDetailDto>>.Fail("Không tìm thấy thiết kế nào cho nhà thiết kế này."));
 
-        return Ok(ApiResult<List<DesignListItemDto>>.Succeed(designs));
+        return Ok(ApiResult<List<DesignDetailDto>>.Succeed(designs));
+    }
+
+    [HttpGet("GetAllPagination-by-designer/{designerId}")]
+    public async Task<IActionResult> GetAllDesignsByDesignerIdPagination(Guid designerId,[FromQuery] int page = 1, [FromQuery] int pageSize = 12)
+    {
+        var designs = await _designService.GetAllDesignsByDesingerIdPagination(designerId, page, pageSize);
+
+        if (designs == null || !designs.Any())
+            return NotFound(ApiResult<List<DesignDetailDto>>.Fail("Không tìm thấy thiết kế nào cho nhà thiết kế này."));
+
+        var response = _mapper.Map<IEnumerable<DesignDetailResponse>>(designs);
+        return Ok(ApiResult<IEnumerable<DesignDetailResponse>>.Succeed(response));
     }
 
 

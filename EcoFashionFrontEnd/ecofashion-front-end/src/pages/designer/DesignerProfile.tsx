@@ -45,7 +45,6 @@ export default function DesignerProfile() {
     useDesignerProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<DesignerProfileType>>({});
-
   // Update formData when profile changes
   useEffect(() => {
     if (profile) {

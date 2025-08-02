@@ -10,10 +10,10 @@ const API_BASE_URL = import.meta.env.DEV
 // Create axios instance with common config
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 300000, //10000
   headers: {
     "Content-Type": "application/json",
-    "Accept": "application/json",
+    Accept: "application/json",
   },
   withCredentials: false, // Disable credentials for CORS
 });

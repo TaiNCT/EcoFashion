@@ -153,6 +153,20 @@ export class DesignService {
   }
 
   /**
+   * Get all design
+   */
+  static async getAllDesignByDesigner(designerId: string): Promise<Design[]> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<Design[]>>(
+        `/${this.API_BASE}/Designs-by-designer/${designerId}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
    * Get all design with pagination
    */
   static async getAllDesignPagination(
@@ -162,6 +176,21 @@ export class DesignService {
     try {
       const response = await apiClient.get<BaseApiResponse<Design[]>>(
         `/${this.API_BASE}/GetAllPagination?page=${page}&pageSize=${pageSize}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  static async getAllDesignByDesignerPagination(
+    uid: string,
+    page: number = 1,
+    pageSize: number = 12
+  ): Promise<Design[]> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<Design[]>>(
+        `/${this.API_BASE}/GetAllPagination-by-designer/${uid}?page=${page}&pageSize=${pageSize}`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -203,10 +232,12 @@ export class DesignService {
   /**
    * Get stored material
    */
-  static async getStoredMaterial(): Promise<StoredMaterial[]> {
+  static async getStoredMaterial(
+    designerId: string
+  ): Promise<StoredMaterial[]> {
     try {
       const response = await apiClient.get<BaseApiResponse<StoredMaterial[]>>(
-        `/Materials`
+        `/DesignerMaterialInventories/GetStoredMaterial/${designerId}`
       );
       return handleApiResponse(response);
     } catch (error) {

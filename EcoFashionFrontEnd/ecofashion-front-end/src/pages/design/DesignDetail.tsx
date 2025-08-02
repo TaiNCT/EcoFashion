@@ -164,10 +164,12 @@ export default function DesignDetail() {
       try {
         setLoading(true);
         const data = await DesignService.getDesignDetailById(Number(id));
-        const relatedData = await DesignService.getAllDesignPagination(
-          currentPage,
-          pageSize
-        );
+        const relatedData =
+          await DesignService.getAllDesignByDesignerPagination(
+            data.designer.designerId,
+            currentPage,
+            pageSize
+          );
         setDesignDetail(data);
         setRelatedDesign(relatedData);
       } catch (err: any) {

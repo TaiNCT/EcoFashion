@@ -154,6 +154,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
   //   const sustainabilityScore = getSustainabilityScore(product.sustainability);
   return (
     <Card
+      className="design-fashion-card"
       sx={{
         width: "95%",
         height: "95%",

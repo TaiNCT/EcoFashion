@@ -56,7 +56,7 @@ import {
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
-import { DesignService } from "../../services/api";
+import { DesignerService, DesignService } from "../../services/api";
 import { StoredMaterial } from "../../services/api/designService";
 import { toast } from "react-toastify";
 import { EcoIcon } from "../../assets/icons/icon";
@@ -70,6 +70,7 @@ import FileUpload from "../../components/FileUpload";
 import ao_linen from "../../assets/pictures/example/ao-linen.webp";
 import chan_vay_dap from "../../assets/pictures/example/chan-vay-dap.webp";
 import dam_con_trung from "../../assets/pictures/example/dam-con-trung.webp";
+import { useAuth } from "../../services/user/AuthContext";
 
 const Collection = [
   { collection_Id: 1, collection_name: "Áo Linen", image: ao_linen },
@@ -83,6 +84,8 @@ const AddDesign = () => {
   //Design Data
   const [storedMaterial, setStoredMaterial] = useState<StoredMaterial[]>([]);
   const [selectedCollection, setSelectedCollection] = useState("");
+  const { user, refreshUserFromServer } = useAuth();
+
   //Get Material Data
   useEffect(() => {
     loadStoredMaterial();
@@ -549,6 +552,7 @@ const AddDesign = () => {
     control,
     setValue,
     watch,
+    trigger,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(createDesignSchema),
@@ -1017,11 +1021,20 @@ const AddDesign = () => {
                   <Button
                     variant="contained"
                     color="success"
-                    onClick={handleSubmit((data) => {
-                      // Only called if form is valid
-                      handleChangeTab(null, tabIndex + 1);
-                      handleScroll("addProduct");
-                    })}
+                    onClick={async () => {
+                      const isValid = await trigger([
+                        "name",
+                        "price",
+                        "description",
+                        "careInstructions",
+                        "designTypeId",
+                      ]);
+
+                      if (isValid) {
+                        handleChangeTab(null, tabIndex + 1);
+                        handleScroll("addProduct");
+                      }
+                    }}
                   >
                     Chọn Chất Liệu
                   </Button>
@@ -1193,8 +1206,16 @@ const AddDesign = () => {
 
               <Button
                 variant="contained"
-                onClick={(e) => {
-                  handleChangeTab(e, tabIndex + 1);
+                onClick={() => {
+                  if (selectedMaterials.length === 0) {
+                    // You can show an error or toast
+                    toast.error(
+                      "Vui lòng chọn ít nhất một chất liệu trước khi tiếp tục."
+                    );
+                    return;
+                  }
+
+                  handleChangeTab(null, tabIndex + 1); // go to next tab
                   handleScroll("addProduct");
                 }}
               >
@@ -1221,7 +1242,8 @@ const AddDesign = () => {
             <Controller
               name="imageFiles"
               control={control}
-              render={({ field }) => (
+              rules={{ required: "Cần thêm hình ảnh" }}
+              render={({ field, fieldState }) => (
                 <FileUpload
                   label=""
                   multiple
@@ -1235,6 +1257,8 @@ const AddDesign = () => {
                   onFilesChange={(files) => field.onChange(files)}
                   accept="image/*"
                   maxSize={5}
+                  required={!!fieldState.error} // shows red border or error state
+                  helperText={fieldState.error?.message} // show the message
                 />
               )}
             />
@@ -1262,12 +1286,12 @@ const AddDesign = () => {
                   type="submit"
                   startIcon={loading && <CircularProgress size={20} />}
                   disabled={loading}
-                  // onClick={(e) => {
-                  //   if (!loading) {
-                  //     handleChangeTab(e, tabIndex + 1);
-                  //     handleScroll("addProduct");
-                  //   }
-                  // }}
+                  onClick={(e) => {
+                    if (loading) {
+                      handleChangeTab(e, tabIndex + 1);
+                      handleScroll("addProduct");
+                    }
+                  }}
                 >
                   Gửi đơn
                 </Button>

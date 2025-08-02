@@ -117,7 +117,7 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
           {visibleProducts.map((product) => (
             <Grid key={product.designId} size={3}>
               {type === "special" ? (
-                <div className="card">
+                <div className="design-card">
                   <FashionCard
                     product={product}
                     type={type}
