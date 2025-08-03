@@ -34,6 +34,8 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<MaterialSustainability> MaterialSustainabilities { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
         public DbSet<MaterialTypeBenchmark> MaterialTypesBenchmarks { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
+        public DbSet<BlogImage> BlogImages { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -161,7 +163,7 @@ namespace EcoFashionBackEnd.Entities
                 .HasForeignKey(d => d.DesignTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Design>()
-                .Property(d => d.Price)
+                .Property(d => d.SalePrice)
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<DesignTypeSizeRatio>()
@@ -300,9 +302,24 @@ namespace EcoFashionBackEnd.Entities
                 .HasPrecision(18, 2);
             #endregion
             #region unique
-
-
-           
+            modelBuilder.Entity<Blog>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<BlogImage>()
+                .HasIndex(bi => new { bi.BlogId, bi.ImageId })
+                .IsUnique();
+            modelBuilder.Entity<BlogImage>()
+                .HasOne(bi => bi.Blog)
+                .WithMany(b => b.BlogImages)
+                .HasForeignKey(bi => bi.BlogId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<BlogImage>()
+                .HasOne(bi => bi.Image)
+                .WithMany()
+                .HasForeignKey(bi => bi.ImageId)
+                .OnDelete(DeleteBehavior.Cascade);
             #endregion
 
         }

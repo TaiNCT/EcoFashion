@@ -91,6 +91,8 @@ public static class ServicesExtensions
         services.AddScoped<DesignDraftService>();
         services.AddScoped<DesignTypeService>();
         services.AddScoped<SustainabilityService>();
+        services.AddScoped<BlogService>();
+
 
         //services.AddScoped<IVnPayService, VnPayService>();
 

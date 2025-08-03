@@ -20,7 +20,11 @@ namespace EcoFashionBackEnd.Entities
         public float RecycledPercentage { get; set; }
         public string? CareInstructions { get; set; }
 
-        public decimal Price { get; set; }
+        // Giá thành phần (cost-based), được tính từ vật liệu + công
+        public decimal? UnitPrice { get; set; }
+
+        // Giá bán (giá đề xuất), UnitPrice + 10-20% markup
+        public decimal? SalePrice { get; set; }
         public int ProductScore { get; set; }
         public string? Status { get; set; }
         public DesignStage Stage { get; set; } = DesignStage.Draft;
