@@ -332,7 +332,10 @@ namespace EcoFashionBackEnd.Migrations
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Stage = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DesignTypeId = table.Column<int>(type: "int", nullable: true)
+                    DesignTypeId = table.Column<int>(type: "int", nullable: true),
+                    CarbonFootprint = table.Column<float>(type: "real", nullable: true),
+                    WaterUsage = table.Column<float>(type: "real", nullable: true),
+                    WasteDiverted = table.Column<float>(type: "real", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -488,10 +491,7 @@ namespace EcoFashionBackEnd.Migrations
                     SizeId = table.Column<int>(type: "int", nullable: false),
                     DesignId = table.Column<int>(type: "int", nullable: false),
                     ColorId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    CarbonFootprint = table.Column<float>(type: "real", nullable: false),
-                    WaterUsage = table.Column<float>(type: "real", nullable: false),
-                    WasteDiverted = table.Column<float>(type: "real", nullable: false)
+                    Quantity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

@@ -32,6 +32,9 @@ namespace EcoFashionBackEnd.Entities
 
         [ForeignKey("DesignsTypes")]
         public int? DesignTypeId { get; set; }
+        public float? CarbonFootprint { get; set; }
+        public float? WaterUsage { get; set; }
+        public float? WasteDiverted { get; set; }
 
         public virtual DesignsType DesignTypes { get; set; }
         public virtual ICollection<DesignsVariant> DesignsVariants { get; set; } = new List<DesignsVariant>();
@@ -47,9 +50,9 @@ namespace EcoFashionBackEnd.Entities
     }
     public enum DesignStage
     {
-        Draft,
-        InProgress,
-        Finalized,
-        Archived
+        Draft,        // Được chỉnh sửa
+        Finalized,    // Đã chốt design, không sửa nữa
+        Published,    // Variant đã được tạo & đăng bán
+        Archived      // Bản cũ không còn sử dụng
     }
 }
