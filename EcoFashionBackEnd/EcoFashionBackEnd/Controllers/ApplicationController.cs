@@ -103,8 +103,7 @@ namespace EcoFashionBackEnd.Controllers
                 var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
                 if (adminIdClaim == null || !int.TryParse(adminIdClaim.Value, out int adminId))
                 {
-                    // Tạm thời sử dụng default admin ID để debug
-                    adminId = 1;
+                    adminId = 1; // Default admin ID
                 }
 
                 var isApproved = await _applicationService.ApproveSupplierApplication(applicationId, adminId);
@@ -130,8 +129,7 @@ namespace EcoFashionBackEnd.Controllers
                 var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
                 if (adminIdClaim == null || !int.TryParse(adminIdClaim.Value, out int adminId))
                 {
-                    // Tạm thời sử dụng default admin ID để debug
-                    adminId = 1;
+                    adminId = 1; // Default admin ID
                 }
 
                 var isApproved = await _applicationService.ApproveDesignerApplication(applicationId, adminId);

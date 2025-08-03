@@ -59,6 +59,13 @@ class MaterialService {
     return materialDetailResponseSchema.parse(result);
   }
 
+  // Get material by ID (alias for getMaterialDetail)
+  async getMaterialById(id: number): Promise<MaterialDetailDto> {
+    const response = await apiClient.get<any>(`${this.API_BASE}/${id}`);
+    const result = handleApiResponse<MaterialDetailDto>(response);
+    return materialDetailDtoSchema.parse(result);
+  }
+
   // Create new material with sustainability
   async createMaterialWithSustainability(request: MaterialCreationFormRequest): Promise<MaterialModel> {
     // Validate request data
@@ -86,6 +93,39 @@ class MaterialService {
     const response = await apiClient.get<any>(`${this.API_BASE}/GetAllMaterialTypes`);
     const result = handleApiResponse<MaterialTypeModel[]>(response);
     return result.map((item) => materialTypeModelSchema.parse(item));
+  }
+
+  // Get transport evaluation from backend
+  async getTransportEvaluation(distance: number, method: string) {
+    try {
+      const response = await apiClient.get(`/material/GetTransportEvaluation/${distance}/${method}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get transport evaluation:', error);
+      throw error;
+    }
+  }
+
+  // Get production evaluation from backend
+  async getProductionEvaluation(country: string) {
+    try {
+      const response = await apiClient.get(`/material/GetProductionEvaluation/${country}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get production evaluation:', error);
+      throw error;
+    }
+  }
+
+  // Get sustainability evaluation from backend
+  async getSustainabilityEvaluation(score: number) {
+    try {
+      const response = await apiClient.get(`/material/GetSustainabilityEvaluation/${score}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get sustainability evaluation:', error);
+      throw error;
+    }
   }
 }
 

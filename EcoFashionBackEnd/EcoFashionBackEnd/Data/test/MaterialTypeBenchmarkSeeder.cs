@@ -46,15 +46,15 @@ namespace EcoFashionBackEnd.Data.test
             return (materialTypeName, criterionName) switch
             {
                 // Organic Cotton benchmarks (Source: Higg Index MSI, Textile Exchange)
-                ("Organic Cotton", "Carbon Footprint") => 2.1m, // Higg MSI: Organic cotton 2.1 kg CO2e/kg
-                ("Organic Cotton", "Water Usage") => 182m, // Higg MSI: Organic cotton 182 liters/kg
+                ("Organic Cotton", "Carbon Footprint") => 1.2m, // kg CO2e/mét (converted from kg)
+                ("Organic Cotton", "Water Usage") => 35m, // L/mét (converted from liters/kg)
                 ("Organic Cotton", "Waste Diverted") => 85m, // Industry standard for organic cotton
                 ("Organic Cotton", "Organic Certification") => 1m, // GOTS standard
                 ("Organic Cotton", "Recycled Content") => 0m, // Organic cotton typically 0% recycled
 
                 // Recycled Cotton benchmarks (Source: Higg Index MSI, GRS Standard)
-                ("Recycled Cotton", "Carbon Footprint") => 1.8m, // Higg MSI: Recycled cotton 1.8 kg CO2e/kg
-                ("Recycled Cotton", "Water Usage") => 60m, // Higg MSI: Recycled cotton 60 liters/kg
+                ("Recycled Cotton", "Carbon Footprint") => 1.0m, // kg CO2e/mét (converted from kg)
+                ("Recycled Cotton", "Water Usage") => 20m, // L/mét (converted from liters/kg)
                 ("Recycled Cotton", "Waste Diverted") => 90m, // GRS standard for recycled materials
                 ("Recycled Cotton", "Organic Certification") => 0m, // Recycled cotton not organic
                 ("Recycled Cotton", "Recycled Content") => 85m, // GRS minimum 85% recycled content

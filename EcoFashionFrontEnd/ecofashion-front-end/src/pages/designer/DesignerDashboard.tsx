@@ -20,9 +20,6 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import { useAuth } from "../../services/user/AuthContext";
-//Icon
-import AddIcon from "@mui/icons-material/Add";
 import React, { useEffect, useState } from "react";
 import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -34,6 +31,7 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import DesignServicesOutlinedIcon from "@mui/icons-material/DesignServicesOutlined";
 import CalculateOutlinedIcon from "@mui/icons-material/CalculateOutlined";
 import DrawOutlinedIcon from "@mui/icons-material/DrawOutlined";
+import AddIcon from "@mui/icons-material/Add";
 import { EcoIcon } from "../../assets/icons/icon";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -60,6 +58,7 @@ import {
 } from "chart.js";
 import DesignService, { Design } from "../../services/api/designService";
 import { toast } from "react-toastify";
+import { useAuthStore } from "../../store/authStore";
 
 // Register chart components
 ChartJS.register(
@@ -490,7 +489,7 @@ export default function DesignerDashBoard() {
   };
   const chartData = getCurrentData();
 
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   //Change Tabs
   const [tabIndex, setTabIndex] = useState(0);
 

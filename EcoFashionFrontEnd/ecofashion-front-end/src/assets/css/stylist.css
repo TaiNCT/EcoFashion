@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* Stylist.css - Etsy-like Layout for EcoFashion Explore Page */
 
 /* Reset and Base Styles */
@@ -327,13 +330,11 @@ body {
 
 .quick-view-btn {
   padding: 8px 12px;
-  background: transparent;
-  border: 1px solid #e1e3e6;
-  color: #595959;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  color: #34a853 !important;
+}
+/* Additional specificity for hover state */
+.navbar-link:hover {
+  color: #34a853 !important;
 }
 
 .quick-view-btn:hover {
@@ -606,4 +607,22 @@ body {
 
 .hover\:shadow-lg:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+
+/* DASHBOARD SECTIONS -- Taiwind CSS thay thế cho index.css */
+/* Navbar Dropdown Styles (from navbar-dropdown.css) */
+.dropdown-item {
+  color: #222;
+  background: transparent;
+  transition: background 0.2s, color 0.2s;
+}
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background: #e6f4ea;
+  color: #34a853 !important;
+}
+.dropdown-item:active {
+  background: #d2e9d9;
+  color: #2d8f47 !important;
 }

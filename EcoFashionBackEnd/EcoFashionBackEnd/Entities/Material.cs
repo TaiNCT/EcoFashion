@@ -35,7 +35,7 @@ namespace EcoFashionBackEnd.Entities
         public decimal PricePerUnit { get; set; }
         public string? DocumentationUrl { get; set; }
         
-        // Sustainability fields
+        // Sustainability fields  - 3 fields chỉ số để tính toán
         [Column(TypeName = "decimal(18,2)")]
         public decimal? CarbonFootprint { get; set; }
         public string? CarbonFootprintUnit { get; set; } // ví dụ: kg CO2
@@ -47,10 +47,16 @@ namespace EcoFashionBackEnd.Entities
         public string? WasteDivertedUnit { get; set; } // ví dụ: kg
 
         public string? ProductionCountry { get; set; }
+        public string? ProductionRegion { get; set; } // Thêm region cụ thể
         public string? ManufacturingProcess { get; set; }
 
         public string? CertificationDetails { get; set; } // GOTS, OEKO-TEX, USDA Organic, EU Ecolabel, etc.
         public DateTime? CertificationExpiryDate { get; set; }
+        
+        // Transport information for carbon footprint calculation
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? TransportDistance { get; set; } // Distance in km
+        public string? TransportMethod { get; set; } // Sea, Air, Land, Rail
         
         // Organic Certification Explanation:
         // - GOTS (Global Organic Textile Standard): https://global-standard.org/

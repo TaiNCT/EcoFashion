@@ -1,21 +1,25 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useAuthStore } from "../../store/authStore";
 import {
-  Container,
   Box,
-  Typography,
+  Button,
   Card,
   CardContent,
-  Button,
+  Typography,
+  Grid,
+  CircularProgress,
+  Container,
   Paper,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../services/user/AuthContext";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PeopleIcon from "@mui/icons-material/People";
 import BusinessIcon from "@mui/icons-material/Business";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuthStore();
 
   if (!user || user.role?.toLowerCase() !== "admin") {
     return (

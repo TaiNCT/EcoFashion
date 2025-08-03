@@ -46,7 +46,7 @@ export const materialTypeBenchmarkSchema = z.object({
   improvementColor: nullableString(), // Màu sắc: "success", "error", "warning"
 });
 
-// Schema cho Supplier Public Info (theo SupplierPublicDto)
+// Schema cho Supplier Public Info (theo SupplierPublicModel từ backend)
 export const supplierPublicSchema = z.object({
   supplierId: z.string(), // Guid được serialize thành string
   supplierName: nullableString(),
@@ -54,23 +54,29 @@ export const supplierPublicSchema = z.object({
   bio: nullableString(),
   specializationUrl: nullableString(),
   portfolioUrl: nullableString(),
+  portfolioFiles: nullableString(),
   bannerUrl: nullableString(),
+  email: nullableString(),
+  phoneNumber: nullableString(),
+  address: nullableString(),
   rating: z.number().optional(),
   reviewCount: z.number().optional(),
   certificates: nullableString(),
+  createdAt: z.string(), // DateTime được serialize thành string
+  userFullName: nullableString(),
 });
 
 // Schema cho Material Detail DTO (theo MaterialDetailDto từ backend)
 export const materialDetailDtoSchema = z.object({
   materialId: z.number(),
-  name: z.string(),
-  description: z.string(),
-  materialTypeName: z.string(),
+  name: nullableString(),
+  description: nullableString(),
+  materialTypeName: nullableString(),
   recycledPercentage: z.number(),
   quantityAvailable: z.number(),
   pricePerUnit: z.number(),
-  createdAt: z.string(), // DateTime được serialize thành string
-  lastUpdated: z.string(), // DateTime được serialize thành string
+  createdAt: nullableString(), // DateTime được serialize thành string
+  lastUpdated: nullableString(), // DateTime được serialize thành string
   carbonFootprint: z.number().optional(),
   carbonFootprintUnit: nullableString(),
   waterUsage: z.number().optional(),
@@ -78,15 +84,19 @@ export const materialDetailDtoSchema = z.object({
   wasteDiverted: z.number().optional(),
   wasteDivertedUnit: nullableString(),
   productionCountry: nullableString(),
+  productionRegion: nullableString(), // Thêm field mới
   manufacturingProcess: nullableString(),
   certificationDetails: nullableString(),
   certificationExpiryDate: nullableString(), // DateTime được serialize thành string
+  transportDistance: z.number().nullable().optional(), // Thêm field mới
+  transportMethod: nullableString(), // Thêm field mới
   approvalStatus: nullableString(),
   adminNote: nullableString(),
   isAvailable: z.boolean(),
-  imageUrls: z.array(z.string()),
-  supplierName: z.string(),
-  supplierId: z.string(), // Guid được serialize thành string
+  imageUrls: z.array(z.string()).optional(),
+  supplierName: nullableString(),
+  supplierId: nullableString(), // Guid được serialize thành string
+  documentationUrl: nullableString(),
   
   // Sustainability fields
   sustainabilityScore: z.number().optional(),
@@ -97,10 +107,10 @@ export const materialDetailDtoSchema = z.object({
   supplier: supplierPublicSchema.optional(),
   
   // Sustainability criteria
-  sustainabilityCriteria: z.array(sustainabilityCriterionSchema),
+  sustainabilityCriteria: z.array(sustainabilityCriterionSchema).optional(),
   
   // Benchmarks
-  benchmarks: z.array(materialTypeBenchmarkSchema),
+  benchmarks: z.array(materialTypeBenchmarkSchema).optional(),
 });
 
 // Schema cho Material Detail Response (theo MaterialDetailResponse từ backend)
@@ -122,39 +132,22 @@ export const materialDetailResponseSchema = z.object({
   wasteDiverted: z.number().optional(),
   wasteDivertedUnit: nullableString(),
   productionCountry: nullableString(),
+  productionRegion: nullableString(), // Thêm field mới
   manufacturingProcess: nullableString(),
   certificationDetails: nullableString(),
   certificationExpiryDate: nullableString(),
+  transportDistance: z.number().nullable().optional(), // Thêm field mới
+  transportMethod: nullableString(), // Thêm field mới
   approvalStatus: nullableString(),
   adminNote: nullableString(),
   isAvailable: z.boolean(),
   imageUrls: z.array(z.string()).optional(),
   sustainabilityCriteria: z.array(sustainabilityCriterionSchema),
   benchmarks: z.array(materialTypeBenchmarkSchema),
-  supplier: z.object({
-    supplierId: z.string(), // Guid được serialize thành string
-    userId: z.number(), // int trong backend
-    supplierName: nullableString(),
-    avatarUrl: nullableString(),
-    bio: nullableString(),
-    specializationUrl: nullableString(),
-    portfolioUrl: nullableString(),
-    portfolioFiles: nullableString(),
-    bannerUrl: nullableString(),
-    email: nullableString(),
-    phoneNumber: nullableString(),
-    address: nullableString(),
-    taxNumber: nullableString(),
-    identificationNumber: nullableString(),
-    identificationPictureFront: nullableString(),
-    identificationPictureBack: nullableString(),
-    status: nullableString(),
-    createdAt: z.string(),
-    updatedAt: nullableString(), // DateTime? trong backend
-    rating: z.number().optional(),
-    reviewCount: z.number().optional(),
-    certificates: nullableString(),
-  }).optional(),
+  supplier: supplierPublicSchema.optional(), // Sử dụng schema mới
+  sustainabilityScore: z.number().optional(),
+  sustainabilityLevel: nullableString(),
+  sustainabilityColor: nullableString(),
 });
 
 // Schema cho Material Type Model (theo MaterialTypeModel từ backend)
@@ -186,39 +179,19 @@ export const materialModelSchema = z.object({
   wasteDiverted: z.number().optional(),
   wasteDivertedUnit: nullableString(),
   productionCountry: nullableString(),
+  productionRegion: nullableString(), // Thêm field mới
   manufacturingProcess: nullableString(),
   certificationDetails: nullableString(),
   certificationExpiryDate: nullableString(),
+  transportDistance: z.number().nullable().optional(), // Thêm field mới
+  transportMethod: nullableString(), // Thêm field mới
   approvalStatus: nullableString(),
   adminNote: nullableString(),
   isAvailable: z.boolean(),
   lastUpdated: z.string(),
   createdAt: z.string(),
   materialType: materialTypeModelSchema.optional(),
-  supplier: z.object({
-    supplierId: z.string(), // Guid được serialize thành string
-    userId: z.number(), // int trong backend
-    supplierName: nullableString(),
-    avatarUrl: nullableString(),
-    bio: nullableString(),
-    specializationUrl: nullableString(),
-    portfolioUrl: nullableString(),
-    portfolioFiles: nullableString(),
-    bannerUrl: nullableString(),
-    email: nullableString(),
-    phoneNumber: nullableString(),
-    address: nullableString(),
-    taxNumber: nullableString(),
-    identificationNumber: nullableString(),
-    identificationPictureFront: nullableString(),
-    identificationPictureBack: nullableString(),
-    status: nullableString(),
-    createdAt: z.string(),
-    updatedAt: nullableString(), // DateTime? trong backend
-    rating: z.number().optional(),
-    reviewCount: z.number().optional(),
-    certificates: nullableString(),
-  }).optional(),
+  supplier: supplierPublicSchema.optional(), // Sử dụng schema mới
 });
 
 // Schema cho Material Creation Form Request (theo MaterialCreationFormRequest từ backend)
@@ -237,12 +210,14 @@ export const materialCreationFormRequestSchema = z.object({
   wasteDiverted: z.number().optional(),
   wasteDivertedUnit: nullableString(),
   productionCountry: nullableString(),
+  productionRegion: nullableString(),
   manufacturingProcess: nullableString(),
   certificationDetails: nullableString(),
   certificationExpiryDate: nullableString(),
   organicCertificationType: nullableString(),
-  productionRegion: nullableString(),
   qualityStandards: nullableString(),
+  transportDistance: z.number().nullable().optional(), // Thêm field mới
+  transportMethod: nullableString(), // Thêm field mới
   sustainabilityCriteria: z.array(z.object({
     criterionId: z.number(),
     value: z.number(),

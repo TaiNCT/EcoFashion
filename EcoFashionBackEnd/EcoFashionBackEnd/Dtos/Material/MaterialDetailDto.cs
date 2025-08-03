@@ -1,5 +1,6 @@
 ﻿using EcoFashionBackEnd.Entities.EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Entities;
+using EcoFashionBackEnd.Dtos;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Dtos.Material
@@ -22,9 +23,12 @@ namespace EcoFashionBackEnd.Dtos.Material
         public decimal? WasteDiverted { get; set; }
         public string? WasteDivertedUnit { get; set; }
         public string? ProductionCountry { get; set; }
+        public string? ProductionRegion { get; set; }
         public string? ManufacturingProcess { get; set; }
         public string? CertificationDetails { get; set; }
         public DateTime? CertificationExpiryDate { get; set; }
+        public decimal? TransportDistance { get; set; }
+        public string? TransportMethod { get; set; }
         public string? ApprovalStatus { get; set; }
         public string? AdminNote { get; set; }
         public bool IsAvailable { get; set; }
@@ -38,7 +42,7 @@ namespace EcoFashionBackEnd.Dtos.Material
         public string? SustainabilityColor { get; set; }
         
         // Supplier object
-        public SupplierPublicDto? Supplier { get; set; }
+        public SupplierPublicModel? Supplier { get; set; }
         
         // Sustainability criteria - sử dụng DTO đơn giản
         public List<MaterialSustainabilityCriterionDto> SustainabilityCriteria { get; set; } = new();

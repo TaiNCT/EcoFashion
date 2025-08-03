@@ -658,6 +658,9 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("ProductionCountry")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ProductionRegion")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("QuantityAvailable")
                         .HasColumnType("int");
 
@@ -667,6 +670,12 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Property<Guid>("SupplierId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("TransportDistance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TransportMethod")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TypeId")
                         .HasColumnType("int");

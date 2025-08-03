@@ -14,7 +14,7 @@ import {
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { useNavigate, useLocation } from "react-router-dom";
-import { authApi } from "../services/api";
+import { AuthService } from "../services/api";
 import { toast } from "react-toastify";
 
 // Validation schema
@@ -69,7 +69,7 @@ const VerifyOTP: React.FC = () => {
       setError("");
 
       try {
-        await authApi.verifyOTP(state.email, values.otpCode);
+        await AuthService.verifyOTP(state.email, values.otpCode);
 
         toast.success("Xác thực tài khoản thành công!");
 
@@ -96,7 +96,7 @@ const VerifyOTP: React.FC = () => {
     setError("");
 
     try {
-      await authApi.resendOTP(state.email);
+      await AuthService.resendOTP(state.email);
       toast.success("Mã OTP đã được gửi lại!");
       setCountdown(60);
       setCanResend(false);

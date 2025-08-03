@@ -36,7 +36,7 @@ import material from "../assets/pictures/homepage/material.png";
 import information from "../assets/pictures/homepage/information.png";
 import sustain from "../assets/pictures/homepage/sustain.png";
 //Api
-import { useAuth } from "../services/user/AuthContext";
+import { useAuthStore } from "../store/authStore";
 import { Design, DesignService } from "../services/api/designService";
 import { toast } from "react-toastify";
 //Icon
@@ -73,7 +73,7 @@ const StyledInput = styled(InputBase)({
 // };
 
 export default function Homepage() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
 
   // Materials Data using API

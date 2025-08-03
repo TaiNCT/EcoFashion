@@ -13,6 +13,19 @@ import {
   SwipeableDrawer,
   styled,
   Drawer,
+  Avatar,
+  AppBar,
+  Breadcrumbs,
+  Link,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  Grid,
+  LinearProgress,
+  Tooltip,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import "./MaterialCard.css";
 import {
@@ -20,16 +33,82 @@ import {
   LocalShipping,
   Recycling,
   Star,
+  ArrowBackIos,
+  ArrowForwardIos,
+  FavoriteBorder,
+  Info,
 } from "@mui/icons-material";
 import { grey } from "@mui/material/colors";
 import type { MaterialDetailDto } from "../../schemas/materialSchema";
-
+import SustainabilityToolbar from "./SustainabilityToolbar";
+import SustainabilityCompact from "./SustainabilityCompact";
+import TransportInfo from "./TransportInfo";
+import ProductionInfo from "./ProductionInfo";
+import { getSustainabilityColor, getMaterialTypeColor } from "../../utils/themeColors";
+import { materialService } from "../../services/api/materialService";
+import { useCartStore } from "../../store/cartStore";
+import { toast } from "react-toastify";
 
 interface MaterialCardProps {
   material: MaterialDetailDto;
   type?: string;
   onSelect?: (material: MaterialDetailDto) => void;
 }
+
+// Component để hiển thị chi tiết chứng nhận
+const CertificationDetails = ({ certificationDetails }: { certificationDetails: string }) => {
+  const certifications = certificationDetails.split(',').map(c => c.trim());
+  
+  const getCertificationLink = (cert: string) => {
+    const certMap: { [key: string]: string } = {
+      'GOTS': 'https://global-standard.org/',
+      'OEKO-TEX': 'https://www.oeko-tex.com/',
+      'GRS': 'https://textileexchange.org/standards/grs/',
+      'RWS': 'https://textileexchange.org/standards/rws/',
+      'USDA': 'https://www.usda.gov/topics/organic',
+      'EU Ecolabel': 'https://ec.europa.eu/environment/ecolabel/',
+      'Soil Association': 'https://www.soilassociation.org/'
+    };
+    
+    return certMap[cert] || null;
+  };
+
+  return (
+    <Box>
+      <Typography variant="body2" sx={{ mb: 1 }}>
+        {certificationDetails}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+        Các tổ chức cấp chứng nhận:
+      </Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+        {certifications.map((cert, index) => {
+          const link = getCertificationLink(cert);
+          return link ? (
+            <Link 
+              key={index}
+              href={link} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              sx={{ 
+                fontSize: '0.75rem',
+                color: 'primary.main',
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' }
+              }}
+            >
+              {cert}
+            </Link>
+          ) : (
+            <Typography key={index} variant="caption" color="text.secondary">
+              {cert}
+            </Typography>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+};
 
 const MaterialCard: React.FC<MaterialCardProps> = ({
   material,
@@ -39,16 +118,16 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(0);
+  const [relatedMaterials, setRelatedMaterials] = useState<any[]>([]);
+  const [quantity, setQuantity] = useState(1);
+  const [quantityError, setQuantityError] = useState("");
+  const addToCart = useCartStore((state) => state.addToCart);
 
   const getTypeColor = (typeName?: string) => {
     if (!typeName) return "#9e9e9e";
-    
-    const type = typeName.toLowerCase();
-    if (type.includes('organic')) return "#4caf50";
-    if (type.includes('recycled')) return "#2196f3";
-    if (type.includes('natural')) return "#8bc34a";
-    if (type.includes('synthetic')) return "#ff9800";
-    return "#9e9e9e";
+    return getMaterialTypeColor(typeName);
   };
 
   const getAvailabilityColor = (quantity: number) => {
@@ -89,10 +168,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
      sustainabilityScore >= 60 ? "Tốt" : 
      sustainabilityScore >= 40 ? "Trung bình" : "Cần cải thiện");
   
-  const sustainabilityColor = material.sustainabilityColor || 
-    (sustainabilityScore >= 80 ? "green" : 
-     sustainabilityScore >= 60 ? "yellow" : 
-     sustainabilityScore >= 40 ? "orange" : "red");
+  const sustainabilityColor = material.sustainabilityColor || getSustainabilityColor(sustainabilityScore);
   const mainImage = material.imageUrls && material.imageUrls.length > 0 ? material.imageUrls[0] : "/assets/default-material.jpg";
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
@@ -104,8 +180,65 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
     if (onSelect) {
       onSelect(material);
     } else {
-      setDrawerOpen(true);
+      // Navigate to detail page instead of opening drawer
+      navigate(`/material/${material.materialId}`);
     }
+  };
+
+  const fetchRelatedMaterials = async () => {
+    try {
+      const allMaterials = await materialService.getAllMaterials();
+      const related = allMaterials
+        .filter(m => m.materialId !== material.materialId && m.materialTypeName === material.materialTypeName)
+        .slice(0, 3);
+      setRelatedMaterials(related);
+    } catch (error) {
+      console.error("Error fetching related materials:", error);
+    }
+  };
+
+  // Image navigation
+  const handlePrevImage = () => {
+    const images = material?.imageUrls ?? [];
+    if (!images || images.length === 0) return;
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = () => {
+    const images = material?.imageUrls ?? [];
+    if (!images || images.length === 0) return;
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  // Tab handling
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
+  };
+
+  // Handle add to cart
+  const handleAddToCart = () => {
+    if (!quantity || quantity <= 0) {
+      setQuantityError("Vui lòng nhập số lượng hợp lệ!");
+      return;
+    }
+    if (quantity > material.quantityAvailable) {
+      setQuantityError(`Chỉ còn ${material.quantityAvailable} mét có sẵn!`);
+      return;
+    }
+    
+    setQuantityError("");
+    addToCart({
+      id: (material.materialId || 0).toString(),
+      name: material.name,
+      image: material.imageUrls?.[0] || "/assets/default-material.jpg",
+      price: material.pricePerUnit * 1000,
+      quantity: quantity,
+      unit: "mét",
+      type: "material"
+    });
+    
+    // Show success message
+    toast.success(`Đã thêm ${quantity} mét ${material.name} vào giỏ hàng!`);
   };
 
   return (
@@ -127,7 +260,9 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
             transform: "translateY(0)",
           },
           borderRadius: "10px",
+          cursor: "pointer",
         }}
+        onClick={handleCardClick}
       >
         <Box
           sx={{
@@ -197,7 +332,6 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
           }}
           onClick={handleCardClick}
         />
-
         <Box
           className="hover-trigger"
           sx={{
@@ -212,7 +346,6 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
           }}
           onClick={handleCardClick}
         />
-
         {/* Content */}
         <CardContent
           className="card-hover-content"
@@ -336,44 +469,14 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
               >
                 {(material.pricePerUnit * 1000)?.toLocaleString('vi-VN')} ₫/mét
               </Typography>
-              {/* Sustainability Score - Điểm đánh giá bền vững tổng hợp từ 5 tiêu chí */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                <Recycling sx={{ color: "success.main", fontSize: 16 }} />
-                <Typography variant="body2" color="text.secondary">
-                  Sustainability Score: {sustainabilityScore}%
-                </Typography>
-              </Box>
-              {/* Sustainability Level */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  mb: 1,
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: "50%",
-                    backgroundColor: sustainabilityColor,
-                    display: "inline-block",
-                    mr: 1,
-                  }}
+              {/* Sustainability Score - Sử dụng component compact cho card */}
+              <Box sx={{ mb: 1 }}>
+                <SustainabilityCompact 
+                  sustainabilityScore={sustainabilityScore}
+                  recycledPercentage={material.recycledPercentage}
+                  sustainabilityLevel={material.sustainabilityLevel}
+                  sustainabilityColor={material.sustainabilityColor}
                 />
-                <Typography
-                  variant="body2"
-                  sx={{ 
-                    fontWeight: 500, 
-                    fontSize: "0.875rem",
-                    color: sustainabilityColor === "green" ? "#4caf50" :
-                           sustainabilityColor === "yellow" ? "#ff9800" :
-                           sustainabilityColor === "orange" ? "#ff5722" : "#f44336"
-                  }}
-                >
-                  {sustainabilityLevel}
-                </Typography>
               </Box>
               {/* Availability */}
               <Box sx={{ margin: "10px 0" }}>
@@ -407,105 +510,8 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
           </Box>
         </CardContent>
       </Card>
-
-      {/* Detail Drawer */}
-      <SwipeableDrawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onOpen={() => setDrawerOpen(true)}
-        sx={{
-          "& .MuiDrawer-paper": {
-            width: { xs: "100%", sm: 400 },
-            p: 3,
-          },
-        }}
-      >
-        <Box sx={{ p: 2 }}>
-          <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>
-            {material.name || "Material Details"}
-          </Typography>
-          
-          <CardMedia
-            component="img"
-            height="200"
-            image={mainImage}
-            alt={material.name || "Material"}
-            sx={{ objectFit: "cover", borderRadius: 1, mb: 2 }}
-          />
-
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            {material.description || "No description available"}
-          </Typography>
-
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Supplier Information
-            </Typography>
-            <Typography variant="body2">
-              <strong>Name:</strong> {material.supplier?.supplierName || "Unknown"}
-            </Typography>
-            {material.supplier?.bio && (
-              <Typography variant="body2">
-                <strong>Bio:</strong> {material.supplier.bio}
-              </Typography>
-            )}
-            {material.supplier?.rating && (
-              <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-                <Rating value={material.supplier.rating} readOnly size="small" />
-                <Typography variant="body2" sx={{ ml: 1 }}>
-                  ({material.supplier.reviewCount || 0} reviews)
-                </Typography>
-              </Box>
-            )}
-          </Box>
-
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Sustainability Details
-            </Typography>
-            <Typography variant="body2">
-              <strong>Recycled Content:</strong> {material.recycledPercentage.toFixed(1)}%
-            </Typography>
-            <Typography variant="body2">
-              <strong>Sustainability Score:</strong> {sustainabilityScore.toFixed(0)}%
-            </Typography>
-            {material.sustainabilityCriteria && material.sustainabilityCriteria.length > 0 && (
-              <Typography variant="body2">
-                <strong>Criteria Met:</strong> {material.sustainabilityCriteria.length}
-              </Typography>
-            )}
-          </Box>
-
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Pricing & Availability
-            </Typography>
-            <Typography variant="h5" color="#4caf50" fontWeight="bold">
-              {(material.pricePerUnit * 1000)?.toLocaleString('vi-VN')} ₫/mét
-            </Typography>
-            <Typography variant="body2">
-              <strong>Số lượng có sẵn:</strong> {getQuantityDisplay(material.quantityAvailable)}
-            </Typography>
-          </Box>
-
-          <Button
-            variant="contained"
-            fullWidth
-            sx={{
-              bgcolor: "#4caf50",
-              "&:hover": { bgcolor: "#45a049" },
-            }}
-            onClick={() => {
-              console.log("Contact supplier for:", material.name);
-            }}
-          >
-            Liên Hệ Nhà Cung Cấp
-          </Button>
-        </Box>
-      </SwipeableDrawer>
     </>
   );
 };
 
-export default MaterialCard; 
+export default MaterialCard;

@@ -91,17 +91,22 @@ namespace EcoFashionBackEnd.Services
                     WasteDiverted = material.WasteDiverted,
                     WasteDivertedUnit = material.WasteDivertedUnit,
                     ProductionCountry = material.ProductionCountry,
+                    ProductionRegion = material.ProductionRegion,
                     ManufacturingProcess = material.ManufacturingProcess,
                     CertificationDetails = material.CertificationDetails,
                     CertificationExpiryDate = material.CertificationExpiryDate,
+                    TransportDistance = material.TransportDistance,
+                    TransportMethod = material.TransportMethod,
                     ApprovalStatus = material.ApprovalStatus,
                     AdminNote = material.AdminNote,
                     IsAvailable = material.IsAvailable,
                     LastUpdated = material.LastUpdated,
-                    Supplier = material.Supplier == null ? null : new Dtos.SupplierModel
+                    SustainabilityScore = sustainabilityReport?.OverallSustainabilityScore,
+                    SustainabilityLevel = sustainabilityReport?.SustainabilityLevel,
+                    SustainabilityColor = sustainabilityReport?.LevelColor,
+                    Supplier = material.Supplier == null ? null : new SupplierPublicModel
                     {
                         SupplierId = material.Supplier.SupplierId,
-                        UserId = material.Supplier.UserId,
                         SupplierName = material.Supplier.SupplierName,
                         AvatarUrl = material.Supplier.AvatarUrl,
                         Bio = material.Supplier.Bio,
@@ -112,16 +117,10 @@ namespace EcoFashionBackEnd.Services
                         Email = material.Supplier.Email,
                         PhoneNumber = material.Supplier.PhoneNumber,
                         Address = material.Supplier.Address,
-                        TaxNumber = material.Supplier.TaxNumber,
-                        IdentificationNumber = material.Supplier.IdentificationNumber,
-                        IdentificationPictureFront = material.Supplier.IdentificationPictureFront,
-                        IdentificationPictureBack = material.Supplier.IdentificationPictureBack,
-                        Status = material.Supplier.Status,
-                        CreatedAt = material.Supplier.CreatedAt,
-                        UpdatedAt = material.Supplier.UpdatedAt,
                         Rating = material.Supplier.Rating,
                         ReviewCount = material.Supplier.ReviewCount,
-                        Certificates = material.Supplier.Certificates
+                        Certificates = material.Supplier.Certificates,
+                        CreatedAt = material.Supplier.CreatedAt
                     },
                     ImageUrls = material.MaterialImages?.Select(img => img.Image?.ImageUrl).Where(url => !string.IsNullOrEmpty(url)).Select(url => url!).ToList() ?? new List<string>(),
                     SustainabilityCriteria = material.MaterialSustainabilityMetrics?.Select(ms => new MaterialSustainabilityCriterionDto
@@ -204,9 +203,12 @@ namespace EcoFashionBackEnd.Services
                         WasteDiverted = material.WasteDiverted,
                         WasteDivertedUnit = material.WasteDivertedUnit,
                         ProductionCountry = material.ProductionCountry,
+                        ProductionRegion = material.ProductionRegion,
                         ManufacturingProcess = material.ManufacturingProcess,
                         CertificationDetails = material.CertificationDetails,
                         CertificationExpiryDate = material.CertificationExpiryDate,
+                        TransportDistance = material.TransportDistance,
+                        TransportMethod = material.TransportMethod,
                         ApprovalStatus = material.ApprovalStatus,
                         AdminNote = material.AdminNote,
                         IsAvailable = material.IsAvailable,
@@ -215,7 +217,7 @@ namespace EcoFashionBackEnd.Services
                         SupplierId = material.SupplierId,
                         ImageUrls = material.MaterialImages?.Select(img => img.Image?.ImageUrl).Where(url => !string.IsNullOrEmpty(url)).Select(url => url!).ToList() ?? new List<string>(),
                         // Supplier object
-                        Supplier = material.Supplier != null ? new SupplierPublicDto
+                        Supplier = material.Supplier != null ? new SupplierPublicModel
                         {
                             SupplierId = material.Supplier.SupplierId,
                             SupplierName = material.Supplier.SupplierName,
@@ -223,10 +225,15 @@ namespace EcoFashionBackEnd.Services
                             Bio = material.Supplier.Bio,
                             SpecializationUrl = material.Supplier.SpecializationUrl,
                             PortfolioUrl = material.Supplier.PortfolioUrl,
+                            PortfolioFiles = material.Supplier.PortfolioFiles,
                             BannerUrl = material.Supplier.BannerUrl,
+                            Email = material.Supplier.Email,
+                            PhoneNumber = material.Supplier.PhoneNumber,
+                            Address = material.Supplier.Address,
                             Rating = material.Supplier.Rating,
                             ReviewCount = material.Supplier.ReviewCount,
-                            Certificates = material.Supplier.Certificates
+                            Certificates = material.Supplier.Certificates,
+                            CreatedAt = material.Supplier.CreatedAt
                         } : null,
                         // Sustainability information
                         SustainabilityScore = sustainabilityReport?.OverallSustainabilityScore,
@@ -260,6 +267,9 @@ namespace EcoFashionBackEnd.Services
         {
             try
             {
+                // Tự động tính toán thông tin vận chuyển nếu chưa có
+                TransportCalculationService.CalculateTransportInfo(request);
+
                 var material = new Material
                 {
                     SupplierId = request.SupplierId,
@@ -274,8 +284,11 @@ namespace EcoFashionBackEnd.Services
                     WaterUsage = request.WaterUsage,
                     WasteDiverted = request.WasteDiverted,
                     ProductionCountry = request.ProductionCountry,
+                    ProductionRegion = request.ProductionRegion,
                     ManufacturingProcess = request.ManufacturingProcess,
                     CertificationDetails = request.CertificationDetails,
+                    TransportDistance = request.TransportDistance,
+                    TransportMethod = request.TransportMethod,
                     IsAvailable = request.IsAvailable,
                     CreatedAt = DateTime.UtcNow,
                     LastUpdated = DateTime.UtcNow

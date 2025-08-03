@@ -93,6 +93,70 @@ namespace EcoFashionBackEnd.Services
         }
 
         /// <summary>
+        /// Tính điểm vận chuyển dựa trên khoảng cách và phương thức
+        /// </summary>
+        private decimal CalculateTransportScore(Material material)
+        {
+            if (material.TransportDistance == null || material.TransportMethod == null)
+                return 0;
+
+            var distance = material.TransportDistance.Value;
+            var method = material.TransportMethod.ToLower();
+
+            // Base score based on distance
+            decimal baseScore = 100;
+            if (distance > 5000) baseScore = 20;      // >5000km: 20%
+            else if (distance > 2000) baseScore = 40;  // 2000-5000km: 40%
+            else if (distance > 1000) baseScore = 60;  // 1000-2000km: 60%
+            else if (distance > 500) baseScore = 80;   // 500-1000km: 80%
+            else if (distance > 100) baseScore = 90;   // 100-500km: 90%
+
+            // Adjust based on transport method
+            decimal methodMultiplier = method switch
+            {
+                "sea" => 0.8m,    // Sea transport: 80% of base score
+                "rail" => 0.9m,    // Rail transport: 90% of base score
+                "land" => 0.7m,    // Land transport: 70% of base score
+                "air" => 0.3m,     // Air transport: 30% of base score (worst)
+                _ => 1.0m          // Default: 100% of base score
+            };
+
+            return baseScore * methodMultiplier;
+        }
+
+        /// <summary>
+        /// Tính điểm chứng nhận dựa trên loại chứng nhận
+        /// </summary>
+        private decimal CalculateCertificationScore(Material material)
+        {
+            if (string.IsNullOrEmpty(material.CertificationDetails))
+                return 0;
+
+            var certifications = material.CertificationDetails.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => c.Trim().ToUpper())
+                .ToList();
+
+            decimal totalScore = 0;
+
+            foreach (var cert in certifications)
+            {
+                totalScore += cert switch
+                {
+                    "GOTS" => 20,      // Global Organic Textile Standard
+                    "OCS" => 15,        // Organic Content Standard
+                    "GRS" => 10,        // Global Recycled Standard
+                    "OEKO-TEX" => 12,   // OEKO-TEX Standard 100
+                    "USDA ORGANIC" => 18, // USDA Organic
+                    "EU ECOLABEL" => 15,  // EU Ecolabel
+                    "RWS" => 12,        // Responsible Wool Standard
+                    _ => 5              // Other certifications
+                };
+            }
+
+            return Math.Min(totalScore, 100); // Cap at 100%
+        }
+
+        /// <summary>
         /// Tính điểm cho từng tiêu chí
         /// </summary>
         private (decimal score, string status, string explanation, decimal actualValue, decimal benchmarkValue) 
@@ -124,18 +188,29 @@ namespace EcoFashionBackEnd.Services
             switch (criterion.Name)
             {
                 case "Recycled Content":
-                    if (benchmarkValue > 0)
+                    // Phân biệt giữa organic materials (không cần recycled) và recycled materials
+                    if (benchmarkValue == 0)
                     {
-                        score = (actualValue / benchmarkValue) * 100;
-                        if (score > 100) score = 100;
-                        status = actualValue >= benchmarkValue ? "Excellent" : "Needs Improvement";
+                        // Organic materials: không cần recycled content
+                        score = actualValue == 0 ? 100 : 50; // 100% nếu không có recycled, 50% nếu có
+                        status = actualValue == 0 ? "Excellent" : "Good";
+                        explanation = $"Organic material: {actualValue}% recycled (không cần recycled content)";
                     }
                     else
                     {
-                        score = actualValue > 0 ? 100 : 0;
-                        status = actualValue > 0 ? "Excellent" : "Not applicable";
+                        // Recycled materials: cần recycled content
+                        score = (actualValue / benchmarkValue) * 100;
+                        if (score > 100) score = 100;
+                        if (actualValue >= benchmarkValue)
+                            status = "Excellent";
+                        else if (actualValue >= benchmarkValue * 0.8m)
+                            status = "Good";
+                        else if (actualValue >= benchmarkValue * 0.5m)
+                            status = "Average";
+                        else
+                            status = "Needs Improvement";
+                        explanation = $"Tỷ lệ tái chế: {actualValue}% (chuẩn: {benchmarkValue}%)";
                     }
-                    explanation = $"Tỷ lệ tái chế: {actualValue}% (chuẩn: {benchmarkValue}%)";
                     break;
 
                 case "Carbon Footprint":
@@ -234,7 +309,7 @@ namespace EcoFashionBackEnd.Services
             return level switch
             {
                 "Xuất sắc" => "green",
-                "Tốt" => "yellow",
+                "Tốt" => "#FFD700", // Golden yellow - dễ đọc hơn
                 "Trung bình" => "orange",
                 _ => "red"
             };
@@ -248,6 +323,54 @@ namespace EcoFashionBackEnd.Services
                 >= 60 => "Vật liệu khá bền vững, phù hợp cho thị trường phổ thông",
                 >= 40 => "Vật liệu bình thường, cần cải thiện để tăng tính bền vững",
                 _ => "Vật liệu kém bền vững, cần cải thiện đáng kể"
+            };
+        }
+
+        /// <summary>
+        /// Lấy đánh giá chi tiết về sustainability score
+        /// </summary>
+        public object GetSustainabilityEvaluation(decimal score)
+        {
+            var level = GetSustainabilityLevel(score);
+            var color = GetLevelColor(level);
+            var description = GetScoreDescription(score);
+            var recommendation = GetRecommendation(score);
+            var category = GetScoreCategory(score);
+
+            return new
+            {
+                score = score,
+                level = level,
+                color = color,
+                description = description,
+                recommendation = recommendation,
+                category = category,
+                isExcellent = score >= 80,
+                isGood = score >= 60 && score < 80,
+                isFair = score >= 40 && score < 60,
+                isPoor = score < 40
+            };
+        }
+
+        private string GetScoreDescription(decimal score)
+        {
+            return score switch
+            {
+                >= 80 => "Đạt chuẩn bền vững cao nhất",
+                >= 60 => "Đạt chuẩn bền vững tốt",
+                >= 40 => "Cần cải thiện thêm",
+                _ => "Cần cải thiện đáng kể"
+            };
+        }
+
+        private string GetScoreCategory(decimal score)
+        {
+            return score switch
+            {
+                >= 80 => "Xuất sắc",
+                >= 60 => "Tốt",
+                >= 40 => "Trung bình",
+                _ => "Cần cải thiện"
             };
         }
     }

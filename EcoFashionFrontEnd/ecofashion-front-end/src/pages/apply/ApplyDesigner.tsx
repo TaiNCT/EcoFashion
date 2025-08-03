@@ -20,11 +20,11 @@ import {
   Divider,
 } from "@mui/material";
 
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "../../services/user/AuthContext";
+import { useAuthStore } from "../../store/authStore";
 import { toast } from "react-toastify";
 import FileUpload from "../../components/FileUpload";
 import {
@@ -48,7 +48,7 @@ const steps = [
 ];
 
 export default function ApplyDesigner() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -84,7 +84,7 @@ export default function ApplyDesigner() {
     defaultValues,
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeStep]);
 

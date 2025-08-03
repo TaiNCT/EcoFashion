@@ -56,5 +56,40 @@ namespace EcoFashionBackEnd.Controllers
             
             return Ok(result);
         }
+
+        [HttpGet("GetProductionCountries")]
+        public IActionResult GetProductionCountries()
+        {
+            var countries = TransportCalculationService.GetCommonProductionCountries();
+            return Ok(new { countries });
+        }
+
+        [HttpGet("CalculateTransport/{country}")]
+        public IActionResult CalculateTransport(string country)
+        {
+            var (distance, method, description) = TransportCalculationService.GetTransportDetails(country);
+            return Ok(new { distance, method, description });
+        }
+
+        [HttpGet("GetTransportEvaluation/{distance}/{method}")]
+        public IActionResult GetTransportEvaluation(decimal distance, string method)
+        {
+            var evaluation = TransportCalculationService.GetTransportEvaluation(distance, method);
+            return Ok(evaluation);
+        }
+
+        [HttpGet("GetProductionEvaluation/{country}")]
+        public IActionResult GetProductionEvaluation(string country)
+        {
+            var evaluation = TransportCalculationService.GetProductionEvaluation(country);
+            return Ok(evaluation);
+        }
+
+        [HttpGet("GetSustainabilityEvaluation/{score}")]
+        public IActionResult GetSustainabilityEvaluation(decimal score)
+        {
+            var evaluation = _sustainabilityService.GetSustainabilityEvaluation(score);
+            return Ok(evaluation);
+        }
     }
 }

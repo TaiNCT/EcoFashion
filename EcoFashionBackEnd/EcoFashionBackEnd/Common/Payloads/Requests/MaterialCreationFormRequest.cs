@@ -61,6 +61,23 @@ namespace EcoFashionBackEnd.Common.Payloads.Requests
         [StringLength(200)]
         public string? QualityStandards { get; set; }
 
+        // Transport information (optional - can be auto-calculated)
+        [Range(0, double.MaxValue)]
+        public decimal? TransportDistance { get; set; }
+
+        [StringLength(50)]
+        public string? TransportMethod { get; set; } // Sea, Air, Land, Rail
+
+        // Sustainability criteria values
+        public List<MaterialSustainabilityCriterionRequest> SustainabilityCriteria { get; set; } = new();
+
         public bool IsAvailable { get; set; } = true;
+    }
+
+    // Request DTO for sustainability criteria values
+    public class MaterialSustainabilityCriterionRequest
+    {
+        public int CriterionId { get; set; }
+        public decimal Value { get; set; }
     }
 } 

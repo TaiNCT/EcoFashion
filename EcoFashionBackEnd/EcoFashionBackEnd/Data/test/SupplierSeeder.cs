@@ -10,21 +10,13 @@ namespace EcoFashionBackEnd.Data.test
         {
             if (await context.Suppliers.AnyAsync()) return;
 
-            // Tạo 1 user cho Supplier One
-            var supplierUser = new User
+            // Sử dụng user đã có từ UserSeeder
+            var supplierUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "supplier@example.com");
+            if (supplierUser == null)
             {
-                Email = "supplier@example.com",
-                Username = "supplier",
-                PasswordHash = "hashed_password_supplier",
-                FullName = "Supplier One",
-                RoleId = 2, // supplier role
-                Status = UserStatus.Active,
-                CreatedAt = DateTime.UtcNow,
-                LastUpdatedAt = DateTime.UtcNow
-            };
-
-            await context.Users.AddAsync(supplierUser);
-            await context.SaveChangesAsync();
+                Console.WriteLine("Supplier user not found, skipping supplier seeding");
+                return;
+            }
 
             var now = DateTime.UtcNow;
 
