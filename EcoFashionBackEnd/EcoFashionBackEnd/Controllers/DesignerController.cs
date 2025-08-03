@@ -114,6 +114,21 @@ public class DesignerController : ControllerBase
     }
 
     /// <summary>
+    /// Get designer by user ID (for any authenticated user)
+    /// </summary>
+    [HttpGet("user/{userId}")]
+    [Authorize]
+    public async Task<IActionResult> GetDesignerByUserId(int userId)
+    {
+        var designer = await _designerService.GetDesignerByUserId(userId);
+        if (designer == null)
+        {
+            return NotFound(ApiResult<DesignerModel>.Fail("Không tìm thấy thông tin nhà thiết kế cho người dùng này."));
+        }
+        return Ok(ApiResult<DesignerModel>.Succeed(designer));
+    }
+
+    /// <summary>
     /// Admin: Update designer
     /// </summary>
     [HttpPut("{id}")]
@@ -190,16 +205,10 @@ public class DesignerController : ControllerBase
             return Unauthorized(ApiResult<DesignerModel>.Fail("Không thể xác định người dùng."));
         }
 
-        var designerId = await _designerService.GetDesignerIdByUserId(userId);
-        if (!designerId.HasValue)
-        {
-            return NotFound(ApiResult<DesignerModel>.Fail("Bạn chưa có profile Designer. Vui lòng liên hệ admin để tạo profile."));
-        }
-
-        var designer = await _designerService.GetDesignerFullProfile(designerId.Value);
+        var designer = await _designerService.GetDesignerByUserId(userId);
         if (designer == null)
         {
-            return NotFound(ApiResult<DesignerModel>.Fail("Không tìm thấy thông tin Designer."));
+            return NotFound(ApiResult<DesignerModel>.Fail("Bạn chưa có profile Designer. Vui lòng liên hệ admin để tạo profile."));
         }
 
         return Ok(ApiResult<DesignerModel>.Succeed(designer));
@@ -218,13 +227,13 @@ public class DesignerController : ControllerBase
             return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
         }
 
-        var designerId = await _designerService.GetDesignerIdByUserId(userId);
-        if (!designerId.HasValue)
+        var designer = await _designerService.GetDesignerByUserId(userId);
+        if (designer == null)
         {
             return NotFound(ApiResult<object>.Fail("Bạn chưa có profile Designer."));
         }
 
-        var isUpdated = await _designerService.UpdateDesigner(designerId.Value, request);
+        var isUpdated = await _designerService.UpdateDesigner(designer.DesignerId, request);
         if (!isUpdated)
         {
             return BadRequest(ApiResult<object>.Fail("Không thể cập nhật profile."));
@@ -250,13 +259,13 @@ public class DesignerController : ControllerBase
             return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
         }
 
-        var designerId = await _designerService.GetDesignerIdByUserId(userId);
-        if (!designerId.HasValue) 
+        var designer = await _designerService.GetDesignerByUserId(userId);
+        if (designer == null) 
         {
             return NotFound(ApiResult<object>.Fail("Không tìm thấy thông tin nhà thiết kế cho người dùng này."));
         }
 
-        var result = await _designerService.ConnectWithSupplier(designerId.Value, supplierId);
+        var result = await _designerService.ConnectWithSupplier(designer.DesignerId, supplierId);
 
         if (result == null)
         {
@@ -279,13 +288,13 @@ public class DesignerController : ControllerBase
             return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
         }
 
-        var designerId = await _designerService.GetDesignerIdByUserId(userId);
-        if (designerId == null)
+        var designer = await _designerService.GetDesignerByUserId(userId);
+        if (designer == null)
         {
             return NotFound(ApiResult<object>.Fail("Không tìm thấy thông tin nhà thiết kế cho người dùng này."));
         }
 
-        var followedSuppliers = await _designerService.GetFollowedSuppliers(designerId.Value);
+        var followedSuppliers = await _designerService.GetFollowedSuppliers(designer.DesignerId);
         return Ok(ApiResult<GetSuppliersResponse>.Succeed(new GetSuppliersResponse
         {
             Suppliers = followedSuppliers
@@ -305,13 +314,13 @@ public class DesignerController : ControllerBase
             return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
         }
 
-        var designerId = await _designerService.GetDesignerIdByUserId(userId);
-        if (!designerId.HasValue)
+        var designer = await _designerService.GetDesignerByUserId(userId);
+        if (designer == null)
         {
             return NotFound(ApiResult<object>.Fail("Không tìm thấy thông tin nhà thiết kế cho người dùng này."));
         }
 
-        var isDeleted = await _designerService.RemoveFollowedSupplier(designerId.Value, supplierId);
+        var isDeleted = await _designerService.RemoveFollowedSupplier(designer.DesignerId, supplierId);
 
         if (isDeleted)
         {

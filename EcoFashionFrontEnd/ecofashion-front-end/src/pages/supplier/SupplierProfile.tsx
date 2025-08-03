@@ -1,42 +1,47 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { SupplierService, type SupplierModel } from "../../services/api/supplierService";
-import NavbarOne from "../../components/navbar/navbar-one";
+import { useEffect } from "react";
 import bg from '../../assets/pictures/homepage/banner.jpg'
 import AccountTab from "../../components/account/account-tab";
 import ScrollToTop from "../../components/scroll-to-top";
 import { LuMail, LuMapPin, LuPhoneCall } from "react-icons/lu";
 import Aos from "aos";
+import { useAuthStore } from "../../store/authStore";
 
 export default function MyProfile() {
-  const [supplier, setSupplier] = useState<SupplierModel | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user, supplierProfile } = useAuthStore();
 
   useEffect(() => {
     Aos.init();
-    const fetchSupplier = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await SupplierService.getSupplierProfile();
-        setSupplier(data);
-      } catch (err: any) {
-        setError(err.message || "Không thể tải thông tin nhà cung cấp.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSupplier();
   }, []);
 
+  // Kết hợp data từ auth store
+  const combinedSupplier = {
+    ...supplierProfile,
+    user: {
+      ...user
+    }
+  };
+
   // Xác định banner và avatar
-  const bannerUrl = supplier?.bannerUrl && supplier.bannerUrl.trim() ? supplier.bannerUrl : bg;
-  const avatarUrl = supplier?.avatarUrl && supplier.avatarUrl.trim() ? supplier.avatarUrl : "/assets/default-avatar.png";
+  const bannerUrl = combinedSupplier?.bannerUrl && combinedSupplier.bannerUrl.trim() 
+    ? combinedSupplier.bannerUrl 
+    : bg;
+  
+  const avatarUrl = combinedSupplier?.avatarUrl && combinedSupplier.avatarUrl.trim() 
+    ? combinedSupplier.avatarUrl 
+    : combinedSupplier?.user?.avatarUrl 
+    ? combinedSupplier.user.avatarUrl 
+    : "/assets/default-avatar.png";
+
+  // Thông tin hiển thị từ state
+  const displayName = combinedSupplier?.supplierName || combinedSupplier?.user?.fullName || "Nhà cung cấp";
+  const displayEmail = combinedSupplier?.email || combinedSupplier?.user?.email || "Chưa cập nhật";
+  const displayPhone = combinedSupplier?.phoneNumber || combinedSupplier?.user?.phone || "Chưa cập nhật";
+  const displayAddress = combinedSupplier?.address || "Chưa cập nhật";
+  const displayBio = combinedSupplier?.bio || "Nhà cung cấp chuyên nghiệp";
 
   return (
-    <>
-      <NavbarOne/>
+    <>      
       <div className="flex items-center gap-4 flex-wrap bg-overlay p-14 sm:p-16 before:bg-title before:bg-opacity-70" style={{backgroundImage:`url(${bannerUrl})`}}>
         <div className="text-center w-full flex flex-col items-center">
           {/* Avatar */}
@@ -63,49 +68,41 @@ export default function MyProfile() {
             </div>
             <div className="w-full md:w-auto md:flex-1 overflow-auto">
               <div className="w-full max-w-[951px] bg-[#F8F8F9] dark:bg-dark-secondary p-5 sm:p-8 lg:p-[50px]">
-                {loading ? (
-                  <div className="text-center py-10">Đang tải thông tin...</div>
-                ) : error ? (
-                  <div className="text-center text-red-500 py-10">{error}</div>
-                ) : (
-                  <>
-                    <div data-aos="fade-up" data-aos-delay="200" className="flex items-center gap-4">
-                      {/* Avatar nhỏ trước tên */}
-                      <img
-                        src={avatarUrl}
-                        alt="Avatar"
-                        className="rounded-full w-12 h-12 object-cover border-2 border-gray-300 shadow"
-                        onError={e => { (e.currentTarget as HTMLImageElement).src = "/assets/default-avatar.png"; }}
-                      />
-                      <h3 className="font-semibold leading-none">
-                        {supplier?.supplierName || supplier?.user?.fullName || "Nhà cung cấp"}
-                      </h3>
+                <div data-aos="fade-up" data-aos-delay="200" className="flex items-center gap-4">
+                  {/* Avatar nhỏ trước tên */}
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className="rounded-full w-12 h-12 object-cover border-2 border-gray-300 shadow"
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = "/assets/default-avatar.png"; }}
+                  />
+                  <h3 className="font-semibold leading-none">
+                    {displayName}
+                  </h3>
+                </div>
+                <span className="leading-none mt-3 block">
+                  {displayBio}
+                </span>
+                <div className="mt-5 sm:mt-8 md:mt-10 grid gap-4 sm:gap-6" data-aos="fade-up" data-aos-delay="400">
+                  {displayPhone !== "Chưa cập nhật" && (
+                    <div className="flex items-center gap-2">
+                      <LuPhoneCall className="text-primary size-5"/>
+                      <span className="leading-none font-medium text-base sm:text-lg">{displayPhone}</span>
                     </div>
-                    <span className="leading-none mt-3 block">
-                      {supplier?.bio || "Nhà cung cấp chuyên nghiệp"}
-                    </span>
-                    <div className="mt-5 sm:mt-8 md:mt-10 grid gap-4 sm:gap-6" data-aos="fade-up" data-aos-delay="400">
-                      {supplier?.phoneNumber && (
-                        <div className="flex items-center gap-2">
-                          <LuPhoneCall className="text-primary size-5"/>
-                          <span className="leading-none font-medium text-base sm:text-lg">{supplier.phoneNumber}</span>
-                        </div>
-                      )}
-                      {supplier?.email && (
-                        <div className="flex items-center gap-2">
-                          <LuMail className="text-primary size-5"/>
-                          <span className="leading-none font-medium text-base sm:text-lg">{supplier.email}</span>
-                        </div>
-                      )}
-                      {supplier?.address && (
-                        <div className="flex items-center gap-2">
-                          <LuMapPin className="text-primary size-5"/>
-                          <span className="leading-none font-medium text-base sm:text-lg">{supplier.address}</span>
-                        </div>
-                      )}
+                  )}
+                  {displayEmail !== "Chưa cập nhật" && (
+                    <div className="flex items-center gap-2">
+                      <LuMail className="text-primary size-5"/>
+                      <span className="leading-none font-medium text-base sm:text-lg">{displayEmail}</span>
                     </div>
-                  </>
-                )}
+                  )}
+                  {displayAddress !== "Chưa cập nhật" && (
+                    <div className="flex items-center gap-2">
+                      <LuMapPin className="text-primary size-5"/>
+                      <span className="leading-none font-medium text-base sm:text-lg">{displayAddress}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

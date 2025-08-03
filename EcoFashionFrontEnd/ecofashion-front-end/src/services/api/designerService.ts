@@ -26,11 +26,18 @@ export interface DesignerProfile {
   rating?: number;
   reviewCount?: number;
   certificates?: string;
+  user?: {
+    userId: number;
+    fullName?: string;
+    email?: string;
+  };
 }
 
-export interface CreateDesignerRequest {
-  designerName: string;
+export interface UpdateDesignerRequest {
+  designerName?: string;
+  avatarUrl?: string;
   portfolioUrl?: string;
+  portfolioFiles?: string;
   bannerUrl?: string;
   specializationUrl?: string;
   email?: string;
@@ -38,23 +45,9 @@ export interface CreateDesignerRequest {
   address?: string;
   taxNumber?: string;
   identificationNumber?: string;
-  identificationPicture?: string;
-  identificationPictureOwner?: string;
-}
-
-export interface UpdateDesignerRequest extends Partial<CreateDesignerRequest> {
-  designerId: string;
-}
-
-export interface DesignerResponse {
-  designer: DesignerProfile;
-}
-
-export interface DesignerListResponse {
-  designers: DesignerProfile[];
-  totalCount: number;
-  currentPage: number;
-  pageSize: number;
+  identificationPictureFront?: string;
+  identificationPictureBack?: string;
+  certificates?: string;
 }
 
 export interface DesignerSummary {
@@ -85,9 +78,12 @@ export interface DesignerPublic {
   certificates?: string;
   createdAt: string;
   userFullName?: string;
-  socialLinks?: string;
-  taxNumber?: string;
-  identificationPictureOwner?: string;
+}
+
+export interface FollowedSupplierResponse {
+  supplierId: string;
+  supplierName?: string;
+  portfolioUrl?: string;
 }
 
 /**
@@ -105,44 +101,21 @@ export class DesignerService {
       const response = await apiClient.get<BaseApiResponse<DesignerProfile>>(
         `${this.API_BASE}/profile`
       );
-      const data = handleApiResponse(response);
-
-      return data; // Backend trả về DesignerModel trực tiếp, không wrap trong { designer: ... }
+      return handleApiResponse(response);
     } catch (error) {
       return handleApiError(error);
     }
   }
 
   /**
-   * Get designer profile by designer ID
+   * Get designer profile by user ID
    */
-  static async getDesignerById(designerId: string): Promise<DesignerProfile> {
+  static async getDesignerByUserId(userId: number): Promise<DesignerProfile> {
     try {
-      const response = await apiClient.get<BaseApiResponse<DesignerResponse>>(
-        `${this.API_BASE}/${designerId}`
+      const response = await apiClient.get<BaseApiResponse<DesignerProfile>>(
+        `${this.API_BASE}/user/${userId}`
       );
-      const data = handleApiResponse(response);
-
-      return data.designer;
-    } catch (error) {
-      return handleApiError(error);
-    }
-  }
-
-  /**
-   * Create new designer profile
-   */
-  static async createDesignerProfile(
-    profileData: CreateDesignerRequest
-  ): Promise<DesignerProfile> {
-    try {
-      const response = await apiClient.post<BaseApiResponse<DesignerResponse>>(
-        `${this.API_BASE}/create`,
-        profileData
-      );
-      const data = handleApiResponse(response);
-
-      return data.designer;
+      return handleApiResponse(response);
     } catch (error) {
       return handleApiError(error);
     }
@@ -152,128 +125,14 @@ export class DesignerService {
    * Update current user's designer profile
    */
   static async updateDesignerProfile(
-    profileData: Partial<DesignerProfile>
-  ): Promise<DesignerProfile> {
+    profileData: UpdateDesignerRequest
+  ): Promise<void> {
     try {
       const response = await apiClient.put<BaseApiResponse<string>>(
         `${this.API_BASE}/profile`,
         profileData
       );
-      const data = handleApiResponse(response);
-
-      // Backend update trả về message, cần get lại profile
-      return await DesignerService.getDesignerProfile();
-    } catch (error) {
-      return handleApiError(error);
-    }
-  }
-
-  /**
-   * Delete designer profile
-   */
-  static async deleteDesignerProfile(designerId: string): Promise<void> {
-    try {
-      await apiClient.delete(`${this.API_BASE}/delete/${designerId}`);
-    } catch (error) {
-      return handleApiError(error);
-    }
-  }
-
-  /**
-   * Get all designers with pagination
-   */
-  static async getAllDesigners(
-    page: number = 1,
-    pageSize: number = 10,
-    search?: string
-  ): Promise<DesignerListResponse> {
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        pageSize: pageSize.toString(),
-      });
-
-      if (search) {
-        params.append("search", search);
-      }
-
-      const response = await apiClient.get<
-        BaseApiResponse<DesignerListResponse>
-      >(`${this.API_BASE}/list?${params.toString()}`);
-
-      return handleApiResponse(response);
-    } catch (error) {
-      return handleApiError(error);
-    }
-  }
-
-  /**
-   * Upload designer document image
-   */
-  static async uploadDesignerImage(
-    designerId: string,
-    imageFile: File,
-    imageType: "identification" | "owner" | "banner"
-  ): Promise<{ imageUrl: string }> {
-    try {
-      const formData = new FormData();
-      formData.append("image", imageFile);
-      formData.append("imageType", imageType);
-
-      const response = await apiClient.post<
-        BaseApiResponse<{ imageUrl: string }>
-      >(`${this.API_BASE}/upload-image/${designerId}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      return handleApiResponse(response);
-    } catch (error) {
-      return handleApiError(error);
-    }
-  }
-
-  /**
-   * Update designer status (Admin only)
-   */
-  static async updateDesignerStatus(
-    designerId: string,
-    status: "Active" | "Inactive" | "Pending" | "Rejected"
-  ): Promise<DesignerProfile> {
-    try {
-      const response = await apiClient.patch<BaseApiResponse<DesignerResponse>>(
-        `${this.API_BASE}/status/${designerId}`,
-        { status }
-      );
-      const data = handleApiResponse(response);
-
-      return data.designer;
-    } catch (error) {
-      return handleApiError(error);
-    }
-  }
-
-  /**
-   * Get designer statistics (for admin dashboard)
-   */
-  static async getDesignerStats(): Promise<{
-    totalDesigners: number;
-    activeDesigners: number;
-    pendingDesigners: number;
-    rejectedDesigners: number;
-  }> {
-    try {
-      const response = await apiClient.get<
-        BaseApiResponse<{
-          totalDesigners: number;
-          activeDesigners: number;
-          pendingDesigners: number;
-          rejectedDesigners: number;
-        }>
-      >(`${this.API_BASE}/statistics`);
-
-      return handleApiResponse(response);
+      handleApiResponse(response);
     } catch (error) {
       return handleApiError(error);
     }
@@ -350,6 +209,48 @@ export class DesignerService {
         `${this.API_BASE}/public/featured?count=${count}`
       );
       return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Follow a supplier
+   */
+  static async followSupplier(supplierId: string): Promise<FollowedSupplierResponse> {
+    try {
+      const response = await apiClient.post<BaseApiResponse<FollowedSupplierResponse>>(
+        `${this.API_BASE}/follow/${supplierId}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Get followed suppliers
+   */
+  static async getFollowedSuppliers(): Promise<any[]> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<any[]>>(
+        `${this.API_BASE}/follow`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Unfollow a supplier
+   */
+  static async unfollowSupplier(supplierId: string): Promise<void> {
+    try {
+      const response = await apiClient.delete<BaseApiResponse<string>>(
+        `${this.API_BASE}/follow/${supplierId}`
+      );
+      handleApiResponse(response);
     } catch (error) {
       return handleApiError(error);
     }

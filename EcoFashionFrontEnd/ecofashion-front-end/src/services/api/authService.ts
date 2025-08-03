@@ -160,15 +160,11 @@ export class AuthService {
    * Logout user
    */
   static async logout(): Promise<void> {
-    try {
-      await apiClient.post("User/logout");
-    } catch (error) {
-      console.warn("Logout API call failed, but continuing with local logout");
-    } finally {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("userInfo");
-      localStorage.removeItem("tokenExpiresAt");
-    }
+    // Backend doesn't have logout endpoint, just clear local data
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userInfo");
+    localStorage.removeItem("tokenExpiresAt");
+    localStorage.removeItem("supplierInfo"); // Also remove supplier data
   }
 
   /**

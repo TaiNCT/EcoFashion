@@ -1,123 +1,95 @@
-﻿using EcoFashionBackEnd.Common;
-using EcoFashionBackEnd.Common.Payloads.Requests;
-using EcoFashionBackEnd.Common.Payloads.Responses;
-using EcoFashionBackEnd.Dtos;
-using EcoFashionBackEnd.Dtos.Material;
+﻿using Microsoft.AspNetCore.Mvc;
 using EcoFashionBackEnd.Services;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using EcoFashionBackEnd.Common.Payloads.Requests;
+using EcoFashionBackEnd.Common;
+using EcoFashionBackEnd.Common.Payloads.Responses;
 
 namespace EcoFashionBackEnd.Controllers
 {
-    [Route("api/Materials")]
     [ApiController]
+    [Route("api/[controller]")]
     public class MaterialController : ControllerBase
     {
         private readonly MaterialService _materialService;
-        public MaterialController(MaterialService materialService)
+        private readonly SustainabilityService _sustainabilityService;
+
+        public MaterialController(MaterialService materialService, SustainabilityService sustainabilityService)
         {
             _materialService = materialService;
+            _sustainabilityService = sustainabilityService;
         }
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetMaterialById(int id)
-        {
-            var material = await _materialService.GetMaterialByIdAsync(id);
-            if (material == null)
-                return NotFound(ApiResult<MaterialModel>.Fail("Không tìm thấy vật liệu"));
 
-            return Ok(ApiResult<MaterialModel>.Succeed(material));
-        }
-        [HttpGet("Detail/{id}")]
-        public async Task<IActionResult> GetMaterialDetail(int id)
-        {
-            var dto = await _materialService.GetMaterialDetailByIdAsync(id);
-            if (dto == null)
-                return NotFound(ApiResult<MaterialDetailResponse>.Fail("Không tìm thấy vật liệu"));
-            return Ok(ApiResult<MaterialDetailResponse>.Succeed(dto));
-        }
         [HttpGet]
         public async Task<IActionResult> GetAllMaterials()
         {
-            try
-            {
-                var materials = await _materialService.GetAllMaterialsAsync();
-                return Ok(ApiResult<List<MaterialDetailDto>>.Succeed(materials.ToList()));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResult<object>.Fail($"Lỗi khi lấy danh sách vật liệu: {ex.Message}"));
-            }
+            var result = await _materialService.GetAllMaterialsAsync();
+            return Ok(result);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateMaterial([FromBody] MaterialRequest request)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetMaterialById(int id)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ApiResult<object>.Fail("Dữ liệu không hợp lệ"));
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-                return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
-            try
-            {
-                var material = await _materialService.CreateMaterialAsync(userId, request);
-                return Ok(ApiResult<MaterialModel>.Succeed(material));
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ApiResult<object>.Fail(ex.Message));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500,ApiResult<object>.Fail("Lỗi hệ thống: " + ex.Message));
-            }
+            var result = await _materialService.GetMaterialDetailByIdAsync(id);
+            return Ok(result);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMaterial(int id, [FromBody] MaterialRequest model)
+        [HttpPost("CreateWithSustainability")]
+        public async Task<IActionResult> CreateMaterialFromForm([FromBody] MaterialCreationFormRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ApiResult<object>.Fail("Dữ liệu không hợp lệ"));
-            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
-                return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
-            try
-            {
-                var material = await _materialService.UpdateMaterialAsync(userId, id, model);
-                if (material == null)
-                    return NotFound(ApiResult<object>.Fail("Không tìm thấy vật liệu cần cập nhật"));
-
-                return Ok(ApiResult<MaterialModel>.Succeed(material));
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ApiResult<object>.Fail(ex.Message));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ApiResult<object>.Fail("Lỗi hệ thống: " + ex.Message));
-            }
+            var result = await _materialService.CreateMaterialFromFormAsync(request);
+            return Ok(result);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMaterial(int id)
         {
-            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
-                return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
-            try
-            {
-                var isDeleted = await _materialService.DeleteMaterialAsync(userId, id);
-                if (!isDeleted)
-                    return NotFound(ApiResult<object>.Fail("Không tìm thấy vật liệu cần xóa"));
+            var result = await _materialService.DeleteMaterialAsync(id);
+            return Ok(result);
+        }
 
-                return Ok(ApiResult<object>.Succeed("Xóa vật liệu thành công"));
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ApiResult<object>.Fail(ex.Message));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ApiResult<object>.Fail("Lỗi hệ thống: " + ex.Message));
-            }
+        [HttpGet("Sustainability/{materialId}")]
+        public async Task<IActionResult> GetMaterialSustainability(int materialId)
+        {
+            var result = await _sustainabilityService.CalculateMaterialSustainabilityScore(materialId);
+            if (result == null)
+                return NotFound("Material not found");
+            
+            return Ok(result);
+        }
+
+        [HttpGet("GetProductionCountries")]
+        public IActionResult GetProductionCountries()
+        {
+            var countries = TransportCalculationService.GetCommonProductionCountries();
+            return Ok(new { countries });
+        }
+
+        [HttpGet("CalculateTransport/{country}")]
+        public IActionResult CalculateTransport(string country)
+        {
+            var (distance, method, description) = TransportCalculationService.GetTransportDetails(country);
+            return Ok(new { distance, method, description });
+        }
+
+        [HttpGet("GetTransportEvaluation/{distance}/{method}")]
+        public IActionResult GetTransportEvaluation(decimal distance, string method)
+        {
+            var evaluation = TransportCalculationService.GetTransportEvaluation(distance, method);
+            return Ok(evaluation);
+        }
+
+        [HttpGet("GetProductionEvaluation/{country}")]
+        public IActionResult GetProductionEvaluation(string country)
+        {
+            var evaluation = TransportCalculationService.GetProductionEvaluation(country);
+            return Ok(evaluation);
+        }
+
+        [HttpGet("GetSustainabilityEvaluation/{score}")]
+        public IActionResult GetSustainabilityEvaluation(decimal score)
+        {
+            var evaluation = _sustainabilityService.GetSustainabilityEvaluation(score);
+            return Ok(evaluation);
         }
     }
 }

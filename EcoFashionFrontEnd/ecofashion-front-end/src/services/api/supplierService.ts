@@ -65,22 +65,40 @@ export interface SupplierSummary {
   createdAt: string;
 }
 
+// Interface cho update request
+export interface UpdateSupplierRequest {
+  supplierName?: string;
+  avatarUrl?: string;
+  portfolioUrl?: string;
+  portfolioFiles?: string;
+  bannerUrl?: string;
+  specializationUrl?: string;
+  email?: string;
+  phoneNumber?: string;
+  address?: string;
+  taxNumber?: string;
+  identificationNumber?: string;
+  identificationPictureFront?: string;
+  identificationPictureBack?: string;
+  certificates?: string;
+}
+
 class SupplierService {
-  private static readonly API_BASE = "Supplier";
+  private static readonly API_BASE = "supplier";
 
   // Public APIs
   static async getPublicSuppliers(
     page: number = 1,
     pageSize: number = 12
   ): Promise<SupplierSummary[]> {
-          const response = await apiClient.get<any>(
-        `${this.API_BASE}/public?page=${page}&pageSize=${pageSize}`
-      );
+    const response = await apiClient.get<any>(
+      `${this.API_BASE}/public?page=${page}&pageSize=${pageSize}`
+    );
     return handleApiResponse<SupplierSummary[]>(response);
   }
 
   static async getSupplierPublicProfile(id: string): Promise<SupplierPublic> {
-          const response = await apiClient.get<any>(`${this.API_BASE}/public/${id}`);
+    const response = await apiClient.get<any>(`${this.API_BASE}/public/${id}`);
     return handleApiResponse<SupplierPublic>(response);
   }
 
@@ -116,13 +134,15 @@ class SupplierService {
   // Authenticated APIs
   static async getSupplierProfile(): Promise<SupplierModel> {
     const response = await apiClient.get<any>(`${this.API_BASE}/profile`);
-    // Backend trả về: { success: true, data: SupplierModel }
-    // Chúng ta cần access data directly
-    const result = handleApiResponse<SupplierModel>(response);
-    return result;
+    return handleApiResponse<SupplierModel>(response);
   }
 
-  static async updateSupplierProfile(request: any): Promise<void> {
+  static async getSupplierByUserId(userId: number): Promise<SupplierModel> {
+    const response = await apiClient.get<any>(`${this.API_BASE}/user/${userId}`);
+    return handleApiResponse<SupplierModel>(response);
+  }
+
+  static async updateSupplierProfile(request: UpdateSupplierRequest): Promise<void> {
     const response = await apiClient.put<any>(
       `${this.API_BASE}/profile`,
       request

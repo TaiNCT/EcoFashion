@@ -170,6 +170,17 @@ namespace EcoFashionBackEnd.Services
             return supplier?.SupplierId;
         }
 
+        /// <summary>
+        /// Get supplier full profile by user ID
+        /// </summary>
+        public async Task<SupplierModel?> GetSupplierByUserId(int userId)
+        {
+            var supplier = await _supplierRepository.GetAll()
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.UserId == userId);
+            return supplier != null ? _mapper.Map<SupplierModel>(supplier) : null;
+        }
+
         // Existing Admin/Management Methods
 
         public async Task<IEnumerable<SupplierModel>> GetAllSuppliers()

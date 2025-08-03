@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../services/user/AuthContext";
+import { useAuthStore } from "../store/authStore";
 import { useNavigate } from "react-router-dom";
 
 export default function BusinessInfor() {
@@ -28,7 +28,7 @@ export default function BusinessInfor() {
     setTabIndex(newValue);
   };
 
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   const handleClick = (type: any) => {
     switch (type) {
@@ -61,7 +61,7 @@ export default function BusinessInfor() {
             }}
           >
             <Tab
-              label="Dành Cho Nhà Thiết Kế"
+              label="Dành Cho Nhà Thiết Kế"
               sx={{
                 "&.Mui-selected": {
                   color: "primary.main",
@@ -70,7 +70,7 @@ export default function BusinessInfor() {
               }}
             />
             <Tab
-              label="Dành Cho Nhà Cung Cấp"
+              label="Dành Cho Nhà Cung Cấp"
               sx={{
                 "&.Mui-selected": {
                   color: "primary.main",
@@ -106,7 +106,7 @@ export default function BusinessInfor() {
                   và giới thiệu sản phẩm thời trang từ vật liệu tái chế của bạn
                   đến mọi người.
                 </Typography>
-                {user?.role.toLocaleLowerCase() === "customer" && (
+                {user?.role?.toLowerCase() === "customer" && (
                   <Button
                     variant="contained"
                     sx={{ backgroundColor: "#12B76A" }}
@@ -141,12 +141,12 @@ export default function BusinessInfor() {
                   <Card variant="outlined" sx={{ height: "100%" }}>
                     <CardContent>
                       <Typography variant="subtitle1" fontWeight="bold" mb={1}>
-                        Thị Trường Trong Nước
+                        Thị Trường Trong Nước
                       </Typography>
                       <Typography variant="body2">
                         Trưng bày và bán các sản phẩm thời trang bền vững của
                         bạn đến khách hàng quan tâm đến môi trường trên toàn
-                        nước.
+                        nước.
                       </Typography>
                     </CardContent>
                   </Card>
@@ -265,7 +265,7 @@ export default function BusinessInfor() {
                   Bắt đầu hành trình trở thành nhà thiết kế thời trang bền vững
                   của bạn ngay hôm nay.
                 </Typography>
-                {user?.role.toLocaleLowerCase() === "customer" && (
+                {user?.role?.toLowerCase() === "customer" && (
                   <Button
                     variant="contained"
                     sx={{ backgroundColor: "#12B76A" }}
@@ -285,7 +285,7 @@ export default function BusinessInfor() {
                 {/* Header */}
 
                 <Typography variant="h5" fontWeight="bold" mb={2}>
-                  Dành Cho Nhà Cung Cấp
+                  Dành Cho Nhà Cung Cấp
                 </Typography>
 
                 <Box
@@ -302,26 +302,26 @@ export default function BusinessInfor() {
                     mb={1}
                     color="white"
                   >
-                    Cung Cấp Vật Liệu Chất Lượng Thân Thiện Với Môi Trường
+                    Cung Cấp Vật Liệu Chất Lượng Thân Thiện Với Môi Trường
                   </Typography>
                   <Typography mb={2} color="white">
                     Tham gia nền tảng của chúng tôi để giới thiệu và bán các vật
                     liệu tái chế của bạn đến các nhà thiết kế thời trang thân
                     thiện với môi trường trên toàn thế giới.
                   </Typography>
-                  {user?.role.toLocaleLowerCase() === "customer" && (
+                  {user?.role?.toLowerCase() === "customer" && (
                     <Button
                       variant="contained"
                       sx={{ backgroundColor: "white", color: "#2563eb" }}
                     >
-                      Trở thành nhà cung cấp
+                      Trở thành nhà cung cấp
                     </Button>
                   )}
                 </Box>
 
                 {/* Benefits Section */}
                 <Typography variant="h6" fontWeight="bold" mb={2}>
-                  Lợi ích dành cho Nhà Cung Cấp
+                  Lợi ích dành cho Nhà Cung Cấp
                 </Typography>
 
                 <Grid container spacing={2}>
@@ -336,7 +336,7 @@ export default function BusinessInfor() {
                           Tiếp Cận Trực Tiếp
                         </Typography>
                         <Typography variant="body2">
-                          Kết nối trực tiếp với khách hàng trang đang tìm kiếm
+                          Kết nối trực tiếp với khách hàng đang tìm kiếm
                           vật liệu bền vững và tái chế.
                         </Typography>
                       </CardContent>
@@ -424,8 +424,8 @@ export default function BusinessInfor() {
                     },
                     {
                       step: 3,
-                      title: "Kết Nối Với Khách Hàng",
-                      desc: "Nhận các yêu cầu và đơn hàng từ khách hàng quan tâm đến vật liệu tái chế của bạn.",
+                      title: "Kết Nối Với Khách Hàng",
+                      desc: "Nhận các yêu cầu và đơn hàng từ khách hàng quan tâm đến vật liệu tái chế của bạn.",
                     },
                     {
                       step: 4,
@@ -466,15 +466,15 @@ export default function BusinessInfor() {
                     Sẵn Sàng Tham Gia EcoFashion
                   </Typography>
                   <Typography mb={2}>
-                    Bắt đầu kết nối với những khách hàng tiềm năng bền vững ngay
+                    Bắt đầu kết nối với những khách hàng tiềm năng bền vững ngay
                     hôm nay.
                   </Typography>
-                  {user?.role.toLocaleLowerCase() === "customer" && (
+                  {user?.role?.toLowerCase() === "customer" && (
                     <Button
                       variant="contained"
                       sx={{ backgroundColor: "#12B76A" }}
                     >
-                      Trở thành nhà cung cấp
+                      Trở thành nhà cung cấp
                     </Button>
                   )}
                 </Box>
