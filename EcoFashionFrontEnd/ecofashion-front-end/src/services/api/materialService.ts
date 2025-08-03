@@ -3,15 +3,13 @@ import {
   materialDetailDtoSchema,
   materialDetailResponseSchema,
   materialModelSchema,
-  materialRequestSchema,
-  materialFilterSchema,
-  materialSearchSchema,
+  materialCreationFormRequestSchema,
+  materialTypeModelSchema,
   type MaterialDetailDto,
   type MaterialDetailResponse,
   type MaterialModel,
-  type MaterialRequest,
-  type MaterialFilterRequest,
-  type MaterialSearchRequest,
+  type MaterialCreationFormRequest,
+  type MaterialTypeModel,
 } from '../../schemas/materialSchema';
 
 // Mapping schema cho backend field names
@@ -29,45 +27,51 @@ export const backendFieldMapping = {
 } as const;
 
 class MaterialService {
-  private readonly API_BASE = "Materials";
+  private readonly API_BASE = "Material";
 
-  // Get all materials with full details
-  async getAllMaterials(): Promise<MaterialDetailDto[]> {
+  // Get all materials with sustainability scores (for homepage)
+  async getAllMaterialsWithSustainability(): Promise<MaterialDetailDto[]> {
     const response = await apiClient.get<any>(`${this.API_BASE}`);
     const result = handleApiResponse<MaterialDetailDto[]>(response);
-    return result.map((item) => materialDetailDtoSchema.parse(item));
+    
+
+    
+    return result.map((item) => {
+      try {
+        return materialDetailDtoSchema.parse(item);
+      } catch (error) {
+        console.error("Schema validation error:", error);
+        console.error("Item that failed validation:", item);
+        throw error;
+      }
+    });
   }
 
-  // Get material by ID
-  async getMaterialById(id: number): Promise<MaterialModel> {
-    const response = await apiClient.get<any>(`${this.API_BASE}/${id}`);
-    const result = handleApiResponse<MaterialModel>(response);
-    return materialModelSchema.parse(result);
+  // Get all materials (alias for getAllMaterialsWithSustainability)
+  async getAllMaterials(): Promise<MaterialDetailDto[]> {
+    return this.getAllMaterialsWithSustainability();
   }
 
   // Get material detail by ID
   async getMaterialDetail(id: number): Promise<MaterialDetailResponse> {
-    const response = await apiClient.get<any>(`${this.API_BASE}/Detail/${id}`);
+    const response = await apiClient.get<any>(`${this.API_BASE}/${id}`);
     const result = handleApiResponse<MaterialDetailResponse>(response);
     return materialDetailResponseSchema.parse(result);
   }
 
-  // Create new material
-  async createMaterial(request: MaterialRequest): Promise<MaterialModel> {
-    // Validate request data
-    const validatedRequest = materialRequestSchema.parse(request);
-    
-    const response = await apiClient.post<any>(`${this.API_BASE}`, validatedRequest);
-    const result = handleApiResponse<MaterialModel>(response);
-    return materialModelSchema.parse(result);
+  // Get material by ID (alias for getMaterialDetail)
+  async getMaterialById(id: number): Promise<MaterialDetailDto> {
+    const response = await apiClient.get<any>(`${this.API_BASE}/${id}`);
+    const result = handleApiResponse<MaterialDetailDto>(response);
+    return materialDetailDtoSchema.parse(result);
   }
 
-  // Update material
-  async updateMaterial(id: number, request: MaterialRequest): Promise<MaterialModel> {
+  // Create new material with sustainability
+  async createMaterialWithSustainability(request: MaterialCreationFormRequest): Promise<MaterialModel> {
     // Validate request data
-    const validatedRequest = materialRequestSchema.parse(request);
+    const validatedRequest = materialCreationFormRequestSchema.parse(request);
     
-    const response = await apiClient.put<any>(`${this.API_BASE}/${id}`, validatedRequest);
+    const response = await apiClient.post<any>(`${this.API_BASE}/CreateWithSustainability`, validatedRequest);
     const result = handleApiResponse<MaterialModel>(response);
     return materialModelSchema.parse(result);
   }
@@ -78,68 +82,50 @@ class MaterialService {
     handleApiResponse<string>(response);
   }
 
-  // Filter materials
-  async filterMaterials(params: MaterialFilterRequest): Promise<MaterialDetailDto[]> {
-    // Validate filter params
-    const validatedParams = materialFilterSchema.parse(params);
-    
-    const queryParams = new URLSearchParams();
-    
-    if (validatedParams.typeId) queryParams.append("typeId", validatedParams.typeId.toString());
-    if (validatedParams.supplierId) queryParams.append("supplierId", validatedParams.supplierId);
-    if (validatedParams.minPrice) queryParams.append("minPrice", validatedParams.minPrice.toString());
-    if (validatedParams.maxPrice) queryParams.append("maxPrice", validatedParams.maxPrice.toString());
-    if (validatedParams.minRecycledPercentage) queryParams.append("minRecycledPercentage", validatedParams.minRecycledPercentage.toString());
-    if (validatedParams.maxRecycledPercentage) queryParams.append("maxRecycledPercentage", validatedParams.maxRecycledPercentage.toString());
-    if (validatedParams.inStock !== undefined) queryParams.append("inStock", validatedParams.inStock.toString());
-
-    const response = await apiClient.get<any>(`${this.API_BASE}/Filter?${queryParams.toString()}`);
-    const result = handleApiResponse<MaterialDetailDto[]>(response);
-    return result.map((item) => materialDetailDtoSchema.parse(item));
+  // Get material sustainability score
+  async getMaterialSustainability(materialId: number): Promise<any> {
+    const response = await apiClient.get<any>(`${this.API_BASE}/Sustainability/${materialId}`);
+    return handleApiResponse<any>(response);
   }
 
-  // Search materials
-  async searchMaterials(params: MaterialSearchRequest): Promise<MaterialDetailDto[]> {
-    // Validate search params
-    const validatedParams = materialSearchSchema.parse(params);
-    
-    const queryParams = new URLSearchParams();
-    
-    if (validatedParams.keyword) queryParams.append("keyword", validatedParams.keyword);
-    if (validatedParams.typeId) queryParams.append("typeId", validatedParams.typeId.toString());
-    if (validatedParams.supplierId) queryParams.append("supplierId", validatedParams.supplierId);
-
-    const response = await apiClient.get<any>(`${this.API_BASE}/Search?${queryParams.toString()}`);
-    const result = handleApiResponse<MaterialDetailDto[]>(response);
-    return result.map((item) => materialDetailDtoSchema.parse(item));
+  // Get all material types (for dropdown)
+  async getAllMaterialTypes(): Promise<MaterialTypeModel[]> {
+    const response = await apiClient.get<any>(`${this.API_BASE}/GetAllMaterialTypes`);
+    const result = handleApiResponse<MaterialTypeModel[]>(response);
+    return result.map((item) => materialTypeModelSchema.parse(item));
   }
 
-  // Get materials by supplier
-  async getMaterialsBySupplier(supplierId: string): Promise<MaterialDetailDto[]> {
-    const response = await apiClient.get<any>(`${this.API_BASE}/Supplier/${supplierId}`);
-    const result = handleApiResponse<MaterialDetailDto[]>(response);
-    return result.map((item) => materialDetailDtoSchema.parse(item));
+  // Get transport evaluation from backend
+  async getTransportEvaluation(distance: number, method: string) {
+    try {
+      const response = await apiClient.get(`/material/GetTransportEvaluation/${distance}/${method}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get transport evaluation:', error);
+      throw error;
+    }
   }
 
-  // Get materials by type
-  async getMaterialsByType(typeId: number): Promise<MaterialDetailDto[]> {
-    const response = await apiClient.get<any>(`${this.API_BASE}/Type/${typeId}`);
-    const result = handleApiResponse<MaterialDetailDto[]>(response);
-    return result.map((item) => materialDetailDtoSchema.parse(item));
+  // Get production evaluation from backend
+  async getProductionEvaluation(country: string) {
+    try {
+      const response = await apiClient.get(`/material/GetProductionEvaluation/${country}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get production evaluation:', error);
+      throw error;
+    }
   }
 
-  // Get sustainable materials (high recycled percentage)
-  async getSustainableMaterials(minRecycledPercentage: number = 50): Promise<MaterialDetailDto[]> {
-    const response = await apiClient.get<any>(`${this.API_BASE}/Sustainable?minRecycledPercentage=${minRecycledPercentage}`);
-    const result = handleApiResponse<MaterialDetailDto[]>(response);
-    return result.map((item) => materialDetailDtoSchema.parse(item));
-  }
-
-  // Get in-stock materials
-  async getInStockMaterials(): Promise<MaterialDetailDto[]> {
-    const response = await apiClient.get<any>(`${this.API_BASE}/InStock`);
-    const result = handleApiResponse<MaterialDetailDto[]>(response);
-    return result.map((item) => materialDetailDtoSchema.parse(item));
+  // Get sustainability evaluation from backend
+  async getSustainabilityEvaluation(score: number) {
+    try {
+      const response = await apiClient.get(`/material/GetSustainabilityEvaluation/${score}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get sustainability evaluation:', error);
+      throw error;
+    }
   }
 }
 

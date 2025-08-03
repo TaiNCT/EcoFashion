@@ -3,7 +3,7 @@ import {
   CreateDesignFormValues,
   CreateDesignModelResponse,
   createDesignModelResponseSchema,
-} from "../../schemas/createDesignSchema";
+} from "../../schemas/designSchema";
 import { apiClient, handleApiResponse, handleApiError } from "./baseApi";
 import type { BaseApiResponse } from "./baseApi";
 

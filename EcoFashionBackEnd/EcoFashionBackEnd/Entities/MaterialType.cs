@@ -12,5 +12,12 @@ namespace EcoFashionBackEnd.Entities
         public int TypeId { get; set; }
 
         public string? TypeName { get; set; }
+        public string? Description { get; set; }
+        public string? Category { get; set; }
+        public bool IsOrganic { get; set; } = false;
+        public bool IsRecycled { get; set; } = false;
+        public string? SustainabilityNotes { get; set; }
+        public int DisplayOrder { get; set; } = 0;
+        public bool IsActive { get; set; } = true;
     }
 }

@@ -52,7 +52,8 @@ public class DesignController : ControllerBase
     {
         var design = await _designService.GetDesignById(id);
         if (design == null) return NotFound(ApiResult<DesignModel>.Fail("Không tìm thấy thiết kế."));
-        return Ok(ApiResult<DesignModel>.Succeed(design));
+        return Ok(ApiResult<DesignModel>.Succeed(design)); 
+
     }
 
     [HttpGet("Detail/{id}")]

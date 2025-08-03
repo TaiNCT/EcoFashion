@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { materialService } from '../services/api/materialService';
-import { MaterialDetailDto } from '../types/Material';
+import { MaterialDetailDto } from '../schemas/materialSchema';
 
 interface UseMaterialState {
   materials: MaterialDetailDto[];
@@ -69,7 +69,8 @@ export const useMaterial = (initialFilters: UseMaterialFilters = {}) => {
   const loadMaterials = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
-      const materials = await materialService.getAllMaterials();
+      // Sử dụng API để lấy materials với sustainability scores
+      const materials = await materialService.getAllMaterialsWithSustainability();
       setState(prev => ({ 
         ...prev, 
         materials, 
@@ -106,15 +107,6 @@ export const useMaterial = (initialFilters: UseMaterialFilters = {}) => {
   const resetFilters = useCallback(() => {
     setFilters(initialFilters);
   }, [initialFilters]);
-
-  // Get material by ID
-  const getMaterialById = useCallback(async (id: number) => {
-    try {
-      return await materialService.getMaterialById(id);
-    } catch (error) {
-      throw new Error(error instanceof Error ? error.message : 'Failed to get material');
-    }
-  }, []);
 
   // Get material detail by ID
   const getMaterialDetail = useCallback(async (id: number) => {
@@ -159,7 +151,6 @@ export const useMaterial = (initialFilters: UseMaterialFilters = {}) => {
     loadMaterials,
     updateFilters,
     resetFilters,
-    getMaterialById,
     getMaterialDetail,
 
     // Helper methods
