@@ -8,12 +8,6 @@ import Aos from "aos";
 import { useAuthStore } from "../../store/authStore";
 
 export default function DesignerProfile() {
-  const { user, refreshUserFromServer } = useAuth();
-  const { profile, loading, saving, error, updateProfile, refreshProfile } =
-    useDesignerProfile();
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<DesignerProfileType>>({});
-  // Update formData when profile changes
   const { user, designerProfile } = useAuthStore();
 
   useEffect(() => {

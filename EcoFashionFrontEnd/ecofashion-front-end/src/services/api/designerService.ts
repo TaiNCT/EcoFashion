@@ -217,11 +217,13 @@ export class DesignerService {
   /**
    * Follow a supplier
    */
-  static async followSupplier(supplierId: string): Promise<FollowedSupplierResponse> {
+  static async followSupplier(
+    supplierId: string
+  ): Promise<FollowedSupplierResponse> {
     try {
-      const response = await apiClient.post<BaseApiResponse<FollowedSupplierResponse>>(
-        `${this.API_BASE}/follow/${supplierId}`
-      );
+      const response = await apiClient.post<
+        BaseApiResponse<FollowedSupplierResponse>
+      >(`${this.API_BASE}/follow/${supplierId}`);
       return handleApiResponse(response);
     } catch (error) {
       return handleApiError(error);

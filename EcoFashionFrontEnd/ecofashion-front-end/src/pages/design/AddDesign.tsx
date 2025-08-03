@@ -70,7 +70,7 @@ import FileUpload from "../../components/FileUpload";
 import ao_linen from "../../assets/pictures/example/ao-linen.webp";
 import chan_vay_dap from "../../assets/pictures/example/chan-vay-dap.webp";
 import dam_con_trung from "../../assets/pictures/example/dam-con-trung.webp";
-import { useAuth } from "../../services/user/AuthContext";
+import { useAuthStore } from "../../store/authStore";
 
 const Collection = [
   { collection_Id: 1, collection_name: "Áo Linen", image: ao_linen },
@@ -84,7 +84,7 @@ const AddDesign = () => {
   //Design Data
   const [storedMaterial, setStoredMaterial] = useState<StoredMaterial[]>([]);
   const [selectedCollection, setSelectedCollection] = useState("");
-  const { user, refreshUserFromServer } = useAuth();
+  const { user } = useAuthStore();
 
   //Get Material Data
   useEffect(() => {

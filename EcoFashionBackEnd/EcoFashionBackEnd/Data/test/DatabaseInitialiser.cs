@@ -1,5 +1,5 @@
 ﻿using EcoFashionBackEnd.Entities;
-using EcoFashionBackEnd.Seeders;
+//using EcoFashionBackEnd.Seeders;
 using Microsoft.EntityFrameworkCore;
 
 namespace EcoFashionBackEnd.Data.test
@@ -80,7 +80,7 @@ namespace EcoFashionBackEnd.Data.test
                 await MaterialImageSeeder.SeedAsync(_context);
                 
                 Console.WriteLine("Seeding Design Colors...");
-                await DesignColorSeeder.SeedAsync(_context);
+                //await DesignColorSeeder.SeedAsync(_context);
                 
                 Console.WriteLine("Seeding Design Sizes...");
                 await DesignsSizeSeeder.SeedAsync(_context);
