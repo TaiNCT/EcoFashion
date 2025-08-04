@@ -244,7 +244,7 @@ namespace EcoFashionBackEnd.Services
                     ProductScore = d.ProductScore,
                     Status = d.Status,
                     CreatedAt = d.CreatedAt,
-                    Stage = d.Stage,
+                    Stage = DesignStage.Finalized,
                     DesignTypeName = d.DesignTypes.DesignName,
                     ImageUrls = d.DesignImages.Select(di => di.Image.ImageUrl).ToList(),
 
@@ -409,6 +409,7 @@ namespace EcoFashionBackEnd.Services
 
             design.Name = request.Name;
             design.Description = request.Description;
+            design.Stage = DesignStage.Published;
 
             var existingVariants = design.DesignsVariants.ToList();
             foreach (var variantRequest in request.Variants)
