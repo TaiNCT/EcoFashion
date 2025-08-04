@@ -52,7 +52,7 @@ function App() {
     location.pathname.includes("/signup") ||
     location.pathname.includes("/verify-otp") ||
     location.pathname.includes("/supplier/dashboard") ||
-    location.pathname.includes("/designer/dashboard") ||
+    // location.pathname.includes("/designer/dashboard") ||
     location.pathname.includes("/admin/dashboard");
 
   // Hide footer for dashboard pages
@@ -61,7 +61,7 @@ function App() {
     location.pathname.includes("/signup") ||
     location.pathname.includes("/verify-otp") ||
     location.pathname.includes("/supplier/dashboard") ||
-    location.pathname.includes("/designer/dashboard") ||
+    // location.pathname.includes("/designer/dashboard") ||
     location.pathname.includes("/admin/dashboard");
 
   return (
@@ -115,7 +115,7 @@ function App() {
         <Route
           path="/designer/profile"
           element={
-            <ProtectedRoute allowedRoles={["designer"]}>
+            <ProtectedRoute requiredRole={"designer"}>
               <DesignerProfile />
             </ProtectedRoute>
           }
@@ -123,7 +123,7 @@ function App() {
         <Route
           path="/designer/dashboard"
           element={
-            <ProtectedRoute allowedRoles={["designer"]}>
+            <ProtectedRoute requiredRole={"designer"}>
               <DesginerDashboared />
             </ProtectedRoute>
           }
@@ -131,7 +131,7 @@ function App() {
         <Route
           path="/designer/dashboard/add"
           element={
-            <ProtectedRoute allowedRoles={["designer"]}>
+            <ProtectedRoute requiredRole={"designer"}>
               <AddDesign />
             </ProtectedRoute>
           }
@@ -139,7 +139,7 @@ function App() {
         <Route
           path="/designer/dashboard/create"
           element={
-            <ProtectedRoute allowedRoles={["designer"]}>
+            <ProtectedRoute requiredRole={"designer"}>
               <AddDesignDraft />
             </ProtectedRoute>
           }
@@ -152,6 +152,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/designer/detailed-profile"
+          element={
+            <ProtectedRoute requiredRole="designer">
+              <DesignerDetailedProfile />
+            </ProtectedRoute>
+          }
+        />
+
         {/* ===== SUPPLIER ROUTES ===== */}
         <Route
           path="/supplier/profile"
@@ -167,32 +176,6 @@ function App() {
         <Route path="/explore/suppliers" element={<ExploreSuppliers />} />
         <Route path="/explore/designer/:id" element={<DesignerLandingPage />} />
         <Route path="/explore/supplier/:id" element={<SupplierLandingPage />} />
-
-        {/* ===== DESIGNER ROUTES ===== */}
-        <Route
-          path="/designer/profile"
-          element={
-            <ProtectedRoute requiredRole="designer">
-              <DesignerProfile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/designer/detailed-profile"
-          element={
-            <ProtectedRoute requiredRole="designer">
-              <DesignerDetailedProfile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/designer/dashboard"
-          element={
-            <ProtectedRoute requiredRole="designer">
-              <DesginerDashboared />
-            </ProtectedRoute>
-          }
-        />
 
         {/* ===== SUPPLIER ROUTES ===== */}
         <Route

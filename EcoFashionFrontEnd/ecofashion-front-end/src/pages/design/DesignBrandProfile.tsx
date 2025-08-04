@@ -362,7 +362,7 @@ export default function DesingBrandProfile() {
       behavior: "smooth",
     });
   };
-  if (loading) return <div className="designer-loading">Đang tải...</div>;
+  if (loading) return <div className="designer-loading ">Đang tải...</div>;
   if (error || !designer)
     return (
       <div className="designer-error">

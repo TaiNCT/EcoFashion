@@ -219,14 +219,15 @@ export class DesignService {
    * Get material
    */
   static async getMaterial(): Promise<StoredMaterial[]> {
-    try {
-      const response = await apiClient.get<BaseApiResponse<StoredMaterial[]>>(
-        `/Materials`
-      );
-      return handleApiResponse(response);
-    } catch (error) {
-      return handleApiError(error);
-    }
+    // try {
+    //   const response = await apiClient.get<BaseApiResponse<StoredMaterial[]>>(
+    //     `/Materials`
+    //   );
+    //   return handleApiResponse(response);
+    // } catch (error) {
+    //   return handleApiError(error);
+    // }
+    return null;
   }
 
   /**

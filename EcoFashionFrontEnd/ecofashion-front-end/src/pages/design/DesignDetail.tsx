@@ -270,6 +270,7 @@ export default function DesignDetail() {
         mx: "auto",
         width: "100%",
         backgroundImage: `url(${Banner})`,
+        paddingTop: 5,
       }}
     >
       <AppBar

@@ -84,7 +84,8 @@ const AddDesign = () => {
   //Design Data
   const [storedMaterial, setStoredMaterial] = useState<StoredMaterial[]>([]);
   const [selectedCollection, setSelectedCollection] = useState("");
-  const { user } = useAuthStore();
+  // Zustand stores
+  const { getDesignerId } = useAuthStore();
 
   //Get Material Data
   useEffect(() => {
@@ -95,7 +96,7 @@ const AddDesign = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await DesignService.getMaterial();
+      const data = await DesignService.getStoredMaterial(getDesignerId());
       setStoredMaterial(data);
     } catch (error: any) {
       const errorMessage =

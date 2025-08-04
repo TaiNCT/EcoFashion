@@ -95,13 +95,14 @@ namespace EcoFashionBackEnd.Services
             return true;
         }
 
-        public async Task<DesignerMaterialInventoryModel> GetDesignerMaterialInventoryByDesignerIdAsync(Guid designerId)
+        public async Task<IEnumerable<DesignerMaterialInventoryModel>> GetDesignerMaterialInventoryByDesignerIdAsync(Guid designerId)
         {
-            var inventory = await _dbContext.DesignerMaterialInventories
+             var inventories = await _dbContext.DesignerMaterialInventories
+                .Where(dmi => dmi.Designer.DesignerId == designerId)
                 .Include(dmi => dmi.Designer)
                 .Include(dmi => dmi.Material)
-                .FirstOrDefaultAsync(dmi => dmi.Designer.DesignerId == designerId);
-            return _mapper.Map<DesignerMaterialInventoryModel>(inventory);
+                .ToListAsync();
+            return _mapper.Map<List<DesignerMaterialInventoryModel>>(inventories);
         }
     }
 }

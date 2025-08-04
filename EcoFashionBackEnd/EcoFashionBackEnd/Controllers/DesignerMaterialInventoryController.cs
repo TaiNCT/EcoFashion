@@ -44,10 +44,10 @@ namespace EcoFashionBackEnd.Controllers
         [HttpGet("GetStoredMaterial/{designerId}")]
         public async Task<IActionResult> GetDesignerMaterialInventoryByDesignerId(Guid designerId)
         {
-            var inventory = await _inventoryService.GetDesignerMaterialInventoryByDesignerIdAsync(designerId);
-            if (inventory == null)
+            var inventories = await _inventoryService.GetDesignerMaterialInventoryByDesignerIdAsync(designerId);
+            if (inventories == null)
                 return NotFound(ApiResult<DesignerMaterialInventoryModel>.Fail("Không tìm thấy kho vật liệu"));
-            return Ok(ApiResult<DesignerMaterialInventoryModel>.Succeed(inventory));
+            return Ok(ApiResult<List<DesignerMaterialInventoryModel>>.Succeed(inventories.ToList()));
         }
 
 

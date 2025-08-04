@@ -50,27 +50,12 @@ import { useNavigate } from "react-router-dom";
 import useMaterial from "../hooks/useMaterial";
 import MaterialsSection from "../components/materials/MaterialsSection";
 
-
 const StyledInput = styled(InputBase)({
   borderRadius: 20,
   backgroundColor: "#fff",
   border: "1px solid #ccc",
   flex: 1,
 });
-
-// type Design = {
-//   designId: number;
-//   designerId: string;
-//   name?: string;
-//   description?: string;
-//   recycledPercentage: number;
-//   careInstructions?: string;
-//   price: number;
-//   productScore: number;
-//   status?: string;
-//   createdAt: string;
-//   designTypeId?: number;
-// };
 
 export default function Homepage() {
   const { user } = useAuthStore();
@@ -95,8 +80,6 @@ export default function Homepage() {
   const [totalPage, setTotalPage] = useState<number>();
   const pageSize = 12;
   const [page, setPage] = useState(currentPage);
-  
-
 
   useEffect(() => {
     loadDesigners();
@@ -142,7 +125,7 @@ export default function Homepage() {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh" }}>
+    <Box>
       {/* Banner */}
       <Box
         sx={{
@@ -151,7 +134,6 @@ export default function Homepage() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          position: "relative",
         }}
       >
         <img
@@ -385,26 +367,26 @@ export default function Homepage() {
           alignItems="center"
           sx={{ maxWidth: 1200, margin: "0 auto" }}
         >
-                        {[
-                          { quantity: materials.length, unit: "+", label: "Vật Liệu" },
-                          { quantity: designs.length, unit: "+", label: "Thiết Kế" },
-                          { quantity: 1, unit: "+", label: "Nhà Thiết Kế" },
-                          { quantity: 1, unit: "+", label: "Nhà Cung Cấp" },
-                        ].map((item, index) => (
+          {[
+            { quantity: materials.length, unit: "+", label: "Vật Liệu" },
+            { quantity: designs.length, unit: "+", label: "Thiết Kế" },
+            { quantity: 1, unit: "+", label: "Nhà Thiết Kế" },
+            { quantity: 1, unit: "+", label: "Nhà Cung Cấp" },
+          ].map((item, index) => (
             <Grid key={index} textAlign="center">
-                                <Typography
-                    variant="h3"
-                    component="div"
-                    sx={{ color: "rgba(52, 168, 83, 1)", fontWeight: "bold" }}
-                  >
-                    <CountUp end={item.quantity} />
-                    <Typography
-                      component="span"
-                      sx={{ fontSize: "2.5rem", marginLeft: "4px" }}
-                    >
-                      {item.unit}
-                    </Typography>
-                  </Typography>
+              <Typography
+                variant="h3"
+                component="div"
+                sx={{ color: "rgba(52, 168, 83, 1)", fontWeight: "bold" }}
+              >
+                <CountUp end={item.quantity} />
+                <Typography
+                  component="span"
+                  sx={{ fontSize: "2.5rem", marginLeft: "4px" }}
+                >
+                  {item.unit}
+                </Typography>
+              </Typography>
               <Typography
                 variant="h5"
                 component="div"
@@ -595,8 +577,6 @@ export default function Homepage() {
             // TODO: Navigate to materials page
           }}
         />
-        
-
       </Box>
       {/* Thông Tin Chi Tiết */}
       <Box sx={{ bgcolor: "#fff", py: 6, px: 4, display: "flex" }}>
@@ -660,7 +640,6 @@ export default function Homepage() {
           >
             Tìm hiểu thêm ➞
           </Button>
-          
         </Grid>
 
         {/* Image Section */}
