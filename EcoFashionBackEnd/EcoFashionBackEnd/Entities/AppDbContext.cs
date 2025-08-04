@@ -34,6 +34,8 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<MaterialSustainability> MaterialSustainabilities { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
         public DbSet<MaterialTypeBenchmark> MaterialTypesBenchmarks { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
+        public DbSet<BlogImage> BlogImages { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -225,7 +227,7 @@ namespace EcoFashionBackEnd.Entities
             #region Material 
             // Configure relationships for Materials
             modelBuilder.Entity<Material>()
-                .HasOne(m => m.SupplierProfile)
+                .HasOne(m => m.Supplier)
                 .WithMany()
                 .HasForeignKey(m => m.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -300,9 +302,24 @@ namespace EcoFashionBackEnd.Entities
                 .HasPrecision(18, 2);
             #endregion
             #region unique
-
-
-           
+            modelBuilder.Entity<Blog>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<BlogImage>()
+                .HasIndex(bi => new { bi.BlogId, bi.ImageId })
+                .IsUnique();
+            modelBuilder.Entity<BlogImage>()
+                .HasOne(bi => bi.Blog)
+                .WithMany(b => b.BlogImages)
+                .HasForeignKey(bi => bi.BlogId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<BlogImage>()
+                .HasOne(bi => bi.Image)
+                .WithMany()
+                .HasForeignKey(bi => bi.ImageId)
+                .OnDelete(DeleteBehavior.Cascade);
             #endregion
 
         }

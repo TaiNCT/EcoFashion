@@ -10,42 +10,53 @@ namespace EcoFashionBackEnd.Data.test
         {
             if (await context.Suppliers.AnyAsync()) return;
 
+            // Sử dụng user đã có từ UserSeeder
             var supplierUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "supplier@example.com");
-            if (supplierUser == null) throw new Exception("Supplier user not found");
+            if (supplierUser == null)
+            {
+                Console.WriteLine("Supplier user not found, skipping supplier seeding");
+                return;
+            }
 
             var now = DateTime.UtcNow;
 
+            // Tạo 1 Supplier One duy nhất
             var supplier = new Supplier
             {
                 UserId = supplierUser.UserId,
                 SupplierName = "Supplier One",
-                Bio = "Chuyên cung cấp chất liệu thời trang thân thiện với môi trường.",
-                AvatarUrl = "https://plus.unsplash.com/premium_photo-1675179040377-24f37aeb2146?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                BannerUrl = "https://plus.unsplash.com/premium_photo-1675179040377-24f37aeb2146?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                PortfolioUrl = "https://supplier1.com",
+                Bio = "Chuyên cung cấp các loại vải bền vững chất lượng cao. Chúng tôi cam kết cung cấp các loại vải thân thiện môi trường với giá cả hợp lý.",
+                AvatarUrl = "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+                BannerUrl = "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200",
+                PortfolioUrl = "https://supplier-one.com",
                 PortfolioFiles = JsonSerializer.Serialize(new[]
                 {
-                "https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=400"
-            }),
+                    "https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=400",
+                    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+                    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400"
+                }),
                 Certificates = JsonSerializer.Serialize(new[]
                 {
-                "Green Supplier Certificate"
-            }),
-                Email = "supplier1@example.com",
+                    "GOTS Certified",
+                    "GRS Certified", 
+                    "OEKO-TEX Standard 100",
+                    "EU Ecolabel"
+                }),
+                Email = "contact@supplier-one.com",
                 PhoneNumber = "0987654321",
-                Address = "456 Green Lane, HCMC",
-                TaxNumber = "TAXSUP123",
+                Address = "123 Supplier Street, District 1, Ho Chi Minh City",
+                TaxNumber = "TAXSUP001",
                 IdentificationNumber = "SUPID987654321",
-                //IdentificationPictureFront = "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=300",
-                //IdentificationPictureBack = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
-                SpecializationUrl = "https://specialization.supplier1.com",
+                SpecializationUrl = "https://supplier-one.com/specialization",
                 Status = "active",
-                CreatedAt = now
+                Rating = 4.8,
+                ReviewCount = 156,
+                CreatedAt = now,
+                UpdatedAt = now
             };
 
             await context.Suppliers.AddAsync(supplier);
             await context.SaveChangesAsync();
         }
     }
-
 }

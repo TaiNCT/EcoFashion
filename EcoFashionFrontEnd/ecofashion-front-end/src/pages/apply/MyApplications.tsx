@@ -10,9 +10,10 @@ import {
   Divider,
   Paper,
 } from "@mui/material";
-import { useState, useEffect } from "react";
-import { useAuth } from "../../services/user/AuthContext";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useAuthStore } from "../../store/authStore";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PendingIcon from "@mui/icons-material/Pending";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -23,7 +24,7 @@ import { ApplicationModelResponse } from "../../schemas/applyApplicationSchema";
 import { applicationService } from "../../services/api/applicationService";
 
 export default function MyApplications() {
-  const { user, refreshUserFromServer } = useAuth();
+  const { user, refreshUserFromServer } = useAuthStore();
   const [applications, setApplications] = useState<ApplicationModelResponse[]>(
     []
   );

@@ -1,12 +1,12 @@
+import { useAuthStore } from "../store/authStore";
 import { useState, useCallback } from "react";
-import { useAuth } from "../services/user/AuthContext";
 import {
   getWelcomeMessageByRole,
   type WelcomeMessage,
 } from "../data/homepageData";
 
 export const useHomepage = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Get welcome message based on user role

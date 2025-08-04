@@ -16,6 +16,15 @@
             return new ApiResult<T> { Success = false, Result = result };
         }
 
+        public static ApiResult<T> Fail(string errorMessage)
+        {
+            return new ApiResult<T>
+            {
+                Success = false,
+                ErrorMessage = errorMessage
+            };
+        }
+
         public static ApiResult<object> Fail(Exception ex)
         {
             return new ApiResult<object>
@@ -25,13 +34,5 @@
             };
         }
 
-        public static ApiResult<object> Fail(string errorMessage)
-        {
-            return new ApiResult<object>
-            {
-                Success = false,
-                ErrorMessage = errorMessage
-            };
-        }
     }
 }

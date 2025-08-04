@@ -63,12 +63,18 @@ public class Program
 
             var app = builder.Build();
 
-            // Hook into application lifetime events and trigger only application fully started 
-            app.Lifetime.ApplicationStarted.Register(async () =>
+            // Database migration and seeding
+            try
             {
-                // Database Initialiser 
+                Console.WriteLine("Starting database initialization...");
                 await app.InitialiseDatabaseAsync();
-            });
+                Console.WriteLine("Database initialization completed successfully!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Database initialization failed: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
 
             // Configure the HTTP request pipeline.
             

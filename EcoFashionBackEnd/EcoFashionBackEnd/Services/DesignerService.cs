@@ -358,6 +358,17 @@ namespace EcoFashionBackEnd.Services
             return designer?.DesignerId;
         }
 
+        /// <summary>
+        /// Get designer full profile by user ID
+        /// </summary>
+        public async Task<DesignerModel?> GetDesignerByUserId(int userId)
+        {
+            var designer = await _designerRepository.GetAll()
+                .Include(d => d.User)
+                .FirstOrDefaultAsync(d => d.UserId == userId);
+            return designer != null ? _mapper.Map<DesignerModel>(designer) : null;
+        }
+
        
         public async Task<bool> RemoveFollowedSupplier(Guid designerId, Guid supplierId)
         {
