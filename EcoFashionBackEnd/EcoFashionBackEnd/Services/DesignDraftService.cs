@@ -12,6 +12,8 @@ namespace EcoFashionBackEnd.Services
     public class DesignDraftService
     {
         private readonly IRepository<Design, int> _designRepository;
+        private readonly IRepository<DesignsMaterial, int> _designMaterialRepository;
+        private readonly IRepository<DesignFeature, int> _designFeatureRepository;
         private readonly IRepository<DraftPart, int> _draftPartRepository;
         private readonly IRepository<DraftSketch, int> _draftSketchRepository;
         private readonly IRepository<Image, int> _imageRepository;
@@ -20,6 +22,8 @@ namespace EcoFashionBackEnd.Services
 
         public DesignDraftService(
             IRepository<Design, int> designRepository,
+            IRepository<DesignsMaterial, int> designMaterialRepository,
+            IRepository<DesignFeature, int> designFeatureRepository,
             IRepository<DraftPart, int> draftPartRepository,
             IRepository<DraftSketch, int> draftSketchRepository,
             IRepository<Image, int> imageRepository,
@@ -27,6 +31,8 @@ namespace EcoFashionBackEnd.Services
             IMapper mapper)
         {
             _designRepository = designRepository;
+            _designMaterialRepository = designMaterialRepository;
+            _designFeatureRepository = designFeatureRepository;
             _draftPartRepository = draftPartRepository;
             _draftSketchRepository = draftSketchRepository;
             _imageRepository = imageRepository;
@@ -152,6 +158,49 @@ namespace EcoFashionBackEnd.Services
             };
         }
 
+        public async Task<bool> FinalizeDesignAsync(FinalizeDesignRequest request)
+        {
+            var design = await _designRepository
+                .GetAll()
+                .Include(d => d.DesignsMaterials)
+                .Include(d => d.DesignsFeature)
+                .FirstOrDefaultAsync(d => d.DesignId == request.DesignId);
+
+            if (design == null)
+                throw new Exception("Design không tồn tại.");
+
+          
+
+            // Thêm mới vật liệu
+            var newMaterials = request.Materials.Select(m => new DesignsMaterial
+            {
+                DesignId = request.DesignId,
+                MaterialId = m.MaterialId,
+                PersentageUsed = (float)m.PercentageUsed,
+                MeterUsed = (int)m.MeterUsed
+            }).ToList();
+
+            await _designMaterialRepository.AddRangeAsync(newMaterials);
+
+            // Thêm mới feature
+            var newFeatures = request.FeatureIds.Select(fid => new DesignFeature 
+            {
+                DesignId = request.DesignId,
+                FeatureId = fid
+            }).ToList();
+
+            await _designFeatureRepository.AddRangeAsync(newFeatures);
+
+            // Cập nhật footprint & stage
+            design.CarbonFootprint= request.TotalCarbon;
+            design.WaterUsage= request.TotalWater;
+            design.WasteDiverted = request.TotalWaste;
+            design.Stage = DesignStage.Finalized;
+
+            _designRepository.Update(design);
+            await _designRepository.Commit();
+            return true;
+        }
 
 
 

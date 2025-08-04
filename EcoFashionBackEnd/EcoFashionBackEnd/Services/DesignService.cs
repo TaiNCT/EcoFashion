@@ -93,9 +93,7 @@ namespace EcoFashionBackEnd.Services
                     ColorName = v.DesignsColor?.ColorName ?? "",
                     ColorCode = v.DesignsColor?.ColorCode ?? "",
                     Quantity = v.Quantity,
-                    CarbonFootprint = v.CarbonFootprint,
-                    WaterUsage = v.WaterUsage,
-                    WasteDiverted = v.WasteDiverted
+                   
                 }).ToList(),
 
                 Materials = design.DesignsMaterials.Select(dm => new MaterialDto

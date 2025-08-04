@@ -86,7 +86,19 @@ public class DesignDraftController : ControllerBase
         return Ok(ApiResult<DraftDesignDetailDto>.Succeed(result));
     }
 
-
+    [HttpPost("finalize")]
+    public async Task<IActionResult> FinalizeDesign([FromBody] FinalizeDesignRequest request)
+    {
+        try
+        {
+            var result = await _designDraftService.FinalizeDesignAsync(request);
+            return result ? Ok("Design đã được finalize.") : BadRequest("Finalize thất bại.");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 
 
 

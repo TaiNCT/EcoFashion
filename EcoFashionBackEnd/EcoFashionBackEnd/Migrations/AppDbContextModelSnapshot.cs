@@ -196,6 +196,9 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DesignId"));
 
+                    b.Property<float?>("CarbonFootprint")
+                        .HasColumnType("real");
+
                     b.Property<string>("CareInstructions")
                         .HasColumnType("nvarchar(max)");
 
@@ -233,6 +236,12 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Property<decimal?>("UnitPrice")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<float?>("WasteDiverted")
+                        .HasColumnType("real");
+
+                    b.Property<float?>("WaterUsage")
+                        .HasColumnType("real");
 
                     b.HasKey("DesignId");
 
@@ -533,9 +542,6 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float>("CarbonFootprint")
-                        .HasColumnType("real");
-
                     b.Property<int>("ColorId")
                         .HasColumnType("int");
 
@@ -547,12 +553,6 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Property<int>("SizeId")
                         .HasColumnType("int");
-
-                    b.Property<float>("WasteDiverted")
-                        .HasColumnType("real");
-
-                    b.Property<float>("WaterUsage")
-                        .HasColumnType("real");
 
                     b.HasKey("Id");
 
