@@ -43,15 +43,22 @@ export interface Material {
   materialTypeName: string;
   sustainabilityCriteria: SustainabilityCriterion[];
   materialDescription: string;
-  recycledPercentage: number;
+  sustainabilityScore: number;
+  carbonFootprint: number;
+  carbonFootprintUnit: string;
+  waterUsage: number;
+  waterUsageUnit: string;
+  wasteDiverted: number;
+  wasteDivertedUnit: string;
+  certificationDetails: string;
 }
 
 export interface StoredMaterial {
+  inventoryId: number;
+  designerId: number;
+  material: Material;
   materialId: number;
-  supplierId: string;
-  name: string;
-  recycledPercentage: number;
-  sustainabilityCriteria: SustainabilityCriterion[];
+  quantity: number;
 }
 
 export interface Designer {

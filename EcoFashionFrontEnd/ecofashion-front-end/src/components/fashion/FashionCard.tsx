@@ -216,7 +216,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
         )} */}
           <Chip
             icon={<EcoIcon />}
-            label={`${product.recycledPercentage}% Tái Chế`}
+            label={`${product.recycledPercentage}% Bền Vững`}
             size="small"
             sx={{
               backgroundColor: "rgba(200, 248, 217, 1)",

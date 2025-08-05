@@ -220,6 +220,8 @@ export default function DesignerDashBoard() {
   const [loading, setLoading] = useState(true);
   //Error
   const [error, setError] = useState<string | null>(null);
+  // Zustand stores
+  const { getDesignerId } = useAuthStore();
   useEffect(() => {
     loadDesigners();
   }, []);
@@ -227,8 +229,7 @@ export default function DesignerDashBoard() {
     try {
       setLoading(true);
       setError(null);
-      const data = await DesignService.getAllDesign();
-      console.log(data);
+      const data = await DesignService.getAllDesignByDesigner(getDesignerId());
       setDesigns(data);
     } catch (error: any) {
       const errorMessage =
@@ -289,19 +290,19 @@ export default function DesignerDashBoard() {
     setTabIndex(newValue);
   };
 
-  const pageSize = 6;
-  const [pagination, setPagination] = useState({
-    from: 0,
-    to: pageSize,
-  });
+  // const pageSize = 6;
+  // const [pagination, setPagination] = useState({
+  //   from: 0,
+  //   to: pageSize,
+  // });
 
-  const handlePagination = (event: any, page: number) => {
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize;
-    setPagination({ from, to });
-  };
+  // const handlePagination = (event: any, page: number) => {
+  //   const from = (page - 1) * pageSize;
+  //   const to = from + pageSize;
+  //   setPagination({ from, to });
+  // };
 
-  const displayedProducts = designs.slice(pagination.from, pagination.to);
+  // const displayedProducts = designs.slice(pagination.from, pagination.to);
 
   const DesignCard = ({ product }: { product: any }) => (
     <Card
@@ -331,7 +332,7 @@ export default function DesignerDashBoard() {
       >
         <Chip
           icon={<EcoIcon />}
-          label={`${product.recycledPercentage}% Tái Chế`}
+          label={`${product.recycledPercentage}% Bền Vững`}
           size="small"
           sx={{
             backgroundColor: "rgba(200, 248, 217, 1)",
@@ -716,14 +717,14 @@ export default function DesignerDashBoard() {
     },
     {
       field: "recycledPercentage",
-      headerName: "Tính Tái Chế",
+      headerName: "Điểm Bền Vững",
       width: 110,
       flex: 1,
       renderCell: (params) => {
         return (
           <Chip
             icon={<EcoIcon />}
-            label={`${params.row.recycledPercentage}% Tái Chế`}
+            label={`${params.row.recycledPercentage}% Bền Vững`}
             size="small"
             sx={{
               backgroundColor: "rgba(200, 248, 217, 1)",
@@ -1101,7 +1102,7 @@ export default function DesignerDashBoard() {
                           <Box sx={{ display: "flex", alignItems: "center" }}>
                             <Chip
                               icon={<EcoIcon />}
-                              label={`${item.recycledPercentage}% Tái Chế`}
+                              label={`${item.recycledPercentage}% Bền Vững`}
                               size="small"
                               sx={{
                                 backgroundColor: "rgba(200, 248, 217, 1)",

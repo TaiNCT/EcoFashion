@@ -97,6 +97,7 @@ const AddDesign = () => {
       setLoading(true);
       setError(null);
       const data = await DesignService.getStoredMaterial(getDesignerId());
+      console.log(data);
       setStoredMaterial(data);
     } catch (error: any) {
       const errorMessage =
@@ -118,7 +119,7 @@ const AddDesign = () => {
       .replace(/Đ/g, "D"); // Replace Đ
   };
   const filteredMaterials = storedMaterial.filter((mat) => {
-    const combined = `${mat.name} ${mat.materialId}`;
+    const combined = `${mat.material.materialName} ${mat.materialId}`;
     const matchesSearch = removeVietnameseTones(
       combined.toLowerCase()
     ).includes(removeVietnameseTones(searchTerm.toLowerCase()));
@@ -129,6 +130,7 @@ const AddDesign = () => {
     );
 
     return matchesSearch && !isAlreadySelected;
+    return null;
   });
 
   //Drag and Drop
@@ -178,14 +180,14 @@ const AddDesign = () => {
         }}
       >
         <Box flexGrow={1}>
-          <Typography fontWeight="bold">{mat.name}</Typography>
+          <Typography fontWeight="bold">{mat.materialName}</Typography>
           <Typography variant="body2" color="text.secondary">
             {mat.materialId}
           </Typography>
           <Chip
             size="small"
             icon={<EcoIcon />}
-            label={`${mat.recycledPercentage}% Tái Chế`}
+            label={`${mat.sustainabilityScore}% Tái Chế`}
             sx={{
               bgcolor: "#E6F4EA",
               color: "#388E3C",
@@ -481,7 +483,9 @@ const AddDesign = () => {
                   }}
                 >
                   <Box flexGrow={1}>
-                    <Typography fontWeight="bold">{mat.name}</Typography>
+                    <Typography fontWeight="bold">
+                      {mat.materialName}
+                    </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {mat.materialId}
                     </Typography>
@@ -1142,7 +1146,9 @@ const AddDesign = () => {
                         }}
                       >
                         {filteredMaterials.map((mat, index) => (
-                          <DraggableCard key={index} mat={mat} />
+                          <>
+                            <DraggableCard key={index} mat={mat.material} />
+                          </>
                         ))}
                       </Box>
                     )}

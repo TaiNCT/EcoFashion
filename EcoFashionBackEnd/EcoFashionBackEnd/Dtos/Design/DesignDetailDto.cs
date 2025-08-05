@@ -12,7 +12,7 @@ namespace EcoFashionBackEnd.Dtos.Design
         public decimal Price { get; set; }
         public int ProductScore { get; set; }
         public string? Status { get; set; }
-        public DesignStage Stage { get; set; }
+        public string Stage { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public string? DesignTypeName { get; set; }
