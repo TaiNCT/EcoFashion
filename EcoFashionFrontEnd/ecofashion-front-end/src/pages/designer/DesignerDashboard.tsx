@@ -606,7 +606,10 @@ export default function DesignerDashBoard() {
       title: design.name,
       author: design.designer.designerName || "Không rõ",
       image: design.imageUrls[0] || "", // hoặc ảnh mặc định
-      price: `${design.salePrice.toLocaleString("vi-VN")}₫`,
+      price: new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(design.salePrice),
       rating: design.productScore || 4,
       recycledPercentage: design.recycledPercentage,
       material: design.materials?.map((mat) => mat.materialName) || [],
@@ -1360,87 +1363,11 @@ export default function DesignerDashBoard() {
                 </Typography>
               </Box>
             </Button>
-            {/* Tính Bền Vững */}
-            <Button
-              variant="outlined"
-              sx={{
-                borderColor: "rgba(0,0,0,0.1)",
-                textTransform: "none",
-              }}
-            >
-              <CalculateOutlinedIcon color="success" />
-              <Box
-                sx={{
-                  textAlign: "left",
-                  padding: "10px",
-                  display: "flex",
-                  flexDirection: "column",
-                  marginRight: "auto",
-                }}
-              >
-                <Typography
-                  sx={{
-                    width: "100%",
-                    marginRight: "auto",
-                    fontWeight: "bold",
-                    color: "black",
-                  }}
-                >
-                  Máy Tính Bền Vững
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "black",
-                    opacity: "40%",
-                  }}
-                >
-                  Đo lường tác động đến môi trường
-                </Typography>
-              </Box>
-            </Button>
-            {/* Mẫu Đã Thiết Kế */}
-            <Button
-              variant="outlined"
-              sx={{
-                borderColor: "rgba(0,0,0,0.1)",
-                textTransform: "none",
-              }}
-            >
-              <DrawOutlinedIcon color="success" />
-              <Box
-                sx={{
-                  textAlign: "left",
-                  padding: "10px",
-                  display: "flex",
-                  flexDirection: "column",
-                  marginRight: "auto",
-                }}
-              >
-                <Typography
-                  sx={{
-                    width: "100%",
-                    marginRight: "auto",
-                    fontWeight: "bold",
-                    color: "black",
-                  }}
-                >
-                  Mẫu Thiết Kế Của Bản Thân
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "black",
-                    opacity: "40%",
-                  }}
-                >
-                  Xem toàn bộ các thiết kế đã lưu
-                </Typography>
-              </Box>
-            </Button>
           </Stack>
 
-          <Button variant="contained" color="success">
+          {/* <Button variant="contained" color="success">
             Khám phá Hết
-          </Button>
+          </Button> */}
         </Card>
 
         {/* Card Liên Lạc */}

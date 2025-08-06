@@ -136,7 +136,7 @@ export default function AddDesignDraft() {
     material: {
       materialId: number;
       name: string;
-      pricePerUnit: string;
+      pricePerUnit: number;
       quantityAvailable: number;
       carbonFootprint: number;
       carbonFootprintUnit: string;
@@ -177,7 +177,7 @@ export default function AddDesignDraft() {
         material: {
           materialId: null,
           name: "",
-          pricePerUnit: "",
+          pricePerUnit: 0,
           quantityAvailable: 0,
           carbonFootprint: 0,
           carbonFootprintUnit: "Kg",
@@ -240,7 +240,7 @@ export default function AddDesignDraft() {
               material: {
                 materialId: null,
                 name: "",
-                pricePerUnit: "",
+                pricePerUnit: 0,
                 quantityAvailable: 0,
                 carbonFootprint: 0,
                 carbonFootprintUnit: "Kg",
@@ -269,7 +269,7 @@ export default function AddDesignDraft() {
     cardId: string,
     materialId: number,
     name: string,
-    pricePerUnit: string,
+    pricePerUnit: number,
     quantityAvailable: number,
     carbonFootprint: number,
     carbonFootprintUnit: string,
@@ -355,12 +355,17 @@ export default function AddDesignDraft() {
         ...item,
         totalArea: area,
         needMaterial: calcNeedMaterial(area),
+        price: calcNeedMaterial(area) * item.material.pricePerUnit * 1000,
         allDraftNames: [item.draftName],
       };
     } else {
       acc[key].totalArea += area;
       acc[key].needMaterial = calcNeedMaterial(acc[key].totalArea);
       acc[key].allDraftNames.push(item.draftName);
+      acc[key].price +=
+        calcNeedMaterial(acc[key].totalArea) *
+        acc[key].material.pricePerUnit *
+        1000;
     }
 
     return acc;
@@ -368,6 +373,8 @@ export default function AddDesignDraft() {
 
   // Step 2: Convert to array
   const groupedMaterial = Object.values(groupedByMaterial);
+  //Step 3: Calc Sum of all
+  const totalPrice = groupedMaterial.reduce((sum, item) => sum + item.price, 0);
   return (
     <Box>
       {/* Appbar */}
@@ -1152,7 +1159,7 @@ export default function AddDesignDraft() {
                 </Tabs>
                 {tabIndex === 0 && (
                   <>
-                    {groupedMaterial.length > 0 &&
+                    {groupedMaterial.length > 0 ? (
                       groupedMaterial.map((m) => (
                         <Box
                           key={m.id}
@@ -1280,7 +1287,10 @@ export default function AddDesignDraft() {
                                   <Chip
                                     key={index}
                                     label={cert}
-                                    sx={{ fontWeight: "bold", marginRight: 1 }}
+                                    sx={{
+                                      fontWeight: "bold",
+                                      marginRight: 1,
+                                    }}
                                     size="small"
                                   />
                                 ))}
@@ -1291,10 +1301,106 @@ export default function AddDesignDraft() {
                             Phế liệu ước tính: 12 cm²
                           </Typography>
                         </Box>
-                      ))}
+                      ))
+                    ) : (
+                      <Box
+                        sx={{
+                          height: "400px", // hoặc "100%" nếu cha có chiều cao cố định
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          textAlign: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <ReportGmailerrorredIcon sx={{ color: "red" }} />
+                        <Typography
+                          variant="h5"
+                          textAlign="center"
+                          color="text.secondary"
+                          fontWeight={"bold"}
+                        >
+                          Bạn Cần Thêm Mảnh Rập
+                        </Typography>
+                      </Box>
+                    )}
                   </>
                 )}
-                {tabIndex === 1 && <div>Tab 2</div>}
+                {tabIndex === 1 && (
+                  <Box sx={{ display: "flex", flexDirection: "column" }}>
+                    {/* Tổng Tiền */}
+                    <Box
+                      sx={{
+                        bgcolor: "#f0fff5",
+                        p: 1,
+                        borderRadius: 2,
+                        border: "1px solid #d2f5e8",
+                        width: "100%",
+                        margin: "0 auto",
+                        marginBottom: 3,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: "100%",
+                          paddingLeft: 15,
+                          paddingRight: 15,
+                          paddingBottom: 2,
+                          alignItems: "center",
+                          margin: "auto",
+                        }}
+                      >
+                        <Grid textAlign="center" sx={{ xs: 12, md: 3 }}>
+                          <Typography
+                            fontSize="2rem"
+                            color="rgba(22, 163, 74, 1)"
+                            fontWeight="bold"
+                          >
+                            {new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            }).format(totalPrice)}
+                          </Typography>
+                          <Typography color="rgba(22, 163, 74, 1)">
+                            Tổng chi phí ({groupedMaterial.length} sản phẩm)
+                          </Typography>
+                        </Grid>
+                      </Box>
+                    </Box>
+                    {/* Giá Từng Loại Vải */}
+                    {groupedMaterial.length > 0 &&
+                      groupedMaterial.map((m) => (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 2,
+                          }}
+                        >
+                          <Box
+                            key={m.id}
+                            sx={{
+                              mb: 2,
+                              p: 2,
+                              border: "1px solid #ccc",
+                              borderRadius: 2,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <Typography>{m.material.name}</Typography>
+                            <Typography>
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              }).format(m.price)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
+                  </Box>
+                )}
                 {tabIndex === 2 && <div>Tab 3</div>}
                 {tabIndex === 3 && <div>Tab 4</div>}
               </CardContent>
