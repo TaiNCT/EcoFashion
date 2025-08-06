@@ -43,7 +43,11 @@ namespace EcoFashionBackEnd.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime LastUpdatedAt { get; set;}
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+        public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
+
     }
+
 
     public enum UserStatus
     {
