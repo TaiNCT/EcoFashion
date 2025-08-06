@@ -20,10 +20,9 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Design> Designs { get; set; }
         public DbSet<DesignsVariant> DesignsVarients { get; set; }
         public DbSet<DesignsMaterial> DesignsMaterials { get; set; }
-        public DbSet<DesignsColor> DesignsColors { get; set; }
         public DbSet<DesignImage> DesignImages { get; set; }
         public DbSet<Image> Images { get; set; }
-        public DbSet<DesignTypeSizeRatio> TypeSizes { get; set; }
+        public DbSet<DesignTypeSizeRatio> DesignTypeSizeRatios { get; set; }
         public DbSet<DesignFeature> DesignFeatures { get; set; }
         public DbSet<DesignsSize> DesignsSizes { get; set; }
         public DbSet<DesignsType> DesignsTypes { get; set; }
@@ -36,6 +35,8 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<MaterialTypeBenchmark> MaterialTypesBenchmarks { get; set; }
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<BlogImage> BlogImages { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderDetail> OrderDetails { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -99,12 +100,7 @@ namespace EcoFashionBackEnd.Entities
                 .HasConversion<string>();
             #endregion
             #region DESIGN
-            modelBuilder.Entity<DesignsColor>()
-                .HasMany(c => c.Variants)
-                .WithOne(v => v.DesignsColor)
-                .HasForeignKey(v => v.ColorId)
-                .OnDelete(DeleteBehavior.Restrict); 
-
+            
             modelBuilder.Entity<DesignsSize>()
                 .HasMany(s => s.Variants)
                 .WithOne(v => v.DesignsSize)
@@ -116,10 +112,7 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany(d => d.DesignsVariants)
                 .HasForeignKey(v => v.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<DesignsVariant>()
-                .HasIndex(v => new { v.DesignId, v.SizeId, v.ColorId })
-                .IsUnique(); 
-
+            
             modelBuilder.Entity<DesignsMaterial>()
                 .HasKey(dm => new { dm.DesignId, dm.MaterialId });
 
@@ -223,7 +216,6 @@ namespace EcoFashionBackEnd.Entities
 
 
             #endregion
-
             #region Material 
             // Configure relationships for Materials
             modelBuilder.Entity<Material>()
@@ -301,6 +293,51 @@ namespace EcoFashionBackEnd.Entities
                 .Property(mt => mt.Value)
                 .HasPrecision(18, 2);
             #endregion
+            #region Order
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.User).WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.TotalPrice)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Status)
+                .HasConversion<string>();
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Design).WithMany()
+                .HasForeignKey(od => od.DesignId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Designer).WithMany()
+                .HasForeignKey(od => od.DesignerId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Material).WithMany()
+                .HasForeignKey(od => od.MaterialId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Supplier).WithMany()
+                .HasForeignKey(od => od.SupplierId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Order).WithMany()
+                .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<OrderDetail>()
+                .Property(od => od.UnitPrice)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<OrderDetail>()
+                .Property(od => od.Type)
+                .HasConversion<string>();
+            modelBuilder.Entity<OrderDetail>()
+                .Property(od => od.Status)
+                .HasConversion<string>();
+            #endregion Order
             #region unique
             modelBuilder.Entity<Blog>()
                 .HasOne(b => b.User)

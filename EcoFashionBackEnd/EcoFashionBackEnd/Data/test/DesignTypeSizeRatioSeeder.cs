@@ -7,7 +7,7 @@ namespace EcoFashionBackEnd.Data.test
     {
         public static async Task SeedAsync(AppDbContext context)
         {
-            if (await context.TypeSizes.AnyAsync()) return;
+            if (await context.DesignTypeSizeRatios.AnyAsync()) return;
 
             var designTypes = await context.DesignsTypes.ToListAsync();
             var sizes = await context.DesignsSizes.ToListAsync();
@@ -28,7 +28,7 @@ namespace EcoFashionBackEnd.Data.test
                 }
             }
 
-            await context.TypeSizes.AddRangeAsync(ratios);
+            await context.DesignTypeSizeRatios.AddRangeAsync(ratios);
             await context.SaveChangesAsync();
         }
 

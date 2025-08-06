@@ -50,7 +50,6 @@ namespace EcoFashionBackEnd.Services
                 .Include(d => d.DesignTypes)
                 .Include(d => d.DesignImages).ThenInclude(di => di.Image)
                 .Include(d => d.DesignsFeature)
-                .Include(d => d.DesignsVariants).ThenInclude(v => v.DesignsColor)
                 .Include(d => d.DesignsVariants).ThenInclude(v => v.DesignsSize)
                 .Include(d => d.DesignsMaterials)
                     .ThenInclude(dm => dm.Materials)
@@ -70,7 +69,9 @@ namespace EcoFashionBackEnd.Services
                 Description = design.Description,
                 RecycledPercentage = design.RecycledPercentage,
                 CareInstructions = design.CareInstructions,
-                Price = (decimal)design.SalePrice,
+                SalePrice = design.SalePrice,
+                UnitPrice = design.UnitPrice,
+                Stage= design.Stage,
                 ProductScore = design.ProductScore,
                 Status = design.Status,
                 CreatedAt = design.CreatedAt,
@@ -89,9 +90,8 @@ namespace EcoFashionBackEnd.Services
                 Variants = design.DesignsVariants.Select(v => new VariantDto
                 {
                     SizeName = v.DesignsSize?.SizeName ?? "",
-                    ColorName = v.DesignsColor?.ColorName ?? "",
-                    ColorCode = v.DesignsColor?.ColorCode ?? "",
                     Quantity = v.Quantity,
+                    Color = v.Color
                    
                 }).ToList(),
 
@@ -236,7 +236,7 @@ namespace EcoFashionBackEnd.Services
                     DesignId = d.DesignId,
                     Name = d.Name,
                     RecycledPercentage = d.RecycledPercentage,
-                    Price = (decimal)d.SalePrice,
+                    SalePrice = (decimal)d.SalePrice,
                     ProductScore = d.ProductScore,
                     Status = d.Status,
                     CreatedAt = d.CreatedAt,
@@ -276,7 +276,7 @@ namespace EcoFashionBackEnd.Services
                     DesignId = design.DesignId,
                     Name = design.Name,
                     RecycledPercentage = design.RecycledPercentage,
-                    Price = (decimal)design.SalePrice,
+                    SalePrice = (decimal)design.SalePrice,
                     ProductScore = design.ProductScore,
                     Status = design.Status,
                     CreatedAt = design.CreatedAt,
@@ -325,7 +325,7 @@ namespace EcoFashionBackEnd.Services
                 DesignId = design.DesignId,
                 Name = design.Name,
                 RecycledPercentage = design.RecycledPercentage,
-                Price = (decimal)design.SalePrice,
+                SalePrice = (decimal)design.SalePrice,
                 ProductScore = design.ProductScore,
                 Status = design.Status,
                 CreatedAt = design.CreatedAt,
@@ -362,7 +362,7 @@ namespace EcoFashionBackEnd.Services
                     DesignId = design.DesignId,
                     Name = design.Name,
                     RecycledPercentage = design.RecycledPercentage,
-                    Price = (decimal)design.SalePrice,
+                    SalePrice = (decimal)design.SalePrice,
                     ProductScore = design.ProductScore,
                     Status = design.Status,
                     CreatedAt = design.CreatedAt,
@@ -448,78 +448,6 @@ namespace EcoFashionBackEnd.Services
             return result != null;
         }
 
-        public async Task<bool> AddVariantAndUpdateMaterialsAsync(CreateDesignVariantRequest request, int userId)
-        {
-            // Lấy DesignerId từ user
-            var designerId = await _dbContext.Designers
-                .Where(d => d.UserId == userId)
-                .Select(d => d.DesignerId)
-                .FirstOrDefaultAsync();
 
-            if (designerId == Guid.Empty)
-                throw new Exception("Người dùng không phải là nhà thiết kế.");
-
-            // Lấy thiết kế và thông tin liên quan
-            var design = await _dbContext.Designs
-                .Include(d => d.DesignsMaterials)
-                    .ThenInclude(dm => dm.Materials)
-                        .ThenInclude(m => m.MaterialSustainabilityMetrics)
-                            .ThenInclude(msm => msm.SustainabilityCriterion)
-                .FirstOrDefaultAsync(d => d.DesignId == request.DesignId);
-
-            if (design == null || design.DesignerId != designerId)
-                throw new Exception("Không tìm thấy thiết kế hoặc bạn không có quyền tạo biến thể cho thiết kế này.");
-
-            // Lấy size multiplier
-            float sizeMultiplier = await _dbContext.TypeSizes
-                .Where(ts => ts.DesignTypeId == design.DesignTypeId && ts.SizeId == request.SizeId)
-                .Select(ts => ts.Ratio)
-                .FirstOrDefaultAsync();
-
-            if (sizeMultiplier == 0)
-                throw new Exception("Không tìm thấy hệ số size phù hợp.");
-
-            // Kiểm tra variant đã tồn tại chưa
-            var existingVariant = await _dbContext.DesignsVarients
-                .FirstOrDefaultAsync(v =>
-                    v.DesignId == request.DesignId &&
-                    v.SizeId == request.SizeId &&
-                    v.ColorId == request.ColorId);
-
-            // Tính tổng nguyên vật liệu cần dùng và kiểm tra kho
-            foreach (var dm in design.DesignsMaterials)
-            {
-                float required = (float)(dm.MeterUsed * sizeMultiplier * request.Quantity);
-                var inventory = await _dbContext.DesignerMaterialInventories
-                    .FirstOrDefaultAsync(inv => inv.DesignerId == designerId && inv.MaterialId == dm.MaterialId);
-
-                if (inventory == null || inventory.Quantity == null || inventory.Quantity < required)
-                    throw new Exception($"Không đủ vật liệu [{dm.Materials.Name}] trong kho.");
-
-                inventory.Quantity -= (int)Math.Ceiling(required);
-            }
-
-            if (existingVariant != null)
-            {
-                // Nếu đã tồn tại thì chỉ cộng thêm số lượng
-                existingVariant.Quantity += request.Quantity;
-            }
-            else
-            {
-                // Tạo variant mới
-                var newVariant = new DesignsVariant
-                {
-                    DesignId = request.DesignId,
-                    SizeId = request.SizeId,
-                    ColorId = request.ColorId,
-                    Quantity = request.Quantity,
-                };
-
-                _dbContext.DesignsVarients.Add(newVariant);
-            }
-
-            await _dbContext.SaveChangesAsync();
-            return true;
-        }
     }
 }

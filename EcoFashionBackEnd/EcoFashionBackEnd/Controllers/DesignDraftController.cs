@@ -100,6 +100,26 @@ public class DesignDraftController : ControllerBase
         }
     }
 
+    [HttpPost("designs/variants")]
+    public async Task<IActionResult> AddVariant([FromBody] CreateDesignVariantRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            return Unauthorized(ApiResult<object>.Fail("Không xác định được người dùng."));
+
+        try
+        {
+            var result = await _designDraftService.AddVariantAndUpdateMaterialsAsync(request, userId);
+            if (result)
+                return Ok(ApiResult<object>.Succeed("Thêm biến thể thành công."));
+            return BadRequest(ApiResult<object>.Fail("Thêm biến thể thất bại."));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<object>.Fail($"Lỗi: {ex.Message}"));
+        }
+    }
+
 
 
 }
