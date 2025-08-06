@@ -487,7 +487,7 @@ export default function DesignDetail() {
                   fontSize: "20px",
                 }}
               >
-                {formatPriceVND(designDetail.price)}
+                {formatPriceVND(designDetail.salePrice)}
               </Typography>
               {/* )} */}
               {/* {product.price.original && (

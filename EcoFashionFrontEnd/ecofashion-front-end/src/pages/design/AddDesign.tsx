@@ -130,7 +130,6 @@ const AddDesign = () => {
     );
 
     return matchesSearch && !isAlreadySelected;
-    return null;
   });
 
   //Drag and Drop
@@ -639,7 +638,7 @@ const AddDesign = () => {
       // Chi tiết sản phẩm
       return (
         !!errors.name ||
-        !!errors.price ||
+        !!errors.salePrice ||
         !!errors.description ||
         !!errors.careInstructions
       );
@@ -880,9 +879,9 @@ const AddDesign = () => {
                     fullWidth
                     label="Giá"
                     type="number"
-                    {...register("price", { valueAsNumber: true })}
-                    error={!!errors.price}
-                    helperText={errors.price?.message}
+                    {...register("salePrice", { valueAsNumber: true })}
+                    error={!!errors.salePrice}
+                    helperText={errors.salePrice?.message}
                     margin="normal"
                   />
                 </Grid>
@@ -1029,7 +1028,7 @@ const AddDesign = () => {
                     onClick={async () => {
                       const isValid = await trigger([
                         "name",
-                        "price",
+                        "salePrice",
                         "description",
                         "careInstructions",
                         "designTypeId",

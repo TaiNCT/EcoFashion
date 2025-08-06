@@ -9,7 +9,7 @@ public class CreateDesignRequest
     public string? Description { get; set; }
     public float RecycledPercentage { get; set; }
     public string? CareInstructions { get; set; }
-    public decimal Price { get; set; }
+    public decimal SalePrice { get; set; }
     public int ProductScore { get; set; }
     public string? Status { get; set; }
     public int? DesignTypeId { get; set; }

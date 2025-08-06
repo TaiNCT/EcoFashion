@@ -606,7 +606,7 @@ export default function DesignerDashBoard() {
       title: design.name,
       author: design.designer.designerName || "Không rõ",
       image: design.imageUrls[0] || "", // hoặc ảnh mặc định
-      price: `${design.price.toLocaleString("vi-VN")}₫`,
+      price: `${design.salePrice.toLocaleString("vi-VN")}₫`,
       rating: design.productScore || 4,
       recycledPercentage: design.recycledPercentage,
       material: design.materials?.map((mat) => mat.materialName) || [],

@@ -1,5 +1,6 @@
 import {
   AppBar,
+  Autocomplete,
   Box,
   Breadcrumbs,
   Button,
@@ -28,6 +29,7 @@ import {
   DesignType,
   MaterialType,
   StoredMaterial,
+  TypeMaterial,
 } from "../../services/api/designService";
 //Icon
 import { DraftIcon, EcoIcon } from "../../assets/icons/icon";
@@ -40,39 +42,20 @@ import DeleteOutlineTwoToneIcon from "@mui/icons-material/DeleteOutlineTwoTone";
 import CalculateOutlinedIcon from "@mui/icons-material/CalculateOutlined";
 import SquareFootIcon from "@mui/icons-material/SquareFoot";
 import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
+import ReportGmailerrorredIcon from "@mui/icons-material/ReportGmailerrorred";
+import SearchIcon from "@mui/icons-material/Search";
 //Generate UUid
 import { v4 as uuidv4 } from "uuid";
-
-const materials = [
-  {
-    label: "Vải Cotton Organic",
-    value: "cotton",
-    type: "Chính",
-    origin: "Ấn Độ",
-    certifications: ["GOTS", "OCS"],
-    efficiency: 85,
-  },
-  {
-    label: "Lót Bamboo",
-    value: "bamboo",
-    type: "Lót",
-    origin: "Việt Nam",
-    certifications: ["FSC", "OEKO-TEX"],
-    efficiency: 88,
-  },
-];
 
 export default function AddDesignDraft() {
   const [size, setSize] = useState("M");
   const [quantity, setQuantity] = useState(0);
-  const [mainMaterial, setMainMaterial] = useState("cotton");
-  const [liningMaterial, setLiningMaterial] = useState("bamboo");
   const [tabIndex, setTabIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  //Design Data
-  const [material, setMaterial] = useState<StoredMaterial[]>([]);
+  // //Design Data
+  // const [material, setMaterial] = useState<StoredMaterial[]>([]);
 
   //Design Type Data
   const [designType, setDesignType] = useState<DesignType[]>([]);
@@ -82,6 +65,9 @@ export default function AddDesignDraft() {
 
   //Get Design Type
   const [designTypeData, setDesignTypeData] = useState("");
+
+  //Material  Data
+  const [material, setMaterial] = useState<TypeMaterial[]>([]);
 
   const handleChangeDesign = (event: SelectChangeEvent) => {
     setDesignTypeData(event.target.value as string);
@@ -96,15 +82,12 @@ export default function AddDesignDraft() {
     try {
       setLoading(true);
       setError(null);
-      const materialData = await DesignService.getMaterial();
-      setMaterial(materialData);
 
       const designTypeData = await DesignService.getDesignType();
       setDesignType(designTypeData);
 
       const materialTypeData = await DesignService.getMaterialType();
       setMaterialType(materialTypeData);
-      console.log(materialTypeData);
     } catch (error: any) {
       const errorMessage =
         error.message || "Không thể tải danh sách nhà thiết kế";
@@ -115,14 +98,60 @@ export default function AddDesignDraft() {
     }
   };
 
+  type MaterialItem = {
+    materialId: number;
+    name: string;
+    // Add other fields if needed
+  };
+
+  const [materialMap, setMaterialMap] = useState<
+    Record<number, MaterialItem[]>
+  >({});
+
+  const getMaterial = async (cardId: string, materialTypeId: number) => {
+    try {
+      const materialData = await DesignService.getMaterialByType(
+        materialTypeId
+      );
+      setMaterialMap((prev) => ({
+        ...prev,
+        [cardId]: materialData, // store per-card
+      }));
+    } catch (error) {
+      console.error("Failed to fetch materials:", error);
+    }
+  };
+
   type CardData = {
     id: string;
     label: string;
+    draftName: string;
     width: number;
     height: number;
+    draftQuantity: number;
     materialType: {
       typeId: number;
       typeName: string;
+    };
+    material: {
+      materialId: number;
+      name: string;
+      pricePerUnit: string;
+      quantityAvailable: number;
+      carbonFootprint: number;
+      carbonFootprintUnit: string;
+      waterUsage: number;
+      waterUsageUnit: string;
+      wasteDiverted: number;
+      wasteDivertedUnit: string;
+      productionCountry: string;
+      productionRegion: string;
+      transportDistance: number;
+      transportMethod: string;
+      supplierName: string;
+      sustainabilityScore: number;
+      sustainabilityColor: string;
+      certificationDetails: string;
     };
     // (Add more fields later if needed)
   };
@@ -130,17 +159,40 @@ export default function AddDesignDraft() {
   const [cards, setCards] = useState<CardData[]>([]);
 
   const handleAddCard = () => {
+    setSearchTerm("");
     const newId = uuidv4();
     setCards((prev) => [
       ...prev,
       {
         id: newId,
-        label: "main",
+        label: "Chính",
+        draftName: "",
         width: 0,
+        draftQuantity: 1,
         height: 0,
         materialType: {
           typeId: null,
           typeName: "",
+        },
+        material: {
+          materialId: null,
+          name: "",
+          pricePerUnit: "",
+          quantityAvailable: 0,
+          carbonFootprint: 0,
+          carbonFootprintUnit: "Kg",
+          waterUsage: 0,
+          waterUsageUnit: "L",
+          wasteDiverted: 0,
+          wasteDivertedUnit: "%",
+          productionCountry: "",
+          productionRegion: "",
+          transportDistance: 0,
+          transportMethod: "",
+          supplierName: "",
+          sustainabilityScore: 0,
+          sustainabilityColor: "",
+          certificationDetails: "",
         },
       },
     ]);
@@ -174,7 +226,7 @@ export default function AddDesignDraft() {
   };
 
   //Change Material Type
-  const handleMaterialTypeChange = (
+  const handleMaterialTypeChange = async (
     cardId: string,
     typeId: number,
     typeName: string
@@ -182,12 +234,140 @@ export default function AddDesignDraft() {
     setCards((prev) =>
       prev.map((card) =>
         card.id === cardId
-          ? { ...card, materialType: { typeId, typeName } }
+          ? {
+              ...card,
+              materialType: { typeId, typeName },
+              material: {
+                materialId: null,
+                name: "",
+                pricePerUnit: "",
+                quantityAvailable: 0,
+                carbonFootprint: 0,
+                carbonFootprintUnit: "Kg",
+                waterUsage: 0,
+                waterUsageUnit: "L",
+                wasteDiverted: 0,
+                wasteDivertedUnit: "%",
+                productionCountry: "",
+                productionRegion: "",
+                transportDistance: 0,
+                transportMethod: "",
+                supplierName: "",
+                sustainabilityScore: 0,
+                sustainabilityColor: "",
+                certificationDetails: "",
+              },
+            }
+          : card
+      )
+    );
+    await getMaterial(cardId, typeId);
+  };
+
+  //Change Material
+  const handleMaterialChange = async (
+    cardId: string,
+    materialId: number,
+    name: string,
+    pricePerUnit: string,
+    quantityAvailable: number,
+    carbonFootprint: number,
+    carbonFootprintUnit: string,
+    waterUsage: number,
+    waterUsageUnit: string,
+    wasteDiverted: number,
+    wasteDivertedUnit: string,
+    productionCountry: string,
+    productionRegion: string,
+    transportDistance: number,
+    transportMethod: string,
+    supplierName: string,
+    sustainabilityScore: number,
+    sustainabilityColor: string,
+    certificationDetails: string
+  ) => {
+    setCards((prev) =>
+      prev.map((card) =>
+        card.id === cardId
+          ? {
+              ...card,
+              material: {
+                materialId,
+                name,
+                pricePerUnit,
+                quantityAvailable,
+                carbonFootprint,
+                carbonFootprintUnit,
+                waterUsage,
+                waterUsageUnit,
+                wasteDiverted,
+                wasteDivertedUnit,
+                productionCountry,
+                productionRegion,
+                transportDistance,
+                transportMethod,
+                supplierName,
+                sustainabilityScore,
+                sustainabilityColor,
+                certificationDetails,
+              },
+            }
           : card
       )
     );
   };
 
+  //Change Draft Name
+  const handleChangeDraftName = (cardId: string, value: string) => {
+    setCards((prev) =>
+      prev.map((card) =>
+        card.id === cardId ? { ...card, draftName: value } : card
+      )
+    );
+  };
+
+  //Change Quantity
+  const handleChangeQuantityAvailable = (id: string, newQuantity: number) => {
+    setCards((prev) =>
+      prev.map((card) =>
+        card.id === id ? { ...card, draftQuantity: newQuantity } : card
+      )
+    );
+  };
+
+  //Tìm kiếm draft name
+  //Search
+  const [searchTerm, setSearchTerm] = useState("");
+  const findCardByDraftName = cards.filter((card) =>
+    card.draftName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Step 1: Group by materialId
+  const groupedByMaterial = findCardByDraftName.reduce((acc, item) => {
+    const key = item.material.materialId;
+    const area = item.width * item.height * item.draftQuantity;
+
+    const calcNeedMaterial = (totalArea: number) =>
+      Math.ceil(((totalArea * (1 + 12 / 100)) / 150 / 100) * 10) / 10; //150 là chiều rộng của 1 khổ vải, (1 + 12 / 100) là hao tổn khi cắt tùy vào mỗi loại vải
+
+    if (!acc[key]) {
+      acc[key] = {
+        ...item,
+        totalArea: area,
+        needMaterial: calcNeedMaterial(area),
+        allDraftNames: [item.draftName],
+      };
+    } else {
+      acc[key].totalArea += area;
+      acc[key].needMaterial = calcNeedMaterial(acc[key].totalArea);
+      acc[key].allDraftNames.push(item.draftName);
+    }
+
+    return acc;
+  }, {} as Record<number, any>);
+
+  // Step 2: Convert to array
+  const groupedMaterial = Object.values(groupedByMaterial);
   return (
     <Box>
       {/* Appbar */}
@@ -213,9 +393,10 @@ export default function AddDesignDraft() {
         {/* Title */}
         <Box
           sx={{
-            width: "100%",
+            width: "95%",
             display: "flex",
             justifyContent: "space-between",
+            margin: "0 auto",
           }}
         >
           <Box
@@ -246,7 +427,8 @@ export default function AddDesignDraft() {
             sx={{
               display: "flex",
               gap: 1,
-              padding: 2,
+              paddingTop: 2,
+              paddingBottom: 2,
             }}
           >
             <Button
@@ -287,7 +469,7 @@ export default function AddDesignDraft() {
         </Box>
       </Box>
       {/* Mid Part */}
-      <Box sx={{ width: "100%", padding: 2 }}>
+      <Box sx={{ width: "95%", padding: 2, margin: "0 auto" }}>
         {/* Đánh Giá Bền Vững */}
         <Box
           sx={{
@@ -300,6 +482,7 @@ export default function AddDesignDraft() {
           }}
         >
           {/* Tittle */}
+
           <Box sx={{ display: "flex", mb: 2, width: "100%" }}>
             <WorkspacePremiumOutlinedIcon sx={{ color: "green", mr: 1 }} />
             <Typography fontWeight="bold" fontSize="1.2rem">
@@ -314,6 +497,8 @@ export default function AddDesignDraft() {
               width: "100%",
               paddingLeft: 15,
               paddingRight: 15,
+              paddingBottom: 2,
+              alignItems: "center",
             }}
           >
             {/* Tổng thể */}
@@ -360,7 +545,7 @@ export default function AddDesignDraft() {
                 fontWeight="bold"
                 fontSize="1.5rem"
               >
-                0 Kg
+                0 %
               </Typography>
               <Typography color="text.secondary">
                 Giảm Số Lượng Rác Thải
@@ -391,8 +576,8 @@ export default function AddDesignDraft() {
             </Box>
             <Grid container spacing={2}>
               {/* Design Type */}
-              <Grid>
-                <Box sx={{ width: 200 }}>
+              <Grid flex={1}>
+                <Box sx={{ width: "100%" }}>
                   <FormControl fullWidth>
                     <InputLabel id="design-type-label">
                       Loại Thời Trang
@@ -414,15 +599,17 @@ export default function AddDesignDraft() {
                 </Box>
               </Grid>
               {/* Design Size */}
-              <Grid>
-                <Box sx={{ width: 200 }}>
+              <Grid flex={1}>
+                <Box sx={{ width: "100%" }}>
                   <FormControl fullWidth>
-                    <InputLabel id="desing-size-label">Kích Thước</InputLabel>
+                    <InputLabel id="desing-size-label">
+                      Kích Thước Làm Chuẩn
+                    </InputLabel>
                     <Select
                       labelId="desing-size-label"
                       id="designSize-select"
                       value={size}
-                      label="Loại Thời Trang"
+                      label="Kích Thước Làm Chuẩn"
                       onChange={(e) => setSize(e.target.value)}
                     >
                       <MenuItem value="M">M (×1)</MenuItem>
@@ -431,13 +618,27 @@ export default function AddDesignDraft() {
                 </Box>
               </Grid>
               {/* Quantity */}
-              <Grid>
+              <Grid flex={1}>
                 <TextField
                   fullWidth
                   type="number"
                   label="Số Lượng"
                   value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    // Chỉ cho phép số nguyên dương hoặc rỗng
+                    if (value === "") {
+                      setQuantity(0);
+                      return;
+                    }
+
+                    const intValue = parseInt(value, 10);
+                    if (!isNaN(intValue) && intValue >= 0) {
+                      setQuantity(intValue);
+                    }
+                  }}
+                  inputProps={{ min: 0, step: 1 }}
                 />
               </Grid>
               {/* Vải Chính */}
@@ -535,205 +736,389 @@ export default function AddDesignDraft() {
                   </Box>
                 </Box>
                 {/* Mảnh Rập Được Thêm */}
-                <Box
-                  sx={{
-                    height: cards.length > 0 ? 500 : "auto",
-                    overflowY: "auto",
-                  }}
-                >
-                  {cards.map((card, index) => (
-                    <Grid
-                      key={card.id}
+                {/* Chưa Thêm Mảnh Rập */}
+                {cards.length === 0 ? (
+                  <Box
+                    sx={{
+                      height: "400px", // hoặc "100%" nếu cha có chiều cao cố định
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      textAlign: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <ReportGmailerrorredIcon sx={{ color: "red" }} />
+                    <Typography
+                      variant="h5"
+                      textAlign="center"
+                      color="text.secondary"
+                      fontWeight={"bold"}
+                    >
+                      Bạn Cần Thêm Mảnh Rập
+                    </Typography>
+                  </Box>
+                ) : (
+                  // Đã Thêm Mảnh Rập
+                  <Box
+                    sx={{
+                      height: "auto",
+                    }}
+                  >
+                    <Box
                       sx={{
-                        border: "1px solid rgba(0, 0, 0, 0.1)",
+                        display: "flex",
+                        bgcolor: "white",
+                        p: 0.5,
+                        width: "100%",
+                        border: "1px solid black",
                         borderRadius: "5px",
-                        margin: "10px 0",
+                        margin: "20px 0",
                       }}
                     >
-                      <Card sx={{ width: "100%", padding: 2, margin: "auto" }}>
-                        <CardContent>
-                          <Box
+                      <Box
+                        sx={{
+                          width: "100%",
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <TextField
+                          placeholder="Tìm kiếm Mảnh Rập..."
+                          variant="standard"
+                          fullWidth
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          InputProps={{ disableUnderline: true }}
+                          sx={{ ml: 1 }}
+                        />
+                        <SearchIcon sx={{ color: "black", margin: "auto" }} />
+                      </Box>
+                    </Box>
+                    {/* Không Có Mảnh Rập */}
+                    {findCardByDraftName.length === 0 ? (
+                      <Box
+                        sx={{
+                          height: "auto",
+                          display: "flex",
+                          gap: 2,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <ReportGmailerrorredIcon sx={{ color: "red" }} />
+                        <Typography
+                          variant="h5"
+                          textAlign="center"
+                          color="text.secondary"
+                        >
+                          Không tìm thấy Mảnh Rập
+                        </Typography>
+                      </Box>
+                    ) : (
+                      // Có Mảnh Rập
+                      <Box
+                        sx={{
+                          height: cards.length > 0 ? 500 : "auto",
+                          overflowY: "auto",
+                        }}
+                      >
+                        {findCardByDraftName.map((card, index) => (
+                          <Grid
+                            key={card.id}
                             sx={{
-                              display: "flex",
-                              flexDirection: "column",
+                              border: "1px solid rgba(0, 0, 0, 0.1)",
+                              borderRadius: "5px",
+                              margin: "10px 0",
                             }}
                           >
-                            {/* Tên Mảnh Rập */}
-                            <Box
-                              sx={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                marginBottom: "20px",
-                              }}
+                            <Card
+                              sx={{ width: "100%", padding: 2, margin: "auto" }}
                             >
-                              <TextField
-                                id="draftName"
-                                label="Tên Mảnh Rập"
-                                variant="outlined"
-                                sx={{ width: "100%" }}
-                                InputLabelProps={{
-                                  sx: {
-                                    fontWeight: "bold",
-                                    color: "black",
-                                  },
-                                }}
-                              />
-                              <IconButton
-                                color="error"
-                                onClick={() => handleRemoveCard(card.id)}
-                                sx={{
-                                  color: "error.main",
-                                  "&:hover": {
-                                    color: "#ff1744", // màu đỏ sáng hơn, hoặc dùng theme color khác
-                                  },
-                                }}
-                              >
-                                <DeleteOutlineTwoToneIcon />
-                              </IconButton>
-                            </Box>
-                            {/* Kích Thước */}
-                            <Box
-                              sx={{
-                                display: "flex",
-                                gap: 2,
-                                marginBottom: "20px",
-                              }}
-                            >
-                              <TextField
-                                id="width"
-                                label="Rộng (cm)"
-                                type="number"
-                                defaultValue="0"
-                                InputLabelProps={{
-                                  sx: {
-                                    fontWeight: "bold",
-                                    color: "black",
-                                  },
-                                }}
-                                onChange={(e) =>
-                                  handleChangeWidth(
-                                    card.id,
-                                    Number(e.target.value)
-                                  )
-                                }
-                              />
-                              <TextField
-                                id="height"
-                                label="Cao (cm)"
-                                type="number"
-                                defaultValue="0"
-                                InputLabelProps={{
-                                  sx: {
-                                    fontWeight: "bold",
-                                    color: "black",
-                                  },
-                                }}
-                                onChange={(e) =>
-                                  handleChangeHeight(
-                                    card.id,
-                                    Number(e.target.value)
-                                  )
-                                }
-                              />
-                              <TextField
-                                id="quanity"
-                                label="Số lượng"
-                                defaultValue="0"
-                                InputLabelProps={{
-                                  sx: {
-                                    fontWeight: "bold",
-                                    color: "black",
-                                  },
-                                }}
-                              />
-                            </Box>
-                            {/* Loại Vật Liệu */}
-                            <Box
-                              sx={{
-                                display: "flex",
-                                gap: 2,
-                              }}
-                            >
-                              {/* Label */}
-                              <Box sx={{ width: 200 }}>
-                                <FormControl fullWidth>
-                                  <Select
-                                    id="lining-select"
-                                    value={card.label}
-                                    onChange={(e) =>
-                                      handleChangeLabel(card.id, e.target.value)
-                                    }
-                                  >
-                                    <MenuItem value={"main"}>
-                                      Vải Chính
-                                    </MenuItem>
-                                    <MenuItem value={"lining"}>
-                                      Vải Lót
-                                    </MenuItem>
-                                    <MenuItem value={"garment"}>
-                                      Phụ Liệu
-                                    </MenuItem>
-                                  </Select>
-                                </FormControl>
-                              </Box>
-                              {/* Loại Vật Liệu */}
-                              <Box sx={{ width: 200 }}>
-                                <FormControl fullWidth>
-                                  <InputLabel id="material-type-label">
-                                    Loại Vải
-                                  </InputLabel>
-                                  <Select
-                                    labelId="material-type-label"
-                                    id="materialType-select"
-                                    value={card.materialType.typeId}
-                                    label="Loại Vật Liệu"
-                                    onChange={(e) => {
-                                      const selected = materialType.find(
-                                        (m) => m.typeId === e.target.value
-                                      );
-                                      if (selected) {
-                                        handleMaterialTypeChange(
-                                          card.id,
-                                          selected.typeId,
-                                          selected.typeName
-                                        );
-                                      }
+                              <CardContent>
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                  }}
+                                >
+                                  {/* Tên Mảnh Rập */}
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      marginBottom: "20px",
+                                      gap: 1,
                                     }}
                                   >
-                                    {materialType.map((dt) => (
-                                      <MenuItem
-                                        key={dt.typeId}
-                                        value={dt.typeId}
-                                      >
-                                        {dt.typeName}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                              </Box>
-                              <Chip
-                                icon={
-                                  <SquareFootIcon sx={{ colors: "black" }} />
-                                }
-                                label={`${card.width} x ${card.height} cm (Size ${size})`}
-                                size="medium"
-                                sx={{
-                                  backgroundColor: "white",
-                                  border: "1px solid rgba(0, 0, 0, 0.3)",
-                                  color: "black",
-                                  fontSize: "15px",
-                                  fontWeight: "bold",
-                                  margin: "auto",
-                                }}
-                              />
-                            </Box>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Box>
+                                    <TextField
+                                      id="draftName"
+                                      label="Tên Mảnh Rập"
+                                      variant="outlined"
+                                      value={card.draftName}
+                                      onChange={(e) =>
+                                        handleChangeDraftName(
+                                          card.id,
+                                          e.target.value
+                                        )
+                                      }
+                                      sx={{ width: "100%" }}
+                                      InputLabelProps={{
+                                        sx: {
+                                          fontWeight: "bold",
+                                          color: "black",
+                                        },
+                                      }}
+                                    />
+                                    <IconButton
+                                      color="error"
+                                      onClick={() => handleRemoveCard(card.id)}
+                                      sx={{
+                                        color: "error.main",
+                                        "&:hover": {
+                                          color: "#ff1744", // màu đỏ sáng hơn, hoặc dùng theme color khác
+                                        },
+                                      }}
+                                    >
+                                      <DeleteOutlineTwoToneIcon />
+                                    </IconButton>
+                                  </Box>
+                                  {/* Kích Thước */}
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      gap: 2,
+                                      marginBottom: "20px",
+                                    }}
+                                  >
+                                    <TextField
+                                      id="width"
+                                      label="Rộng (cm)"
+                                      type="number"
+                                      defaultValue="0"
+                                      InputLabelProps={{
+                                        sx: {
+                                          fontWeight: "bold",
+                                          color: "black",
+                                        },
+                                      }}
+                                      onChange={(e) => {
+                                        const value = Number(e.target.value);
+                                        if (value >= 0) {
+                                          handleChangeWidth(card.id, value);
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (
+                                          e.key === "-" ||
+                                          e.key === "e" ||
+                                          e.key === "E"
+                                        ) {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      inputProps={{ min: 0, step: 1 }}
+                                    />
+                                    <TextField
+                                      id="height"
+                                      label="Cao (cm)"
+                                      type="number"
+                                      defaultValue="0"
+                                      InputLabelProps={{
+                                        sx: {
+                                          fontWeight: "bold",
+                                          color: "black",
+                                        },
+                                      }}
+                                      onChange={(e) => {
+                                        const value = Number(e.target.value);
+                                        if (value >= 0) {
+                                          handleChangeHeight(card.id, value);
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (
+                                          e.key === "-" ||
+                                          e.key === "e" ||
+                                          e.key === "E"
+                                        ) {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      inputProps={{ min: 0, step: 1 }}
+                                    />
+                                    <TextField
+                                      id="draftQuantity"
+                                      label="Số lượng"
+                                      defaultValue="1"
+                                      InputLabelProps={{
+                                        sx: {
+                                          fontWeight: "bold",
+                                          color: "black",
+                                        },
+                                      }}
+                                      onChange={(e) => {
+                                        const value = Number(e.target.value);
+                                        if (value >= 0) {
+                                          handleChangeQuantityAvailable(
+                                            card.id,
+                                            value
+                                          );
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (
+                                          e.key === "-" ||
+                                          e.key === "e" ||
+                                          e.key === "E"
+                                        ) {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      inputProps={{ min: 0, step: 1 }}
+                                    />
+                                  </Box>
+                                  {/* Loại Vật Liệu */}
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      gap: 2,
+                                    }}
+                                  >
+                                    {/* Label */}
+                                    <Box sx={{ width: 200 }}>
+                                      <FormControl fullWidth>
+                                        <Select
+                                          id="lining-select"
+                                          value={card.label}
+                                          onChange={(e) =>
+                                            handleChangeLabel(
+                                              card.id,
+                                              e.target.value
+                                            )
+                                          }
+                                        >
+                                          <MenuItem value={"Chính"}>
+                                            Vải Chính
+                                          </MenuItem>
+                                          <MenuItem value={"Lót"}>
+                                            Vải Lót
+                                          </MenuItem>
+                                          <MenuItem value={"Phụ Liệu"}>
+                                            Phụ Liệu
+                                          </MenuItem>
+                                        </Select>
+                                      </FormControl>
+                                    </Box>
+                                    {/* Loại Vật Liệu */}
+                                    <Box sx={{ width: 200 }}>
+                                      <FormControl fullWidth>
+                                        <InputLabel id="material-type-label">
+                                          Loại Vải
+                                        </InputLabel>
+                                        <Select
+                                          labelId="material-type-label"
+                                          id="materialType-select"
+                                          value={card.materialType.typeId}
+                                          label="Loại Vật Liệu"
+                                          onChange={async (e) => {
+                                            const selected = materialType.find(
+                                              (m) => m.typeId === e.target.value
+                                            );
+                                            if (selected) {
+                                              handleMaterialTypeChange(
+                                                card.id,
+                                                selected.typeId,
+                                                selected.typeName
+                                              );
+                                            }
+                                          }}
+                                        >
+                                          {materialType.map((dt) => (
+                                            <MenuItem
+                                              key={dt.typeId}
+                                              value={dt.typeId}
+                                            >
+                                              {dt.typeName}
+                                            </MenuItem>
+                                          ))}
+                                        </Select>
+                                      </FormControl>
+                                    </Box>
+                                    {/* Vải Sử Dụng */}
+                                    {card.materialType.typeId && (
+                                      <Box sx={{ width: 200 }}>
+                                        <FormControl fullWidth>
+                                          <Autocomplete
+                                            id="materialUsed-autocomplete"
+                                            options={materialMap[card.id] || []}
+                                            getOptionLabel={(option) =>
+                                              option.name || ""
+                                            }
+                                            value={card.material || null}
+                                            onChange={(event, newValue) => {
+                                              if (newValue) {
+                                                handleMaterialChange(
+                                                  card.id,
+                                                  newValue.materialId,
+                                                  newValue.name,
+                                                  newValue.pricePerUnit,
+                                                  newValue.quantityAvailable,
+                                                  newValue.carbonFootprint,
+                                                  newValue.carbonFootprintUnit,
+                                                  newValue.waterUsage,
+                                                  newValue.waterUsageUnit,
+                                                  newValue.wasteDiverted,
+                                                  newValue.wasteDivertedUnit,
+                                                  newValue.productionCountry,
+                                                  newValue.productionRegion,
+                                                  newValue.transportDistance,
+                                                  newValue.transportMethod,
+                                                  newValue.supplierName,
+                                                  newValue.sustainabilityScore,
+                                                  newValue.sustainabilityColor,
+                                                  newValue.certificationDetails
+                                                );
+                                              }
+                                            }}
+                                            renderInput={(params) => (
+                                              <TextField
+                                                {...params}
+                                                label="Vải Sử Dụng"
+                                              />
+                                            )}
+                                            fullWidth
+                                          />
+                                        </FormControl>
+                                      </Box>
+                                    )}
+                                  </Box>
+                                </Box>
+                                <Chip
+                                  icon={
+                                    <SquareFootIcon sx={{ colors: "black" }} />
+                                  }
+                                  label={`${card.width} x ${card.height} cm (Size ${size})`}
+                                  size="medium"
+                                  sx={{
+                                    backgroundColor: "white",
+                                    border: "1px solid rgba(0, 0, 0, 0.3)",
+                                    color: "black",
+                                    fontSize: "15px",
+                                    fontWeight: "bold",
+                                    margin: "auto",
+                                    mt: 2,
+                                  }}
+                                />
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -745,6 +1130,7 @@ export default function AddDesignDraft() {
                 height: "100%", // Match height
                 display: "flex",
                 flexDirection: "column",
+                border: "1px solid rgba(0, 0, 0, 0.2)",
               }}
             >
               <CardContent>
@@ -766,53 +1152,146 @@ export default function AddDesignDraft() {
                 </Tabs>
                 {tabIndex === 0 && (
                   <>
-                    {[mainMaterial, liningMaterial].map((key) => {
-                      const mat = materials.find((m) => m.value === key);
-                      return (
+                    {groupedMaterial.length > 0 &&
+                      groupedMaterial.map((m) => (
                         <Box
-                          key={key}
+                          key={m.id}
                           sx={{
                             mb: 2,
-                            p: 1,
+                            p: 2,
                             border: "1px solid #ccc",
                             borderRadius: 2,
                           }}
                         >
-                          <Typography fontWeight="bold">
-                            {mat?.label}
-                          </Typography>
-                          <Chip label={mat?.type} size="small" sx={{ ml: 1 }} />
-                          <Chip
-                            label={mat?.efficiency}
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
-                          <Typography variant="body2" mt={1}>
-                            Diện tích: 1,200 cm²
-                          </Typography>
-                          <Typography variant="body2">
-                            Xuất xứ: {mat?.origin}
-                          </Typography>
-                          <Box mt={1}>
-                            {mat?.certifications.map((cert) => (
-                              <Chip
-                                key={cert}
-                                label={cert}
-                                size="small"
-                                sx={{ mr: 1 }}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {m.material.sustainabilityColor && (
+                              <Box
+                                sx={{
+                                  width: 20,
+                                  height: 20,
+                                  bgcolor: `${m.material.sustainabilityColor}`,
+                                  borderRadius: 1,
+                                  marginRight: 1,
+                                }}
                               />
-                            ))}
+                            )}
+                            <Typography fontWeight="bold">
+                              {m.material.name
+                                ? m.material.name
+                                : `Chọn Vật Liệu ${m.draftName}`}
+                            </Typography>
+                            <Chip
+                              variant="outlined"
+                              label={m.label}
+                              size="small"
+                              sx={{ ml: 1, fontWeight: "bold" }}
+                            />
+                            <Chip
+                              label={`${m.material.sustainabilityScore} %`}
+                              variant="outlined"
+                              size="small"
+                              sx={{
+                                ml: 1,
+                                color: `${m.material.sustainabilityColor}`,
+                                fontWeight: "bold",
+                              }}
+                            />
                           </Box>
-                          <Typography variant="body2" mt={1} color="primary">
-                            Cần thiết: {key === "cotton" ? "0.1" : "0.2"} mét
-                          </Typography>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              width: "90%",
+                            }}
+                          >
+                            <Box>
+                              {/* Diện Tích */}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  mt: 1,
+                                  width: "100%",
+                                  gap: 1,
+                                }}
+                              >
+                                <Typography variant="body2">
+                                  Diện tích:
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  sx={{ fontWeight: "bold" }}
+                                >
+                                  {new Intl.NumberFormat("de-DE").format(
+                                    m.totalArea
+                                  )}{" "}
+                                  cm²
+                                </Typography>
+                              </Box>
+                              {/* Xuất xứ */}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  mt: 1,
+                                  width: "100%",
+                                  gap: 1,
+                                }}
+                              >
+                                <Typography variant="body2">
+                                  Xuất xứ:
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  sx={{ fontWeight: "bold" }}
+                                >
+                                  {m.material.productionCountry}
+                                  {m.material.productionRegion
+                                    ? `, ${m.material.productionRegion}`
+                                    : ""}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Box sx={{ mt: 1 }}>
+                              <Typography variant="body1">
+                                Mét Vải Cần thiết:
+                              </Typography>
+                              <Typography
+                                variant="body1"
+                                color="primary"
+                                sx={{ fontWeight: "bold" }}
+                              >
+                                {m.needMaterial} mét
+                              </Typography>
+                            </Box>
+                          </Box>
+                          {m.material.certificationDetails && (
+                            <Box mt={1}>
+                              {m.material.certificationDetails
+                                .split(",")
+                                .map((item) => item.trim())
+                                .map((cert, index) => (
+                                  <Chip
+                                    key={index}
+                                    label={cert}
+                                    sx={{ fontWeight: "bold", marginRight: 1 }}
+                                    size="small"
+                                  />
+                                ))}
+                            </Box>
+                          )}
+
                           <Typography variant="caption" color="error">
-                            Phế liệu ước tính: {key === "cotton" ? "154" : "96"}{" "}
-                            cm²
+                            Phế liệu ước tính: 12 cm²
                           </Typography>
                         </Box>
-                      );
-                    })}
+                      ))}
                   </>
                 )}
                 {tabIndex === 1 && <div>Tab 2</div>}

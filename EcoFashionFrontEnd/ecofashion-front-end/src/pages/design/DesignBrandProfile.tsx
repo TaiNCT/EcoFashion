@@ -239,9 +239,9 @@ export default function DesingBrandProfile() {
 
     switch (sortType) {
       case "lowest":
-        return a.price - b.price;
+        return a.salePrice - b.salePrice;
       case "highest":
-        return b.price - a.price;
+        return b.salePrice - a.salePrice;
       case "recent":
         return b.designId - a.designId;
       default:

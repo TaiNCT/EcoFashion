@@ -578,5 +578,124 @@ namespace EcoFashionBackEnd.Services
 
             return result;
         }
+        public async Task<ApiResult<List<MaterialDetailDto>>> GetAllMaterialByTypeAsync(int typeId)
+        {
+            try
+            {
+                var materials = await _dbContext.Materials
+                    .Where(b => b.TypeId == typeId)
+                    .Include(m => m.MaterialType)
+                    .Include(m => m.Supplier)
+                    .Include(m => m.MaterialImages).ThenInclude(mi => mi.Image)
+                    .Include(m => m.MaterialSustainabilityMetrics)
+                    .ThenInclude(ms => ms.SustainabilityCriterion)
+                    .ToListAsync();
+
+                // Batch calculate sustainability scores for all materials
+                var materialIds = materials.Select(m => m.MaterialId).ToList();
+                var sustainabilityReports = await _sustainabilityService.CalculateMaterialsSustainabilityScores(materialIds);
+
+                // Get all benchmarks for all material types
+                var allBenchmarks = await _dbContext.MaterialTypesBenchmarks
+                    .Include(b => b.MaterialType)
+                    .Include(b => b.SustainabilityCriteria)
+                    .ToListAsync();
+
+                var materialDtos = new List<MaterialDetailDto>();
+
+                foreach (var material in materials)
+                {
+                    sustainabilityReports.TryGetValue(material.MaterialId, out var sustainabilityReport);
+
+                    // Get benchmarks for this material's type
+                    var materialBenchmarks = allBenchmarks
+                        .Where(b => b.TypeId == material.TypeId)
+                        .Select(b => new MaterialTypeBenchmarkModel
+                        {
+                            BenchmarkId = b.BenchmarkId,
+                            TypeId = b.TypeId,
+                            CriteriaId = b.CriteriaId,
+                            Value = (float)b.Value,
+                            MaterialType = b.MaterialType,
+                            SustainabilityCriteria = b.SustainabilityCriteria
+                        })
+                        .ToList();
+
+                    var dto = new MaterialDetailDto
+                    {
+                        MaterialId = material.MaterialId,
+                        Name = material.Name ?? string.Empty,
+                        Description = material.Description ?? string.Empty,
+                        MaterialTypeName = material.MaterialType?.TypeName ?? string.Empty,
+                        RecycledPercentage = material.RecycledPercentage,
+                        QuantityAvailable = material.QuantityAvailable,
+                        PricePerUnit = material.PricePerUnit,
+                        CreatedAt = material.CreatedAt,
+                        CarbonFootprint = material.CarbonFootprint,
+                        CarbonFootprintUnit = material.CarbonFootprintUnit,
+                        WaterUsage = material.WaterUsage,
+                        WaterUsageUnit = material.WaterUsageUnit,
+                        WasteDiverted = material.WasteDiverted,
+                        WasteDivertedUnit = material.WasteDivertedUnit,
+                        ProductionCountry = material.ProductionCountry,
+                        ProductionRegion = material.ProductionRegion,
+                        ManufacturingProcess = material.ManufacturingProcess,
+                        CertificationDetails = material.CertificationDetails,
+                        CertificationExpiryDate = material.CertificationExpiryDate,
+                        TransportDistance = material.TransportDistance,
+                        TransportMethod = material.TransportMethod,
+                        ApprovalStatus = material.ApprovalStatus,
+                        AdminNote = material.AdminNote,
+                        IsAvailable = material.IsAvailable,
+                        LastUpdated = material.LastUpdated,
+                        SupplierName = material.Supplier?.SupplierName ?? string.Empty,
+                        SupplierId = material.SupplierId,
+                        ImageUrls = material.MaterialImages?.Select(img => img.Image?.ImageUrl).Where(url => !string.IsNullOrEmpty(url)).Select(url => url!).ToList() ?? new List<string>(),
+                        // Supplier object
+                        Supplier = material.Supplier != null ? new SupplierPublicModel
+                        {
+                            SupplierId = material.Supplier.SupplierId,
+                            SupplierName = material.Supplier.SupplierName,
+                            AvatarUrl = material.Supplier.AvatarUrl,
+                            Bio = material.Supplier.Bio,
+                            SpecializationUrl = material.Supplier.SpecializationUrl,
+                            PortfolioUrl = material.Supplier.PortfolioUrl,
+                            PortfolioFiles = material.Supplier.PortfolioFiles,
+                            BannerUrl = material.Supplier.BannerUrl,
+                            Email = material.Supplier.Email,
+                            PhoneNumber = material.Supplier.PhoneNumber,
+                            Address = material.Supplier.Address,
+                            Rating = material.Supplier.Rating,
+                            ReviewCount = material.Supplier.ReviewCount,
+                            Certificates = material.Supplier.Certificates,
+                            CreatedAt = material.Supplier.CreatedAt
+                        } : null,
+                        // Sustainability information
+                        SustainabilityScore = sustainabilityReport?.OverallSustainabilityScore,
+                        SustainabilityLevel = sustainabilityReport?.SustainabilityLevel,
+                        SustainabilityColor = sustainabilityReport?.LevelColor,
+                        // Sustainability criteria
+                        SustainabilityCriteria = material.MaterialSustainabilityMetrics?.Select(ms => new MaterialSustainabilityCriterionDto
+                        {
+                            CriterionId = ms.CriterionId,
+                            Name = ms.SustainabilityCriterion?.Name,
+                            Description = ms.SustainabilityCriterion?.Description,
+                            Unit = ms.SustainabilityCriterion?.Unit,
+                            Value = ms.Value
+                        }).ToList() ?? new List<MaterialSustainabilityCriterionDto>(),
+                        // Benchmarks for this material type
+                        Benchmarks = materialBenchmarks
+                    };
+
+                    materialDtos.Add(dto);
+                }
+
+                return ApiResult<List<MaterialDetailDto>>.Succeed(materialDtos);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<MaterialDetailDto>>.Fail(ex.Message);
+            }
+        }
     }
 }

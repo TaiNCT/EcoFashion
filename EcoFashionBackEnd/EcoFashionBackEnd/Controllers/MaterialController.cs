@@ -91,5 +91,12 @@ namespace EcoFashionBackEnd.Controllers
             var evaluation = _sustainabilityService.GetSustainabilityEvaluation(score);
             return Ok(evaluation);
         }
+
+        [HttpGet("GetAllMaterialByType/{typeId}")]
+        public async Task<IActionResult> GetAllMaterialByType(int typeId)
+        {
+            var result = await _materialService.GetAllMaterialByTypeAsync(typeId);
+            return Ok(result);
+        }
     }
 }

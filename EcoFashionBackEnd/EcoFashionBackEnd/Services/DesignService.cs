@@ -71,7 +71,7 @@ namespace EcoFashionBackEnd.Services
                 CareInstructions = design.CareInstructions,
                 SalePrice = design.SalePrice,
                 UnitPrice = design.UnitPrice,
-                Stage= design.Stage,
+                Stage= design.Stage.ToString(),
                 ProductScore = design.ProductScore,
                 Status = design.Status,
                 CreatedAt = design.CreatedAt,

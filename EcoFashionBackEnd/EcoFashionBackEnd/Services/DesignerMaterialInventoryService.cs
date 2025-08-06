@@ -105,18 +105,6 @@ namespace EcoFashionBackEnd.Services
         {
             try
             {
-                //var materials = await _dbContext.Materials
-                //       .Include(m => m.MaterialType)
-                //       .Include(m => m.Supplier)
-                //       .Include(m => m.MaterialImages).ThenInclude(mi => mi.Image)
-                //       .Include(m => m.MaterialSustainabilityMetrics)
-                //       .ThenInclude(ms => ms.SustainabilityCriterion)
-                //       .ToListAsync();
-
-                //// Batch calculate sustainability scores for all materials
-                //var materialIds = materials.Select(m => m.MaterialId).ToList();
-                //var sustainabilityReports = await _sustainabilityService.CalculateMaterialsSustainabilityScores(materialIds);
-
                 var inventories = await _dbContext.DesignerMaterialInventories
                     .Where(dmi => dmi.Designer.DesignerId == designerId)
                     .Include(dmi => dmi.Designer)
