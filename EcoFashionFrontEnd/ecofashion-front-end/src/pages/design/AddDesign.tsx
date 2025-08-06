@@ -97,7 +97,7 @@ const AddDesign = () => {
       setLoading(true);
       setError(null);
       const data = await DesignService.getStoredMaterial(getDesignerId());
-      console.log(data);
+      console.log("Stored Material:", data);
       setStoredMaterial(data);
     } catch (error: any) {
       const errorMessage =
@@ -162,7 +162,6 @@ const AddDesign = () => {
         setActiveDragItem(mat);
       }
     }, [isDragging]);
-
     return (
       <Card
         ref={setNodeRef}
@@ -180,21 +179,23 @@ const AddDesign = () => {
         }}
       >
         <Box flexGrow={1}>
-          <Typography fontWeight="bold">{mat.materialName}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {mat.materialId}
-          </Typography>
-          <Chip
-            size="small"
-            icon={<EcoIcon />}
-            label={`${mat.sustainabilityScore}% Tái Chế`}
-            sx={{
-              bgcolor: "#E6F4EA",
-              color: "#388E3C",
-              fontSize: "0.9rem",
-              ml: 1,
-            }}
-          />
+          <Typography fontWeight="bold">{mat.name}</Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {mat.supplierName}
+            </Typography>
+            <Chip
+              size="small"
+              icon={<EcoIcon />}
+              label={`${mat.sustainabilityScore}% Bền Vững`}
+              sx={{
+                bgcolor: "#E6F4EA",
+                color: "#388E3C",
+                fontSize: "0.9rem",
+                ml: 1,
+              }}
+            />
+          </Box>
         </Box>
         <Button variant="outlined" size="small">
           Thêm
@@ -204,8 +205,10 @@ const AddDesign = () => {
   };
 
   const [usageById, setUsageById] = useState<Record<string, string>>({});
-  const [weightedRecycledPercentage, setweightedRecycledPercentage] =
-    useState<number>(0);
+  const [
+    weightedSustainabilityPercentage,
+    setWeightedSustainabilityPercentage,
+  ] = useState<number>(0);
   const [totalUsed, setTotalUsed] = useState<number>(0);
 
   const handleUsageChange = (materialId: string, value: string) => {
@@ -246,29 +249,27 @@ const AddDesign = () => {
     };
 
     selectedMaterials.forEach((mat) => {
-      const usedValue = parseFloat(usageById[mat.materialId] || "") || 0;
+      const usedValue =
+        parseFloat(usageById[mat.material.materialId] || "") || 0;
       const percent = totalUsed > 0 ? (usedValue / totalUsed) * 100 : 0;
 
-      mat.sustainabilityCriteria?.forEach((criterion) => {
-        const weightedValue = (criterion.value * percent * usedValue) / 100;
-        const unit = criterion.unit;
-        switch (criterion.name) {
-          case "Carbon Footprint":
-            weightedSums.carbonFootprint.value += weightedValue;
-            weightedSums.carbonFootprint.unit = unit;
-            break;
-          case "Water Usage":
-            weightedSums.waterUsage.value += weightedValue;
-            weightedSums.waterUsage.unit = unit;
-            break;
-          case "Waste Diverted":
-            weightedSums.wasteDiverted.value += weightedValue;
-            weightedSums.wasteDiverted.unit = unit;
-            break;
-          default:
-            break;
-        }
-      });
+      const weightedCarbonFootprintValue =
+        (mat.material.carbonFootprint * percent * usedValue) / 100;
+      const weightedCarbonFootprintUnit = "Kg";
+      weightedSums.carbonFootprint.value += weightedCarbonFootprintValue;
+      weightedSums.carbonFootprint.unit = weightedCarbonFootprintUnit;
+
+      const weightedWaterUsageValue =
+        (mat.material.waterUsage * percent * usedValue) / 100;
+      const weightedWaterUsageUnit = "L";
+      weightedSums.waterUsage.value += weightedWaterUsageValue;
+      weightedSums.waterUsage.unit = weightedWaterUsageUnit;
+
+      const weightedWasteDivertedValue =
+        (mat.material.wasteDiverted * percent) / 100;
+      const weightedWasteDivertedUnit = "%";
+      weightedSums.wasteDiverted.value += weightedWasteDivertedValue;
+      weightedSums.wasteDiverted.unit = weightedWasteDivertedUnit;
     });
 
     setCriterionResults(weightedSums);
@@ -281,19 +282,20 @@ const AddDesign = () => {
     onUsageChange,
   }: DropAreaProps) => {
     const { setNodeRef } = useDroppable({ id: "drop-area" });
+    console.log(selectedMaterials);
     const totalUsed = Object.values(usageById).reduce(
       (sum: number, val: string) => sum + (parseFloat(val) || 0),
       0
     );
     setTotalUsed(totalUsed);
-    const recycledPercent = selectedMaterials.reduce((sum, mat) => {
-      const used = parseFloat(usageById[mat.materialId]) || 0;
-      return sum + used * (mat.recycledPercentage || 0);
+    const sustainabilityPercent = selectedMaterials.reduce((sum, mat) => {
+      const used = parseFloat(usageById[mat.material.materialId]) || 0;
+      return sum + used * (mat.material.sustainabilityScore || 0);
     }, 0);
-    const weightedRecycledPercentage =
-      totalUsed > 0 ? Math.round(recycledPercent / totalUsed) : 0;
+    const weightedSustainabilityPercentage =
+      totalUsed > 0 ? Math.round(sustainabilityPercent / totalUsed) : 0;
 
-    setweightedRecycledPercentage(weightedRecycledPercentage);
+    setWeightedSustainabilityPercentage(weightedSustainabilityPercentage);
 
     return (
       <Box
@@ -314,8 +316,8 @@ const AddDesign = () => {
             icon={<EcoIcon />}
             label={
               totalUsed > 0
-                ? `${weightedRecycledPercentage}% Tái Chế`
-                : "... % Tái Chế"
+                ? `${weightedSustainabilityPercentage}% Bền Vững`
+                : "... % Bền Vững"
             }
             sx={{
               bgcolor: "#E6F4EA",
@@ -465,13 +467,13 @@ const AddDesign = () => {
           >
             {selectedMaterials.map((mat) => {
               const usedValue =
-                parseFloat(usageById[mat.materialId] || "") || 0;
+                parseFloat(usageById[mat.material.materialId] || "") || 0;
               // Tính Phần Trăm
               const percent = totalUsed > 0 ? (usedValue / totalUsed) * 100 : 0;
 
               return (
                 <Card
-                  key={mat.materialId}
+                  key={mat.material.materialId}
                   variant="outlined"
                   sx={{
                     width: "100%",
@@ -484,15 +486,15 @@ const AddDesign = () => {
                 >
                   <Box flexGrow={1}>
                     <Typography fontWeight="bold">
-                      {mat.materialName}
+                      {mat.material.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {mat.materialId}
+                      {mat.material.supplierName}
                     </Typography>
                     <Chip
                       size="small"
                       icon={<EcoIcon />}
-                      label={`${mat.recycledPercentage}% Tái Chế`}
+                      label={`${mat.material.sustainabilityScore}% Bền Vững`}
                       sx={{
                         bgcolor: "#E6F4EA",
                         color: "#388E3C",
@@ -526,7 +528,7 @@ const AddDesign = () => {
                       type="number"
                       value={usedValue}
                       onChange={(e) =>
-                        onUsageChange(mat.materialId, e.target.value)
+                        onUsageChange(mat.material.materialId, e.target.value)
                       }
                       sx={{ width: 130 }}
                       InputProps={{
@@ -536,7 +538,7 @@ const AddDesign = () => {
                       }}
                     />
                     <IconButton
-                      onClick={() => removeMaterial(mat.materialId)}
+                      onClick={() => removeMaterial(mat.material.materialId)}
                       color="error"
                     >
                       <GridCloseIcon />
@@ -579,22 +581,20 @@ const AddDesign = () => {
 
   const onSubmit = async (formData: any) => {
     const materials = selectedMaterials.map((mat) => {
-      const used = parseFloat(usageById[mat.materialId]) || 0;
+      const used = parseFloat(usageById[mat.material.materialId]) || 0;
       const percentageUsed = (totalUsed > 0 ? used / totalUsed : 0) * 100;
 
       return {
-        materialId: mat.materialId,
+        materialId: mat.material.materialId,
         persentageUsed: percentageUsed, // <- tính đúng theo yêu cầu
         meterUsed: used,
       };
     });
 
-    const recycledPercentage = weightedRecycledPercentage;
-
     const payload = {
       ...formData,
       materialsJson: materials,
-      recycledPercentage: recycledPercentage,
+      recycledPercentage: weightedSustainabilityPercentage,
     };
 
     try {

@@ -179,9 +179,13 @@ export default function DesignDetail() {
           totalWasteDiverted +=
             material.wasteDiverted * (material.persentageUsed / 100);
           totalWaterUsed +=
-            material.waterUsage * (material.persentageUsed / 100);
+            material.waterUsage *
+            (material.persentageUsed / 100) *
+            material.meterUsed;
           totalCarbonFootprint +=
-            material.carbonFootprint * (material.persentageUsed / 100);
+            material.carbonFootprint *
+            (material.persentageUsed / 100) *
+            material.meterUsed;
         });
         setWasteDiverted(Math.ceil(totalWasteDiverted));
         setCarbonFootprint(Math.ceil(totalCarbonFootprint));
