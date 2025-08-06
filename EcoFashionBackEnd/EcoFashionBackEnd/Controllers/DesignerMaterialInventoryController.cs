@@ -40,6 +40,17 @@ namespace EcoFashionBackEnd.Controllers
                 return NotFound(ApiResult<DesignerMaterialInventoryModel>.Fail("Không tìm thấy kho vật liệu"));
             return Ok(ApiResult<DesignerMaterialInventoryModel>.Succeed(inventory));
         }
+
+        [HttpGet("GetStoredMaterial/{designerId}")]
+        public async Task<IActionResult> GetDesignerMaterialInventoryByDesignerId(Guid designerId)
+        {
+            var inventory = await _inventoryService.GetDesignerMaterialInventoryByDesignerIdAsync(designerId);
+            if (inventory == null)
+                return NotFound(ApiResult<DesignerMaterialInventoryModel>.Fail("Không tìm thấy kho vật liệu"));
+            return Ok(ApiResult<DesignerMaterialInventoryModel>.Succeed(inventory));
+        }
+
+
         [HttpPost]
         public async Task<IActionResult> CreateDesignerMaterialInventory([FromBody] CreateDesignerMaterialInventoryRequest request)
         {

@@ -20,9 +20,6 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import { useAuth } from "../../services/user/AuthContext";
-//Icon
-import AddIcon from "@mui/icons-material/Add";
 import React, { useEffect, useState } from "react";
 import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -34,6 +31,7 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import DesignServicesOutlinedIcon from "@mui/icons-material/DesignServicesOutlined";
 import CalculateOutlinedIcon from "@mui/icons-material/CalculateOutlined";
 import DrawOutlinedIcon from "@mui/icons-material/DrawOutlined";
+import AddIcon from "@mui/icons-material/Add";
 import { EcoIcon } from "../../assets/icons/icon";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -60,6 +58,7 @@ import {
 } from "chart.js";
 import DesignService, { Design } from "../../services/api/designService";
 import { toast } from "react-toastify";
+import { useAuthStore } from "../../store/authStore";
 
 // Register chart components
 ChartJS.register(
@@ -229,6 +228,7 @@ export default function DesignerDashBoard() {
       setLoading(true);
       setError(null);
       const data = await DesignService.getAllDesign();
+      console.log(data);
       setDesigns(data);
     } catch (error: any) {
       const errorMessage =
@@ -238,215 +238,6 @@ export default function DesignerDashBoard() {
     } finally {
       setLoading(false);
     }
-  };
-  const products = [
-    {
-      id: 1,
-      title: "Áo Linen",
-      author: "Nguyễn Công Trí",
-      image: ao_linen, // replace with actual image paths
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 90,
-      material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
-      sale_quantity: 15,
-      status: "Còn Hàng",
-    },
-    {
-      id: 2,
-      title: "Chân Váy Đắp",
-      author: "Nguyễn Công Trí",
-      image: chan_vay_dap,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 95,
-      material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
-      sale_quantity: 15,
-      status: "Hết Hàng",
-    },
-    {
-      id: 3,
-      title: "Đầm Côn Trùng",
-      author: "Nguyễn Công Trí",
-      image: dam_con_trung,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 100,
-      material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
-      sale_quantity: 15,
-      status: "Còn Ít Hàng",
-    },
-    {
-      id: 4,
-      title: "Đầm Côn Trùng",
-      author: "Nguyễn Công Trí",
-      image: dam_con_trung,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 100,
-      material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
-      sale_quantity: 15,
-      status: "Hết Hàng",
-    },
-    {
-      id: 5,
-      title: "Áo Linen",
-      author: "Nguyễn Công Trí",
-      image: ao_linen, // replace with actual image paths
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 90,
-      material: ["Vải Cotton", "Vải Linen"],
-      sale_quantity: 15,
-      status: "Hết Hàng",
-    },
-    {
-      id: 6,
-      title: "Chân Váy Đắp",
-      author: "Nguyễn Công Trí",
-      image: chan_vay_dap,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 95,
-      material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
-      sale_quantity: 15,
-      status: "Hết Hàng",
-    },
-    {
-      id: 7,
-      title: "Đầm Côn Trùng",
-      author: "Nguyễn Công Trí",
-      image: dam_con_trung,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 100,
-      material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
-      sale_quantity: 15,
-      status: "Hết Hàng",
-    },
-    {
-      id: 8,
-      title: "Đầm Côn Trùng",
-      author: "Nguyễn Công Trí",
-      image: dam_con_trung,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 100,
-      material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
-      sale_quantity: 15,
-      status: "Hết Hàng",
-    },
-    {
-      id: 9,
-      title: "Áo Linen",
-      author: "Nguyễn Công Trí",
-      image: ao_linen, // replace with actual image paths
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 90,
-      material: ["Vải Cotton", "Vải Linen"],
-      sale_quantity: 15,
-      status: "Hết Hàng",
-    },
-    {
-      id: 10,
-      title: "Chân Váy Đắp",
-      author: "Nguyễn Công Trí",
-      image: chan_vay_dap,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 95,
-      material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
-      sale_quantity: 15,
-      status: "Còn Hàng",
-    },
-    {
-      id: 11,
-      title: "Đầm Côn Trùng",
-      author: "Nguyễn Công Trí",
-      image: dam_con_trung,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 100,
-      material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
-      sale_quantity: 15,
-      status: "Còn Hàng",
-    },
-    {
-      id: 12,
-      title: "Đầm Côn Trùng",
-      author: "Nguyễn Công Trí",
-      image: dam_con_trung,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 100,
-      material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
-      sale_quantity: 15,
-      status: "Còn Hàng",
-    },
-    {
-      id: 13,
-      title: "Áo Linen",
-      author: "Nguyễn Công Trí",
-      image: ao_linen, // replace with actual image paths
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 90,
-      material: ["Vải Cotton", "Vải Linen"],
-      sale_quantity: 15,
-      status: "Còn Hàng",
-    },
-    {
-      id: 14,
-      title: "Chân Váy Đắp",
-      author: "Nguyễn Công Trí",
-      image: chan_vay_dap,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 95,
-      material: ["Vải Cotton", "Vải Linen", "Vải Sợi"],
-      sale_quantity: 15,
-      status: "Còn Hàng",
-    },
-    {
-      id: 15,
-      title: "Đầm Côn Trùng",
-      author: "Nguyễn Công Trí",
-      image: dam_con_trung,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 100,
-      material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
-      sale_quantity: 15,
-      status: "Còn Hàng",
-    },
-    {
-      id: 16,
-      title: "Đầm Côn Trùng",
-      author: "Nguyễn Công Trí",
-      image: dam_con_trung,
-      price: "1.900.000₫",
-      rating: 4,
-      recycledPercentage: 100,
-      material: ["Vải Cotton", "Vải Linen", "Vải Denim"],
-      sale_quantity: 15,
-      status: "Còn Hàng",
-    },
-  ];
-
-  const generateMockProducts = (designs: Design[]) => {
-    return designs.map((design) => ({
-      id: design.designId,
-      title: design.name,
-      author: design.designer.designerName || "Không rõ",
-      image: design.imageUrls[0] || "", // hoặc ảnh mặc định
-      price: `${design.price.toLocaleString("vi-VN")}₫`,
-      rating: design.productScore || 4,
-      recycledPercentage: design.recycledPercentage,
-      material: design.materials?.map((mat) => mat.materialName) || [],
-      sale_quantity: 13,
-      status: design.status || "Không rõ",
-    }));
   };
 
   const yearData = [
@@ -490,7 +281,7 @@ export default function DesignerDashBoard() {
   };
   const chartData = getCurrentData();
 
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   //Change Tabs
   const [tabIndex, setTabIndex] = useState(0);
 
@@ -510,7 +301,7 @@ export default function DesignerDashBoard() {
     setPagination({ from, to });
   };
 
-  const displayedProducts = products.slice(pagination.from, pagination.to);
+  const displayedProducts = designs.slice(pagination.from, pagination.to);
 
   const DesignCard = ({ product }: { product: any }) => (
     <Card
@@ -808,8 +599,24 @@ export default function DesignerDashBoard() {
       padding: theme.spacing(1),
     },
   }));
+  const generateMockProducts = (designs: Design[]) => {
+    return designs.map((design) => ({
+      id: design.designId,
+      title: design.name,
+      author: design.designer.designerName || "Không rõ",
+      image: design.imageUrls[0] || "", // hoặc ảnh mặc định
+      price: `${design.price.toLocaleString("vi-VN")}₫`,
+      rating: design.productScore || 4,
+      recycledPercentage: design.recycledPercentage,
+      material: design.materials?.map((mat) => mat.materialName) || [],
+      sale_quantity: 13,
+      status: design.status || "Không rõ",
+      stage: design.stage || "Không rõ",
+    }));
+  };
+  type FashionRow = ReturnType<typeof generateMockProducts>[number];
 
-  const fashion_columns: GridColDef<(typeof products)[number]>[] = [
+  const fashion_columns: GridColDef<FashionRow>[] = [
     { field: "id", headerName: "ID", width: 90 },
     {
       field: "image",
@@ -934,6 +741,12 @@ export default function DesignerDashBoard() {
       flex: 1,
     },
     {
+      field: "stage",
+      headerName: "Stage",
+      width: 110,
+      flex: 1,
+    },
+    {
       field: "actions",
       headerName: "Hành Động",
       width: 120,
@@ -990,7 +803,7 @@ export default function DesignerDashBoard() {
           <Typography>Chào mừng trở lại, {user?.fullName}</Typography>
         </Box>
         {/* Button */}
-        <Box sx={{ display: "flex", marginLeft: "auto", gap: 2 }}>
+        <Box sx={{ display: "flex", marginLeft: "auto", gap: 2, padding: 2 }}>
           <Button
             variant="outlined"
             sx={{
@@ -1260,9 +1073,9 @@ export default function DesignerDashBoard() {
                       },
                     }}
                   >
-                    {products.map((item) => (
+                    {designs.map((item) => (
                       <Button
-                        key={item.id}
+                        key={item.designId}
                         variant="outlined"
                         sx={{
                           borderColor: "rgba(0,0,0,0.1)",
@@ -1283,7 +1096,7 @@ export default function DesignerDashBoard() {
                               mb: 1,
                             }}
                           >
-                            {item.title}
+                            {item.name}
                           </Typography>
                           <Box sx={{ display: "flex", alignItems: "center" }}>
                             <Chip
@@ -1306,7 +1119,7 @@ export default function DesignerDashBoard() {
                                 textOverflow: "ellipsis",
                               }}
                             >
-                              Bán Được {item.sale_quantity} Sản Phẩm
+                              Bán Được 15 Sản Phẩm
                             </Typography>
                           </Box>
                         </Box>
@@ -1514,6 +1327,7 @@ export default function DesignerDashBoard() {
                 borderColor: "rgba(0,0,0,0.1)",
                 textTransform: "none",
               }}
+              href="/designer/dashboard/create"
             >
               <DesignServicesOutlinedIcon color="success" />
               <Box

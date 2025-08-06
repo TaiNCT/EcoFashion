@@ -1,8 +1,8 @@
 /* card animation */
-.card {
+.design-card {
   width: 300px;
   height: 400px;
-  background: #07182e;
+  background: white;
   position: relative;
   display: flex;
   place-content: center;
@@ -11,13 +11,13 @@
   border-radius: 20px;
 }
 
-.card h2 {
+.design-card h2 {
   z-index: 1;
   color: white;
   font-size: 2em;
 }
 
-.card::before {
+.design-card::before {
   content: "";
   position: relative;
   width: 100px;
@@ -37,7 +37,7 @@
   }
 }
 
-.card::after {
+.design-card::after {
   content: "";
   position: relative;
   background: transparent;
@@ -45,7 +45,7 @@
   border-radius: 15px;
 }
 /*Hover*/
-.card:hover::after {
+.design-card:hover::after {
   opacity: 0.6;
   padding: 0.7rem 0;
   top: 18px;

@@ -28,10 +28,10 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import { useState, useEffect } from "react";
-import { useAuth } from "../../services/user/AuthContext";
-
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useAuthStore } from "../../store/authStore";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -52,7 +52,7 @@ interface FilterOptions {
 }
 
 export default function ApplicationManagement() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [applications, setApplications] = useState<ApplicationModelResponse[]>(
     []
   );

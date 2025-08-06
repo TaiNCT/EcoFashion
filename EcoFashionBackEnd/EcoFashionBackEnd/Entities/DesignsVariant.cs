@@ -18,13 +18,10 @@ namespace EcoFashionBackEnd.Entities
         [ForeignKey("DesignId")]
         public virtual Design Design { get; set; }
 
-        public int ColorId { get; set; }
-        [ForeignKey("ColorId")]
-        public virtual DesignsColor DesignsColor { get; set; }  
+        public string  Color { get; set; }
+
 
         public int Quantity { get; set; }
-        public float CarbonFootprint { get; set; }
-        public float WaterUsage { get; set; }
-        public float WasteDiverted { get; set; }
+      
     }
 }

@@ -9,21 +9,22 @@ import {
   Alert,
   Link,
   CircularProgress,
+  Stack,
   InputAdornment,
   IconButton,
-  Stack,
 } from "@mui/material";
 import {
   Visibility,
   VisibilityOff,
   Email,
+  Lock,
   Person,
   Phone,
 } from "@mui/icons-material";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
-import { authApi } from "../services/api";
+import { AuthService } from "../services/api";
 import { toast } from "react-toastify";
 //Image
 import RegisterBanner from "../assets/pictures/register/register.jpg";
@@ -74,7 +75,7 @@ const Signup: React.FC = () => {
       setError("");
 
       try {
-        const response = await authApi.register(
+        const response = await AuthService.signup(
           values.email,
           values.password,
           values.fullname,

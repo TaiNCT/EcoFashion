@@ -154,6 +154,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
   //   const sustainabilityScore = getSustainabilityScore(product.sustainability);
   return (
     <Card
+      className="design-fashion-card"
       sx={{
         width: "95%",
         height: "95%",
@@ -288,7 +289,6 @@ const FashionCard: React.FC<FashionCardProps> = ({
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          paddingTop: 2,
           backgroundImage: `
           linear-gradient(0deg,
             transparent 24%,

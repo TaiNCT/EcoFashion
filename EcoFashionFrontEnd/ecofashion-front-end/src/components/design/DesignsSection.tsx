@@ -97,7 +97,7 @@ const DesignsSection: React.FC<ProductsSectionProps> = ({
   // const totalPages = Math.ceil(products.length / productsPerPage);
   // const totalPages = Math.ceil(totalPages / pageSize);
 
-  //testing
+  
   const getCategoryColor = (category: Design["designTypeName"]) => {
     const colors = {
       Áo: "#2196f3",

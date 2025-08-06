@@ -1,4 +1,6 @@
-﻿namespace EcoFashionBackEnd.Dtos.Design
+﻿using EcoFashionBackEnd.Entities;
+
+namespace EcoFashionBackEnd.Dtos.Design
 {
     public class DesignDetailDto
     {
@@ -7,9 +9,13 @@
         public string? Description { get; set; }
         public float RecycledPercentage { get; set; }
         public string? CareInstructions { get; set; }
-        public decimal Price { get; set; }
+        public decimal? UnitPrice { get; set; }
+
+       
+        public decimal? SalePrice { get; set; }
         public int ProductScore { get; set; }
         public string? Status { get; set; }
+        public DesignStage Stage { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public string? DesignTypeName { get; set; }

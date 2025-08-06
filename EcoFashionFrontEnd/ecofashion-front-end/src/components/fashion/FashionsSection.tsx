@@ -84,9 +84,9 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
         textAlign: "center",
         display: "flex",
         flexDirection: "column",
-        width: "90%",
+        width: "100%",
         margin: "auto",
-        paddingTop: 2,
+        padding: 2,
       }}
     >
       <Box
@@ -117,7 +117,7 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
           {visibleProducts.map((product) => (
             <Grid key={product.designId} size={3}>
               {type === "special" ? (
-                <div className="card">
+                <div className="design-card">
                   <FashionCard
                     product={product}
                     type={type}

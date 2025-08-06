@@ -86,7 +86,39 @@ public class DesignDraftController : ControllerBase
         return Ok(ApiResult<DraftDesignDetailDto>.Succeed(result));
     }
 
+    [HttpPost("finalize")]
+    public async Task<IActionResult> FinalizeDesign([FromBody] FinalizeDesignRequest request)
+    {
+        try
+        {
+            var result = await _designDraftService.FinalizeDesignAsync(request);
+            return result ? Ok("Design đã được finalize.") : BadRequest("Finalize thất bại.");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 
+    [HttpPost("designs/variants")]
+    public async Task<IActionResult> AddVariant([FromBody] CreateDesignVariantRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            return Unauthorized(ApiResult<object>.Fail("Không xác định được người dùng."));
+
+        try
+        {
+            var result = await _designDraftService.AddVariantAndUpdateMaterialsAsync(request, userId);
+            if (result)
+                return Ok(ApiResult<object>.Succeed("Thêm biến thể thành công."));
+            return BadRequest(ApiResult<object>.Fail("Thêm biến thể thất bại."));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResult<object>.Fail($"Lỗi: {ex.Message}"));
+        }
+    }
 
 
 

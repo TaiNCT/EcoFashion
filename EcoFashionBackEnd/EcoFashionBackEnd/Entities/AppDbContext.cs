@@ -20,10 +20,9 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Design> Designs { get; set; }
         public DbSet<DesignsVariant> DesignsVarients { get; set; }
         public DbSet<DesignsMaterial> DesignsMaterials { get; set; }
-        public DbSet<DesignsColor> DesignsColors { get; set; }
         public DbSet<DesignImage> DesignImages { get; set; }
         public DbSet<Image> Images { get; set; }
-        public DbSet<DesignTypeSizeRatio> TypeSizes { get; set; }
+        public DbSet<DesignTypeSizeRatio> DesignTypeSizeRatios { get; set; }
         public DbSet<DesignFeature> DesignFeatures { get; set; }
         public DbSet<DesignsSize> DesignsSizes { get; set; }
         public DbSet<DesignsType> DesignsTypes { get; set; }
@@ -100,12 +99,7 @@ namespace EcoFashionBackEnd.Entities
                 .HasConversion<string>();
             #endregion
             #region DESIGN
-            modelBuilder.Entity<DesignsColor>()
-                .HasMany(c => c.Variants)
-                .WithOne(v => v.DesignsColor)
-                .HasForeignKey(v => v.ColorId)
-                .OnDelete(DeleteBehavior.Restrict); 
-
+            
             modelBuilder.Entity<DesignsSize>()
                 .HasMany(s => s.Variants)
                 .WithOne(v => v.DesignsSize)
@@ -117,10 +111,7 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany(d => d.DesignsVariants)
                 .HasForeignKey(v => v.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<DesignsVariant>()
-                .HasIndex(v => new { v.DesignId, v.SizeId, v.ColorId })
-                .IsUnique(); 
-
+            
             modelBuilder.Entity<DesignsMaterial>()
                 .HasKey(dm => new { dm.DesignId, dm.MaterialId });
 
@@ -227,7 +218,7 @@ namespace EcoFashionBackEnd.Entities
             #region Material 
             // Configure relationships for Materials
             modelBuilder.Entity<Material>()
-                .HasOne(m => m.SupplierProfile)
+                .HasOne(m => m.Supplier)
                 .WithMany()
                 .HasForeignKey(m => m.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);

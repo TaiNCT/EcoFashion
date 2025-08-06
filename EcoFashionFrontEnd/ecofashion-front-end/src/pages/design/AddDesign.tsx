@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   AppBar,
   Avatar,
@@ -9,6 +10,7 @@ import {
   CardMedia,
   Checkbox,
   Chip,
+  CircularProgress,
   Dialog,
   Divider,
   FormControl,
@@ -20,6 +22,9 @@ import {
   InputBase,
   InputLabel,
   Link,
+  List,
+  ListItem,
+  ListItemIcon,
   MenuItem,
   Paper,
   Rating,
@@ -31,7 +36,9 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { number, string, z, ZodError } from "zod";
 //Icon
 import DriveFileRenameOutlineSharpIcon from "@mui/icons-material/DriveFileRenameOutlineSharp";
 import RecyclingIcon from "@mui/icons-material/Recycling";
@@ -42,57 +49,53 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import SearchIcon from "@mui/icons-material/Search";
 import ReportGmailerrorredIcon from "@mui/icons-material/ReportGmailerrorred";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  useDraggable,
+  useDroppable,
+} from "@dnd-kit/core";
+import { DesignerService, DesignService } from "../../services/api";
+import { StoredMaterial } from "../../services/api/designService";
+import { toast } from "react-toastify";
+import { EcoIcon } from "../../assets/icons/icon";
+import { GridCloseIcon } from "@mui/x-data-grid";
+import {
+  CreateDesignFormValues,
+  createDesignSchema,
+} from "../../schemas/createDesignSchema";
+import FileUpload from "../../components/FileUpload";
 //Example
 import ao_linen from "../../assets/pictures/example/ao-linen.webp";
 import chan_vay_dap from "../../assets/pictures/example/chan-vay-dap.webp";
 import dam_con_trung from "../../assets/pictures/example/dam-con-trung.webp";
-import { EcoIcon } from "../../assets/icons/icon";
-import DesignService, {
-  Material,
-  StoredMaterial,
-} from "../../services/api/designService";
-import { toast } from "react-toastify";
-import { Controller, useForm } from "react-hook-form";
-import FileUpload from "../../components/FileUpload";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { applyApplicationSchema } from "../../schemas/applyApplicationSchema";
-//Drag and Drop
-import {
-  DndContext,
-  useDraggable,
-  useDroppable,
-  closestCenter,
-  DragEndEvent,
-  DragOverlay,
-} from "@dnd-kit/core";
-import { GridCloseIcon } from "@mui/x-data-grid";
-import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/authStore";
 
 const Collection = [
   { collection_Id: 1, collection_name: "Áo Linen", image: ao_linen },
   { collection_Id: 2, collection_name: "Chân Váy Mây", image: chan_vay_dap },
   { collection_Id: 3, collection_name: "Đầm Côn Trùng", image: dam_con_trung },
 ];
-
-export default function AddDesign() {
-  //Loading
-  const [loading, setLoading] = useState(true);
-  //Error
+const AddDesign = () => {
+  const [loading, setLoading] = useState(false);
+  const [selectedMaterials, setSelectedMaterials] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   //Design Data
   const [storedMaterial, setStoredMaterial] = useState<StoredMaterial[]>([]);
-  //Navigate
-  const navigate = useNavigate();
+  const [selectedCollection, setSelectedCollection] = useState("");
+  const { user } = useAuthStore();
 
   //Get Material Data
   useEffect(() => {
     loadStoredMaterial();
   }, []);
+
   const loadStoredMaterial = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await DesignService.getStoredMaterial();
+      const data = await DesignService.getMaterial();
       setStoredMaterial(data);
     } catch (error: any) {
       const errorMessage =
@@ -103,65 +106,6 @@ export default function AddDesign() {
       setLoading(false);
     }
   };
-  //Tabs
-  //Change Tabs
-  const [tabIndex, setTabIndex] = useState(0);
-
-  const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
-    setTabIndex(newValue);
-  };
-
-  const [selectedCollection, setSelectedCollection] = useState("");
-
-  //Scroll TO Anchor
-  const handleScroll = (id: string) => {
-    const element = document.getElementById(id);
-    const navbarHeight = 150;
-    // document.querySelector(".MuiAppBar-root")?.clientHeight || 0;
-
-    if (element) {
-      const y =
-        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
-
-      window.scrollTo({ top: y, behavior: "smooth" });
-    }
-  };
-
-  //Upload Ảnh
-  const defaultValues = {
-    socialLinks: "",
-    agreedToTerms: false,
-    avatarFile: null,
-    bannerFile: null,
-    portfolioFiles: [],
-    identificationPictureFront: null,
-    identificationPictureBack: null,
-    phoneNumber: "0123456789",
-    address: "123 Ecofashion Lane, Green City, Country Vietnam",
-    bio: "",
-    certificates: "https://ecofashion.com/certificates",
-    specializationUrl: "https://ecofashion.com/specialization",
-    taxNumber: "0123456789",
-    portfolioUrl: "https://ecofashion.com/portfolio",
-    note: "",
-    identificationNumber: "",
-  };
-  //Create
-  const {
-    register,
-    handleSubmit,
-    watch,
-    control,
-    setValue,
-    formState: { errors },
-    trigger,
-  } = useForm({
-    resolver: zodResolver(applyApplicationSchema),
-    defaultValues,
-  });
-
-  const [selectedMaterials, setSelectedMaterials] = useState<any[]>([]);
-
   //Search
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -236,18 +180,18 @@ export default function AddDesign() {
           <Typography fontWeight="bold">{mat.name}</Typography>
           <Typography variant="body2" color="text.secondary">
             {mat.materialId}
-            <Chip
-              size="small"
-              icon={<EcoIcon />}
-              label={`${mat.recycledPercentage}% Tái Chế`}
-              sx={{
-                bgcolor: "#E6F4EA",
-                color: "#388E3C",
-                fontSize: "0.9rem",
-                ml: 1,
-              }}
-            />
           </Typography>
+          <Chip
+            size="small"
+            icon={<EcoIcon />}
+            label={`${mat.recycledPercentage}% Tái Chế`}
+            sx={{
+              bgcolor: "#E6F4EA",
+              color: "#388E3C",
+              fontSize: "0.9rem",
+              ml: 1,
+            }}
+          />
         </Box>
         <Button variant="outlined" size="small">
           Thêm
@@ -257,6 +201,9 @@ export default function AddDesign() {
   };
 
   const [usageById, setUsageById] = useState<Record<string, string>>({});
+  const [weightedRecycledPercentage, setweightedRecycledPercentage] =
+    useState<number>(0);
+  const [totalUsed, setTotalUsed] = useState<number>(0);
 
   const handleUsageChange = (materialId: string, value: string) => {
     setUsageById((prev) => ({
@@ -283,6 +230,47 @@ export default function AddDesign() {
     onUsageChange: (materialId: string, value: string) => void;
   };
 
+  const [criterionResults, setCriterionResults] = useState({
+    carbonFootprint: { value: 0, unit: "" },
+    waterUsage: { value: 0, unit: "" },
+    wasteDiverted: { value: 0, unit: "" },
+  });
+  useEffect(() => {
+    const weightedSums = {
+      carbonFootprint: { value: 0, unit: "" },
+      waterUsage: { value: 0, unit: "" },
+      wasteDiverted: { value: 0, unit: "" },
+    };
+
+    selectedMaterials.forEach((mat) => {
+      const usedValue = parseFloat(usageById[mat.materialId] || "") || 0;
+      const percent = totalUsed > 0 ? (usedValue / totalUsed) * 100 : 0;
+
+      mat.sustainabilityCriteria?.forEach((criterion) => {
+        const weightedValue = (criterion.value * percent * usedValue) / 100;
+        const unit = criterion.unit;
+        switch (criterion.name) {
+          case "Carbon Footprint":
+            weightedSums.carbonFootprint.value += weightedValue;
+            weightedSums.carbonFootprint.unit = unit;
+            break;
+          case "Water Usage":
+            weightedSums.waterUsage.value += weightedValue;
+            weightedSums.waterUsage.unit = unit;
+            break;
+          case "Waste Diverted":
+            weightedSums.wasteDiverted.value += weightedValue;
+            weightedSums.wasteDiverted.unit = unit;
+            break;
+          default:
+            break;
+        }
+      });
+    });
+
+    setCriterionResults(weightedSums);
+  }, [selectedMaterials, usageById, totalUsed]);
+
   const DropArea = ({
     selectedMaterials,
     removeMaterial,
@@ -294,14 +282,15 @@ export default function AddDesign() {
       (sum: number, val: string) => sum + (parseFloat(val) || 0),
       0
     );
-
+    setTotalUsed(totalUsed);
     const recycledPercent = selectedMaterials.reduce((sum, mat) => {
       const used = parseFloat(usageById[mat.materialId]) || 0;
       return sum + used * (mat.recycledPercentage || 0);
     }, 0);
-
     const weightedRecycledPercentage =
       totalUsed > 0 ? Math.round(recycledPercent / totalUsed) : 0;
+
+    setweightedRecycledPercentage(weightedRecycledPercentage);
 
     return (
       <Box
@@ -333,6 +322,127 @@ export default function AddDesign() {
             }}
           />
         </Box>
+        <Box sx={{ width: "100%", marginTop: "auto" }}>
+          <Box
+            sx={{
+              backgroundColor: "rgba(240, 253, 244, 1)",
+              borderRadius: 2,
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 200,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                marginLeft: 2,
+              }}
+            >
+              <EcoIcon />
+              <Typography variant="h6" fontWeight="bold">
+                Tác Động Môi Trường
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                width: "100%",
+                margin: "auto",
+              }}
+            >
+              <Box
+                sx={{
+                  width: "100%",
+                  margin: "auto",
+                  display: "flex",
+                  padding: "30px",
+                }}
+              >
+                {/*  Water Saved */}
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                    boxShadow: 1,
+                    flex: 1,
+                    margin: "0 10px",
+                  }}
+                >
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    Tiết kiệm nước
+                  </Typography>
+                  <Typography variant="h5" fontWeight="bold" color="primary">
+                    {criterionResults.waterUsage.value.toFixed(1)}{" "}
+                    {criterionResults.waterUsage.unit}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    So với quy trình sản xuất thông thường
+                  </Typography>
+                </Box>
+
+                {/* CO₂ Reduced */}
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                    boxShadow: 1,
+                    flex: 1,
+                    height: "100%",
+                    margin: "0 10px",
+                  }}
+                >
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    Giảm khí CO₂
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    fontWeight="bold"
+                    color="success.main"
+                  >
+                    {criterionResults.carbonFootprint.value.toFixed(1)}{" "}
+                    {criterionResults.carbonFootprint.unit}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Dấu chân carbon thấp hơn so với phương pháp sản xuất thông
+                    thường.
+                  </Typography>
+                </Box>
+
+                {/* Waste Diverted */}
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: "#fff",
+                    borderRadius: 2,
+                    boxShadow: 1,
+                    flex: 1,
+                    margin: "0 10px",
+                  }}
+                >
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    Giảm Rác Thải
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    fontWeight="bold"
+                    color="success.main"
+                  >
+                    {criterionResults.wasteDiverted.value.toFixed(1)}{" "}
+                    {criterionResults.wasteDiverted.unit}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Rác thải dệt may đã tránh được khỏi bãi rác
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
         <Divider />
         {selectedMaterials.length === 0 ? (
           <Box textAlign="center" py={6}>
@@ -344,29 +454,36 @@ export default function AddDesign() {
             </Typography>
           </Box>
         ) : (
-          selectedMaterials.map((mat) => {
-            const usedValue = parseFloat(usageById[mat.materialId] || "") || 0;
-            const percent =
-              totalUsed > 0 ? Math.ceil((usedValue / totalUsed) * 100) : 0;
+          <Box
+            sx={{
+              maxHeight: 300,
+              overflowY: "auto",
+            }}
+          >
+            {selectedMaterials.map((mat) => {
+              const usedValue =
+                parseFloat(usageById[mat.materialId] || "") || 0;
+              // Tính Phần Trăm
+              const percent = totalUsed > 0 ? (usedValue / totalUsed) * 100 : 0;
 
-            return (
-              <Card
-                key={mat.materialId}
-                variant="outlined"
-                sx={{
-                  mb: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  p: 2,
-                  m: 2,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box flexGrow={1}>
-                  <Typography fontWeight="bold">{mat.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {mat.materialId}
+              return (
+                <Card
+                  key={mat.materialId}
+                  variant="outlined"
+                  sx={{
+                    width: "100%",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    p: 2,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Box flexGrow={1}>
+                    <Typography fontWeight="bold">{mat.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {mat.materialId}
+                    </Typography>
                     <Chip
                       size="small"
                       icon={<EcoIcon />}
@@ -378,7 +495,6 @@ export default function AddDesign() {
                         ml: 1,
                       }}
                     />
-
                     <Chip
                       size="small"
                       label={`${percent}% sử dụng`}
@@ -389,67 +505,150 @@ export default function AddDesign() {
                         ml: 1,
                       }}
                     />
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    minWidth: 130,
-                    gap: 1,
-                  }}
-                >
-                  <TextField
-                    key={mat.materialId}
-                    label="Mét Vải Dùng"
-                    variant="outlined"
-                    size="small"
-                    type="number"
-                    value={usedValue}
-                    onChange={(e) =>
-                      onUsageChange(mat.materialId, e.target.value)
-                    }
-                    sx={{ width: 130 }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">m</InputAdornment>
-                      ),
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      minWidth: 130,
+                      gap: 1,
                     }}
-                  />
-                  <IconButton
-                    onClick={() => removeMaterial(mat.materialId)}
-                    color="error"
                   >
-                    <GridCloseIcon />
-                  </IconButton>
-                </Box>
-              </Card>
-            );
-          })
+                    <TextField
+                      label="Mét Vải Dùng"
+                      variant="outlined"
+                      size="small"
+                      type="number"
+                      value={usedValue}
+                      onChange={(e) =>
+                        onUsageChange(mat.materialId, e.target.value)
+                      }
+                      sx={{ width: 130 }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">m</InputAdornment>
+                        ),
+                      }}
+                    />
+                    <IconButton
+                      onClick={() => removeMaterial(mat.materialId)}
+                      color="error"
+                    >
+                      <GridCloseIcon />
+                    </IconButton>
+                  </Box>
+                </Card>
+              );
+            })}
+          </Box>
         )}
       </Box>
     );
   };
 
-  const onSubmit = async (data) => {
-    const fixedData = { ...data };
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    trigger,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(createDesignSchema),
+    defaultValues: {
+      recycledPercentage: 0,
+      productScore: 0,
+      feature: {
+        reduceWaste: false,
+        lowImpactDyes: false,
+        durable: false,
+        ethicallyManufactured: false,
+      },
+      designTypeId: 1,
+      materialsJson: "[]",
+      imageFiles: [],
+      status: "in stock",
+    },
+  });
+
+  const onSubmit = async (formData: any) => {
+    const materials = selectedMaterials.map((mat) => {
+      const used = parseFloat(usageById[mat.materialId]) || 0;
+      const percentageUsed = (totalUsed > 0 ? used / totalUsed : 0) * 100;
+
+      return {
+        materialId: mat.materialId,
+        persentageUsed: percentageUsed, // <- tính đúng theo yêu cầu
+        meterUsed: used,
+      };
+    });
+
+    const recycledPercentage = weightedRecycledPercentage;
+
+    const payload = {
+      ...formData,
+      materialsJson: materials,
+      recycledPercentage: recycledPercentage,
+    };
+
     try {
       setLoading(true);
-      toast.info("Đang xử lý đơn đăng ký...");
-      const result = await DesignService.createDesign(fixedData);
-      console.log(result);
+      console.log("Submitted:", payload);
+
+      const result = await DesignService.createDesign(payload);
       toast.success("Gửi đơn thành công!");
-      // navigate("/my-applications");
     } catch (err) {
       console.error("❌ Error submitting application:", err);
+      console.error("❌ Error message:", err.message);
       toast.error("Có lỗi xảy ra khi gửi đơn.");
     } finally {
       setLoading(false);
     }
   };
 
+  //Change Tabs
+  const [tabIndex, setTabIndex] = useState(0);
+
+  const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
+  };
+
+  //Scroll TO Anchor
+  const handleScroll = (id: string) => {
+    const element = document.getElementById(id);
+    const navbarHeight = 150;
+    // document.querySelector(".MuiAppBar-root")?.clientHeight || 0;
+
+    if (element) {
+      const y =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
+  // Check Lỗi Tabs
+  const hasErrorInTab = (tabIndexToCheck: number): boolean => {
+    if (tabIndexToCheck === 0) {
+      // Chi tiết sản phẩm
+      return (
+        !!errors.name ||
+        !!errors.price ||
+        !!errors.description ||
+        !!errors.careInstructions
+      );
+    }
+    if (tabIndexToCheck === 2) {
+      // Ảnh
+      return !!errors.imageFiles;
+    }
+    return false;
+  };
+
   return (
-    <Box sx={{ width: "100%", margin: "auto" }}>
+    <Box id="addProduct" sx={{ width: "100%", margin: "auto" }}>
+      {/* Thanh Navigation */}
       <AppBar
         position="static"
         elevation={0}
@@ -467,90 +666,91 @@ export default function AddDesign() {
           <Typography color="text.primary">Thêm Sản Phẩm</Typography>
         </Breadcrumbs>
       </AppBar>
-      <Box id="addProduct" sx={{ width: "95%", margin: "auto" }}>
-        {/* Top Part */}
-        <Box sx={{ width: "100%", display: "flex" }}>
-          {/* Title */}
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "space-between",
-              paddingTop: 2,
-              paddingBottom: 2,
-            }}
-          >
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
-                Thêm Sản Phẩm
-              </Typography>
-              <Typography>Thêm Sản Phẩm Mới Vào Cửa Hàng Của Mình</Typography>
-            </Box>
-            <Button variant="outlined" disableRipple>
-              <Select
-                value={selectedCollection}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "__clear__") {
-                    setSelectedCollection("");
-                  } else {
-                    setSelectedCollection(value);
-                  }
-                }}
-                displayEmpty
-                sx={{
-                  border: "none",
-                  "& fieldset": { border: "none" },
-                  fontWeight: "bold",
-                }}
-                MenuProps={{
-                  disableScrollLock: true,
-                }}
-              >
-                {/* Placeholder shown when no selection */}
-                <MenuItem value="" disabled>
-                  <Typography>Chọn Mẫu Có Sẵn</Typography>
-                </MenuItem>
-
-                {/* Optional clear selection option */}
-                {selectedCollection && (
-                  <MenuItem value="__clear__">
-                    <Typography>Hủy chọn</Typography>
-                  </MenuItem>
-                )}
-
-                {Collection.map((item) => (
-                  <MenuItem key={item.collection_Id} value={item.collection_Id}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        component="img"
-                        src={item.image}
-                        alt={item.collection_name}
-                        sx={{
-                          width: 28,
-                          height: 28,
-                          objectFit: "cover",
-                          borderRadius: "4px",
-                        }}
-                      />
-                      <Typography fontSize={14}>
-                        {item.collection_name}
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </Button>
+      {/* Top Part */}
+      <Box sx={{ width: "100%", display: "flex", padding: 2 }}>
+        {/* Title */}
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            margin: "0 10px",
+          }}
+        >
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
+              Thêm Sản Phẩm
+            </Typography>
+            <Typography>Thêm Sản Phẩm Mới Vào Cửa Hàng Của Mình</Typography>
           </Box>
+          <Button variant="outlined" disableRipple>
+            <Select
+              value={selectedCollection}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "__clear__") {
+                  setSelectedCollection("");
+                } else {
+                  setSelectedCollection(value);
+                }
+              }}
+              displayEmpty
+              sx={{
+                border: "none",
+                "& fieldset": { border: "none" },
+                fontWeight: "bold",
+              }}
+              MenuProps={{
+                disableScrollLock: true,
+              }}
+            >
+              {/* Placeholder shown when no selection */}
+              <MenuItem value="" disabled>
+                <Typography>Chọn Mẫu Có Sẵn</Typography>
+              </MenuItem>
+
+              {/* Optional clear selection option */}
+              {selectedCollection && (
+                <MenuItem value="__clear__">
+                  <Typography>Hủy chọn</Typography>
+                </MenuItem>
+              )}
+
+              {Collection.map((item) => (
+                <MenuItem key={item.collection_Id} value={item.collection_Id}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box
+                      component="img"
+                      src={item.image}
+                      alt={item.collection_name}
+                      sx={{
+                        width: 28,
+                        height: 28,
+                        objectFit: "cover",
+                        borderRadius: "4px",
+                      }}
+                    />
+                    <Typography fontSize={14}>
+                      {item.collection_name}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </Button>
         </Box>
-        {/* Tabs */}
-        {/* Tab Part */}
+      </Box>
+      {/* Tabs Part */}
+      <Box component="form" onSubmit={handleSubmit(onSubmit)}>
         <Box
           sx={{
             width: "50%",
             background: "rgba(241, 245, 249, 1)",
             display: "flex",
+            flexDirection: "column",
           }}
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
         >
           <Tabs
             value={tabIndex}
@@ -609,18 +809,21 @@ export default function AddDesign() {
             />
           </Tabs>
         </Box>
-        {/* Tab Chi Tiết */}
+        {/* Chi Tiết */}
         {tabIndex === 0 && (
           <Box
             p={3}
             borderRadius={2}
             border="1px solid #eee"
-            sx={{ display: "flex", flexDirection: "column", margin: "10px 0" }}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              margin: "10px 0",
+            }}
           >
             <Typography variant="h6" fontWeight="bold" mb={3}>
               Chi Tiết Sản Phẩm
             </Typography>
-
             <Grid
               container
               spacing={3}
@@ -628,15 +831,18 @@ export default function AddDesign() {
             >
               {/* Tên sản phẩm */}
               <Grid sx={{ xs: 12 }}>
+                {/* Tên Sản Phẩm */}
                 <TextField
                   fullWidth
-                  name="Name"
                   label="Tên sản phẩm"
-                  placeholder="Nhập vào"
+                  {...register("name")}
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                  margin="normal"
                 />
               </Grid>
 
-              {/* Ngành hàng */}
+              {/* Ngành hàng & Giá */}
               <Box
                 sx={{
                   display: "flex",
@@ -644,72 +850,78 @@ export default function AddDesign() {
                   gap: 2,
                 }}
               >
+                {/* Ngành hàng */}
                 <Grid sx={{ width: "100%" }}>
+                  {/* Ngành Hàng */}
                   <TextField
-                    select
                     fullWidth
                     label="Ngành hàng"
-                    defaultValue="0"
-                    name="DesignTypeId"
+                    select
+                    {...register("designTypeId", { valueAsNumber: true })}
+                    margin="normal"
+                    error={!!errors.name}
+                    helperText={errors.name?.message}
                   >
-                    <MenuItem key="1" value="0" disabled>
-                      Chọn
-                    </MenuItem>
-                    <MenuItem key="Áo" value="1">
-                      Áo
-                    </MenuItem>
-                    <MenuItem key="Quần" value="2">
-                      Quần
-                    </MenuItem>
-                    <MenuItem key="Đầm" value="3">
-                      Đầm
-                    </MenuItem>
-                    <MenuItem key="Váy" value="4">
-                      Váy
-                    </MenuItem>
+                    <MenuItem value={1}>Áo</MenuItem>
+                    <MenuItem value={2}>Quần</MenuItem>
+                    <MenuItem value={3}>Đầm</MenuItem>
+                    <MenuItem value={4}>Váy</MenuItem>
                   </TextField>
                 </Grid>
+                {/* Giá */}
                 <Grid sx={{ width: "100%" }}>
-                  <TextField fullWidth label="Giá" placeholder="Nhập vào" />
+                  {/* Giá */}
+                  <TextField
+                    fullWidth
+                    label="Giá"
+                    type="number"
+                    {...register("price", { valueAsNumber: true })}
+                    error={!!errors.price}
+                    helperText={errors.price?.message}
+                    margin="normal"
+                  />
                 </Grid>
               </Box>
+              {/* Mô tả sản phẩm & Đặc điểm */}
               <Box
                 sx={{
                   display: "flex",
-                  justifyContent: "space-between",
+                  flexDirection: "column",
+                  flex: 1,
                   gap: 2,
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    flex: 1,
-                    gap: 2,
-                  }}
-                >
-                  {/* Mô tả sản phẩm & Đặc điểm */}
-                  <Grid flex={1}>
-                    <TextField
-                      name="Description"
-                      label="Mô tả sản phẩm"
-                      multiline
-                      rows={5}
-                      placeholder="Nhập vào"
-                      sx={{ width: "100%", height: "100%" }}
-                    />
-                  </Grid>
-                  <Grid>
-                    <TextField
-                      name="CareInstructions"
-                      label="Hướng dẫn bảo quản"
-                      multiline
-                      rows={5}
-                      placeholder="Nhập vào"
-                      sx={{ width: "100%" }}
-                    />
-                  </Grid>
-                </Box>
+                {/* Mô tả sản phẩm & Đặc điểm */}
+                <Grid flex={1}>
+                  <TextField
+                    name="description"
+                    label="Mô tả sản phẩm"
+                    multiline
+                    rows={5}
+                    placeholder="Nhập vào"
+                    sx={{ width: "100%", height: "100%" }}
+                    {...register("description")}
+                    error={!!errors.name}
+                    helperText={errors.name?.message}
+                  />
+                </Grid>
+                <Grid>
+                  <TextField
+                    name="careInstructions"
+                    label="Hướng dẫn bảo quản"
+                    multiline
+                    rows={5}
+                    placeholder="Nhập vào"
+                    sx={{ width: "100%" }}
+                    {...register("careInstructions")}
+                    error={!!errors.name}
+                    helperText={errors.name?.message}
+                  />
+                </Grid>
+              </Box>
+              {/* Feature */}
+              <Box mt={2}>
+                <Typography variant="subtitle1">Tính năng bền vững</Typography>
                 <Grid flex={1}>
                   <Typography fontWeight="bold" mb={1}>
                     Đặc Điểm
@@ -725,38 +937,76 @@ export default function AddDesign() {
                     }}
                   >
                     <FormControlLabel
-                      control={<Checkbox />}
+                      control={
+                        <Controller
+                          name="feature.reduceWaste"
+                          control={control}
+                          render={({ field }) => (
+                            <Checkbox {...field} checked={field.value} />
+                          )}
+                        />
+                      }
                       label={
                         <Box display="flex" alignItems="center" gap={1}>
                           <RecyclingIcon fontSize="small" />
-                          Giảm Thiểu Rác Thải
+                          <Typography>Giảm Thiểu Rác Thải</Typography>
                         </Box>
                       }
                     />
                     <FormControlLabel
-                      control={<Checkbox />}
+                      control={
+                        <Controller
+                          name="feature.lowImpactDyes"
+                          control={control}
+                          render={({ field }) => (
+                            <Checkbox {...field} checked={field.value} />
+                          )}
+                        />
+                      }
                       label={
                         <Box display="flex" alignItems="center" gap={1}>
                           <ScienceIcon fontSize="small" />
-                          Thuốc nhuộm và quy trình ít tác động đến môi trường
+                          <Typography>
+                            Thuốc nhuộm và quy trình ít tác động đến môi trường
+                          </Typography>
                         </Box>
                       }
                     />
                     <FormControlLabel
-                      control={<Checkbox />}
+                      control={
+                        <Controller
+                          name="feature.durable"
+                          control={control}
+                          render={({ field }) => (
+                            <Checkbox {...field} checked={field.value} />
+                          )}
+                        />
+                      }
                       label={
                         <Box display="flex" alignItems="center" gap={1}>
                           <BuildIcon fontSize="small" />
-                          Kết cấu bền chắc sử dụng lâu dài
+                          <Typography>
+                            Kết cấu bền chắc sử dụng lâu dài
+                          </Typography>
                         </Box>
                       }
                     />
                     <FormControlLabel
-                      control={<Checkbox />}
+                      control={
+                        <Controller
+                          name="feature.ethicallyManufactured"
+                          control={control}
+                          render={({ field }) => (
+                            <Checkbox {...field} checked={field.value} />
+                          )}
+                        />
+                      }
                       label={
                         <Box display="flex" alignItems="center" gap={1}>
                           <FactoryIcon fontSize="small" />
-                          Quy trình sản xuất có trách nhiệm
+                          <Typography>
+                            Quy trình sản xuất có trách nhiệm
+                          </Typography>
                         </Box>
                       }
                     />
@@ -771,9 +1021,19 @@ export default function AddDesign() {
                   <Button
                     variant="contained"
                     color="success"
-                    onClick={(e) => {
-                      handleChangeTab(e, tabIndex + 1);
-                      handleScroll("addProduct");
+                    onClick={async () => {
+                      const isValid = await trigger([
+                        "name",
+                        "price",
+                        "description",
+                        "careInstructions",
+                        "designTypeId",
+                      ]);
+
+                      if (isValid) {
+                        handleChangeTab(null, tabIndex + 1);
+                        handleScroll("addProduct");
+                      }
                     }}
                   >
                     Chọn Chất Liệu
@@ -783,7 +1043,7 @@ export default function AddDesign() {
             </Grid>
           </Box>
         )}
-        {/* Tab Vật Liệu  */}
+        {/* Chọn Chất Liệu */}
         {tabIndex === 1 && (
           <Box p={3} borderRadius={2} border="1px solid #eee" margin={"10px 0"}>
             {/* Title */}
@@ -912,18 +1172,18 @@ export default function AddDesign() {
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             {activeDragItem.materialId}
-                            <Chip
-                              size="small"
-                              icon={<EcoIcon />}
-                              label={`${activeDragItem.recycledPercentage}% Tái Chế`}
-                              sx={{
-                                bgcolor: "#E6F4EA",
-                                color: "#388E3C",
-                                fontSize: "0.9rem",
-                                ml: 1,
-                              }}
-                            />
                           </Typography>
+                          <Chip
+                            size="small"
+                            icon={<EcoIcon />}
+                            label={`${activeDragItem.recycledPercentage}% Tái Chế`}
+                            sx={{
+                              bgcolor: "#E6F4EA",
+                              color: "#388E3C",
+                              fontSize: "0.9rem",
+                              ml: 1,
+                            }}
+                          />
                         </Box>
                       </Card>
                     ) : null}
@@ -946,8 +1206,16 @@ export default function AddDesign() {
 
               <Button
                 variant="contained"
-                onClick={(e) => {
-                  handleChangeTab(e, tabIndex + 1);
+                onClick={() => {
+                  if (selectedMaterials.length === 0) {
+                    // You can show an error or toast
+                    toast.error(
+                      "Vui lòng chọn ít nhất một chất liệu trước khi tiếp tục."
+                    );
+                    return;
+                  }
+
+                  handleChangeTab(null, tabIndex + 1); // go to next tab
                   handleScroll("addProduct");
                 }}
               >
@@ -956,21 +1224,26 @@ export default function AddDesign() {
             </Box>
           </Box>
         )}
-        {/* Tab Ảnh*/}
+        {/* Ảnh */}
         {tabIndex === 2 && (
           <Box
             p={3}
             borderRadius={2}
             border="1px solid #eee"
-            sx={{ display: "flex", flexDirection: "column", margin: "10px 0" }}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              margin: "10px 0",
+            }}
           >
             <Typography variant="h5" fontWeight={"bold"} sx={{ mb: 2 }}>
               Ảnh Sản Phẩm
             </Typography>
             <Controller
-              name="portfolioFiles"
+              name="imageFiles"
               control={control}
-              render={({ field }) => (
+              rules={{ required: "Cần thêm hình ảnh" }}
+              render={({ field, fieldState }) => (
                 <FileUpload
                   label=""
                   multiple
@@ -984,6 +1257,8 @@ export default function AddDesign() {
                   onFilesChange={(files) => field.onChange(files)}
                   accept="image/*"
                   maxSize={5}
+                  required={!!fieldState.error} // shows red border or error state
+                  helperText={fieldState.error?.message} // show the message
                 />
               )}
             />
@@ -1004,17 +1279,23 @@ export default function AddDesign() {
               </Button>
               <Box sx={{ flex: "1 1 auto" }} />
 
-              <Button
-                variant="contained"
-                onClick={(e) => {
-                  handleChangeTab(e, tabIndex + 1);
-                  handleScroll("addProduct");
-                  handleSubmit(onSubmit);
-                }}
-                color="warning"
-              >
-                Lưu
-              </Button>
+              <Box mt={3}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  type="submit"
+                  startIcon={loading && <CircularProgress size={20} />}
+                  disabled={loading}
+                  onClick={(e) => {
+                    if (loading) {
+                      handleChangeTab(e, tabIndex + 1);
+                      handleScroll("addProduct");
+                    }
+                  }}
+                >
+                  Gửi đơn
+                </Button>
+              </Box>
             </Box>
           </Box>
         )}
@@ -1022,4 +1303,6 @@ export default function AddDesign() {
       </Box>
     </Box>
   );
-}
+};
+
+export default AddDesign;

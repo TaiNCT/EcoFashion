@@ -73,9 +73,21 @@ public class DesignController : ControllerBase
         var designs = await _designService.GetAllDesignsByDesignerIdAsync(designerId);
 
         if (designs == null || !designs.Any())
-            return NotFound(ApiResult<List<DesignListItemDto>>.Fail("Không tìm thấy thiết kế nào cho nhà thiết kế này."));
+            return NotFound(ApiResult<List<DesignDetailDto>>.Fail("Không tìm thấy thiết kế nào cho nhà thiết kế này."));
 
-        return Ok(ApiResult<List<DesignListItemDto>>.Succeed(designs));
+        return Ok(ApiResult<List<DesignDetailDto>>.Succeed(designs));
+    }
+
+    [HttpGet("GetAllPagination-by-designer/{designerId}")]
+    public async Task<IActionResult> GetAllDesignsByDesignerIdPagination(Guid designerId,[FromQuery] int page = 1, [FromQuery] int pageSize = 12)
+    {
+        var designs = await _designService.GetAllDesignsByDesingerIdPagination(designerId, page, pageSize);
+
+        if (designs == null || !designs.Any())
+            return NotFound(ApiResult<List<DesignDetailDto>>.Fail("Không tìm thấy thiết kế nào cho nhà thiết kế này."));
+
+        var response = _mapper.Map<IEnumerable<DesignDetailResponse>>(designs);
+        return Ok(ApiResult<IEnumerable<DesignDetailResponse>>.Succeed(response));
     }
 
 
@@ -155,25 +167,25 @@ public class DesignController : ControllerBase
         return BadRequest(ApiResult<object>.Fail("Xóa thiết kế thất bại."));
     }
 
-    [HttpPost("variants")]
-    public async Task<IActionResult> AddVariant([FromBody] CreateDesignVariantRequest request)
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-            return Unauthorized(ApiResult<object>.Fail("Không xác định được người dùng."));
+    //[HttpPost("variants")]
+    //public async Task<IActionResult> AddVariant([FromBody] CreateDesignVariantRequest request)
+    //{
+    //    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+    //    if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+    //        return Unauthorized(ApiResult<object>.Fail("Không xác định được người dùng."));
 
-        try
-        {
-            var result = await _designService.AddVariantAndUpdateMaterialsAsync(request, userId);
-            if (result)
-                return Ok(ApiResult<object>.Succeed("Thêm biến thể thành công."));
-            return BadRequest(ApiResult<object>.Fail("Thêm biến thể thất bại."));
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ApiResult<object>.Fail($"Lỗi: {ex.Message}"));
-        }
-    }
+    //    try
+    //    {
+    //        var result = await _designService.AddVariantAndUpdateMaterials(request, userId);
+    //        if (result)
+    //            return Ok(ApiResult<object>.Succeed("Thêm biến thể thành công."));
+    //        return BadRequest(ApiResult<object>.Fail("Thêm biến thể thất bại."));
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        return BadRequest(ApiResult<object>.Fail($"Lỗi: {ex.Message}"));
+    //    }
+    //}
 
 
 

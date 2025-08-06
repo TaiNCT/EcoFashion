@@ -94,5 +94,14 @@ namespace EcoFashionBackEnd.Services
             await _dbContext.SaveChangesAsync();
             return true;
         }
+
+        public async Task<DesignerMaterialInventoryModel> GetDesignerMaterialInventoryByDesignerIdAsync(Guid designerId)
+        {
+            var inventory = await _dbContext.DesignerMaterialInventories
+                .Include(dmi => dmi.Designer)
+                .Include(dmi => dmi.Material)
+                .FirstOrDefaultAsync(dmi => dmi.Designer.DesignerId == designerId);
+            return _mapper.Map<DesignerMaterialInventoryModel>(inventory);
+        }
     }
 }

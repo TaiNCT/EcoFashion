@@ -113,6 +113,21 @@ public class SupplierController : ControllerBase
     }
 
     /// <summary>
+    /// Get supplier by user ID (for any authenticated user)
+    /// </summary>
+    [HttpGet("user/{userId}")]
+    [Authorize]
+    public async Task<IActionResult> GetSupplierByUserId(int userId)
+    {
+        var supplier = await _supplierService.GetSupplierByUserId(userId);
+        if (supplier == null)
+        {
+            return NotFound(ApiResult<SupplierModel>.Fail("Không tìm thấy thông tin nhà cung cấp cho người dùng này."));
+        }
+        return Ok(ApiResult<SupplierModel>.Succeed(supplier));
+    }
+
+    /// <summary>
     /// Admin: Update supplier
     /// </summary>
     [HttpPut("{id}")]
@@ -189,16 +204,10 @@ public class SupplierController : ControllerBase
             return Unauthorized(ApiResult<SupplierModel>.Fail("Không thể xác định người dùng."));
         }
 
-        var supplierId = await _supplierService.GetSupplierIdByUserId(userId);
-        if (!supplierId.HasValue)
-        {
-            return NotFound(ApiResult<SupplierModel>.Fail("Bạn chưa có profile Supplier. Vui lòng liên hệ admin để tạo profile."));
-        }
-
-        var supplier = await _supplierService.GetSupplierFullProfile(supplierId.Value);
+        var supplier = await _supplierService.GetSupplierByUserId(userId);
         if (supplier == null)
         {
-            return NotFound(ApiResult<SupplierModel>.Fail("Không tìm thấy thông tin Supplier."));
+            return NotFound(ApiResult<SupplierModel>.Fail("Bạn chưa có profile Supplier. Vui lòng liên hệ admin để tạo profile."));
         }
 
         return Ok(ApiResult<SupplierModel>.Succeed(supplier));
@@ -217,13 +226,13 @@ public class SupplierController : ControllerBase
             return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
         }
 
-        var supplierId = await _supplierService.GetSupplierIdByUserId(userId);
-        if (!supplierId.HasValue)
+        var supplier = await _supplierService.GetSupplierByUserId(userId);
+        if (supplier == null)
         {
             return NotFound(ApiResult<object>.Fail("Bạn chưa có profile Supplier."));
         }
 
-        var isUpdated = await _supplierService.UpdateSupplier(supplierId.Value, request);
+        var isUpdated = await _supplierService.UpdateSupplier(supplier.SupplierId, request);
         if (!isUpdated)
         {
             return BadRequest(ApiResult<object>.Fail("Không thể cập nhật profile."));
