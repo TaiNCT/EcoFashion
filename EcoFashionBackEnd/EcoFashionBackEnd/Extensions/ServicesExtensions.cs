@@ -93,6 +93,7 @@ public static class ServicesExtensions
         services.AddScoped<SustainabilityService>();
         services.AddScoped<BlogService>();
         services.AddScoped<OrderService>();
+        services.AddScoped<OrderDetailService>();
         //services.AddScoped<IVnPayService, VnPayService>();
 
 

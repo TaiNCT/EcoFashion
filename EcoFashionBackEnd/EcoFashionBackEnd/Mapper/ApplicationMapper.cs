@@ -67,6 +67,8 @@ namespace EcoFashionBackEnd.Mapper
             CreateMap<Order, OrderModel>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
             CreateMap<CreateOrderRequest, Order>();
+            CreateMap<CreateOrderDetailRequest, OrderDetail>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => OrderDetailStatus.pending));
         }
     }
 }

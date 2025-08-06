@@ -36,6 +36,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<BlogImage> BlogImages { get; set; }
         public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderDetail> OrderDetails { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -294,8 +295,7 @@ namespace EcoFashionBackEnd.Entities
             #endregion
             #region Order
             modelBuilder.Entity<Order>()
-                .HasOne(o => o.User)
-                .WithMany()
+                .HasOne(o => o.User).WithMany()
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Order>()
@@ -304,7 +304,39 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<Order>()
                 .Property(o => o.Status)
                 .HasConversion<string>();
-
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Design).WithMany()
+                .HasForeignKey(od => od.DesignId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Designer).WithMany()
+                .HasForeignKey(od => od.DesignerId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Material).WithMany()
+                .HasForeignKey(od => od.MaterialId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Supplier).WithMany()
+                .HasForeignKey(od => od.SupplierId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Order).WithMany()
+                .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<OrderDetail>()
+                .Property(od => od.UnitPrice)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<OrderDetail>()
+                .Property(od => od.Type)
+                .HasConversion<string>();
+            modelBuilder.Entity<OrderDetail>()
+                .Property(od => od.Status)
+                .HasConversion<string>();
             #endregion Order
             #region unique
             modelBuilder.Entity<Blog>()
