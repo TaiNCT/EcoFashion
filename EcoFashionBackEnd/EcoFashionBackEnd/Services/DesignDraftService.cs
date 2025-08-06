@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EcoFashionBackEnd.Common;
+using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Requests.DessignDraft;
 using EcoFashionBackEnd.Dtos.DesignDraft;
 using EcoFashionBackEnd.Entities;
@@ -11,9 +12,16 @@ namespace EcoFashionBackEnd.Services
 {
     public class DesignDraftService
     {
+        #region injection
         private readonly IRepository<Design, int> _designRepository;
+        private readonly IRepository<Designer, int> _designerRepository;
         private readonly IRepository<DesignsMaterial, int> _designMaterialRepository;
+        private readonly IRepository<DesignTypeSizeRatio, int> _DesignTypeSizeRatioRepository;
+        private readonly IRepository<Material, int> _MaterialRepository;
+        private readonly IRepository<DesignsVariant, int> _designVariantRepository;
         private readonly IRepository<DesignFeature, int> _designFeatureRepository;
+        private readonly IRepository<DesignerMaterialInventory, int> _designerMaterialInventoryRepository;
+
         private readonly IRepository<DraftPart, int> _draftPartRepository;
         private readonly IRepository<DraftSketch, int> _draftSketchRepository;
         private readonly IRepository<Image, int> _imageRepository;
@@ -22,8 +30,14 @@ namespace EcoFashionBackEnd.Services
 
         public DesignDraftService(
             IRepository<Design, int> designRepository,
+            IRepository<Designer, int> designerRepository,
             IRepository<DesignsMaterial, int> designMaterialRepository,
+            IRepository<DesignTypeSizeRatio, int> designTypeSizeRatioRepository,
+            IRepository<Material, int> MaterialRepository,
+            IRepository<DesignsVariant, int> designVariantRepository,
             IRepository<DesignFeature, int> designFeatureRepository,
+            IRepository<DesignerMaterialInventory, int> designerMaterialInventoryRepository,
+
             IRepository<DraftPart, int> draftPartRepository,
             IRepository<DraftSketch, int> draftSketchRepository,
             IRepository<Image, int> imageRepository,
@@ -31,15 +45,20 @@ namespace EcoFashionBackEnd.Services
             IMapper mapper)
         {
             _designRepository = designRepository;
+            _designerRepository = designerRepository;
             _designMaterialRepository = designMaterialRepository;
+            _DesignTypeSizeRatioRepository = designTypeSizeRatioRepository;
+            _MaterialRepository = MaterialRepository;
+            _designVariantRepository = designVariantRepository;
             _designFeatureRepository = designFeatureRepository;
+            _designerMaterialInventoryRepository = designerMaterialInventoryRepository;
             _draftPartRepository = draftPartRepository;
             _draftSketchRepository = draftSketchRepository;
             _imageRepository = imageRepository;
             _cloudService = cloudService;
             _mapper = mapper;
         }
-
+        #endregion
         public async Task<int> CreateDraftDesignAsync(DraftDesignCreateRequest request, Guid designerId)
         {
             // 1. Tạo Design
@@ -164,6 +183,7 @@ namespace EcoFashionBackEnd.Services
                 .GetAll()
                 .Include(d => d.DesignsMaterials)
                 .Include(d => d.DesignsFeature)
+                .Include(d => d.DesignTypes)
                 .FirstOrDefaultAsync(d => d.DesignId == request.DesignId);
 
             if (design == null)
@@ -183,14 +203,58 @@ namespace EcoFashionBackEnd.Services
             await _designMaterialRepository.AddRangeAsync(newMaterials);
 
             // Thêm mới feature
-            var newFeatures = request.FeatureIds.Select(fid => new DesignFeature 
+            var newFeature = new DesignFeature
             {
                 DesignId = request.DesignId,
-                FeatureId = fid
-            }).ToList();
+                ReduceWaste = request.ReduceWaste,
+                LowImpactDyes = request.LowImpactDyes,
+                Durable = request.Durable,
+                EthicallyManufactured = request.EthicallyManufactured
+            };
 
-            await _designFeatureRepository.AddRangeAsync(newFeatures);
+            await _designFeatureRepository.AddAsync(newFeature);
+            decimal unitPrice = 0;
+            foreach (var mat in request.Materials)
+            {
+                var material = await _MaterialRepository
+                    .GetAll()
+                    .FirstOrDefaultAsync(m => m.MaterialId == mat.MaterialId);
 
+                if (material != null)
+                {
+                    unitPrice += (decimal)mat.MeterUsed * material.PricePerUnit;
+                }
+            }
+
+            decimal laborCost = 0;
+            if (design.DesignTypes?.LaborHours != null && design.DesignTypes?.LaborCostPerHour != null)
+            {
+                laborCost = ((decimal)design.DesignTypes.LaborHours.Value * design.DesignTypes.LaborCostPerHour.Value);
+            }
+
+            decimal defaultSalePrice = unitPrice + laborCost;
+
+            if (request.CustomSalePrice.HasValue)
+            {
+                var custom = request.CustomSalePrice.Value;
+
+                // Giới hạn 0% - 20% markup
+                if (custom < defaultSalePrice)
+                    throw new Exception("Giá bán thấp hơn chi phí gốc. Vui lòng kiểm tra lại.");
+
+                if (custom > defaultSalePrice * 1.2m)
+                    throw new Exception("Giá bán không được vượt quá 20% so với chi phí gốc.");
+
+                design.SalePrice = custom;
+            }
+            else
+            {
+                // Nếu không nhập thì gán mặc định
+                design.SalePrice = defaultSalePrice;
+            }
+
+
+            design.UnitPrice = unitPrice;
             // Cập nhật footprint & stage
             design.CarbonFootprint= request.TotalCarbon;
             design.WaterUsage= request.TotalWater;
@@ -202,6 +266,100 @@ namespace EcoFashionBackEnd.Services
             return true;
         }
 
+
+        public async Task<bool> AddVariantAndUpdateMaterialsAsync(CreateDesignVariantRequest request, int userId)
+        {
+            // 🔐 DesignerId
+            var designer = await _designerRepository
+                .GetAll()
+                .FirstOrDefaultAsync(d => d.UserId == userId);
+
+            if (designer == null)
+                throw new Exception("Không tìm thấy designer tương ứng với user này.");
+
+            var designerId = designer.DesignerId;
+
+            // 🎨 design
+            var design = await _designRepository
+                .GetAll()
+                .Include(d => d.DesignsMaterials)
+                    .ThenInclude(dm => dm.Materials)
+                .Include(d => d.DesignTypes)
+                .FirstOrDefaultAsync(d => d.DesignId == request.DesignId);
+
+            if (design == null || design.DesignerId != designerId)
+                throw new Exception("Không tìm thấy thiết kế hoặc bạn không có quyền tạo biến thể cho thiết kế này.");
+
+            // 📏 size multiplier
+            var ratio = await _DesignTypeSizeRatioRepository
+                .GetAll()
+                .FirstOrDefaultAsync(r =>
+                    r.DesignTypeId == design.DesignTypeId &&
+                    r.SizeId == request.SizeId);
+
+            float sizeMultiplier = ratio?.Ratio ?? 0;
+            if (sizeMultiplier == 0)
+                throw new Exception("Không tìm thấy hệ số size phù hợp.");
+
+            // 🔁 check  variant exist 
+            string normalizedColor = request.Color?.Trim().ToLower() ?? "";
+            var existingVariant = await _designVariantRepository
+                .GetAll()
+                .FirstOrDefaultAsync(v =>
+                    v.DesignId == request.DesignId &&
+                    v.SizeId == request.SizeId &&
+                    v.Color.ToLower() == normalizedColor);
+
+            // 📦 check inventory and deduct materials.
+            foreach (var dm in design.DesignsMaterials)
+            {
+                float required = dm.MeterUsed * sizeMultiplier * request.Quantity;
+
+                var inventory = await _designerMaterialInventoryRepository
+                    .GetAll()
+                    .FirstOrDefaultAsync(i =>
+                        i.DesignerId == designerId &&
+                        i.MaterialId == dm.MaterialId);
+
+                if (inventory == null || inventory.Quantity < required)
+                    throw new Exception($"Không đủ vật liệu [{dm.Materials?.Name}] trong kho.");
+
+                inventory.Quantity -= (int)Math.Ceiling(required);
+                _designerMaterialInventoryRepository.Update(inventory);
+            }
+
+            // ➕ variant
+            if (existingVariant != null)
+            {
+                existingVariant.Quantity += request.Quantity;
+                _designVariantRepository.Update(existingVariant);
+            }
+            else
+            {
+                var newVariant = new DesignsVariant
+                {
+                    DesignId = request.DesignId,
+                    SizeId = request.SizeId,
+                    Color = request.Color?.Trim(), 
+                    Quantity = request.Quantity,
+                };
+
+                await _designVariantRepository.AddAsync(newVariant);
+            }
+            // 🔄  Finalized -> Published
+            if (design.Stage == DesignStage.Finalized)
+            {
+                design.Stage = DesignStage.Published;
+                _designRepository.Update(design); 
+            }
+
+            // 💾 Lưu thay đổi
+            await _designerMaterialInventoryRepository.Commit();
+            await _designVariantRepository.Commit();
+            await _designRepository.Commit();
+
+            return true;
+        }
 
 
 
