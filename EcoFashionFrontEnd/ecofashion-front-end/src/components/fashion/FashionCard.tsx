@@ -125,12 +125,6 @@ const FashionCard: React.FC<FashionCardProps> = ({
     }).format(price);
   };
 
-  const formatOriginalPrice = (price: Fashion["price"]) => {
-    if (!price.original) return null;
-    const formatted = new Intl.NumberFormat("vi-VN").format(price.original);
-    return `${formatted}₫`;
-  };
-
   // const handleCardClick = () => {
   //   if (onSelect) {
   //     onSelect(product);
@@ -411,7 +405,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
                   fontSize: "28px",
                 }}
               >
-                {formatPriceVND(product.price)}
+                {formatPriceVND(product.salePrice)}
               </Typography>
               {/* )}  */}
               {/* {product.price.original && (

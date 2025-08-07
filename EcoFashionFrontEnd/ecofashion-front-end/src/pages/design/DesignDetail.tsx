@@ -150,11 +150,6 @@ export default function DesignDetail() {
       currency: "VND",
     }).format(price);
   };
-  const formatOriginalPrice = (price: Fashion["price"]) => {
-    if (!price.original) return null;
-    const formatted = new Intl.NumberFormat("vi-VN").format(price.original);
-    return `${formatted}₫`;
-  };
 
   //Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -171,7 +166,6 @@ export default function DesignDetail() {
       try {
         setLoading(true);
         const data = await DesignService.getDesignDetailById(Number(id));
-        console.log(data);
         let totalWasteDiverted = 0;
         let totalWaterUsed = 0;
         let totalCarbonFootprint = 0;

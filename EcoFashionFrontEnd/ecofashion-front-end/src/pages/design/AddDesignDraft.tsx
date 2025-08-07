@@ -13,10 +13,13 @@ import {
   Grid,
   IconButton,
   InputLabel,
+  LinearProgress,
   Link,
   MenuItem,
+  Paper,
   Select,
   SelectChangeEvent,
+  styled,
   Tab,
   Tabs,
   TextField,
@@ -44,12 +47,17 @@ import SquareFootIcon from "@mui/icons-material/SquareFoot";
 import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
 import ReportGmailerrorredIcon from "@mui/icons-material/ReportGmailerrorred";
 import SearchIcon from "@mui/icons-material/Search";
+import FlashOnIcon from "@mui/icons-material/FlashOn";
+import WaterDropIcon from "@mui/icons-material/WaterDrop";
+import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 //Generate UUid
 import { v4 as uuidv4 } from "uuid";
 
 export default function AddDesignDraft() {
   const [size, setSize] = useState("M");
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [tabIndex, setTabIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -375,6 +383,24 @@ export default function AddDesignDraft() {
   const groupedMaterial = Object.values(groupedByMaterial);
   //Step 3: Calc Sum of all
   const totalPrice = groupedMaterial.reduce((sum, item) => sum + item.price, 0);
+  //Step 4: Calc Sum of all
+  const totalMeterUsed = groupedMaterial.reduce(
+    (sum, item) => sum + item.needMaterial,
+    0
+  );
+
+  //Item For Grid
+  const Item = styled(Paper)(({ theme }) => ({
+    backgroundColor: "#fff",
+    ...theme.typography.body2,
+    padding: theme.spacing(1),
+    textAlign: "center",
+    color: (theme.vars ?? theme).palette.text.secondary,
+    ...theme.applyStyles("dark", {
+      backgroundColor: "#1A2027",
+    }),
+  }));
+
   return (
     <Box>
       {/* Appbar */}
@@ -392,7 +418,7 @@ export default function AddDesignDraft() {
           <Link underline="hover" color="inherit" href="/designer/dashboard">
             Dashboard
           </Link>
-          <Typography color="text.primary">Máy Tính EcoFashion</Typography>
+          <Typography color="text.primary">Thiết Kế Rập</Typography>
         </Breadcrumbs>
       </AppBar>
       {/* Top Part */}
@@ -423,7 +449,7 @@ export default function AddDesignDraft() {
             >
               <EcoIcon />
               <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
-                Máy Tính EcoFashion
+                Thiết Kế Rập
               </Typography>
             </Box>
             <Typography>
@@ -548,7 +574,7 @@ export default function AddDesignDraft() {
             {/* Certification */}
             <Grid textAlign="center" sx={{ xs: 12, md: 3 }}>
               <Typography
-                sx={{ color: "purple" }}
+                sx={{ color: "#F57C00" }}
                 fontWeight="bold"
                 fontSize="1.5rem"
               >
@@ -631,6 +657,7 @@ export default function AddDesignDraft() {
                   type="number"
                   label="Số Lượng"
                   value={quantity}
+                  defaultValue={1}
                   onChange={(e) => {
                     const value = e.target.value;
 
@@ -720,7 +747,12 @@ export default function AddDesignDraft() {
                   <Box sx={{ display: "flex", flexDirection: "column" }}>
                     <Box sx={{ display: "flex", alignItems: "center" }}>
                       <DraftIcon color={"rgba(22, 163, 74, 1)"} />
-                      <Typography variant="h6" fontWeight="bold" gap={2}>
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        gap={2}
+                        sx={{ marginLeft: "5px" }}
+                      >
                         Mảnh Rập
                       </Typography>
                     </Box>
@@ -1327,89 +1359,465 @@ export default function AddDesignDraft() {
                   </>
                 )}
                 {tabIndex === 1 && (
-                  <Box sx={{ display: "flex", flexDirection: "column" }}>
-                    {/* Tổng Tiền */}
-                    <Box
-                      sx={{
-                        bgcolor: "#f0fff5",
-                        p: 1,
-                        borderRadius: 2,
-                        border: "1px solid #d2f5e8",
-                        width: "100%",
-                        margin: "0 auto",
-                        marginBottom: 3,
-                      }}
-                    >
+                  <>
+                    {cards.length === 0 ? (
                       <Box
                         sx={{
-                          width: "100%",
-                          paddingLeft: 15,
-                          paddingRight: 15,
-                          paddingBottom: 2,
+                          height: "400px", // hoặc "100%" nếu cha có chiều cao cố định
+                          display: "flex",
+                          justifyContent: "center",
                           alignItems: "center",
-                          margin: "auto",
+                          textAlign: "center",
+                          gap: 1,
                         }}
                       >
-                        <Grid textAlign="center" sx={{ xs: 12, md: 3 }}>
-                          <Typography
-                            fontSize="2rem"
-                            color="rgba(22, 163, 74, 1)"
-                            fontWeight="bold"
-                          >
-                            {new Intl.NumberFormat("vi-VN", {
-                              style: "currency",
-                              currency: "VND",
-                            }).format(totalPrice)}
-                          </Typography>
-                          <Typography color="rgba(22, 163, 74, 1)">
-                            Tổng chi phí ({groupedMaterial.length} sản phẩm)
-                          </Typography>
-                        </Grid>
+                        <ReportGmailerrorredIcon sx={{ color: "red" }} />
+                        <Typography
+                          variant="h5"
+                          textAlign="center"
+                          color="text.secondary"
+                          fontWeight={"bold"}
+                        >
+                          Bạn Cần Thêm Mảnh Rập
+                        </Typography>
                       </Box>
-                    </Box>
-                    {/* Giá Từng Loại Vải */}
-                    {groupedMaterial.length > 0 &&
-                      groupedMaterial.map((m) => (
+                    ) : (
+                      <Box sx={{ display: "flex", flexDirection: "column" }}>
+                        {/* Tổng Tiền */}
                         <Box
                           sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 2,
+                            bgcolor: "#f0fff5",
+                            p: 1,
+                            borderRadius: 2,
+                            border: "1px solid #d2f5e8",
+                            width: "100%",
+                            margin: "0 auto",
+                            marginBottom: 3,
                           }}
                         >
                           <Box
-                            key={m.id}
                             sx={{
-                              mb: 2,
-                              p: 2,
-                              border: "1px solid #ccc",
-                              borderRadius: 2,
-                              display: "flex",
+                              width: "100%",
+                              paddingLeft: 15,
+                              paddingRight: 15,
+                              paddingBottom: 2,
                               alignItems: "center",
-                              justifyContent: "space-between",
+                              margin: "auto",
                             }}
                           >
-                            <Typography>{m.material.name}</Typography>
-                            <Typography>
-                              {new Intl.NumberFormat("vi-VN", {
-                                style: "currency",
-                                currency: "VND",
-                              }).format(m.price)}
-                            </Typography>
+                            <Grid textAlign="center" sx={{ xs: 12, md: 3 }}>
+                              <Typography
+                                fontSize="2rem"
+                                color="rgba(22, 163, 74, 1)"
+                                fontWeight="bold"
+                              >
+                                {new Intl.NumberFormat("vi-VN", {
+                                  style: "currency",
+                                  currency: "VND",
+                                }).format(totalPrice)}
+                              </Typography>
+                              <Typography color="rgba(22, 163, 74, 1)">
+                                Tổng chi phí ({quantity} sản phẩm)
+                              </Typography>
+                            </Grid>
                           </Box>
                         </Box>
-                      ))}
-                  </Box>
+                        {/* Giá Từng Loại Vải */}
+                        {groupedMaterial.length > 0 &&
+                          groupedMaterial.map((m) => (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 2,
+                              }}
+                            >
+                              <Box
+                                key={m.id}
+                                sx={{
+                                  mb: 2,
+                                  p: 2,
+                                  border: "1px solid #ccc",
+                                  borderRadius: 2,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <Typography>{m.material.name}</Typography>
+                                <Typography>
+                                  {new Intl.NumberFormat("vi-VN", {
+                                    style: "currency",
+                                    currency: "VND",
+                                  }).format(m.price)}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          ))}
+                      </Box>
+                    )}
+                  </>
                 )}
-                {tabIndex === 2 && <div>Tab 3</div>}
-                {tabIndex === 3 && <div>Tab 4</div>}
+                {tabIndex === 2 && (
+                  <>
+                    {cards.length === 0 ? (
+                      <Box
+                        sx={{
+                          height: "400px", // hoặc "100%" nếu cha có chiều cao cố định
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          textAlign: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <ReportGmailerrorredIcon sx={{ color: "red" }} />
+                        <Typography
+                          variant="h5"
+                          textAlign="center"
+                          color="text.secondary"
+                          fontWeight={"bold"}
+                        >
+                          Bạn Cần Thêm Mảnh Rập
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "300px",
+                          margin: "auto",
+                        }}
+                      >
+                        <Grid
+                          container
+                          rowSpacing={1}
+                          columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+                        >
+                          <Grid size={6}>
+                            <Box sx={{ width: "100%" }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  mb: 0.5,
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 0.5,
+                                  }}
+                                >
+                                  <EcoIcon />
+                                  <Typography variant="body2">
+                                    Tính Bền Vững
+                                  </Typography>
+                                </Box>
+                                <Typography variant="body2">82%</Typography>
+                              </Box>
+                              <LinearProgress
+                                variant="determinate"
+                                value={82}
+                                sx={{
+                                  height: 8,
+                                  borderRadius: 5,
+                                  backgroundColor: "#e0e0e0",
+                                  "& .MuiLinearProgress-bar": {
+                                    backgroundColor: "black",
+                                    borderRadius: 5,
+                                  },
+                                }}
+                              />
+                            </Box>
+                          </Grid>
+                          <Grid size={6}>
+                            <Box
+                              sx={{
+                                backgroundColor: "rgba(239, 246, 255, 1)", // Light blue background
+                                borderRadius: 2,
+                                padding: 2,
+                                textAlign: "center",
+                                width: "100%",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: 0.5,
+                                }}
+                              >
+                                <FlashOnIcon
+                                  fontSize="small"
+                                  sx={{ color: "#1E88E5" }}
+                                />
+                                <Typography variant="body2" color="primary">
+                                  Giảm Khí CO₂
+                                </Typography>
+                              </Box>
+                              <Typography
+                                variant="h6"
+                                fontWeight="bold"
+                                color="primary"
+                              >
+                                1.5 Kg
+                              </Typography>
+                            </Box>
+                          </Grid>
+                          <Grid size={6}>
+                            <Box
+                              sx={{
+                                backgroundColor:
+                                  "rgb(236 254 255/var(--tw-bg-opacity,1))", // Light blue background
+                                borderRadius: 2,
+                                padding: 2,
+                                textAlign: "center",
+                                width: "100%",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: 0.5,
+                                }}
+                              >
+                                <WaterDropIcon
+                                  fontSize="small"
+                                  sx={{ color: "#00ACC1" }}
+                                />
+                                <Typography
+                                  variant="body2"
+                                  sx={{ color: "#00ACC1" }}
+                                >
+                                  Tiết Kiệm Nước
+                                </Typography>
+                              </Box>
+                              <Typography
+                                variant="h6"
+                                fontWeight="bold"
+                                sx={{ color: "#00ACC1" }}
+                              >
+                                2.0 L
+                              </Typography>
+                            </Box>
+                          </Grid>
+                          <Grid size={6}>
+                            <Box
+                              sx={{
+                                backgroundColor: "#FFF3E0", // Light blue background
+                                borderRadius: 2,
+                                padding: 2,
+                                textAlign: "center",
+                                width: "100%",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: 0.5,
+                                }}
+                              >
+                                <DeleteSweepIcon
+                                  fontSize="small"
+                                  sx={{ color: "#F57C00" }}
+                                />
+                                <Typography
+                                  variant="body2"
+                                  sx={{ color: "#F57C00" }}
+                                >
+                                  Giảm Rác Thải
+                                </Typography>
+                              </Box>
+                              <Typography
+                                variant="h6"
+                                fontWeight="bold"
+                                sx={{ color: "#F57C00" }}
+                              >
+                                80%
+                              </Typography>
+                            </Box>
+                          </Grid>
+                        </Grid>
+                        <Box
+                          sx={{
+                            border: "1px solid #e0e0e0",
+                            borderRadius: 2,
+                            padding: 2,
+                            backgroundColor: "#fff",
+                            margin: "10px 0",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              mb: 1,
+                            }}
+                          >
+                            <TrendingUpIcon
+                              fontSize="small"
+                              sx={{ color: "black" }}
+                            />
+                            <Typography variant="body2" fontWeight="medium">
+                              Gợi ý cải thiện:
+                            </Typography>
+                          </Box>
+                          <Typography
+                            variant="body2"
+                            component="ul"
+                            sx={{ pl: 2 }}
+                          >
+                            <li>Thiết kế đã đạt tiêu chuẩn bền vững tốt!</li>
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+                  </>
+                )}
+                {tabIndex === 3 && (
+                  <>
+                    {cards.length === 0 ? (
+                      <Box
+                        sx={{
+                          height: "400px", // hoặc "100%" nếu cha có chiều cao cố định
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          textAlign: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <ReportGmailerrorredIcon sx={{ color: "red" }} />
+                        <Typography
+                          variant="h5"
+                          textAlign="center"
+                          color="text.secondary"
+                          fontWeight={"bold"}
+                        >
+                          Bạn Cần Thêm Mảnh Rập
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box>
+                        <Grid
+                          container
+                          rowSpacing={1}
+                          columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+                        >
+                          <Grid size={6}>
+                            <Box
+                              sx={{
+                                backgroundColor: "#EFF6FF", // Light blue
+                                borderRadius: 2,
+                                padding: 2,
+                                textAlign: "center",
+                              }}
+                            >
+                              <Typography
+                                variant="h6"
+                                fontWeight="bold"
+                                color="primary"
+                              >
+                                {groupedMaterial.length}
+                              </Typography>
+                              <Typography variant="body2" color="primary">
+                                Loại vật liệu
+                              </Typography>
+                            </Box>
+                          </Grid>
+                          <Grid size={6}>
+                            <Box
+                              sx={{
+                                backgroundColor: "#F7F0FF", // Light purple
+                                borderRadius: 2,
+                                padding: 2,
+                                textAlign: "center",
+                              }}
+                            >
+                              <Typography
+                                variant="h6"
+                                fontWeight="bold"
+                                sx={{ color: "#8e24aa" }} // Purple
+                              >
+                                {totalMeterUsed}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                sx={{ color: "#8e24aa" }}
+                              >
+                                Tổng mét/đơn vị
+                              </Typography>
+                            </Box>
+                          </Grid>
+                        </Grid>
+
+                        <Box
+                          sx={{
+                            border: "1px solid #e0e0e0",
+                            borderRadius: 2,
+                            padding: 2,
+                            backgroundColor: "#fff",
+                            margin: "10px 0",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              mb: 1,
+                            }}
+                          >
+                            <Inventory2OutlinedIcon
+                              fontSize="small"
+                              sx={{ color: "black" }}
+                            />
+                            <Typography variant="body2" fontWeight="medium">
+                              Gợi ý đặt hàng:
+                            </Typography>
+                          </Box>
+                          {groupedMaterial.map((m) => (
+                            <Box
+                              key={m.id}
+                              sx={{
+                                mb: 2,
+                                p: 2,
+                                border: "1px solid #ccc",
+                                borderRadius: 2,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <Typography>
+                                {m.material.name ? m.material.name + ":" : ""}
+                              </Typography>
+                              <Typography>
+                                {m.needMaterial ? m.needMaterial + "mét" : ""}{" "}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
           </Grid>
         </Box>
       </Box>
       {/* Bottom Part */}
-      <Box sx={{ width: "100%", margin: "auto", padding: 2 }}>
+      <Box sx={{ width: "95%", margin: "auto", padding: 2 }}>
         <Box
           sx={{
             background: "linear-gradient(to right, #f0fff4, #e6f7ff)",
@@ -1486,7 +1894,10 @@ export default function AddDesignDraft() {
                   }}
                 >
                   <Typography fontSize="1rem" color="black" fontWeight="bold">
-                    12,000đ
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(totalPrice * quantity)}
                   </Typography>
                   <Typography color="black">Tổng Chi Phí</Typography>
                 </Box>

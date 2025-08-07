@@ -895,7 +895,6 @@ export default function DesingBrandProfile() {
                         Tất cả
                       </MenuItem>
                       <MenuItem value="recent">Mới Đây</MenuItem>
-                      <MenuItem value="material">Vật liệu</MenuItem>
                       <MenuItem value="lowest">Giá Thấp Tới Cao</MenuItem>
                       <MenuItem value="highest">Giá Cao Tới Thấp</MenuItem>
                     </Select>

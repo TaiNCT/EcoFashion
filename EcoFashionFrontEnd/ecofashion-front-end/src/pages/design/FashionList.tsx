@@ -73,7 +73,7 @@ export default function DesignsList() {
       );
       // Count design types
       const counts: Record<string, number> = {};
-      data.forEach((design: any) => {
+      total.forEach((design: any) => {
         const typeName = design.designTypeName || "Khác"; // fallback if null/undefined
         counts[typeName] = (counts[typeName] || 0) + 1;
       });
