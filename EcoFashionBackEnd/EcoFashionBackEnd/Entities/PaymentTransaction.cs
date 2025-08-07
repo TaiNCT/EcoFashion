@@ -10,29 +10,27 @@ namespace EcoFashionBackEnd.Entities
         public Guid Id { get; set; }
 
         [Required]
-        public string OrderId { get; set; }             
+        public int OrderId { get; set; }             
 
         [ForeignKey("OrderId")]
         public virtual Order Order { get; set; }
 
         [Required]
-        public string UserId { get; set; }
+        public int UserId { get; set; }
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
 
-        public string VnPayTransactionId { get; set; }  
-        public string VnPayResponseCode { get; set; }   
-        public string VnPaySecureHash { get; set; }    
-
+        public string? VnPayTransactionId { get; set; }  
+        public string? VnPayResponseCode { get; set; }   
         public long Amount { get; set; }               
-        public string BankCode { get; set; }         
-        public string CardType { get; set; }          
+        public string? BankCode { get; set; }         
+        public string? CardType { get; set; }          
 
-        public string Status { get; set; }            
-        public string Message { get; set; }            
+        public string? Status { get; set; }            
+        public string? Message { get; set; }            
 
-        public string OrderType { get; set; }       
-        public string PaymentType { get; set; }       
+        public string? OrderType { get; set; }       
+        public string? PaymentType { get; set; }       
  
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

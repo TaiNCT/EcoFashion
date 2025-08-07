@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250806063135_v1")]
+    [Migration("20250807045628_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -922,6 +922,60 @@ namespace EcoFashionBackEnd.Migrations
                     b.ToTable("OrderDetails");
                 });
 
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.PaymentTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("BankCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CardType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OrderType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VnPayResponseCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VnPayTransactionId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PaymentTransactions");
+                });
+
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Supplier", b =>
                 {
                     b.Property<Guid>("SupplierId")
@@ -1443,7 +1497,7 @@ namespace EcoFashionBackEnd.Migrations
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Order", b =>
                 {
                     b.HasOne("EcoFashionBackEnd.Entities.User", "User")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1488,6 +1542,25 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.PaymentTransaction", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.Order", "Order")
+                        .WithMany("PaymentTransactions")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcoFashionBackEnd.Entities.User", "User")
+                        .WithMany("PaymentTransactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Supplier", b =>
@@ -1569,6 +1642,18 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("MaterialImages");
 
                     b.Navigation("MaterialSustainabilityMetrics");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.Order", b =>
+                {
+                    b.Navigation("PaymentTransactions");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.User", b =>
+                {
+                    b.Navigation("Orders");
+
+                    b.Navigation("PaymentTransactions");
                 });
 #pragma warning restore 612, 618
         }
