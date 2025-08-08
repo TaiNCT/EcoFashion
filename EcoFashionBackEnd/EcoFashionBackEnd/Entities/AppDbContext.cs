@@ -38,6 +38,9 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+
+
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -100,6 +103,7 @@ namespace EcoFashionBackEnd.Entities
                 .Property(a => a.Status)
                 .HasConversion<string>();
             #endregion
+
             #region DESIGN
             
             modelBuilder.Entity<DesignsSize>()
@@ -217,6 +221,7 @@ namespace EcoFashionBackEnd.Entities
 
 
             #endregion
+
             #region Material 
             // Configure relationships for Materials
             modelBuilder.Entity<Material>()
@@ -294,6 +299,7 @@ namespace EcoFashionBackEnd.Entities
                 .Property(mt => mt.Value)
                 .HasPrecision(18, 2);
             #endregion
+
             #region Order
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.User).WithMany()
@@ -339,6 +345,31 @@ namespace EcoFashionBackEnd.Entities
                 .Property(od => od.Status)
                 .HasConversion<string>();
             #endregion Order
+
+            #region PaymentTransaction
+            // Order ↔ User
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.User)
+                .WithMany(u => u.Orders)
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // PaymentTransaction ↔ Order
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasOne(pt => pt.Order)
+                .WithMany(o => o.PaymentTransactions)
+                .HasForeignKey(pt => pt.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // PaymentTransaction ↔ User
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasOne(pt => pt.User)
+                .WithMany(u => u.PaymentTransactions)
+                .HasForeignKey(pt => pt.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            #endregion
+
             #region unique
             modelBuilder.Entity<Blog>()
                 .HasOne(b => b.User)

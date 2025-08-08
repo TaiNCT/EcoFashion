@@ -34,31 +34,74 @@ namespace EcoFashionBackEnd.Helpers
             return _responseData.TryGetValue(key, out var retValue) ? retValue : string.Empty;
         }
 
-        #region Request
+        //#region Request
+        //public string CreateRequestUrl(string baseUrl, string vnpHashSecret)
+        //{
+        //    var data = new StringBuilder();
+
+        //    foreach (var (key, value) in _requestData.Where(kv => !string.IsNullOrEmpty(kv.Value)))
+        //    {
+        //        data.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value) + "&");
+        //    }
+
+        //    var querystring = data.ToString();
+
+        //    baseUrl += "?" + querystring;
+        //    var signData = querystring;
+        //    if (signData.Length > 0)
+        //    {
+        //        signData = signData.Remove(data.Length - 1, 1);
+        //    }
+        //    Console.WriteLine("SIGN DATA >>>");
+        //    Console.WriteLine(signData);
+        //    var vnpSecureHash = Utils.HmacSHA512(vnpHashSecret, signData);
+        //    Console.WriteLine("SECURE HASH >>>");
+        //    Console.WriteLine(vnpSecureHash);
+        //    baseUrl += "vnp_SecureHash=" + vnpSecureHash;
+
+        //    return baseUrl;
+        //}
+        //#endregion
+
+
+
         public string CreateRequestUrl(string baseUrl, string vnpHashSecret)
         {
-            var data = new StringBuilder();
+            var sortedData = _requestData
+                .Where(kv => !string.IsNullOrEmpty(kv.Value))
+                .OrderBy(kv => kv.Key) // 
+                .ToList();
 
-            foreach (var (key, value) in _requestData.Where(kv => !string.IsNullOrEmpty(kv.Value)))
+            var queryString = new StringBuilder();
+            var signData = new StringBuilder();
+
+            foreach (var (key, value) in sortedData)
             {
-                data.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value) + "&");
+                var encodedKey = WebUtility.UrlEncode(key);
+                var encodedValue = WebUtility.UrlEncode(value);
+
+                queryString.Append($"{encodedKey}={encodedValue}&");
+                signData.Append($"{encodedKey}={encodedValue}&");
             }
 
-            var querystring = data.ToString();
-
-            baseUrl += "?" + querystring;
-            var signData = querystring;
+            
+            if (queryString.Length > 0)
+                queryString.Length -= 1;
             if (signData.Length > 0)
-            {
-                signData = signData.Remove(data.Length - 1, 1);
-            }
+                signData.Length -= 1;
 
-            var vnpSecureHash = Utils.HmacSHA512(vnpHashSecret, signData);
-            baseUrl += "vnp_SecureHash=" + vnpSecureHash;
+            Console.WriteLine("SIGN DATA >>>");
+            Console.WriteLine(signData.ToString());
 
-            return baseUrl;
+            var vnpSecureHash = Utils.HmacSHA512(vnpHashSecret, signData.ToString());
+
+            Console.WriteLine("SECURE HASH >>>");
+            Console.WriteLine(vnpSecureHash);
+
+            return $"{baseUrl}?{queryString}&vnp_SecureHash={vnpSecureHash}";
         }
-        #endregion
+
+
 
         #region Response process
         public bool ValidateSignature(string inputHash, string secretKey)
@@ -94,9 +137,14 @@ namespace EcoFashionBackEnd.Helpers
 
             return data.ToString();
         }
+
         #endregion
+     
+       
+
 
     }
+
 
     public class Utils
     {
@@ -146,11 +194,13 @@ namespace EcoFashionBackEnd.Helpers
 
             return "127.0.0.1";
         }
+
+
     }
 
     public class VnPayCompare : IComparer<string>
     {
-        public int Compare(string? x, string? y)
+        public int Compare(string x, string y)
         {
             if (x == y) return 0;
             if (x == null) return -1;
@@ -159,6 +209,9 @@ namespace EcoFashionBackEnd.Helpers
             return vnpCompare.Compare(x, y, CompareOptions.Ordinal);
         }
     }
+
+
+
 
 }
 
