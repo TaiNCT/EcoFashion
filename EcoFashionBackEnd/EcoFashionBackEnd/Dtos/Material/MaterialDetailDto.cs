@@ -1,4 +1,4 @@
-﻿using EcoFashionBackEnd.Entities.EcoFashionBackEnd.Entities;
+﻿
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Dtos;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -11,7 +11,7 @@ namespace EcoFashionBackEnd.Dtos.Material
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
         public string MaterialTypeName { get; set; } = "";
-        public decimal RecycledPercentage { get; set; }
+        public decimal? RecycledPercentage { get; set; }
         public int QuantityAvailable { get; set; }
         public decimal PricePerUnit { get; set; }
         public DateTime CreatedAt { get; set; }

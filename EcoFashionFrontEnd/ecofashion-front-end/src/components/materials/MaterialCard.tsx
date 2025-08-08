@@ -144,23 +144,20 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
 
   const getQuantityDisplay = (quantity: number) => {
     if (quantity === 0) return "Hết hàng";
-    return `${quantity.toLocaleString('vi-VN')} mét`;
+    return `${quantity.toLocaleString('vi-VN')} mét vuông`;
   };
 
-  const getSustainabilityScore = (recycledPercentage: number) => {
+  const getSustainabilityScore = () => {
     // Ưu tiên sử dụng sustainability score từ backend
     if (material.sustainabilityScore !== undefined && material.sustainabilityScore !== null) {
       return material.sustainabilityScore;
     }
     
-    // Fallback: tính toán local như cũ
-    let score = recycledPercentage;
-    if (recycledPercentage >= 80) score += 20;
-    else if (recycledPercentage >= 50) score += 10;
-    return Math.min(score, 100);
+    // Fallback: nếu không có sustainability score từ backend, trả về 0
+    return 0;
   };
 
-  const sustainabilityScore = getSustainabilityScore(material.recycledPercentage);
+  const sustainabilityScore = getSustainabilityScore();
   
   // Lấy sustainability level và color từ backend
   const sustainabilityLevel = material.sustainabilityLevel || 
@@ -289,7 +286,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
           >
             <Chip
               icon={<Recycling />}
-              label={`${material.recycledPercentage.toFixed(1)}% Tái Chế`}
+              label={`${sustainabilityScore.toFixed(1)}% Bền vững`}
               size="small"
               sx={{
                 backgroundColor: "rgba(200, 248, 217, 1)",
@@ -473,7 +470,6 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
               <Box sx={{ mb: 1 }}>
                 <SustainabilityCompact 
                   sustainabilityScore={sustainabilityScore}
-                  recycledPercentage={material.recycledPercentage}
                   sustainabilityLevel={material.sustainabilityLevel}
                   sustainabilityColor={material.sustainabilityColor}
                 />

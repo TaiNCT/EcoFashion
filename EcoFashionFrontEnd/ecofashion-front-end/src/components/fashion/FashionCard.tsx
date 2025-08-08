@@ -125,12 +125,6 @@ const FashionCard: React.FC<FashionCardProps> = ({
     }).format(price);
   };
 
-  const formatOriginalPrice = (price: Fashion["price"]) => {
-    if (!price.original) return null;
-    const formatted = new Intl.NumberFormat("vi-VN").format(price.original);
-    return `${formatted}₫`;
-  };
-
   // const handleCardClick = () => {
   //   if (onSelect) {
   //     onSelect(product);
@@ -216,7 +210,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
         )} */}
           <Chip
             icon={<EcoIcon />}
-            label={`${product.recycledPercentage}% Tái Chế`}
+            label={`${product.recycledPercentage}% Bền Vững`}
             size="small"
             sx={{
               backgroundColor: "rgba(200, 248, 217, 1)",
@@ -411,7 +405,7 @@ const FashionCard: React.FC<FashionCardProps> = ({
                   fontSize: "28px",
                 }}
               >
-                {formatPriceVND(product.price)}
+                {formatPriceVND(product.salePrice)}
               </Typography>
               {/* )}  */}
               {/* {product.price.original && (

@@ -44,13 +44,13 @@ const faqs = [
 
 export default function Contact() {
   return (
-    <Box width={"100%"}>
+    <Box width={"100%"} sx={{ height: "100vh" }}>
       <Box
         sx={{
           backgroundColor: "#15a34a",
           color: "white",
           textAlign: "center",
-          padding: "40px",
+          padding: 2,
         }}
       >
         <Typography variant="h4" fontWeight="bold" gutterBottom>

@@ -55,7 +55,9 @@ namespace EcoFashionBackEnd.Data.test
                 // Organic Certification (CriterionId = 4)
                 // Kiểm tra xem material có organic certification không
                 var hasOrganicCert = material.CertificationDetails?.Contains("GOTS") == true || 
-                                   material.CertificationDetails?.Contains("Organic") == true;
+                                   material.CertificationDetails?.Contains("OEKO-TEX") == true ||
+                                   material.CertificationDetails?.Contains("GRS") == true ||
+                                   material.CertificationDetails?.Contains("OCS") == true;
                 materialSustainabilities.Add(new MaterialSustainability
                 {
                     MaterialId = material.MaterialId,
@@ -63,13 +65,10 @@ namespace EcoFashionBackEnd.Data.test
                     Value = hasOrganicCert ? 1m : 0m
                 });
 
-                // Recycled Content (CriterionId = 5)
-                materialSustainabilities.Add(new MaterialSustainability
-                {
-                    MaterialId = material.MaterialId,
-                    CriterionId = 5,
-                    Value = material.RecycledPercentage
-                });
+                // Transport (CriterionId = 5) - Calculated from TransportDistance and TransportMethod
+                // Transport score is calculated dynamically in SustainabilityService
+                // No need to store transport data in MaterialSustainability table
+                // Transport will be calculated using CalculateTransportScore method
             }
 
             await context.MaterialSustainabilities.AddRangeAsync(materialSustainabilities);

@@ -239,9 +239,9 @@ export default function DesingBrandProfile() {
 
     switch (sortType) {
       case "lowest":
-        return a.price - b.price;
+        return a.salePrice - b.salePrice;
       case "highest":
-        return b.price - a.price;
+        return b.salePrice - a.salePrice;
       case "recent":
         return b.designId - a.designId;
       default:
@@ -362,7 +362,7 @@ export default function DesingBrandProfile() {
       behavior: "smooth",
     });
   };
-  if (loading) return <div className="designer-loading">Đang tải...</div>;
+  if (loading) return <div className="designer-loading ">Đang tải...</div>;
   if (error || !designer)
     return (
       <div className="designer-error">
@@ -895,7 +895,6 @@ export default function DesingBrandProfile() {
                         Tất cả
                       </MenuItem>
                       <MenuItem value="recent">Mới Đây</MenuItem>
-                      <MenuItem value="material">Vật liệu</MenuItem>
                       <MenuItem value="lowest">Giá Thấp Tới Cao</MenuItem>
                       <MenuItem value="highest">Giá Cao Tới Thấp</MenuItem>
                     </Select>

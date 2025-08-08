@@ -1,4 +1,4 @@
-﻿using EcoFashionBackEnd.Entities.EcoFashionBackEnd.Entities;
+﻿
 using Microsoft.EntityFrameworkCore;
 
 namespace EcoFashionBackEnd.Entities
@@ -37,7 +37,9 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<BlogImage> BlogImages { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+
 
         #endregion
 
@@ -386,6 +388,13 @@ namespace EcoFashionBackEnd.Entities
                 .HasOne(bi => bi.Image)
                 .WithMany()
                 .HasForeignKey(bi => bi.ImageId)
+                .OnDelete(DeleteBehavior.Cascade);
+            #endregion
+            #region Notification
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
             #endregion
 

@@ -1,6 +1,7 @@
 ﻿using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Dtos;
+using EcoFashionBackEnd.Dtos.DesignerMaterialInventory;
 using EcoFashionBackEnd.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -44,10 +45,10 @@ namespace EcoFashionBackEnd.Controllers
         [HttpGet("GetStoredMaterial/{designerId}")]
         public async Task<IActionResult> GetDesignerMaterialInventoryByDesignerId(Guid designerId)
         {
-            var inventory = await _inventoryService.GetDesignerMaterialInventoryByDesignerIdAsync(designerId);
-            if (inventory == null)
-                return NotFound(ApiResult<DesignerMaterialInventoryModel>.Fail("Không tìm thấy kho vật liệu"));
-            return Ok(ApiResult<DesignerMaterialInventoryModel>.Succeed(inventory));
+            var inventories = await _inventoryService.GetDesignerMaterialInventoryByDesignerIdAsync(designerId);
+            if (inventories == null)
+                return NotFound(ApiResult<DesignerMaterialInventoryDto>.Fail("Không tìm thấy kho vật liệu"));
+            return Ok(inventories);
         }
 
 

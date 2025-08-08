@@ -48,6 +48,8 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { EcoIcon } from "../../assets/icons/icon";
+import ManIcon from "@mui/icons-material/Man";
+import WomanIcon from "@mui/icons-material/Woman";
 //Certificate
 import GRS from "../../assets/pictures/certificate/global-recycled-standard-(grs).webp";
 import OEKO from "../../assets/pictures/certificate/image-removebg-preview-70.png";
@@ -148,15 +150,15 @@ export default function DesignDetail() {
       currency: "VND",
     }).format(price);
   };
-  const formatOriginalPrice = (price: Fashion["price"]) => {
-    if (!price.original) return null;
-    const formatted = new Intl.NumberFormat("vi-VN").format(price.original);
-    return `${formatted}₫`;
-  };
 
   //Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 12;
+
+  //Impact Data
+  const [wasteDiverted, setWasteDiverted] = useState(0);
+  const [carbonFootprint, setCarbonFootprint] = useState(0);
+  const [waterUsed, setWaterUsed] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -164,6 +166,24 @@ export default function DesignDetail() {
       try {
         setLoading(true);
         const data = await DesignService.getDesignDetailById(Number(id));
+        let totalWasteDiverted = 0;
+        let totalWaterUsed = 0;
+        let totalCarbonFootprint = 0;
+        data.materials.forEach((material) => {
+          totalWasteDiverted +=
+            material.wasteDiverted * (material.persentageUsed / 100);
+          totalWaterUsed +=
+            material.waterUsage *
+            (material.persentageUsed / 100) *
+            material.meterUsed;
+          totalCarbonFootprint +=
+            material.carbonFootprint *
+            (material.persentageUsed / 100) *
+            material.meterUsed;
+        });
+        setWasteDiverted(Math.ceil(totalWasteDiverted));
+        setCarbonFootprint(Math.ceil(totalCarbonFootprint));
+        setWaterUsed(Math.ceil(totalWaterUsed));
         const relatedData =
           await DesignService.getAllDesignByDesignerPagination(
             data.designer.designerId,
@@ -281,7 +301,11 @@ export default function DesignDetail() {
           borderTop: "1px solid black",
         }}
       >
-        <Breadcrumbs separator="›" aria-label="breadcrumb">
+        <Breadcrumbs
+          separator="›"
+          aria-label="breadcrumb"
+          sx={{ paddingLeft: 2 }}
+        >
           <Link underline="hover" color="inherit" href="/">
             Trang chủ
           </Link>
@@ -373,7 +397,12 @@ export default function DesignDetail() {
                 sx={{ display: "flex", flexDirection: "column", width: "100%" }}
               >
                 <Typography
-                  sx={{ fontSize: "30px", margin: "auto 0", width: "100%" }}
+                  sx={{
+                    fontSize: "30px",
+                    margin: "auto 0",
+                    width: "100%",
+                    fontWeight: "bold",
+                  }}
                 >
                   {designDetail.name}
                 </Typography>
@@ -426,7 +455,7 @@ export default function DesignDetail() {
               </Box>
               <Chip
                 icon={<EcoIcon />}
-                label={`${designDetail.recycledPercentage}% Tái Chế`}
+                label={`${designDetail.recycledPercentage}% Bền Vững`}
                 size="small"
                 sx={{
                   backgroundColor: "rgba(200, 248, 217, 1)",
@@ -452,7 +481,7 @@ export default function DesignDetail() {
                   fontSize: "20px",
                 }}
               >
-                {formatPriceVND(designDetail.price)}
+                {formatPriceVND(designDetail.salePrice)}
               </Typography>
               {/* )} */}
               {/* {product.price.original && (
@@ -598,38 +627,62 @@ export default function DesignDetail() {
                   maxWidth="lg"
                   fullWidth
                 >
-                  <DialogTitle>Hướng dẫn chọn size</DialogTitle>
+                  <DialogTitle sx={{ fontWeight: "bold" }}>
+                    Hướng dẫn chọn size
+                  </DialogTitle>
                   <DialogContent dividers>
-                    <Typography sx={{ mb: 2 }}>
+                    <Typography sx={{ mb: 2, fontSize: "20px" }}>
                       Dùng thước dây để lấy số đo 3 vòng: ngực - eo - mông rồi
                       đối chiếu với bảng số đo bên dưới để chọn kích cỡ.
                     </Typography>
 
                     <Box>
-                      {/* Bảng nữ */}
-                      <Typography
-                        variant="subtitle1"
-                        fontWeight="bold"
-                        sx={{ mb: 1 }}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          alignItems: "center",
+                          mb: 1,
+                        }}
                       >
-                        Bảng size nữ
-                      </Typography>
+                        {/* Bảng nữ */}
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          Bảng size nữ
+                        </Typography>
+                        <WomanIcon sx={{ color: "red", fontSize: "30px" }} />
+                      </Box>
                       <TableContainer component={Paper} sx={{ mb: 3 }}>
                         <Table size="small">
                           <TableHead>
                             <TableRow>
-                              <TableCell>Ký hiệu / Thông số (cm)</TableCell>
-                              <TableCell>XS</TableCell>
-                              <TableCell>S</TableCell>
-                              <TableCell>M</TableCell>
-                              <TableCell>L</TableCell>
-                              <TableCell>XL</TableCell>
-                              <TableCell>XXL</TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                Ký hiệu / Thông số (cm)
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                XS
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                S
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                M
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                L
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                XL
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                XXL
+                              </TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
                             <TableRow>
-                              <TableCell>NGỰC</TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                NGỰC
+                              </TableCell>
                               <TableCell>76 - 80</TableCell>
                               <TableCell>82 - 86</TableCell>
                               <TableCell>88 - 92</TableCell>
@@ -638,7 +691,9 @@ export default function DesignDetail() {
                               <TableCell>106 - 109</TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell>EO</TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                EO
+                              </TableCell>
                               <TableCell>62 - 66</TableCell>
                               <TableCell>68 - 72</TableCell>
                               <TableCell>74 - 78</TableCell>
@@ -647,7 +702,9 @@ export default function DesignDetail() {
                               <TableCell>104 - 108</TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell>MÔNG</TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                MÔNG
+                              </TableCell>
                               <TableCell>80 - 84</TableCell>
                               <TableCell>86 - 90</TableCell>
                               <TableCell>92 - 96</TableCell>
@@ -660,29 +717,52 @@ export default function DesignDetail() {
                       </TableContainer>
 
                       {/* Bảng nam */}
-                      <Typography
-                        variant="subtitle1"
-                        fontWeight="bold"
-                        sx={{ mb: 1 }}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          alignItems: "center",
+                          mb: 1,
+                        }}
                       >
-                        Bảng size nam
-                      </Typography>
+                        {/* Bảng nữ */}
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          Bảng size nam
+                        </Typography>
+                        <ManIcon sx={{ color: "blue", fontSize: "30px" }} />
+                      </Box>
                       <TableContainer component={Paper}>
                         <Table size="small">
                           <TableHead>
                             <TableRow>
-                              <TableCell>Ký hiệu / Thông số (cm)</TableCell>
-                              <TableCell>XS</TableCell>
-                              <TableCell>S</TableCell>
-                              <TableCell>M</TableCell>
-                              <TableCell>L</TableCell>
-                              <TableCell>XL</TableCell>
-                              <TableCell>XXL</TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                Ký hiệu / Thông số (cm)
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                XS
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                S
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                M
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                L
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                XL
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                XXL
+                              </TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
                             <TableRow>
-                              <TableCell>NGỰC</TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                NGỰC
+                              </TableCell>
                               <TableCell>88 - 92</TableCell>
                               <TableCell>94 - 98</TableCell>
                               <TableCell>100 - 104</TableCell>
@@ -691,7 +771,9 @@ export default function DesignDetail() {
                               <TableCell>118 - 122</TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell>EO</TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                EO
+                              </TableCell>
                               <TableCell>73 - 77</TableCell>
                               <TableCell>79 - 83</TableCell>
                               <TableCell>85 - 89</TableCell>
@@ -700,7 +782,9 @@ export default function DesignDetail() {
                               <TableCell>103 - 107</TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell>MÔNG</TableCell>
+                              <TableCell sx={{ fontWeight: "bold" }}>
+                                MÔNG
+                              </TableCell>
                               <TableCell>88 - 94</TableCell>
                               <TableCell>96 - 99</TableCell>
                               <TableCell>101 - 103</TableCell>
@@ -959,6 +1043,7 @@ export default function DesignDetail() {
                   minHeight: 200,
                 }}
               >
+                {/* Title */}
                 <Box
                   sx={{
                     display: "flex",
@@ -974,98 +1059,88 @@ export default function DesignDetail() {
 
                 <Box
                   sx={{
-                    display: "flex",
-                    width: "100%",
+                    width: "80%",
                     margin: "auto",
+                    display: "flex",
+                    padding: "30px",
+                    alignItems: "stretch",
                   }}
                 >
+                  {/*  Water Saved */}
                   <Box
                     sx={{
-                      width: "80%",
-                      margin: "auto",
-                      display: "flex",
-                      padding: "30px",
+                      p: 2,
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                      boxShadow: 1,
+                      flex: 1,
+                      margin: "0 10px",
+                      height: "100%",
                     }}
                   >
-                    {/*  Water Saved */}
-                    <Box
-                      sx={{
-                        p: 2,
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        boxShadow: 1,
-                        flex: 1,
-                        margin: "0 10px",
-                      }}
-                    >
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        Tiết kiệm nước
-                      </Typography>
-                      <Typography
-                        variant="h5"
-                        fontWeight="bold"
-                        color="primary"
-                      >
-                        2,700 L
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        So với quy trình sản xuất thông thường
-                      </Typography>
-                    </Box>
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      Tiết kiệm nước
+                    </Typography>
+                    <Typography variant="h5" fontWeight="bold" color="primary">
+                      {waterUsed} L
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Thấp hơn so với quy trình sản xuất thông thường
+                    </Typography>
+                  </Box>
 
-                    {/* CO₂ Reduced */}
-                    <Box
-                      sx={{
-                        p: 2,
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        boxShadow: 1,
-                        flex: 1,
-                        height: "100%",
-                        margin: "0 10px",
-                      }}
+                  {/* CO₂ Reduced */}
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                      boxShadow: 1,
+                      flex: 1,
+                      margin: "0 10px",
+                      height: "100%",
+                    }}
+                  >
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      Giảm khí CO₂
+                    </Typography>
+                    <Typography
+                      variant="h5"
+                      fontWeight="bold"
+                      color="success.main"
                     >
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        Giảm khí CO₂
-                      </Typography>
-                      <Typography
-                        variant="h5"
-                        fontWeight="bold"
-                        color="success.main"
-                      >
-                        6 kg
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Dấu chân carbon thấp hơn so với phương pháp sản xuất
-                        thông thường.
-                      </Typography>
-                    </Box>
+                      {carbonFootprint} Kg
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Thấp hơn so với phương pháp sản xuất thông thường.
+                    </Typography>
+                  </Box>
 
-                    {/* Waste Diverted */}
-                    <Box
-                      sx={{
-                        p: 2,
-                        bgcolor: "#fff",
-                        borderRadius: 2,
-                        boxShadow: 1,
-                        flex: 1,
-                        margin: "0 10px",
-                      }}
+                  {/* Waste Diverted */}
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: "#fff",
+                      borderRadius: 2,
+                      boxShadow: 1,
+                      flex: 1,
+                      margin: "0 10px",
+                      height: "100%",
+                    }}
+                  >
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      Rác Thải Chuyển Hướng
+                    </Typography>
+                    <Typography
+                      variant="h5"
+                      fontWeight="bold"
+                      color="success.main"
                     >
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        Rác Thải Được Chuyển Hướng
-                      </Typography>
-                      <Typography
-                        variant="h5"
-                        fontWeight="bold"
-                        color="success.main"
-                      >
-                        1,2 kg
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Rác thải dệt may đã tránh được khỏi bãi rác
-                      </Typography>
-                    </Box>
+                      {wasteDiverted} %
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Rác thải dệt may đã tránh được khỏi bãi rác
+                    </Typography>
                   </Box>
                 </Box>
               </Box>
@@ -1078,85 +1153,81 @@ export default function DesignDetail() {
                 }}
               >
                 {/* Mô Tả */}
-                <Grid sx={{ width: "40%", marginRight: "auto" }}>
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    Thông Tin Nguyên Liệu
-                  </Typography>
-                  {designDetail.materials.map((mat, index) => (
-                    <Box key={index} sx={{ mt: 2 }}>
-                      <Typography
-                        variant="body2"
-                        fontWeight="bold"
-                        sx={{ mb: 0.5 }}
-                      >
-                        {mat.materialName}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        component="div"
-                        sx={{ whiteSpace: "pre-line" }}
-                      >
-                        {mat.materialDescription}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Grid>
+                <TableContainer component={Paper} sx={{ width: "100%" }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            Tên Nguyên Liệu
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            Mô Tả Nguyên Liệu
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            Chứng Chỉ
+                          </Typography>
+                        </TableCell>
+                        {/* <TableCell>
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            Ảnh Chứng Chỉ
+                          </Typography>
+                        </TableCell> */}
+                      </TableRow>
+                    </TableHead>
 
-                {/* Đặc điểm và Bảo quản */}
-                <Grid sx={{ width: "50%" }}>
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    Chứng Chỉ
-                  </Typography>
-                  <List dense>
-                    <ListItem>
-                      <ListItemIcon>
-                        <img
-                          src={GRS}
-                          style={{
-                            height: "100px",
-                            width: "90px",
-                            background: "white",
-                          }}
-                        />
-                      </ListItemIcon>
-
-                      <ListItemText>
-                        <Typography
-                          sx={{ fontSize: "15px", fontWeight: "bold" }}
-                        >
-                          Global Recycled Standard
-                        </Typography>
-                        <Typography sx={{ fontSize: "10px" }}>
-                          Xác nhận thành phần tái chế và quy trình sản xuất có
-                          trách nhiệm
-                        </Typography>
-                      </ListItemText>
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <img
-                          src={OEKO}
-                          style={{
-                            height: "100px",
-                            width: "90px",
-                            background: "white",
-                          }}
-                        />
-                      </ListItemIcon>
-
-                      <ListItemText>
-                        <Typography
-                          sx={{ fontSize: "15px", fontWeight: "bold" }}
-                        >
-                          OEKO-TEX Standard 100
-                        </Typography>
-                        <Typography sx={{ fontSize: "10px" }}>
-                          Được chứng nhận không chứa chất gây hại
-                        </Typography>
-                      </ListItemText>
-                    </ListItem>
-                  </List>
-                </Grid>
+                    <TableBody>
+                      {designDetail.materials.map((mat, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="bold">
+                              <Link
+                                href={`/material/${mat.materialId}`}
+                                underline="hover"
+                                sx={{ fontWeight: "bold", fontSize: "14px" }}
+                              >
+                                {mat.materialName}
+                              </Link>
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography
+                              variant="body2"
+                              sx={{ whiteSpace: "pre-line" }}
+                              component="div"
+                            >
+                              {mat.materialDescription}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: "bold" }}
+                              component="div"
+                            >
+                              {mat.certificationDetails}
+                            </Typography>
+                          </TableCell>
+                          {/* <TableCell>
+                            <img
+                              src={GRS}
+                              alt="Material Certificate"
+                              style={{
+                                height: "100px",
+                                width: "90px",
+                                background: "white",
+                              }}
+                            />
+                          </TableCell> */}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Box>
             </Box>
           )}
@@ -1359,22 +1430,7 @@ export default function DesignDetail() {
         <FashionsSection
           products={relatedDesign}
           title="SẢN PHẨM LIÊN QUAN"
-          // onProductSelect={(product) => {
-          //   console.log("Selected product:", product.name);
-          //   // TODO: Navigate to product detail or open modal
-          // }}
-          // onAddToCart={(product) => {
-          //   console.log("Add to cart:", product.name);
-          //   // TODO: Add to cart logic
-          // }}
-          // onToggleFavorite={(product) => {
-          //   console.log("Toggle favorite:", product.name);
-          //   // TODO: Toggle favorite logic
-          // }}
-          // onViewMore={() => {
-          //   console.log("View more featured products");
-          //   // TODO: Navigate to featured products page
-          // }}
+          onViewMore={() => `/brand/${designDetail.designer.designerId}`}
         />
       </Box>
     </Box>

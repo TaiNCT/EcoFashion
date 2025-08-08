@@ -12,6 +12,7 @@ import FashionCard from "./FashionCard";
 import type { Fashion } from "../../types/Fashion";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import { Design } from "../../services/api/designService";
+import { href, useNavigate, useNavigation } from "react-router-dom";
 interface ProductsSectionProps {
   products: Design[];
   title?: string;
@@ -19,7 +20,7 @@ interface ProductsSectionProps {
   onProductSelect?: (product: Design) => void;
   onAddToCart?: (product: Design) => void;
   onToggleFavorite?: (product: Design) => void;
-  onViewMore?: () => void;
+  onViewMore?: () => string;
   showViewMore?: boolean;
 }
 
@@ -77,6 +78,8 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
   };
 
   const visibleProducts = products.slice(startIndex, startIndex + visibleCount);
+
+  const navigate = useNavigate();
   return (
     <Box
       sx={{
@@ -144,7 +147,7 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
         <Button
           variant="outlined"
           size="large"
-          onClick={onViewMore}
+          onClick={() => navigate(onViewMore())}
           sx={{
             color: "rgba(22, 163, 74, 1)",
             borderColor: "rgba(22, 163, 74, 1)",

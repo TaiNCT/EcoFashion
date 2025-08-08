@@ -41,7 +41,7 @@ namespace EcoFashionBackEnd.Data.test
                     SalePrice = random.Next(min, max + 1),
                     ProductScore = 5,
                     Status = "in stock",
-                    DesignTypeId = 1, 
+                    DesignTypeId = random.Next(1,4), 
                     Stage = DesignStage.Finalized,
                     CreatedAt = DateTime.UtcNow
                 };

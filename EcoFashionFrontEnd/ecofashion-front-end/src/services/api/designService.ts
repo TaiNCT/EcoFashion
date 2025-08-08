@@ -43,15 +43,43 @@ export interface Material {
   materialTypeName: string;
   sustainabilityCriteria: SustainabilityCriterion[];
   materialDescription: string;
-  recycledPercentage: number;
+  sustainabilityScore: number;
+  carbonFootprint: number;
+  carbonFootprintUnit: string;
+  waterUsage: number;
+  waterUsageUnit: string;
+  wasteDiverted: number;
+  wasteDivertedUnit: string;
+  certificationDetails: string;
+}
+
+export interface TypeMaterial {
+  materialId: number;
+  name: string;
+  pricePerUnit: string;
+  quantityAvailable: number;
+  carbonFootprint: number;
+  carbonFootprintUnit: string;
+  waterUsage: number;
+  waterUsageUnit: string;
+  wasteDiverted: number;
+  wasteDivertedUnit: string;
+  productionCountry: string;
+  productionRegion: string;
+  transportDistance: number;
+  transportMethod: string;
+  supplierName: string;
+  sustainabilityScore: number;
+  sustainabilityColor: string;
+  certificationDetails: string;
 }
 
 export interface StoredMaterial {
+  inventoryId: number;
+  designerId: number;
+  material: Material;
   materialId: number;
-  supplierId: string;
-  name: string;
-  recycledPercentage: number;
-  sustainabilityCriteria: SustainabilityCriterion[];
+  quantity: number;
 }
 
 export interface Designer {
@@ -90,7 +118,7 @@ export interface Design {
   description: string;
   recycledPercentage: number;
   careInstructions: string;
-  price: number;
+  salePrice: number;
   productScore: number;
   status: string;
   createdAt: string;
@@ -218,10 +246,10 @@ export class DesignService {
   /**
    * Get material
    */
-  static async getMaterial(): Promise<StoredMaterial[]> {
+  static async getMaterial(): Promise<TypeMaterial[]> {
     try {
-      const response = await apiClient.get<BaseApiResponse<StoredMaterial[]>>(
-        `/Materials`
+      const response = await apiClient.get<BaseApiResponse<TypeMaterial[]>>(
+        `/Material`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -264,7 +292,7 @@ export class DesignService {
         designFieldMapping.careInstructions,
         request.careInstructions
       );
-    formData.append(designFieldMapping.price, request.price.toString());
+    formData.append(designFieldMapping.price, request.salePrice.toString());
     formData.append(
       designFieldMapping.productScore,
       request.productScore.toString()
@@ -355,6 +383,20 @@ export class DesignService {
     try {
       const response = await apiClient.get<BaseApiResponse<MaterialType[]>>(
         `/MaterialTypes`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Get material by Type
+   */
+  static async getMaterialByType(id: number): Promise<TypeMaterial[]> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<TypeMaterial[]>>(
+        `/Material/GetAllMaterialByType/${id}`
       );
       return handleApiResponse(response);
     } catch (error) {

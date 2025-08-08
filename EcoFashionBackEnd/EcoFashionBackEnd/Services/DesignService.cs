@@ -21,6 +21,7 @@ namespace EcoFashionBackEnd.Services
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly CloudService _cloudService;
+        private readonly SustainabilityService _sustainabilityService;
 
         public DesignService(
             IRepository<Design, int> designRepository,
@@ -55,8 +56,6 @@ namespace EcoFashionBackEnd.Services
                         .ThenInclude(m => m.MaterialType)
                 .Include(d => d.DesignsMaterials)
                     .ThenInclude(dm => dm.Materials)
-                        .ThenInclude(m => m.MaterialSustainabilityMetrics)
-                            .ThenInclude(ms => ms.SustainabilityCriterion)
                 .Include(d => d.DesignsRatings)
                 .Include(d => d.DesignerProfile)
                 .FirstOrDefaultAsync(d => d.DesignId == id);
@@ -72,7 +71,7 @@ namespace EcoFashionBackEnd.Services
                 CareInstructions = design.CareInstructions,
                 SalePrice = design.SalePrice,
                 UnitPrice = design.UnitPrice,
-                Stage= design.Stage,
+                Stage= design.Stage.ToString(),
                 ProductScore = design.ProductScore,
                 Status = design.Status,
                 CreatedAt = design.CreatedAt,
@@ -104,16 +103,13 @@ namespace EcoFashionBackEnd.Services
                     MaterialName = dm.Materials?.Name,
                     MaterialDescription = dm.Materials?.Description,
                     MaterialTypeName = dm.Materials?.MaterialType?.TypeName,
-
-
-                    SustainabilityCriteria = dm.Materials?.MaterialSustainabilityMetrics?
-                        .Select(ms => new SustainabilityCriterionDto
-                        {
-                            Criterion = ms.SustainabilityCriterion?.Name?.Trim().ToLower().Replace(" ", "_") ?? "",
-                            Value = (decimal)ms.Value
-                        })
-                        .Where(dto => !string.IsNullOrEmpty(dto.Criterion))
-                        .ToList() ?? new()
+                    CarbonFootprint = dm.Materials.CarbonFootprint,
+                    CarbonFootprintUnit = dm.Materials.CarbonFootprintUnit,
+                    WasteDiverted = dm.Materials.WasteDiverted,
+                    WasteDivertedUnit = dm.Materials.WasteDivertedUnit,
+                    WaterUsage = dm.Materials.WaterUsage,
+                    WaterUsageUnit = dm.Materials.WaterUsageUnit,
+                    CertificationDetails = dm.Materials.CertificationDetails,
                 }).ToList(),
 
                 AvgRating = design.DesignsRatings.Any() ? design.DesignsRatings.Average(r => r.RatingScore) : null,
@@ -244,7 +240,7 @@ namespace EcoFashionBackEnd.Services
                     ProductScore = d.ProductScore,
                     Status = d.Status,
                     CreatedAt = d.CreatedAt,
-                    Stage = DesignStage.Finalized,
+                    Stage = d.Stage.ToString(),
                     DesignTypeName = d.DesignTypes.DesignName,
                     ImageUrls = d.DesignImages.Select(di => di.Image.ImageUrl).ToList(),
 
@@ -333,7 +329,7 @@ namespace EcoFashionBackEnd.Services
                 ProductScore = design.ProductScore,
                 Status = design.Status,
                 CreatedAt = design.CreatedAt,
-                Stage = design.Stage,
+                Stage = design.Stage.ToString(),
                 DesignTypeName = design.DesignTypes?.DesignName,
                 ImageUrls = design.DesignImages.Select(di => di.Image.ImageUrl).ToList(),
 
@@ -341,6 +337,7 @@ namespace EcoFashionBackEnd.Services
                 {
                     PersentageUsed = dm.PersentageUsed,
                     MaterialName = dm.Materials?.Name,
+                    
                 }).ToList(),
 
                 AvgRating = design.DesignsRatings.Any() ? design.DesignsRatings.Average(r => r.RatingScore) : null,
