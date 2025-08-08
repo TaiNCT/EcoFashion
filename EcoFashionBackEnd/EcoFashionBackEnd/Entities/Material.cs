@@ -1,5 +1,4 @@
-﻿using EcoFashionBackEnd.Entities.EcoFashionBackEnd.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Entities

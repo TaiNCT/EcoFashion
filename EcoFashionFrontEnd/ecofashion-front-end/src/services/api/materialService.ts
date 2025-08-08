@@ -5,11 +5,15 @@ import {
   materialModelSchema,
   materialCreationFormRequestSchema,
   materialTypeModelSchema,
+  materialSustainabilityReportSchema,
   type MaterialDetailDto,
   type MaterialDetailResponse,
   type MaterialModel,
   type MaterialCreationFormRequest,
   type MaterialTypeModel,
+  type MaterialSustainabilityReport,
+  materialCreationResponseSchema,
+  type MaterialCreationResponse,
 } from '../../schemas/materialSchema';
 
 // Mapping schema cho backend field names
@@ -60,20 +64,43 @@ class MaterialService {
   }
 
   // Get material by ID (alias for getMaterialDetail)
-  async getMaterialById(id: number): Promise<MaterialDetailDto> {
+  async getMaterialById(id: number): Promise<MaterialDetailResponse> {
     const response = await apiClient.get<any>(`${this.API_BASE}/${id}`);
-    const result = handleApiResponse<MaterialDetailDto>(response);
-    return materialDetailDtoSchema.parse(result);
+    const result = handleApiResponse<MaterialDetailResponse>(response);
+    return materialDetailResponseSchema.parse(result);
   }
 
-  // Create new material with sustainability
-  async createMaterialWithSustainability(request: MaterialCreationFormRequest): Promise<MaterialModel> {
-    // Validate request data
+  // Create new material with sustainability (returns creation response)
+  async createMaterialWithSustainability(request: MaterialCreationFormRequest): Promise<MaterialCreationResponse> {
     const validatedRequest = materialCreationFormRequestSchema.parse(request);
-    
     const response = await apiClient.post<any>(`${this.API_BASE}/CreateWithSustainability`, validatedRequest);
-    const result = handleApiResponse<MaterialModel>(response);
-    return materialModelSchema.parse(result);
+    const result = handleApiResponse<MaterialCreationResponse>(response);
+    return materialCreationResponseSchema.parse(result);
+  }
+
+  // Upload images for a material (multipart form)
+  async uploadMaterialImages(materialId: number, files: File[]): Promise<{ imageId: number; imageUrl: string }[]> {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+    const response = await apiClient.post<any>(`${this.API_BASE}/${materialId}/images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return handleApiResponse(response);
+  }
+
+  // Admin: approve material
+  async approveMaterial(materialId: number): Promise<boolean> {
+    const response = await apiClient.post<any>(`${this.API_BASE}/${materialId}/approve`, {});
+    const result = handleApiResponse<boolean>(response);
+    return !!result;
+  }
+
+  // Admin: reject material with optional admin note
+  async rejectMaterial(materialId: number, adminNote?: string): Promise<boolean> {
+    const body = adminNote ?? null;
+    const response = await apiClient.post<any>(`${this.API_BASE}/${materialId}/reject`, body);
+    const result = handleApiResponse<boolean>(response);
+    return !!result;
   }
 
   // Delete material
@@ -83,9 +110,10 @@ class MaterialService {
   }
 
   // Get material sustainability score
-  async getMaterialSustainability(materialId: number): Promise<any> {
+  async getMaterialSustainability(materialId: number): Promise<MaterialSustainabilityReport> {
     const response = await apiClient.get<any>(`${this.API_BASE}/Sustainability/${materialId}`);
-    return handleApiResponse<any>(response);
+    const result = handleApiResponse<MaterialSustainabilityReport>(response);
+    return materialSustainabilityReportSchema.parse(result);
   }
 
   // Get all material types (for dropdown)
@@ -117,6 +145,19 @@ class MaterialService {
     }
   }
 
+  // Get recommended transport details (distance, method, description) by country
+  async getTransportDetails(country: string): Promise<{ distance: number; method: string; description: string }> {
+    const response = await apiClient.get<any>(`/material/CalculateTransport/${encodeURIComponent(country)}`);
+    return handleApiResponse(response);
+  }
+
+  // Get common production countries (for dropdown)
+  async getProductionCountries(): Promise<string[]> {
+    const response = await apiClient.get<any>(`/material/GetProductionCountries`);
+    const result = handleApiResponse<{ countries: string[] }>(response);
+    return result.countries ?? [];
+  }
+
   // Get sustainability evaluation from backend
   async getSustainabilityEvaluation(score: number) {
     try {
@@ -126,6 +167,18 @@ class MaterialService {
       console.error('Failed to get sustainability evaluation:', error);
       throw error;
     }
+  }
+
+  // Get supplier's materials with approval status filter
+  async getSupplierMaterials(supplierId: string, approvalStatus?: string) {
+    const params = new URLSearchParams();
+    if (approvalStatus && approvalStatus !== 'all') {
+      params.append('approvalStatus', approvalStatus);
+    }
+    params.append('supplierId', supplierId);
+    
+    const response = await apiClient.get<any>(`${this.API_BASE}/GetSupplierMaterials?${params}`);
+    return handleApiResponse(response);
   }
 }
 

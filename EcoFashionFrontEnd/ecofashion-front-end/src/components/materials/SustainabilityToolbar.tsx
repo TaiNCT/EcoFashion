@@ -14,7 +14,6 @@ import { getSustainabilityColor } from "../../utils/themeColors";
 
 interface SustainabilityToolbarProps {
   sustainabilityScore: number;
-  recycledPercentage: number;
   sustainabilityLevel?: string;
   sustainabilityColor?: string;
   showDetails?: boolean;
@@ -35,7 +34,6 @@ interface SustainabilityEvaluation {
 
 const SustainabilityToolbar: React.FC<SustainabilityToolbarProps> = ({
   sustainabilityScore,
-  recycledPercentage,
   sustainabilityLevel,
   sustainabilityColor,
   showDetails = true,
@@ -101,7 +99,7 @@ const SustainabilityToolbar: React.FC<SustainabilityToolbarProps> = ({
         <Typography variant="h6" component="span" fontWeight="bold" sx={{ mr: 1 }}>
           Điểm bền vững: {sustainabilityScore.toFixed(1)}%
         </Typography>
-        <Tooltip title="Điểm tổng hợp từ 5 tiêu chí bền vững: Carbon Footprint, Water Usage, Waste Diverted, Organic Certification, Recycled Content. Khác với tỷ lệ tái chế.">
+        <Tooltip title="Điểm tổng hợp từ 5 tiêu chí bền vững: Carbon Footprint, Water Usage, Waste Diverted, Organic Certification, Transport">
           <IconButton size="small" sx={{ color: "text.secondary" }}>
             <Info fontSize="small" />
           </IconButton>
@@ -143,21 +141,21 @@ const SustainabilityToolbar: React.FC<SustainabilityToolbarProps> = ({
       
       {/* Caption */}
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", fontStyle: "italic" }}>
-        * Điểm tổng hợp từ 5 tiêu chí: Carbon Footprint, Water Usage, Waste Diverted, Organic Certification, Recycled Content
+        * Điểm tổng hợp từ 5 tiêu chí: Carbon Footprint, Water Usage, Waste Diverted, Organic Certification, Transport
       </Typography>
 
       {/* Optional Details */}
       {showDetails && (
         <Box sx={{ mt: 2, p: 2, bgcolor: "#f8f9fa", borderRadius: 1 }}>
           <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
-            📊 Sự khác biệt giữa các chỉ số:
+            📊 Thông tin về điểm bền vững:
           </Typography>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             <Typography variant="body2">
-              • <strong>Tỷ lệ tái chế:</strong> {recycledPercentage.toFixed(1)}% - Chỉ 1 trong 5 tiêu chí đánh giá
+              • <strong>Điểm bền vững:</strong> {sustainabilityScore.toFixed(1)}% - Tổng hợp từ 5 tiêu chí: Carbon Footprint, Water Usage, Waste Diverted, Organic Certification, Transport
             </Typography>
             <Typography variant="body2">
-              • <strong>Điểm bền vững:</strong> {sustainabilityScore.toFixed(1)}% - Tổng hợp từ 5 tiêu chí: Carbon Footprint, Water Usage, Waste Diverted, Organic Certification, Recycled Content
+              • <strong>Mỗi tiêu chí:</strong> Đóng góp 20% vào điểm tổng hợp
             </Typography>
           </Box>
         </Box>

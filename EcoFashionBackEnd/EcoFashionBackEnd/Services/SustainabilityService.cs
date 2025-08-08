@@ -40,8 +40,15 @@ namespace EcoFashionBackEnd.Services
             decimal weightedScoreSum = 0;
             decimal totalWeight = 0;
 
+            // Define the 5 current sustainability criteria with equal weights (20% each)
+            var currentCriteria = new[] { "Carbon Footprint", "Water Usage", "Waste Diverted", "Organic Certification", "Transport" };
+
             foreach (var criterion in criteria)
             {
+                // Only process the 5 current criteria
+                if (!currentCriteria.Contains(criterion.Name))
+                    continue;
+
                 var (score, status, explanation, actualValue, benchmarkValue) = CalculateCriterionScore(
                     material, actualValues, benchmarks, criterion);
 
@@ -58,11 +65,10 @@ namespace EcoFashionBackEnd.Services
 
                 criterionDetails.Add(criterionDetail);
 
-                if (criterion.Weight > 0)
-                {
-                    weightedScoreSum += score * criterion.Weight;
-                    totalWeight += criterion.Weight;
-                }
+                // Set equal weight (20%) for all 5 criteria
+                decimal equalWeight = 20.0m;
+                weightedScoreSum += score * equalWeight;
+                totalWeight += equalWeight;
             }
 
             var overallScore = totalWeight > 0 ? weightedScoreSum / totalWeight : 0;
@@ -93,7 +99,7 @@ namespace EcoFashionBackEnd.Services
         }
 
         /// <summary>
-        /// Tính điểm vận chuyển dựa trên khoảng cách và phương thức
+        /// Tính điểm vận chuyển dựa trên khoảng cách (15%) và phương thức (5%)
         /// </summary>
         private decimal CalculateTransportScore(Material material)
         {
@@ -103,25 +109,29 @@ namespace EcoFashionBackEnd.Services
             var distance = material.TransportDistance.Value;
             var method = material.TransportMethod.ToLower();
 
-            // Base score based on distance
-            decimal baseScore = 100;
-            if (distance > 5000) baseScore = 20;      // >5000km: 20%
-            else if (distance > 2000) baseScore = 40;  // 2000-5000km: 40%
-            else if (distance > 1000) baseScore = 60;  // 1000-2000km: 60%
-            else if (distance > 500) baseScore = 80;   // 500-1000km: 80%
-            else if (distance > 100) baseScore = 90;   // 100-500km: 90%
+            // Calculate distance score (15% of total sustainability)
+            decimal distanceScore = 100;
+            if (distance > 5000) distanceScore = 20;      // >5000km: 20%
+            else if (distance > 2000) distanceScore = 40;  // 2000-5000km: 40%
+            else if (distance > 1000) distanceScore = 60;  // 1000-2000km: 60%
+            else if (distance > 500) distanceScore = 80;   // 500-1000km: 80%
+            else if (distance > 100) distanceScore = 90;   // 100-500km: 90%
 
-            // Adjust based on transport method
-            decimal methodMultiplier = method switch
+            // Calculate method score (5% of total sustainability)
+            decimal methodScore = method switch
             {
-                "sea" => 0.8m,    // Sea transport: 80% of base score
-                "rail" => 0.9m,    // Rail transport: 90% of base score
-                "land" => 0.7m,    // Land transport: 70% of base score
-                "air" => 0.3m,     // Air transport: 30% of base score (worst)
-                _ => 1.0m          // Default: 100% of base score
+                "sea" => 80,    // Sea transport: 80%
+                "rail" => 90,    // Rail transport: 90%
+                "land" => 70,    // Land transport: 70%
+                "air" => 30,     // Air transport: 30% (worst)
+                _ => 100         // Default: 100%
             };
 
-            return baseScore * methodMultiplier;
+            // Calculate weighted scores: (distance * 15%) + (method * 5%)
+            decimal distanceContribution = (distanceScore * 15) / 100;  // 15% weight
+            decimal methodContribution = (methodScore * 5) / 100;       // 5% weight
+
+            return distanceContribution + methodContribution;
         }
 
         /// <summary>
@@ -170,15 +180,14 @@ namespace EcoFashionBackEnd.Services
             string explanation = "";
 
             // Lấy giá trị thực tế
-            if (criterion.Name == "Recycled Content")
+            var actualMs = actualValues.FirstOrDefault(ms => ms.CriterionId == criterion.CriterionId);
+            if (actualMs != null)
+                actualValue = actualMs.Value;
+            else if (criterion.Name == "Organic Certification")
             {
-                actualValue = material.RecycledPercentage;
-            }
-            else
-            {
-                var actualMs = actualValues.FirstOrDefault(ms => ms.CriterionId == criterion.CriterionId);
-                if (actualMs != null)
-                    actualValue = actualMs.Value;
+                // Fallback: nếu chưa có bản ghi MaterialSustainability cho tiêu chí Organic,
+                // xác định từ CertificationDetails của material
+                actualValue = HasOrganicCertification(material) ? 1 : 0;
             }
 
             // Lấy giá trị benchmark
@@ -187,32 +196,6 @@ namespace EcoFashionBackEnd.Services
             // Tính điểm dựa trên loại tiêu chí
             switch (criterion.Name)
             {
-                case "Recycled Content":
-                    // Phân biệt giữa organic materials (không cần recycled) và recycled materials
-                    if (benchmarkValue == 0)
-                    {
-                        // Organic materials: không cần recycled content
-                        score = actualValue == 0 ? 100 : 50; // 100% nếu không có recycled, 50% nếu có
-                        status = actualValue == 0 ? "Excellent" : "Good";
-                        explanation = $"Organic material: {actualValue}% recycled (không cần recycled content)";
-                    }
-                    else
-                    {
-                        // Recycled materials: cần recycled content
-                        score = (actualValue / benchmarkValue) * 100;
-                        if (score > 100) score = 100;
-                        if (actualValue >= benchmarkValue)
-                            status = "Excellent";
-                        else if (actualValue >= benchmarkValue * 0.8m)
-                            status = "Good";
-                        else if (actualValue >= benchmarkValue * 0.5m)
-                            status = "Average";
-                        else
-                            status = "Needs Improvement";
-                        explanation = $"Tỷ lệ tái chế: {actualValue}% (chuẩn: {benchmarkValue}%)";
-                    }
-                    break;
-
                 case "Carbon Footprint":
                 case "Water Usage":
                     if (benchmarkValue > 0)
@@ -258,9 +241,52 @@ namespace EcoFashionBackEnd.Services
                     break;
 
                 case "Organic Certification":
-                    score = actualValue > 0 ? 100 : 0;
-                    status = actualValue > 0 ? "Certified" : "Not Certified";
-                    explanation = $"Chứng nhận hữu cơ: {(actualValue > 0 ? "Có" : "Không")}";
+                    // Logic mới: Xem xét cả benchmark và actual value
+                    if (benchmarkValue > 0)
+                    {
+                        // Loại vải yêu cầu chứng chỉ hữu cơ
+                        if (actualValue > 0)
+                        {
+                            score = 100; // Có chứng chỉ khi yêu cầu
+                            status = "Certified";
+                            explanation = "Có chứng nhận hữu cơ (yêu cầu)";
+                        }
+                        else
+                        {
+                            score = 0; // Không có chứng chỉ khi yêu cầu
+                            status = "Not Certified";
+                            explanation = "Không có chứng nhận hữu cơ (yêu cầu)";
+                        }
+                    }
+                    else
+                    {
+                        // Loại vải không yêu cầu chứng chỉ hữu cơ
+                        if (actualValue > 0)
+                        {
+                            score = 100; // Có chứng chỉ khi không yêu cầu = bonus
+                            status = "Certified (Bonus)";
+                            explanation = "Có chứng nhận hữu cơ (không yêu cầu - bonus)";
+                        }
+                        else
+                        {
+                            score = 100; // Không có chứng chỉ khi không yêu cầu = đạt chuẩn
+                            status = "Not Required";
+                            explanation = "Không yêu cầu chứng nhận hữu cơ";
+                        }
+                    }
+                    break;
+
+                case "Transport":
+                    score = CalculateTransportScore(material);
+                    if (score >= 80)
+                        status = "Excellent";
+                    else if (score >= 60)
+                        status = "Good";
+                    else if (score >= 40)
+                        status = "Average";
+                    else
+                        status = "Needs Improvement";
+                    explanation = $"Điểm vận chuyển: {score:F1}% (khoảng cách: {material.TransportDistance}km, phương thức: {material.TransportMethod})";
                     break;
 
                 default:
@@ -271,6 +297,16 @@ namespace EcoFashionBackEnd.Services
             }
 
             return (score, status, explanation, actualValue, benchmarkValue);
+        }
+
+        private bool HasOrganicCertification(Material material)
+        {
+            if (material == null || string.IsNullOrWhiteSpace(material.CertificationDetails))
+                return false;
+
+            var details = material.CertificationDetails.ToUpperInvariant();
+            // Recognized: GOTS, OEKO-TEX Standard 100, GRS, OCS
+            return details.Contains("GOTS") || details.Contains("OEKO-TEX") || details.Contains("GRS") || details.Contains("OCS");
         }
 
         /// <summary>

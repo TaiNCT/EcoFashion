@@ -58,6 +58,8 @@ namespace EcoFashionBackEnd.Common.Payloads.Requests
         [StringLength(500)]
         public string? CertificationDetails { get; set; }
 
+        public DateTime? CertificationExpiryDate { get; set; }
+
         [StringLength(200)]
         public string? QualityStandards { get; set; }
 

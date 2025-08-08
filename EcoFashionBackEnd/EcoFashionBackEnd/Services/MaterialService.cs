@@ -2,10 +2,12 @@
 using EcoFashionBackEnd.Dtos.Material;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos;
+ // for MaterialImage
 
 namespace EcoFashionBackEnd.Services
 {
@@ -13,13 +15,19 @@ namespace EcoFashionBackEnd.Services
     {
         private readonly AppDbContext _dbContext;
         private readonly SustainabilityService _sustainabilityService;
+        private readonly CloudService _cloudService;
+        private readonly NotificationService _notificationService;
 
         public MaterialService(
             AppDbContext dbContext,
-            SustainabilityService sustainabilityService)
+            SustainabilityService sustainabilityService,
+            CloudService cloudService,
+            NotificationService notificationService)
         {
             _dbContext = dbContext;
             _sustainabilityService = sustainabilityService;
+            _cloudService = cloudService;
+            _notificationService = notificationService;
         }
 
         public async Task<ApiResult<MaterialDetailResponse>> GetMaterialDetailByIdAsync(int materialId)
@@ -32,6 +40,7 @@ namespace EcoFashionBackEnd.Services
                     .Include(m => m.MaterialImages).ThenInclude(mi => mi.Image)
                     .Include(m => m.MaterialSustainabilityMetrics)
                     .ThenInclude(ms => ms.SustainabilityCriterion)
+                    .Where(m => m.SupplierId != null) // Only get materials from suppliers
                     .FirstOrDefaultAsync(m => m.MaterialId == materialId);
 
                 if (material == null)
@@ -52,6 +61,7 @@ namespace EcoFashionBackEnd.Services
                     materialBenchmarks = allBenchmarks
                         .Where(b => b.TypeId == material.TypeId)
                         .Select(b => CalculateBenchmarkComparison(b, material, b.CriteriaId))
+                        .Where(b => b != null) // Filter out null results (like Transport)
                         .ToList();
                 }
                 catch (Exception ex)
@@ -149,6 +159,7 @@ namespace EcoFashionBackEnd.Services
             try
             {
                 var materials = await _dbContext.Materials
+                    .Where(m => m.IsAvailable && m.ApprovalStatus == "Approved") // Only approved and available materials
                     .Include(m => m.MaterialType)
                     .Include(m => m.Supplier)
                     .Include(m => m.MaterialImages).ThenInclude(mi => mi.Image)
@@ -281,18 +292,30 @@ namespace EcoFashionBackEnd.Services
                     PricePerUnit = request.PricePerUnit,
                     DocumentationUrl = request.DocumentationUrl,
                     CarbonFootprint = request.CarbonFootprint,
+                    CarbonFootprintUnit = "kg CO2e/mét",
                     WaterUsage = request.WaterUsage,
+                    WaterUsageUnit = "lít/mét",
                     WasteDiverted = request.WasteDiverted,
+                    WasteDivertedUnit = "%",
                     ProductionCountry = request.ProductionCountry,
                     ProductionRegion = request.ProductionRegion,
                     ManufacturingProcess = request.ManufacturingProcess,
                     CertificationDetails = request.CertificationDetails,
-                    TransportDistance = request.TransportDistance,
-                    TransportMethod = request.TransportMethod,
-                    IsAvailable = request.IsAvailable,
+                    CertificationExpiryDate = request.CertificationExpiryDate,
+                    // Transport will be computed below from ProductionCountry to keep semantics simple
+                    TransportDistance = null,
+                    TransportMethod = null,
+                    // Newly created materials require admin approval
+                    ApprovalStatus = "Pending",
+                    IsAvailable = false,
                     CreatedAt = DateTime.UtcNow,
                     LastUpdated = DateTime.UtcNow
                 };
+
+                // Always compute transport info from ProductionCountry (override any provided input)
+                var (autoDistance, autoMethod, _) = TransportCalculationService.GetTransportDetails(request.ProductionCountry);
+                material.TransportDistance = autoDistance;
+                material.TransportMethod = autoMethod;
 
                 _dbContext.Materials.Add(material);
                 await _dbContext.SaveChangesAsync();
@@ -324,13 +347,12 @@ namespace EcoFashionBackEnd.Services
                         Value = request.WasteDiverted.Value
                     });
                 }
-                _dbContext.MaterialSustainabilities.Add(new MaterialSustainability
-                {
-                    MaterialId = material.MaterialId,
-                    CriterionId = 5,
-                    Value = request.RecycledPercentage
-                });
+                // Transport (CriterionId = 5) is calculated dynamically in SustainabilityService
+                // No need to store transport data in MaterialSustainability table
                 await _dbContext.SaveChangesAsync();
+
+                // Send notification to admin about new material
+                await _notificationService.CreateNewMaterialNotificationAsync(material.MaterialId);
 
                 var sustainabilityReport = await _sustainabilityService.CalculateMaterialSustainabilityScore(material.MaterialId);
 
@@ -386,6 +408,68 @@ namespace EcoFashionBackEnd.Services
             }
         }
 
+        public async Task<ApiResult<List<MaterialImageDto>>> UploadMaterialImagesAsync(int materialId, List<IFormFile> imageFiles)
+        {
+            try
+            {
+                var material = await _dbContext.Materials
+                    .Include(m => m.MaterialImages)
+                    .ThenInclude(mi => mi.Image)
+                    .FirstOrDefaultAsync(m => m.MaterialId == materialId);
+
+                if (material == null)
+                {
+                    return ApiResult<List<MaterialImageDto>>.Fail("Material not found");
+                }
+
+                if (imageFiles == null || imageFiles.Count == 0)
+                {
+                    return ApiResult<List<MaterialImageDto>>.Fail("No image files provided");
+                }
+
+                var uploadResults = await _cloudService.UploadImagesAsync(imageFiles);
+
+                var savedImages = new List<MaterialImageDto>();
+                foreach (var uploadResult in uploadResults)
+                {
+                    var url = uploadResult?.SecureUrl?.ToString();
+                    if (string.IsNullOrWhiteSpace(url))
+                    {
+                        continue;
+                    }
+
+                    var materialImage = new MaterialImage
+                    {
+                        MaterialId = material.MaterialId,
+                        Image = new Image
+                        {
+                            ImageUrl = url
+                        }
+                    };
+
+                    _dbContext.MaterialImages.Add(materialImage);
+                    await _dbContext.SaveChangesAsync();
+
+                    savedImages.Add(new MaterialImageDto
+                    {
+                        ImageId = materialImage.ImageId,
+                        ImageUrl = url
+                    });
+                }
+
+                if (savedImages.Count == 0)
+                {
+                    return ApiResult<List<MaterialImageDto>>.Fail("Image upload failed");
+                }
+
+                return ApiResult<List<MaterialImageDto>>.Succeed(savedImages);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<MaterialImageDto>>.Fail(ex.Message);
+            }
+        }
+
         public async Task<ApiResult<List<MaterialTypeModel>>> GetAllMaterialTypesAsync()
         {
             try
@@ -434,6 +518,34 @@ namespace EcoFashionBackEnd.Services
             }
         }
 
+        public async Task<ApiResult<bool>> SetMaterialApprovalStatusAsync(int materialId, bool approve, string? adminNote = null)
+        {
+            try
+            {
+                var material = await _dbContext.Materials.FindAsync(materialId);
+                if (material == null) return ApiResult<bool>.Fail("Material not found");
+
+                material.ApprovalStatus = approve ? "Approved" : "Rejected";
+                material.IsAvailable = approve; // only available when approved
+                if (!string.IsNullOrWhiteSpace(adminNote))
+                {
+                    material.AdminNote = adminNote;
+                }
+                material.LastUpdated = DateTime.UtcNow;
+
+                await _dbContext.SaveChangesAsync();
+
+                // Send notification to supplier about approval status
+                await _notificationService.CreateMaterialApprovalNotificationAsync(materialId, material.SupplierId, material.ApprovalStatus, adminNote);
+
+                return ApiResult<bool>.Succeed(true);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<bool>.Fail(ex.Message);
+            }
+        }
+
         private async Task<string> GetMaterialTypeName(int typeId)
         {
             var materialType = await _dbContext.MaterialTypes.FindAsync(typeId);
@@ -456,8 +568,11 @@ namespace EcoFashionBackEnd.Services
         {
             var advantages = new List<string>();
 
-            if (material.RecycledPercentage > 50)
-                advantages.Add("Tỷ lệ tái chế cao");
+            // Check for sustainable transport (short distance and eco-friendly method)
+            if (material.TransportDistance.HasValue && material.TransportDistance < 1000 && 
+                !string.IsNullOrEmpty(material.TransportMethod) && 
+                material.TransportMethod.ToLower() != "air")
+                advantages.Add("Vận chuyển bền vững");
             if (material.CarbonFootprint < 3)
                 advantages.Add("Lượng carbon thấp");
             if (material.WaterUsage < 100)
@@ -491,11 +606,21 @@ namespace EcoFashionBackEnd.Services
                 2 => material.WaterUsage.HasValue ? (float)material.WaterUsage : null, // Water Usage
                 3 => material.WasteDiverted.HasValue ? (float)material.WasteDiverted : null, // Waste Diverted
                 4 => !string.IsNullOrEmpty(material.CertificationDetails) && 
-                     (material.CertificationDetails.Contains("GOTS") || 
-                      material.CertificationDetails.Contains("Organic")) ? 1f : 0f, // Organic Certification
-                5 => (float)material.RecycledPercentage, // Recycled Content
+                     (
+                         material.CertificationDetails.Contains("GOTS") ||
+                         material.CertificationDetails.Contains("OEKO-TEX") ||
+                         material.CertificationDetails.Contains("GRS") ||
+                         material.CertificationDetails.Contains("OCS")
+                     ) ? 1f : 0f, // Organic Certification (recognized: GOTS, OEKO-TEX, GRS, OCS)
+                5 => null, // Transport - calculated dynamically in SustainabilityService
                 _ => null
             };
+
+            // Skip Transport criterion as it's calculated dynamically
+            if (criterionId == 5)
+            {
+                return null; // Return null to skip Transport in benchmark comparison
+            }
 
             result.ActualValue = actualValue;
 
@@ -529,8 +654,8 @@ namespace EcoFashionBackEnd.Services
                         }
                         else if (actualValue.Value >= 1f && benchmarkValue < 1f)
                         {
-                            improvement = 100f; // Có certification khi benchmark không yêu cầu
-                            result.ImprovementStatus = "Vượt chuẩn";
+                            improvement = 100f; // Có certification khi benchmark không yêu cầu = bonus
+                            result.ImprovementStatus = "Vượt chuẩn (Bonus)";
                             result.ImprovementColor = "success";
                         }
                         else if (actualValue.Value < 1f && benchmarkValue >= 1f)
@@ -541,15 +666,14 @@ namespace EcoFashionBackEnd.Services
                         }
                         else
                         {
-                            improvement = 0f; // Cả hai đều không có certification
+                            improvement = 0f; // Cả hai đều không có certification = đạt chuẩn
                             result.ImprovementStatus = "Không yêu cầu";
-                            result.ImprovementColor = "warning";
+                            result.ImprovementColor = "success";
                         }
                         result.ImprovementPercentage = improvement;
                         return result; // Return sớm cho Organic Certification
-                    case 5: // Recycled Content - cao hơn = tốt hơn
-                        if (benchmarkValue > 0)
-                            improvement = ((actualValue.Value - benchmarkValue) / benchmarkValue) * 100;
+                    case 5: // Transport - calculated dynamically in SustainabilityService
+                        // Transport is handled separately, skip this case
                         break;
                 }
 
@@ -583,7 +707,7 @@ namespace EcoFashionBackEnd.Services
             try
             {
                 var materials = await _dbContext.Materials
-                    .Where(b => b.TypeId == typeId)
+                    .Where(b => b.TypeId == typeId && b.IsAvailable && b.ApprovalStatus == "Approved") // Filter by type, approved and availability
                     .Include(m => m.MaterialType)
                     .Include(m => m.Supplier)
                     .Include(m => m.MaterialImages).ThenInclude(mi => mi.Image)
@@ -697,5 +821,87 @@ namespace EcoFashionBackEnd.Services
                 return ApiResult<List<MaterialDetailDto>>.Fail(ex.Message);
             }
         }
+
+        public async Task<ApiResult<List<MaterialDetailDto>>> GetSupplierMaterialsAsync(string supplierId, string? approvalStatus)
+        {
+            try
+            {
+                var query = _dbContext.Materials
+                    .Include(m => m.MaterialType)
+                    .Include(m => m.Supplier)
+                    .Include(m => m.MaterialSustainabilityMetrics)
+                    .ThenInclude(ms => ms.SustainabilityCriterion)
+                    .Where(m => m.SupplierId.ToString() == supplierId);
+
+                // Apply approval status filter
+                if (!string.IsNullOrEmpty(approvalStatus) && approvalStatus.ToLower() != "all")
+                {
+                    query = query.Where(m => m.ApprovalStatus == approvalStatus);
+                }
+
+                var materials = await query.ToListAsync();
+
+                var materialDtos = new List<MaterialDetailDto>();
+                
+                foreach (var material in materials)
+                {
+                    var dto = new MaterialDetailDto
+                    {
+                        MaterialId = material.MaterialId,
+                        Name = material.Name,
+                        Description = material.Description,
+                        MaterialTypeName = material.MaterialType?.TypeName ?? "",
+                        QuantityAvailable = material.QuantityAvailable,
+                        PricePerUnit = material.PricePerUnit,
+                        RecycledPercentage = material.RecycledPercentage,
+                        ProductionCountry = material.ProductionCountry,
+                        ProductionRegion = material.ProductionRegion,
+                        ManufacturingProcess = material.ManufacturingProcess,
+                        CertificationDetails = material.CertificationDetails,
+                        ApprovalStatus = material.ApprovalStatus,
+                        IsAvailable = material.IsAvailable,
+                        CreatedAt = material.CreatedAt,
+                        LastUpdated = material.LastUpdated,
+                        SupplierId = material.SupplierId,
+                        SupplierName = material.Supplier?.SupplierName ?? "",
+                        // Get material images as URLs
+                        ImageUrls = material.MaterialImages?.Select(img => img.Image?.ImageUrl ?? "").ToList() ?? new List<string>(),
+                        // Calculate sustainability score
+                        SustainabilityScore = await GetMaterialSustainabilityScore(material.MaterialId),
+                        // Get sustainability criteria
+                        SustainabilityCriteria = material.MaterialSustainabilityMetrics?.Select(ms => new MaterialSustainabilityCriterionDto
+                        {
+                            CriterionId = ms.CriterionId,
+                            Name = ms.SustainabilityCriterion?.Name,
+                            Description = ms.SustainabilityCriterion?.Description,
+                            Unit = ms.SustainabilityCriterion?.Unit,
+                            Value = ms.Value
+                        }).ToList() ?? new List<MaterialSustainabilityCriterionDto>()
+                    };
+                    
+                    materialDtos.Add(dto);
+                }
+
+                return ApiResult<List<MaterialDetailDto>>.Succeed(materialDtos);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<MaterialDetailDto>>.Fail($"Error getting supplier materials: {ex.Message}");
+            }
+        }
+
+        private async Task<decimal?> GetMaterialSustainabilityScore(int materialId)
+        {
+            try
+            {
+                var report = await _sustainabilityService.CalculateMaterialSustainabilityScore(materialId);
+                return report?.OverallSustainabilityScore;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        
     }
 }

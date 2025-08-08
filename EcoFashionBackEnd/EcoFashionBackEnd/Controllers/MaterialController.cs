@@ -3,6 +3,7 @@ using EcoFashionBackEnd.Services;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Common.Payloads.Responses;
+using Microsoft.AspNetCore.Http;
 
 namespace EcoFashionBackEnd.Controllers
 {
@@ -40,10 +41,31 @@ namespace EcoFashionBackEnd.Controllers
             return Ok(result);
         }
 
+        [HttpPost("{materialId}/images")]
+        public async Task<IActionResult> UploadMaterialImages([FromRoute] int materialId, [FromForm] List<IFormFile> files)
+        {
+            var result = await _materialService.UploadMaterialImagesAsync(materialId, files);
+            return Ok(result);
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMaterial(int id)
         {
             var result = await _materialService.DeleteMaterialAsync(id);
+            return Ok(result);
+        }
+
+        [HttpPost("{id}/approve")]
+        public async Task<IActionResult> ApproveMaterial(int id)
+        {
+            var result = await _materialService.SetMaterialApprovalStatusAsync(id, true);
+            return Ok(result);
+        }
+
+        [HttpPost("{id}/reject")]
+        public async Task<IActionResult> RejectMaterial(int id, [FromBody] string? adminNote)
+        {
+            var result = await _materialService.SetMaterialApprovalStatusAsync(id, false, adminNote);
             return Ok(result);
         }
 
@@ -98,5 +120,28 @@ namespace EcoFashionBackEnd.Controllers
             var result = await _materialService.GetAllMaterialByTypeAsync(typeId);
             return Ok(result);
         }
+
+        [HttpGet("GetAllMaterialTypes")]
+        public async Task<IActionResult> GetAllMaterialTypes()
+        {
+            var result = await _materialService.GetAllMaterialTypesAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("GetSupplierMaterials")]
+        public async Task<IActionResult> GetSupplierMaterials([FromQuery] string supplierId, [FromQuery] string? approvalStatus)
+        {
+            try
+            {
+                var result = await _materialService.GetSupplierMaterialsAsync(supplierId, approvalStatus);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResult<object>.Fail($"Error getting supplier materials: {ex.Message}"));
+            }
+        }
+
+
     }
 }
