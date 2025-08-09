@@ -9,6 +9,12 @@
 
         public string? MaterialName { get; set; }
         public string? MaterialTypeName { get; set; }
-        public List<SustainabilityCriterionDto> SustainabilityCriteria { get; set; } = new();
+        public decimal? CarbonFootprint { get; set; }
+        public string? CarbonFootprintUnit { get; set; } 
+        public decimal? WaterUsage { get; set; }
+        public string? WaterUsageUnit { get; set; } 
+        public decimal? WasteDiverted { get; set; }
+        public string? WasteDivertedUnit { get; set; }
+        public string? CertificationDetails { get; set; }
     }
 }

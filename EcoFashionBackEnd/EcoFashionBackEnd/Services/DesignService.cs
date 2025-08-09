@@ -21,6 +21,7 @@ namespace EcoFashionBackEnd.Services
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly CloudService _cloudService;
+        private readonly SustainabilityService _sustainabilityService;
 
         public DesignService(
             IRepository<Design, int> designRepository,
@@ -88,16 +89,13 @@ namespace EcoFashionBackEnd.Services
                     MaterialName = dm.Materials?.Name,
                     MaterialDescription = dm.Materials?.Description,
                     MaterialTypeName = dm.Materials?.MaterialType?.TypeName,
-
-
-                    SustainabilityCriteria = dm.Materials?.MaterialSustainabilityMetrics?
-                        .Select(ms => new SustainabilityCriterionDto
-                        {
-                            Criterion = ms.SustainabilityCriterion?.Name?.Trim().ToLower().Replace(" ", "_") ?? "",
-                            Value = (decimal)ms.Value
-                        })
-                        .Where(dto => !string.IsNullOrEmpty(dto.Criterion))
-                        .ToList() ?? new()
+                    CarbonFootprint = dm.Materials.CarbonFootprint,
+                    CarbonFootprintUnit = dm.Materials.CarbonFootprintUnit,
+                    WasteDiverted = dm.Materials.WasteDiverted,
+                    WasteDivertedUnit = dm.Materials.WasteDivertedUnit,
+                    WaterUsage = dm.Materials.WaterUsage,
+                    WaterUsageUnit = dm.Materials.WaterUsageUnit,
+                    CertificationDetails = dm.Materials.CertificationDetails,
                 }).ToList(),
 
               
@@ -308,6 +306,7 @@ namespace EcoFashionBackEnd.Services
                 {
                     PersentageUsed = (double)dm.MeterUsed,
                     MaterialName = dm.Materials?.Name,
+                    
                 }).ToList(),
 
                 

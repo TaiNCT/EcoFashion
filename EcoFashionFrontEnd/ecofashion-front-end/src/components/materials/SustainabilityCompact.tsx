@@ -14,7 +14,6 @@ import { getSustainabilityColor } from "../../utils/themeColors";
 
 interface SustainabilityCompactProps {
   sustainabilityScore: number;
-  recycledPercentage: number;
   sustainabilityLevel?: string;
   sustainabilityColor?: string;
 }
@@ -34,7 +33,6 @@ interface SustainabilityEvaluation {
 
 const SustainabilityCompact: React.FC<SustainabilityCompactProps> = ({
   sustainabilityScore,
-  recycledPercentage,
   sustainabilityLevel,
   sustainabilityColor,
 }) => {
@@ -129,12 +127,9 @@ const SustainabilityCompact: React.FC<SustainabilityCompactProps> = ({
       </Box>
       
       {/* Compact Info */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
         <Typography variant="caption" color="text.secondary">
-          Tái chế: {recycledPercentage.toFixed(1)}%
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          Tổng hợp: {sustainabilityScore.toFixed(1)}%
+          Điểm tổng hợp từ 5 tiêu chí bền vững
         </Typography>
       </Box>
     </Box>

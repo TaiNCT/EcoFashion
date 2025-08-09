@@ -9,7 +9,7 @@ namespace EcoFashionBackEnd.Common.Payloads.Responses
         public string Description { get; set; }
         public double? RecycledPercentage { get; set; }
         public string CareInstructions { get; set; }
-        public decimal? Price { get; set; }
+        public decimal? SalePrice { get; set; }
         public double? ProductScore { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }

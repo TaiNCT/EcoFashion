@@ -1,20 +1,24 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { AuthService } from '../services/api/authService';
-import type { User, AuthResponse, SignupResponse } from '../services/api/authService';
-import type { SupplierModel } from '../services/api/supplierService';
-import type { DesignerProfile } from '../services/api/designerService';
-import { 
-  getUserAvatarUrl, 
-  getUserInitials, 
-  hasRole, 
-  isAdmin, 
-  isSupplier, 
-  isCustomer, 
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { AuthService } from "../services/api/authService";
+import type {
+  User,
+  AuthResponse,
+  SignupResponse,
+} from "../services/api/authService";
+import type { SupplierModel } from "../services/api/supplierService";
+import type { DesignerProfile } from "../services/api/designerService";
+import {
+  getUserAvatarUrl,
+  getUserInitials,
+  hasRole,
+  isAdmin,
+  isSupplier,
+  isCustomer,
   isDesigner,
-  isAuthenticated
-} from '../utils/authUtils';
-import { clearAllAuthData } from '../utils/authUtils';
+  isAuthenticated,
+} from "../utils/authUtils";
+import { clearAllAuthData } from "../utils/authUtils";
 
 interface AuthState {
   // State
@@ -31,31 +35,38 @@ interface AuthState {
   setDesignerProfile: (profile: DesignerProfile | null) => void;
   setLoading: (loading: boolean) => void;
   setLoadingProfile: (loading: boolean) => void;
-  
+
   // Auth methods
   login: (email: string, password: string) => Promise<AuthResponse>;
-  signup: (email: string, password: string, fullname: string, username: string, phone?: string) => Promise<SignupResponse>;
+  signup: (
+    email: string,
+    password: string,
+    fullname: string,
+    username: string,
+    phone?: string
+  ) => Promise<SignupResponse>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  
+
   // Profile loading methods
   loadUserProfile: () => Promise<void>;
-  
+
   // User utilities
   getAvatarUrl: () => string | null;
+  getDesignerId: () => string | null;
   getInitials: (fallback?: string) => string;
   getDisplayName: () => string;
-  
+
   // Role checks
   hasRole: (role: string) => boolean;
   isAdmin: () => boolean;
   isSupplier: () => boolean;
   isCustomer: () => boolean;
   isDesigner: () => boolean;
-  
+
   // Token utilities
   isTokenValid: () => boolean;
-  
+
   // Clear all data
   clearAuth: () => void;
 }
@@ -83,12 +94,12 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true });
         try {
           const response = await AuthService.login(email, password);
-          
+
           // AuthService already handles localStorage
-          set({ 
-            user: response.user, 
+          set({
+            user: response.user,
             isAuthenticated: true,
-            loading: false 
+            loading: false,
           });
 
           // Auto-load profile based on role
@@ -101,10 +112,22 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signup: async (email: string, password: string, fullname: string, username: string, phone?: string) => {
+      signup: async (
+        email: string,
+        password: string,
+        fullname: string,
+        username: string,
+        phone?: string
+      ) => {
         set({ loading: true });
         try {
-          const response = await AuthService.signup(email, password, fullname, username, phone);
+          const response = await AuthService.signup(
+            email,
+            password,
+            fullname,
+            username,
+            phone
+          );
           set({ loading: false });
           return response;
         } catch (error) {
@@ -120,27 +143,30 @@ export const useAuthStore = create<AuthState>()(
           try {
             await AuthService.logout();
           } catch (apiError) {
-            console.warn("Logout API call failed, but continuing with local logout:", apiError);
+            console.warn(
+              "Logout API call failed, but continuing with local logout:",
+              apiError
+            );
           }
-          
+
           // Always clear local data
           clearAllAuthData();
-          set({ 
-            user: null, 
+          set({
+            user: null,
             supplierProfile: null,
             designerProfile: null,
             isAuthenticated: false,
-            loading: false 
+            loading: false,
           });
         } catch (error) {
           console.error("Logout error:", error);
           // Even if there's an error, clear the state
-          set({ 
-            user: null, 
+          set({
+            user: null,
             supplierProfile: null,
             designerProfile: null,
             isAuthenticated: false,
-            loading: false 
+            loading: false,
           });
         }
       },
@@ -167,15 +193,23 @@ export const useAuthStore = create<AuthState>()(
         if (!user) return;
 
         set({ isLoadingProfile: true });
-        
+
         try {
-          if (user.role === 'supplier') {
-            const { SupplierService } = await import('../services/api/supplierService');
-            const profile = await SupplierService.getSupplierByUserId(user.userId);
+          if (user.role === "supplier") {
+            const { SupplierService } = await import(
+              "../services/api/supplierService"
+            );
+            const profile = await SupplierService.getSupplierByUserId(
+              user.userId
+            );
             set({ supplierProfile: profile });
-          } else if (user.role === 'designer') {
-            const { DesignerService } = await import('../services/api/designerService');
-            const profile = await DesignerService.getDesignerByUserId(user.userId);
+          } else if (user.role === "designer") {
+            const { DesignerService } = await import(
+              "../services/api/designerService"
+            );
+            const profile = await DesignerService.getDesignerByUserId(
+              user.userId
+            );
             set({ designerProfile: profile });
           }
         } catch (error) {
@@ -188,26 +222,29 @@ export const useAuthStore = create<AuthState>()(
       // User utilities - use functions from userUtils
       getAvatarUrl: () => {
         const { user, supplierProfile, designerProfile } = get();
-        
+
         // Check supplier profile first
         if (supplierProfile?.avatarUrl) {
           return supplierProfile.avatarUrl;
         }
-        
+
         // Check designer profile
         if (designerProfile?.avatarUrl) {
           return designerProfile.avatarUrl;
         }
-        
+
         // Fallback to user avatar
         return getUserAvatarUrl(user);
       },
 
-      getInitials: (fallback: string = 'U') => {
+      // User utilities - use functions from userUtils
+      getDesignerId: () => get().designerProfile?.designerId || null,
+
+      getInitials: (fallback: string = "U") => {
         const { user, supplierProfile, designerProfile } = get();
-        
+
         let displayName: string | undefined;
-        
+
         if (supplierProfile?.supplierName) {
           displayName = supplierProfile.supplierName;
         } else if (designerProfile?.designerName) {
@@ -215,15 +252,15 @@ export const useAuthStore = create<AuthState>()(
         } else {
           displayName = user?.fullName;
         }
-        
+
         return getUserInitials(displayName, fallback);
       },
 
       getDisplayName: () => {
         const { user, supplierProfile, designerProfile } = get();
-        
+
         let displayName: string;
-        
+
         if (supplierProfile?.supplierName) {
           displayName = supplierProfile.supplierName;
         } else if (designerProfile?.designerName) {
@@ -233,9 +270,9 @@ export const useAuthStore = create<AuthState>()(
         } else if (user?.email) {
           displayName = user.email;
         } else {
-          displayName = 'User';
+          displayName = "User";
         }
-        
+
         return displayName;
       },
 
@@ -272,18 +309,18 @@ export const useAuthStore = create<AuthState>()(
 
       // Clear all data
       clearAuth: () => {
-        set({ 
-          user: null, 
+        set({
+          user: null,
           supplierProfile: null,
           designerProfile: null,
           isAuthenticated: false,
           loading: false,
-          isLoadingProfile: false
+          isLoadingProfile: false,
         });
       },
     }),
     {
-      name: 'auth-storage', // localStorage key
+      name: "auth-storage", // localStorage key
       partialize: (state) => ({
         // Only persist user and profile data, not loading states
         user: state.user,
@@ -323,4 +360,4 @@ export const useAuthStore = create<AuthState>()(
       },
     }
   )
-); 
+);

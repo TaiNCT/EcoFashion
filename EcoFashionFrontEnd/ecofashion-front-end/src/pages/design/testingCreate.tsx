@@ -69,6 +69,7 @@ import {
 import { GridCloseIcon } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import { createDesignSchema } from "../../schemas/createDesignSchema";
+import ColorPicker from "../../components/ColorPicker";
 
 const Collection = [
   { collection_Id: 1, collection_name: "Áo Linen", image: ao_linen },
@@ -94,8 +95,6 @@ export default function testingCreate() {
     try {
       setLoading(true);
       setError(null);
-      const data = await DesignService.getStoredMaterial();
-      setStoredMaterial(data);
     } catch (error: any) {
       const errorMessage =
         error.message || "Không thể tải danh sách nhà thiết kế";
@@ -1153,6 +1152,8 @@ export default function testingCreate() {
           {tabIndex === 3 && <div>Hoàn THành</div>}
         </Box>
       </Box>
+      <Divider />
+      <ColorPicker />
     </Box>
   );
 }

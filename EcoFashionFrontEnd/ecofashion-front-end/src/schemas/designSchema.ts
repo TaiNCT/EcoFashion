@@ -23,7 +23,7 @@ export const createDesignSchema = z.object({
   careInstructions: z
     .string()
     .min(1, { message: "Cần Thêm Cách Bảo Quản Sản Phẩm" }),
-  price: z
+  salePrice: z
     .number({ message: "Cần Thêm Giá Tiền" })
     .min(10000, { message: "Giá Tiền Nhỏ Nhất là 10.000đ" }),
   productScore: z
@@ -74,7 +74,7 @@ const materialResponseSchema = z.object({
 export const createDesignModelResponseSchema = z.object({
   name: z.string(),
   recycledPercentage: z.number(),
-  price: z.number(),
+  salePrice: z.number(),
   productScore: z.number(),
   status: z.string().nullable().optional(),
   designTypeId: z.number().nullable().optional(),
