@@ -49,26 +49,26 @@ const FashionCard: React.FC<FashionCardProps> = ({
   // onToggleFavorite,
 }) => {
   const navigate = useNavigate();
-  const getCategoryColor = (category: string): string => {
+  const getCategoryColor = (category?: string): string => {
+    if (!category) return "#9e9e9e"; // default grey
     const colors: Record<string, string> = {
       Áo: "#2196f3",
       Quần: "#ff9800",
       Đầm: "#4caf50",
       Váy: "#9c27b0",
     };
-
-    return colors[category.normalize("NFC")] || "#9e9e9e"; // default grey
+    return colors[category.normalize("NFC")] || "#9e9e9e";
   };
 
-  const getCategoryIcon = (category: string): string => {
-    const colors: Record<string, any> = {
+  const getCategoryIcon = (category?: string) => {
+    if (!category) return null;
+    const icons: Record<string, React.ReactNode> = {
       Áo: <ShirtIcon />,
       Quần: <TrouserIcon />,
       Đầm: <DressIcon />,
       Váy: <SkirtIcon />,
     };
-
-    return colors[category.normalize("NFC")] || "#9e9e9e"; // default grey
+    return icons[category.normalize("NFC")] || null;
   };
 
   const getAvailabilityColor = (availability: Design["status"]) => {
