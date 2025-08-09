@@ -41,7 +41,6 @@ namespace EcoFashionBackEnd.Data.test
                     {
                         DesignId = design.DesignId,
                         MaterialId = material.MaterialId,
-                        PersentageUsed = percent,
                         MeterUsed = Random.Shared.Next(1, 10)
                     });
                 }

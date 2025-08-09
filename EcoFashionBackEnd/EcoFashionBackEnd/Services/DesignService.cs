@@ -13,7 +13,7 @@ namespace EcoFashionBackEnd.Services
     public class DesignService
     {
         private readonly IRepository<Design, int> _designRepository;
-        private readonly IRepository<DesignFeature, int> _designsFeatureRepository;
+        //private readonly IRepository<DesignFeature, int> _designsFeatureRepository;
         private readonly IRepository<DesignsVariant, int> _designsVarientRepository;
         private readonly IRepository<DesignsMaterial, int> _designMaterialRepository;
         private readonly IRepository<Image, int> _imageRepository;
@@ -24,7 +24,7 @@ namespace EcoFashionBackEnd.Services
 
         public DesignService(
             IRepository<Design, int> designRepository,
-            IRepository<DesignFeature, int> designsFeatureRepository,
+          //  IRepository<DesignFeature, int> designsFeatureRepository,
             IRepository<DesignsVariant, int> designsVarientRepository,
             IRepository<DesignsMaterial, int> designsMaterialRepository,
             IRepository<Image, int> imageRepository,
@@ -34,7 +34,7 @@ namespace EcoFashionBackEnd.Services
             CloudService cloudService)
         {
             _designRepository = designRepository;
-            _designsFeatureRepository = designsFeatureRepository;
+           // _designsFeatureRepository = designsFeatureRepository;
             _designsVarientRepository = designsVarientRepository;
             _designMaterialRepository = designsMaterialRepository;
             _imageRepository = imageRepository;
@@ -46,10 +46,9 @@ namespace EcoFashionBackEnd.Services
         public async Task<DesignDetailDto?> GetDesignDetailById(int id)
         {
             var design = await _dbContext.Designs
-                .Include(d => d.DesignTypes)
-                .Include(d => d.DesignImages).ThenInclude(di => di.Image)
-                .Include(d => d.DesignsFeature)
-                .Include(d => d.DesignsVariants).ThenInclude(v => v.DesignsSize)
+               // .Include(d => d.DesignTypes)
+               // .Include(d => d.DesignsFeature)
+              //  .Include(d => d.DesignsVariants).ThenInclude(v => v.DesignsSize)
                 .Include(d => d.DesignsMaterials)
                     .ThenInclude(dm => dm.Materials)
                         .ThenInclude(m => m.MaterialType)
@@ -57,7 +56,6 @@ namespace EcoFashionBackEnd.Services
                     .ThenInclude(dm => dm.Materials)
                         .ThenInclude(m => m.MaterialSustainabilityMetrics)
                             .ThenInclude(ms => ms.SustainabilityCriterion)
-                .Include(d => d.DesignsRatings)
                 .Include(d => d.DesignerProfile)
                 .FirstOrDefaultAsync(d => d.DesignId == id);
 
@@ -69,38 +67,24 @@ namespace EcoFashionBackEnd.Services
                 Name = design.Name,
                 Description = design.Description,
                 RecycledPercentage = design.RecycledPercentage,
-                CareInstructions = design.CareInstructions,
                 SalePrice = design.SalePrice,
                 UnitPrice = design.UnitPrice,
-                Stage= design.Stage,
                 ProductScore = design.ProductScore,
-                Status = design.Status,
                 CreatedAt = design.CreatedAt,
 
-                DesignTypeName = design.DesignTypes?.DesignName,
-                ImageUrls = design.DesignImages.Select(di => di.Image.ImageUrl).ToList(),
-
-                Feature = design.DesignsFeature == null ? null : new DesignFeatureDto
-                {
-                    ReduceWaste = design.DesignsFeature.ReduceWaste,
-                    LowImpactDyes = design.DesignsFeature.LowImpactDyes,
-                    Durable = design.DesignsFeature.Durable,
-                    EthicallyManufactured = design.DesignsFeature.EthicallyManufactured
-                },
+               // DesignTypeName = design.DesignTypes?.DesignName,
 
                 Variants = design.DesignsVariants.Select(v => new VariantDto
                 {
-                    SizeName = v.DesignsSize?.SizeName ?? "",
-                    Quantity = v.Quantity,
-                    Color = v.Color
+                    SizeName = v.Size?.SizeName ?? "",
+                    Color = v.ColorCode
                    
                 }).ToList(),
 
                 Materials = design.DesignsMaterials.Select(dm => new MaterialDto
                 {
                     MaterialId = dm.MaterialId,
-                    PersentageUsed = dm.PersentageUsed,
-                    MeterUsed = dm.MeterUsed,
+                    MeterUsed = (double)dm.MeterUsed,
                     MaterialName = dm.Materials?.Name,
                     MaterialDescription = dm.Materials?.Description,
                     MaterialTypeName = dm.Materials?.MaterialType?.TypeName,
@@ -116,8 +100,7 @@ namespace EcoFashionBackEnd.Services
                         .ToList() ?? new()
                 }).ToList(),
 
-                AvgRating = design.DesignsRatings.Any() ? design.DesignsRatings.Average(r => r.RatingScore) : null,
-                ReviewCount = design.DesignsRatings.Count(),
+              
 
                 Designer = new DesignerPublicDto
                 {
@@ -139,11 +122,11 @@ namespace EcoFashionBackEnd.Services
         public async Task<int> CreateDesign(CreateDesignRequest request, Guid designerId, List<IFormFile> imageFiles)
         {
             // Validate DesignTypeId
-            if (!request.DesignTypeId.HasValue ||
-                !await _dbContext.DesignsTypes.AnyAsync(dt => dt.DesignTypeId == request.DesignTypeId.Value))
-            {
-                throw new Exception("DesignTypeId không hợp lệ hoặc không tồn tại.");
-            }
+            //if (!request.DesignTypeId.HasValue ||
+            //  !await _dbContext.DesignsTypes.AnyAsync(dt => dt.DesignTypeId == request.DesignTypeId.Value))
+            //{
+            //    throw new Exception("DesignTypeId không hợp lệ hoặc không tồn tại.");
+            //}
 
 
             // Map sang model
@@ -160,8 +143,8 @@ namespace EcoFashionBackEnd.Services
             var featureModel = _mapper.Map<DesignFeatureModel>(request.Feature);
             featureModel.DesignId = design.DesignId;
 
-            var feature = _mapper.Map<DesignFeature>(featureModel);
-            await _designsFeatureRepository.AddAsync(feature);
+            //var feature = _mapper.Map<DesignFeature>(featureModel);
+            //await _designsFeatureRepository.AddAsync(feature);
 
 
             // Tạo DesignMaterials
@@ -242,20 +225,16 @@ namespace EcoFashionBackEnd.Services
                     RecycledPercentage = d.RecycledPercentage,
                     SalePrice = (decimal)d.SalePrice,
                     ProductScore = d.ProductScore,
-                    Status = d.Status,
                     CreatedAt = d.CreatedAt,
-                    Stage = DesignStage.Finalized,
-                    DesignTypeName = d.DesignTypes.DesignName,
-                    ImageUrls = d.DesignImages.Select(di => di.Image.ImageUrl).ToList(),
-
+                   // DesignTypeName = d.DesignTypes.DesignName,
+                  
                     Materials = d.DesignsMaterials.Select(dm => new MaterialDto
                     {
-                        PersentageUsed = dm.PersentageUsed,
+                        PersentageUsed = (double)dm.MeterUsed,
                         MaterialName = dm.Materials.Name,
                     }).ToList(),
 
-                    AvgRating = d.DesignsRatings.Any() ? d.DesignsRatings.Average(r => r.RatingScore) : null,
-                    ReviewCount = d.DesignsRatings.Count(),
+                  
 
                     Designer = new DesignerPublicDto
                     {
@@ -282,25 +261,17 @@ namespace EcoFashionBackEnd.Services
                     RecycledPercentage = design.RecycledPercentage,
                     SalePrice = (decimal)design.SalePrice,
                     ProductScore = design.ProductScore,
-                    Status = design.Status,
                     CreatedAt = design.CreatedAt,
 
-                    DesignTypeName = design.DesignTypes != null ? design.DesignTypes.DesignName : null,
-                    ImageUrls = design.DesignImages
-                        .Select(di => di.Image.ImageUrl)
-                        .ToList(),
-
+                  //  DesignTypeName = design.DesignTypes != null ? design.DesignTypes.DesignName : null,
                     Materials = design.DesignsMaterials
                         .Select(dm => new MaterialDto
                         {
-                            PersentageUsed = dm.PersentageUsed,
+                            PersentageUsed = (double)dm.MeterUsed,
                             MaterialName = dm.Materials != null ? dm.Materials.Name : null
                         })
                         .ToList(),
 
-                    AvgRating = design.DesignsRatings.Any() ? design.DesignsRatings.Average(r => r.RatingScore) : null,
-
-                    ReviewCount = design.DesignsRatings.Count(),
 
                     Designer = design.DesignerProfile != null
                         ? new DesignerPublicDto
@@ -317,10 +288,8 @@ namespace EcoFashionBackEnd.Services
         public async Task<IEnumerable<DesignDetailDto?>> GetAllDesigns()
         {
             var designs = await _dbContext.Designs
-                .Include(d => d.DesignTypes)
-                .Include(d => d.DesignImages).ThenInclude(di => di.Image)
+                //.Include(d => d.DesignTypes)
                 .Include(d => d.DesignsMaterials)
-                .Include(d => d.DesignsRatings)
                 .Include(d => d.DesignerProfile)
                 .ToListAsync();
 
@@ -331,21 +300,17 @@ namespace EcoFashionBackEnd.Services
                 RecycledPercentage = design.RecycledPercentage,
                 SalePrice = (decimal)design.SalePrice,
                 ProductScore = design.ProductScore,
-                Status = design.Status,
                 CreatedAt = design.CreatedAt,
-                Stage = design.Stage,
-                DesignTypeName = design.DesignTypes?.DesignName,
-                ImageUrls = design.DesignImages.Select(di => di.Image.ImageUrl).ToList(),
+              
+               
 
                 Materials = design.DesignsMaterials.Select(dm => new MaterialDto
                 {
-                    PersentageUsed = dm.PersentageUsed,
+                    PersentageUsed = (double)dm.MeterUsed,
                     MaterialName = dm.Materials?.Name,
                 }).ToList(),
 
-                AvgRating = design.DesignsRatings.Any() ? design.DesignsRatings.Average(r => r.RatingScore) : null,
-                ReviewCount = design.DesignsRatings.Count(),
-
+                
                 Designer = new DesignerPublicDto
                 {
                     DesignerName = design.DesignerProfile.DesignerName,
@@ -367,25 +332,18 @@ namespace EcoFashionBackEnd.Services
                     RecycledPercentage = design.RecycledPercentage,
                     SalePrice = (decimal)design.SalePrice,
                     ProductScore = design.ProductScore,
-                    Status = design.Status,
                     CreatedAt = design.CreatedAt,
 
-                    DesignTypeName = design.DesignTypes != null ? design.DesignTypes.DesignName : null,
-                    ImageUrls = design.DesignImages
-                        .Select(di => di.Image.ImageUrl)
-                        .ToList(),
+                    //DesignTypeName = design.DesignTypes != null ? design.DesignTypes.DesignName : null,
+                 
 
                     Materials = design.DesignsMaterials
                         .Select(dm => new MaterialDto
                         {
-                            PersentageUsed = dm.PersentageUsed,
+                            PersentageUsed = (double)dm.MeterUsed,
                             MaterialName = dm.Materials != null ? dm.Materials.Name : null
                         })
                         .ToList(),
-
-                    AvgRating = design.DesignsRatings.Any() ? design.DesignsRatings.Average(r => r.RatingScore) : null,
-
-                    ReviewCount = design.DesignsRatings.Count(),
 
                     Designer = design.DesignerProfile != null
                         ? new DesignerPublicDto
@@ -409,7 +367,6 @@ namespace EcoFashionBackEnd.Services
 
             design.Name = request.Name;
             design.Description = request.Description;
-            design.Stage = DesignStage.Published;
 
             var existingVariants = design.DesignsVariants.ToList();
             foreach (var variantRequest in request.Variants)

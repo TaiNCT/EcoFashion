@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿    using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
 namespace EcoFashionBackEnd.Entities
@@ -18,41 +18,29 @@ namespace EcoFashionBackEnd.Entities
         public string? Description { get; set; }
 
         public float RecycledPercentage { get; set; }
-        public string? CareInstructions { get; set; }
-
-        // Giá thành phần (cost-based), được tính từ vật liệu + công
         public decimal? UnitPrice { get; set; }
-
-        // Giá bán (giá đề xuất), UnitPrice + 10-20% markup
         public decimal? SalePrice { get; set; }
+
         public int ProductScore { get; set; }
-        public string? Status { get; set; }
-        public DesignStage Stage { get; set; } = DesignStage.Draft;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [ForeignKey("DesignsTypes")]
-        public int? DesignTypeId { get; set; }
+        [ForeignKey("ItemTypes")]
+        public int? ItemTypeId { get; set; }
+
         public float? CarbonFootprint { get; set; }
         public float? WaterUsage { get; set; }
         public float? WasteDiverted { get; set; }
 
-        public virtual DesignsType DesignTypes { get; set; }
+        public float? LaborHours { get; set; }
+        public decimal? LaborCostPerHour { get; set; }
+
+        public virtual ItemType ItemTypes { get; set; }
         public virtual ICollection<DesignsVariant> DesignsVariants { get; set; } = new List<DesignsVariant>();
-        public virtual DesignFeature DesignsFeature { get; set; }
         public virtual ICollection<DesignsMaterial> DesignsMaterials { get; set; } = new List<DesignsMaterial>();
-
-        public virtual ICollection<DesignsRating> DesignsRatings { get; set; } = new List<DesignsRating>();
-        public virtual ICollection<DesignImage> DesignImages { get; set; } = new List<DesignImage>();
-
         public virtual ICollection<DraftSketch> DraftSketches { get; set; } = new List<DraftSketch>();
-
         public virtual ICollection<DraftPart> DraftParts { get; set; } = new List<DraftPart>();
+        public virtual ICollection<Product> Products { get; set; } = new List<Product>();
     }
-    public enum DesignStage
-    {
-        Draft,        // Được chỉnh sửa
-        Finalized,    // Đã chốt design, không sửa nữa
-        Published,    // Variant đã được tạo & đăng bán
-        Archived      // Bản cũ không còn sử dụng
-    }
+   
 }

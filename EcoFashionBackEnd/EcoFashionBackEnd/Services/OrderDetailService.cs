@@ -22,8 +22,6 @@ public class OrderDetailService
     {
         var orderDetails = await _dbContext.OrderDetails
             .Include(od => od.Order)
-            .Include(od => od.Design).ThenInclude(d => d.DesignImages)
-                .ThenInclude(di => di.Image)
             .Include(od => od.Designer)
             .Include(od => od.Material).ThenInclude(m => m.MaterialImages)
                 .ThenInclude(mi => mi.Image)
@@ -39,7 +37,6 @@ public class OrderDetailService
             {
                 itemName = od.Design.Name ?? "Không có tên thiết kế";
                 providerName = od.Designer?.DesignerName ?? "Nhà thiết kế không tồn tại";
-                imageUrl = od.Design.DesignImages.FirstOrDefault()?.Image?.ImageUrl;
             }
             else if (od.Type == OrderDetailType.material && od.Material != null)
             {
@@ -80,7 +77,6 @@ public class OrderDetailService
     {
         var od = await _dbContext.OrderDetails
             .Include(o => o.Order)
-            .Include(o => o.Design).ThenInclude(d => d.DesignImages).ThenInclude(di => di.Image)
             .Include(o => o.Designer)
             .Include(o => o.Material).ThenInclude(m => m.MaterialImages).ThenInclude(mi => mi.Image)
             .Include(o => o.Supplier)
@@ -97,7 +93,6 @@ public class OrderDetailService
         {
             itemName = od.Design?.Name ?? "Không có tên thiết kế";
             providerName = od.Designer?.DesignerName ?? "Nhà thiết kế không tồn tại";
-            imageUrl = od.Design?.DesignImages.FirstOrDefault()?.Image?.ImageUrl;
         }
         else if (od.Type == OrderDetailType.material && od.Material != null)
         {

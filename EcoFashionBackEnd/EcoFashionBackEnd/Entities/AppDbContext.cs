@@ -22,10 +22,10 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<DesignsMaterial> DesignsMaterials { get; set; }
         public DbSet<DesignImage> DesignImages { get; set; }
         public DbSet<Image> Images { get; set; }
-        public DbSet<DesignTypeSizeRatio> DesignTypeSizeRatios { get; set; }
-        public DbSet<DesignFeature> DesignFeatures { get; set; }
-        public DbSet<DesignsSize> DesignsSizes { get; set; }
-        public DbSet<DesignsType> DesignsTypes { get; set; }
+        public DbSet<ItemTypeSizeRatio> ItemTypeSizeRatios { get; set; }
+        public DbSet<ProductFeature> ProductFeatures { get; set; }
+        public DbSet<Size> Sizes { get; set; }
+        public DbSet<ItemType> DesignsTyItemTypes { get; set; }
         public DbSet<DesignerMaterialInventory> DesignerMaterialInventories { get; set; }
         public DbSet<Material> Materials { get; set; }
         public DbSet<MaterialImage> MaterialImages { get; set; }
@@ -38,6 +38,8 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        public DbSet<Product> Products { get; set; }
+
 
         #endregion
 
@@ -101,103 +103,106 @@ namespace EcoFashionBackEnd.Entities
                 .Property(a => a.Status)
                 .HasConversion<string>();
             #endregion
-
             #region DESIGN
-            
-            modelBuilder.Entity<DesignsSize>()
-                .HasMany(s => s.Variants)
-                .WithOne(v => v.DesignsSize)
+            // ------------------ SIZE & VARIANT ------------------
+            // 1 Size -> N Variants | Variant thuộc về 1 Size
+            // Restrict: Không cho xoá Size nếu vẫn còn Variant tham chiếu
+            modelBuilder.Entity<Size>()
+                .HasMany(s => s.Variants) 
+                .WithOne(v => v.Size)
                 .HasForeignKey(v => v.SizeId)
-                .OnDelete(DeleteBehavior.Restrict); 
-
+                .OnDelete(DeleteBehavior.Restrict);
+            // 1 Design -> N Variants | Variant thuộc về 1 Design
+            // Cascade: Xoá Design sẽ xoá luôn Variants liên quan
             modelBuilder.Entity<DesignsVariant>()
                 .HasOne(v => v.Design)
                 .WithMany(d => d.DesignsVariants)
                 .HasForeignKey(v => v.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
+            // ------------------ MATERIAL ------------------
+            // Composite Key: 1 cặp (DesignId, MaterialId) là unique
             modelBuilder.Entity<DesignsMaterial>()
                 .HasKey(dm => new { dm.DesignId, dm.MaterialId });
-
+            // 1 Design -> N DesignsMaterial | DesignsMaterial thuộc về 1 Design
+            // Cascade: Xoá Design sẽ xoá luôn DesignsMaterial liên quan
             modelBuilder.Entity<DesignsMaterial>()
                 .HasOne(dm => dm.Designs)
                 .WithMany(d => d.DesignsMaterials)
                 .HasForeignKey(dm => dm.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
-
+            // 1 Material -> N DesignsMaterial | DesignsMaterial thuộc về 1 Material
+            // Restrict: Không cho xoá Material nếu vẫn còn DesignsMaterial tham chiếu
             modelBuilder.Entity<DesignsMaterial>()
                 .HasOne(dm => dm.Materials)
                 .WithMany()
                 .HasForeignKey(dm => dm.MaterialId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<DesignFeature>()
-                .HasOne(df => df.Design)
-                .WithOne(d => d.DesignsFeature)
-                .HasForeignKey<DesignFeature>(df => df.DesignId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<DesignImage>()
-                .HasOne(di => di.Design)
-                .WithMany(d => d.DesignImages)
-                .HasForeignKey(di => di.DesignId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<DesignImage>()
-                .HasOne(di => di.Image)
-                .WithMany()
-                .HasForeignKey(di => di.ImageId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<DesignImage>()
-                .HasIndex(di => new { di.DesignId, di.ImageId })
-                .IsUnique();
-
+            // ------------------ DESIGN ------------------
+            // 1 ItemType -> N Design | Design thuộc về 1 ItemType
+            // Restrict: Không cho xoá ItemType nếu vẫn còn Design tham chiếu
             modelBuilder.Entity<Design>()
-                .HasOne(d => d.DesignTypes)
-                .WithMany()
-                .HasForeignKey(d => d.DesignTypeId)
+                .HasOne(d => d.ItemTypes)
+                .WithMany(it => it.Designs)
+                .HasForeignKey(d => d.ItemTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Design>()
                 .Property(d => d.SalePrice)
                 .HasPrecision(18, 2);
 
-            modelBuilder.Entity<DesignTypeSizeRatio>()
-                 .HasOne(x => x.DesignType)
-                 .WithMany(dt => dt.TypeSizeRatios)
-                 .HasForeignKey(x => x.DesignTypeId)
-                 .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<DesignTypeSizeRatio>()
+            // ------------------ ITEM TYPE SIZE RATIO ------------------
+            // 1 ItemType -> N ItemTypeSizeRatio | ItemTypeSizeRatio thuộc về 1 ItemType
+            // Cascade: Xoá ItemType sẽ xoá luôn ItemTypeSizeRatio liên quan
+            modelBuilder.Entity<ItemTypeSizeRatio>()
+                .HasOne(x => x.ItemType)
+                .WithMany(it => it.TypeSizeRatios)
+                .HasForeignKey(x => x.ItemTypeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // 1 Size -> N ItemTypeSizeRatio | ItemTypeSizeRatio thuộc về 1 Size
+            // Cascade: Xoá Size sẽ xoá luôn ItemTypeSizeRatio liên quan
+            modelBuilder.Entity<ItemTypeSizeRatio>()
                 .HasOne(x => x.Size)
                 .WithMany(sz => sz.TypeSizeRatios)
                 .HasForeignKey(x => x.SizeId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Unique constraint: 1 cặp (DesignTypeId, SizeId) chỉ có 1 hệ số
-            modelBuilder.Entity<DesignTypeSizeRatio>()
-                .HasIndex(x => new { x.DesignTypeId, x.SizeId })
+            // Unique constraint: 1 cặp (ItemTypeId, SizeId) chỉ có 1 hệ số
+            modelBuilder.Entity<ItemTypeSizeRatio>()
+                .HasIndex(x => new { x.ItemTypeId, x.SizeId })
                 .IsUnique();
+
             // ------------------ DRAFT PART ------------------
+            // 1 Design -> N DraftParts | DraftPart thuộc về 1 Design
+            // Cascade: Xoá Design sẽ xoá luôn DraftParts liên quan
             modelBuilder.Entity<DraftPart>()
                 .HasOne(dp => dp.Design)
                 .WithMany(d => d.DraftParts)
                 .HasForeignKey(dp => dp.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
-
+            // 1 Material -> N DraftParts | DraftPart thuộc về 1 Material
+            // Restrict: Không cho xoá Material nếu vẫn còn DraftPart tham chiếu
             modelBuilder.Entity<DraftPart>()
                 .HasOne(dp => dp.Material)
                 .WithMany()
                 .HasForeignKey(dp => dp.MaterialId)
-                .OnDelete(DeleteBehavior.Restrict); // không xoá Material nếu xoá Part
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //modelBuilder.Entity<DraftPart>()
+            //    .Property(dp => dp.MaterialStatus)
+            //    .HasConversion<string>();
 
             // ------------------ DRAFT SKETCH ------------------
+            // 1 Design -> N DraftSketches | DraftSketch thuộc về 1 Design
+            // Cascade: Xoá Design sẽ xoá luôn DraftSketches liên quan
             modelBuilder.Entity<DraftSketch>()
                 .HasOne(ds => ds.Design)
                 .WithMany(d => d.DraftSketches)
                 .HasForeignKey(ds => ds.DesignId)
                 .OnDelete(DeleteBehavior.Cascade);
-
+            // 1 Image -> N DraftSketches | DraftSketch thuộc về 1 Image
+            // Cascade: Xoá Image sẽ xoá luôn DraftSketch liên quan
             modelBuilder.Entity<DraftSketch>()
                 .HasOne(ds => ds.Image)
                 .WithMany()
@@ -209,15 +214,53 @@ namespace EcoFashionBackEnd.Entities
                 .HasIndex(ds => new { ds.DesignId, ds.ImageId })
                 .IsUnique();
 
-            modelBuilder.Entity<DraftPart>()
-                .Property(dp => dp.MaterialStatus)
-                .HasConversion<string>();
+            #endregion
+            #region product 
+            // ------------------ PRODUCT ------------------
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.HasKey(p => p.ProductId);
 
-            modelBuilder.Entity<Design>()
-                .Property(d => d.Stage)
-                .HasConversion<string>();
+                // Design (bắt buộc)
+                entity.HasOne(p => p.Design)
+                    .WithMany(d => d.Products)
+                    .HasForeignKey(p => p.DesignId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                // Restrict: tránh xóa design làm mất hết sản phẩm
 
+                // Variant (có thể null vì chỉ phục vụ kế hoạch)
+                entity.HasOne(p => p.Variant)
+                    .WithMany()
+                    .HasForeignKey(p => p.VariantId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                // SetNull: nếu variant kế hoạch bị xóa, product vẫn tồn tại
 
+                // Size (bắt buộc)
+                entity.HasOne(p => p.Size)
+                    .WithMany()
+                    .HasForeignKey(p => p.SizeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                // Restrict: tránh xóa size làm mất sản phẩm
+
+                // SKU: unique
+                entity.HasIndex(p => p.SKU)
+                    .IsUnique();
+
+                // Price precision
+                entity.Property(p => p.Price)
+                    .HasPrecision(18, 2);
+
+                // CareInstruction: cho phép null nhưng limit length
+                entity.Property(p => p.CareInstruction)
+                    .HasMaxLength(500);
+
+                // Product ↔ ProductFeature: 1 sản phẩm có đúng 1 bộ feature flags
+                entity.HasOne(p => p.Feature) // đổi sang số ít
+                    .WithOne(f => f.Product)
+                    .HasForeignKey<ProductFeature>(f => f.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                // Cascade: xóa product thì xóa luôn feature
+            });
             #endregion
 
             #region Material 

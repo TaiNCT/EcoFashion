@@ -17,6 +17,6 @@ public class DesignsMaterial
     [ForeignKey("MaterialId")]
     public virtual Material Materials { get; set; }
 
-    public float PersentageUsed { get; set; }
-    public int MeterUsed { get; set; }
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal MeterUsed { get; set; }
 }

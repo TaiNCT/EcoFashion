@@ -3,24 +3,22 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcoFashionBackEnd.Entities
 {
-    [Table("DesignsVariants")]
-    public class DesignsVariant
+    [Table("ItemTypeSizeRatios")]
+    public class ItemTypeSizeRatio
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        public int DesignId { get; set; }
-        [ForeignKey(nameof(DesignId))]
-        public virtual Design Design { get; set; }
+        public int ItemTypeId { get; set; }
+        [ForeignKey(nameof(ItemTypeId))]
+        public virtual ItemType ItemType { get; set; }
 
         public int SizeId { get; set; }
         [ForeignKey(nameof(SizeId))]
         public virtual Size Size { get; set; }
 
-        // Mã màu hoặc tên màu
-        [MaxLength(50)]
-        public string ColorCode { get; set; }
-
+        // Hệ số áp dụng theo size cho loại sản phẩm
+        public float Ratio { get; set; }
     }
 }

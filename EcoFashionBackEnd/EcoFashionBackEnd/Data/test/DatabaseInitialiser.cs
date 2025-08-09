@@ -83,10 +83,10 @@ namespace EcoFashionBackEnd.Data.test
                 //await DesignColorSeeder.SeedAsync(_context);
                 
                 Console.WriteLine("Seeding Design Sizes...");
-                await DesignsSizeSeeder.SeedAsync(_context);
+                //await DesignsSizeSeeder.SeedAsync(_context);
                 
                 Console.WriteLine("Seeding Design Types...");
-                await DesignsTypeSeeder.SeedAsync(_context);
+                //await DesignsTypeSeeder.SeedAsync(_context);
                 
                 Console.WriteLine("Seeding Designs...");
                 await DesignSeeder.SeedAsync(_context);
@@ -98,7 +98,7 @@ namespace EcoFashionBackEnd.Data.test
                 await DesignImageSeeder.SeedAsync(_context);
                 
                 Console.WriteLine("Seeding Design Type Size Ratios...");
-                await DesignTypeSizeRatioSeeder.SeedAsync(_context);
+                //await DesignTypeSizeRatioSeeder.SeedAsync(_context);
                 
                 Console.WriteLine("Seeding Designer Material Inventory...");
                 await DesignerMaterialInventorySeeder.SeedAsync(_context);

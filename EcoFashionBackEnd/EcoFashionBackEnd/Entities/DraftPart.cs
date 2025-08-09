@@ -11,21 +11,24 @@ namespace EcoFashionBackEnd.Entities
         public int PartId { get; set; }
 
         // FK đến bản Draft (Design)
-        [ForeignKey("Design")]
+
         public int DesignId { get; set; }
+        [ForeignKey("DesignId")]
         public virtual Design Design { get; set; }
 
         [Required]
-        public string Name { get; set; } = string.Empty; // Tên part: "Sleeve", "Collar", v.v.
+        public string Name { get; set; } = string.Empty; // Tên part: "Sleeve", "Collar"...
 
-        public float Length { get; set; } // cm
-        public float Width { get; set; }  // cm
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal Length { get; set; } // cm
+
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal Width { get; set; }  // cm
 
         public int Quantity { get; set; }
 
-
-        [ForeignKey("Material")]
         public int MaterialId { get; set; }
+        [ForeignKey("MaterialId")]
         public virtual Material Material { get; set; }
 
         public MaterialStatus MaterialStatus { get; set; } = MaterialStatus.Main;
@@ -33,8 +36,9 @@ namespace EcoFashionBackEnd.Entities
 
     public enum MaterialStatus
     {
-        Main,   // Vật liệu chính
-        Sup     // Vật liệu phụ trợ
+        Main,       // Vật liệu chính
+        Supplement, // Vật liệu phụ trợ
+        Other       // Vật liệu khác
     }
 }
 
