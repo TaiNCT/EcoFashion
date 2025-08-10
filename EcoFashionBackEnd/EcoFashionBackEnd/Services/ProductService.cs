@@ -17,13 +17,8 @@ namespace EcoFashionBackEnd.Services
         private readonly IRepository<DesignerMaterialInventory, int> _designerMaterialInventoryRepository;
         private readonly IRepository<ItemTypeSizeRatio, int> _itemTypeSizeRatioRepository;
         private readonly IRepository<Warehouse, int> _warehouseRepository;
-
         private readonly InventoryService _inventoryService;
        
-
-
-
-
         public ProductService(
            IRepository<Product, int> productRepository,
            IRepository<Design, int> designRepository,
@@ -54,6 +49,7 @@ namespace EcoFashionBackEnd.Services
 
             var design = await _designRepository.GetAll()
                 .Include(d => d.DesignsMaterials).ThenInclude(dm => dm.Materials)
+                //include variant 
                 .FirstOrDefaultAsync(d => d.DesignId == request.DesignId);
             if (design == null)
                 throw new Exception("Design không tồn tại");
@@ -97,7 +93,6 @@ namespace EcoFashionBackEnd.Services
                     SKU = sku,
                     Price = (decimal)design.SalePrice,
                     ColorCode = variantReq.ColorCode,
-                    CareInstruction = request.CareInstruction,
                     SizeId = variantReq.SizeId,
                 };
 

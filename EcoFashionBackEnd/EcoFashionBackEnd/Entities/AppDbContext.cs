@@ -23,7 +23,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<DesignImage> DesignImages { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<ItemTypeSizeRatio> ItemTypeSizeRatios { get; set; }
-        public DbSet<ProductFeature> ProductFeatures { get; set; }
+        public DbSet<DesignFeature> DesignFeatures { get; set; }
         public DbSet<Size> Sizes { get; set; }
         public DbSet<ItemType> DesignsTyItemTypes { get; set; }
         public DbSet<DesignerMaterialInventory> DesignerMaterialInventories { get; set; }
@@ -217,8 +217,24 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<DraftSketch>()
                 .HasIndex(ds => new { ds.DesignId, ds.ImageId })
                 .IsUnique();
+            modelBuilder.Entity<Design>()
+                .Property(d => d.CareInstruction)
+                .HasMaxLength(500)
+                .IsRequired(false);
 
+            // DesignFeature (trước đây là ProductFeature, đổi tên cho rõ ràng hơn)
+            modelBuilder.Entity<DesignFeature>(entity =>
+            {
+                entity.HasKey(df => df.FeatureId);
+
+                entity.HasOne(df => df.Design)
+                    .WithOne(d => d.Feature)
+                    .HasForeignKey<DesignFeature>(df => df.DesignId)
+                    .OnDelete(DeleteBehavior.Cascade);  // xóa design sẽ xóa feature luôn
+            });
             #endregion
+
+
             #region product 
             // ------------------ PRODUCT ------------------
             modelBuilder.Entity<Product>(entity =>
@@ -253,17 +269,7 @@ namespace EcoFashionBackEnd.Entities
                 // Price precision
                 entity.Property(p => p.Price)
                     .HasPrecision(18, 2);
-
-                // CareInstruction: cho phép null nhưng limit length
-                entity.Property(p => p.CareInstruction)
-                    .HasMaxLength(500);
-
-                // Product ↔ ProductFeature: 1 sản phẩm có đúng 1 bộ feature flags
-                entity.HasOne(p => p.Feature) // đổi sang số ít
-                    .WithOne(f => f.Product)
-                    .HasForeignKey<ProductFeature>(f => f.ProductId)
-                    .OnDelete(DeleteBehavior.Cascade);
-                // Cascade: xóa product thì xóa luôn feature
+  
             });
             #endregion
 
