@@ -25,7 +25,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<ItemTypeSizeRatio> ItemTypeSizeRatios { get; set; }
         public DbSet<DesignFeature> DesignFeatures { get; set; }
         public DbSet<Size> Sizes { get; set; }
-        public DbSet<ItemType> DesignsTyItemTypes { get; set; }
+        public DbSet<ItemType> ItemTypes { get; set; }
         public DbSet<DesignerMaterialInventory> DesignerMaterialInventories { get; set; }
         public DbSet<Material> Materials { get; set; }
         public DbSet<MaterialImage> MaterialImages { get; set; }
@@ -42,6 +42,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductInventory> ProductInventories { get; set; }
         public DbSet<ProductInventoryTransaction> ProductInventoryTransactions { get; set; }
+        public DbSet<Warehouse> Warehouses { get; set; }
 
 
 
@@ -112,7 +113,7 @@ namespace EcoFashionBackEnd.Entities
             // 1 Size -> N Variants | Variant thuộc về 1 Size
             // Restrict: Không cho xoá Size nếu vẫn còn Variant tham chiếu
             modelBuilder.Entity<Size>()
-                .HasMany(s => s.Variants) 
+                .HasMany(s => s.Variants)
                 .WithOne(v => v.Size)
                 .HasForeignKey(v => v.SizeId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -228,7 +229,7 @@ namespace EcoFashionBackEnd.Entities
                 entity.HasKey(df => df.FeatureId);
 
                 entity.HasOne(df => df.Design)
-                    .WithOne(d => d.Feature)
+                    .WithOne(d => d.DesignFeatures)
                     .HasForeignKey<DesignFeature>(df => df.DesignId)
                     .OnDelete(DeleteBehavior.Cascade);  // xóa design sẽ xóa feature luôn
             });
@@ -269,7 +270,7 @@ namespace EcoFashionBackEnd.Entities
                 // Price precision
                 entity.Property(p => p.Price)
                     .HasPrecision(18, 2);
-  
+
             });
             #endregion
 
@@ -279,10 +280,10 @@ namespace EcoFashionBackEnd.Entities
                 entity.HasKey(w => w.WarehouseId);
 
                 // 1 Designer -> N Warehouses
-                entity.HasOne<Designer>()
-                      .WithMany(d => d.Warehouses)
-                      .HasForeignKey(w => w.DesignerId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(w => w.Designer) // <-- Chỉ rõ Navigation Property của Warehouse
+                .WithMany(d => d.Warehouses)
+                .HasForeignKey(w => w.DesignerId)
+                .OnDelete(DeleteBehavior.NoAction);
                 // Cascade: Xóa Designer xóa luôn các kho
 
                 entity.Property(w => w.WarehouseType)

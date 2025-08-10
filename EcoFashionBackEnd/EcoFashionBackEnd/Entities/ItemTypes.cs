@@ -16,11 +16,9 @@ namespace EcoFashionBackEnd.Entities
         public string TypeName { get; set; } = string.Empty; // Ví dụ: "Áo thun", "Váy đầm", "Quần jeans"
 
         [MaxLength(255)]
-        public string? Description { get; set; } // Mô tả thêm nếu cần
+        public string? Description { get; set; } // Mô tả 
 
-        // Liên kết ngược
         public virtual ICollection<Design> Designs { get; set; } = new List<Design>();
-        //public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 
         public virtual ICollection<ItemTypeSizeRatio> TypeSizeRatios { get; set; } = new List<ItemTypeSizeRatio>();
     }

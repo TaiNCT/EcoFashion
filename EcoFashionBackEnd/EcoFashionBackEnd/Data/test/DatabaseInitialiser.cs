@@ -78,31 +78,26 @@ namespace EcoFashionBackEnd.Data.test
                 
                 Console.WriteLine("Seeding Material Images...");
                 await MaterialImageSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Colors...");
-                //await DesignColorSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Sizes...");
-                //await DesignsSizeSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Types...");
-                //await DesignsTypeSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Designs...");
+
+                #region -- design -- 
+
+                await ItemTypeSeeder.SeedAsync(_context);
+                await SizeSeeder.SeedAsync(_context);
+                await ItemTypeSizeRatioSeeder.SeedAsync(_context);
                 await DesignSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Materials...");
                 await DesignMaterialSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Images...");
                 await DesignImageSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Type Size Ratios...");
-                //await DesignTypeSizeRatioSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Designer Material Inventory...");
+                await DesignsVariantSeeder.SeedAsync(_context);
+
                 await DesignerMaterialInventorySeeder.SeedAsync(_context);
-                
+                #endregion
+                #region -- Product -- 
+                await ProductSeeder.SeedAsync(_context);
+
+
+
+                #endregion
+
                 Console.WriteLine("Database seeding completed successfully!");
             }
             catch (Exception ex)

@@ -37,7 +37,7 @@ namespace EcoFashionBackEnd.Entities
         public string CareInstruction { get; set; }
 
         public virtual ItemType ItemTypes { get; set; }
-        public virtual DesignFeature Feature { get; set; }
+        public virtual DesignFeature DesignFeatures { get; set; }
         public virtual ICollection<DesignsVariant> DesignsVariants { get; set; } = new List<DesignsVariant>();
         public virtual ICollection<DesignsMaterial> DesignsMaterials { get; set; } = new List<DesignsMaterial>();
         public virtual ICollection<DraftSketch> DraftSketches { get; set; } = new List<DraftSketch>();

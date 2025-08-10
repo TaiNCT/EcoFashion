@@ -84,7 +84,6 @@ public static class ServicesExtensions
         services.AddScoped<CustomerService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<CloudService>();
-        
         services.AddScoped<DesignService>();
         services.AddScoped<MaterialService>();
         services.AddScoped<MaterialTypeService>();
@@ -96,9 +95,11 @@ public static class ServicesExtensions
         services.AddScoped<OrderService>();
         services.AddScoped<OrderDetailService>();
         services.AddScoped<NotificationService>();
-        //services.AddScoped<IVnPayService, VnPayService>();
         services.AddScoped<PaymentService>();
         services.AddScoped<IVnPayService, VnPayService>();
+        services.AddScoped<ProductService>();
+        services.AddScoped<InventoryService>();
+
 
 
         return services;
