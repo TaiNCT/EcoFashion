@@ -35,13 +35,12 @@ namespace EcoFashionBackEnd.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
-        public int QuantityInStock { get; set; }
-
         // Care instructions (vd: giặt tay, không sấy)
         public string CareInstruction { get; set; }
 
         // Navigation tới các feature (reduce_waste, low_impact_dyes…)
         public virtual ProductFeature Feature { get; set; }
+        public virtual ICollection<ProductInventory> Inventories { get; set; } = new List<ProductInventory>();
     }
 
 }

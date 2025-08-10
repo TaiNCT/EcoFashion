@@ -41,6 +41,7 @@ namespace EcoFashionBackEnd.Entities
         public virtual ICollection<DraftSketch> DraftSketches { get; set; } = new List<DraftSketch>();
         public virtual ICollection<DraftPart> DraftParts { get; set; } = new List<DraftPart>();
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+        public virtual ICollection<DesignImage> DesignImages { get; set; } = new List<DesignImage>();
     }
    
 }

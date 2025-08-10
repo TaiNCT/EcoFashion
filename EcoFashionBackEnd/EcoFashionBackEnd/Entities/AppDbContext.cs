@@ -40,6 +40,8 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<ProductInventory> ProductInventories { get; set; }
+        public DbSet<ProductInventoryTransaction> ProductInventoryTransactions { get; set; }
 
 
 
@@ -265,6 +267,83 @@ namespace EcoFashionBackEnd.Entities
             });
             #endregion
 
+            #region Warehouse
+            modelBuilder.Entity<Warehouse>(entity =>
+            {
+                entity.HasKey(w => w.WarehouseId);
+
+                // 1 Designer -> N Warehouses
+                entity.HasOne<Designer>()
+                      .WithMany(d => d.Warehouses)
+                      .HasForeignKey(w => w.DesignerId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                // Cascade: Xóa Designer xóa luôn các kho
+
+                entity.Property(w => w.WarehouseType)
+                      .IsRequired()
+                      .HasMaxLength(50); // "Material" hoặc "Product"
+            });
+            #endregion
+            #region ProductInventory
+            modelBuilder.Entity<ProductInventory>(entity =>
+            {
+                entity.HasKey(pi => pi.InventoryId);
+
+                // ProductInventory ↔ Product (N-1)
+                entity.HasOne(pi => pi.Product)
+                      .WithMany(p => p.Inventories)
+                      .HasForeignKey(pi => pi.ProductId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                // Restrict: Không xóa Product nếu còn Inventory (tránh mất dữ liệu tồn kho)
+
+                // ProductInventory ↔ Warehouse (N-1)
+                entity.HasOne(pi => pi.Warehouse)
+                      .WithMany(w => w.ProductInventories)
+                      .HasForeignKey(pi => pi.WarehouseId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                // Cascade: Xóa Warehouse xóa luôn Inventory trong đó
+
+                entity.Property(pi => pi.QuantityAvailable)
+                      .IsRequired();
+
+                entity.Property(pi => pi.LastUpdated)
+                      .IsRequired();
+            });
+            #endregion
+
+            #region ProductInventoryTransaction
+            modelBuilder.Entity<ProductInventoryTransaction>(entity =>
+            {
+                entity.HasKey(t => t.TransactionId);
+
+                // Transaction ↔ ProductInventory (N-1)
+                entity.HasOne(t => t.ProductInventory)
+                      .WithMany(pi => pi.Transactions)
+                      .HasForeignKey(t => t.InventoryId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+
+                // ProductInventoryTransaction ↔ User: Nhiều giao dịch do 1 User thực hiện
+                // Transaction ↔ User (N-1)
+                entity.HasOne(t => t.User)
+                      .WithMany() // Nếu muốn tracking User → Transactions thì tạo ICollection<Transaction> bên User
+                      .HasForeignKey(t => t.PerformedByUserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                // Restrict: Giữ lịch sử, không cho xóa User nếu còn transaction
+
+                entity.Property(t => t.QuantityChanged)
+                    .IsRequired();
+
+                entity.Property(t => t.TransactionDate)
+                    .IsRequired();
+
+                entity.Property(t => t.TransactionType)
+                    .HasMaxLength(50);
+
+                entity.Property(t => t.Notes)
+                    .HasMaxLength(500);
+            });
+            #endregion
             #region Material 
             // Configure relationships for Materials
             modelBuilder.Entity<Material>()
