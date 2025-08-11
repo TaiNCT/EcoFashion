@@ -34,6 +34,7 @@ namespace EcoFashionBackEnd.Dtos.Warehouse
         // From Material entity for quick display
         public int QuantityAvailable { get; set; }
         public decimal PricePerUnit { get; set; }
+        public string? WarehouseType { get; set; }
     }
 
     public class MaterialStockTransactionDto
@@ -56,6 +57,7 @@ namespace EcoFashionBackEnd.Dtos.Warehouse
         public string? WarehouseName { get; set; }
         public string? SupplierName { get; set; }
         public string? ImageUrl { get; set; }
+        public string? WarehouseType { get; set; }
     }
 
     // Requests

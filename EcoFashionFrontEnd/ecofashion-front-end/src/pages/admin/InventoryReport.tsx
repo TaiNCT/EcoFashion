@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { formatViDateTime } from '../../utils/date';
+import { formatViDateTime, formatViDate } from '../../utils/date';
 import inventoryAnalyticsService, { InventorySummaryDto, LowStockItemDto, SupplierReceiptPointDto } from '../../services/api/inventoryAnalyticsService';
 import materialInventoryService from '../../services/api/materialInventoryService';
 import type { MaterialStockTransactionDto } from '../../schemas/inventorySchema';
@@ -54,7 +54,7 @@ const InventoryReport: React.FC = () => {
 
   const downloadReceiptsCsv = () => {
     const rows = receiptsBySupplier.map(r => [
-      formatViDateTime(r.date),
+      formatViDate(r.date),
       r.supplierName || '',
       r.quantity,
     ]);
@@ -132,7 +132,7 @@ const InventoryReport: React.FC = () => {
                 <tbody>
                   {receiptsBySupplier.map(r => (
                     <tr key={`${r.date}-${r.supplierName || 'NA'}`} className="border-t">
-                      <td className="p-2">{formatViDateTime(r.date)}</td>
+                      <td className="p-2">{formatViDate(r.date)}</td>
                       <td className="p-2">{r.supplierName || '—'}</td>
                       <td className="p-2 text-green-700">+{r.quantity}</td>
                     </tr>
@@ -215,6 +215,10 @@ const InventoryReport: React.FC = () => {
                     <div>
                       <p className="text-xs text-gray-500">Kho</p>
                       <p className="text-sm">{(detailTx as any).warehouseName || detailTx.warehouseId}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Loại kho</p>
+                      <p className="text-sm">{(detailTx as any).warehouseType || '—'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Loại hàng</p>

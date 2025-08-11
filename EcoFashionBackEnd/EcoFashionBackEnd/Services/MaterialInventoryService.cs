@@ -46,9 +46,9 @@ namespace EcoFashionBackEnd.Services
                 MaterialName = s.Material?.Name,
                 WarehouseName = s.Warehouse?.Name,
                 Unit = "mét", // display unit for materials
-                ImageUrl = s.Material?.MaterialImages?.Select(mi => mi.Image!.ImageUrl).FirstOrDefault()
-                ,QuantityAvailable = s.Material?.QuantityAvailable ?? 0
-                ,PricePerUnit = s.Material?.PricePerUnit ?? 0
+                ImageUrl = s.Material?.MaterialImages?.Select(mi => mi.Image!.ImageUrl).FirstOrDefault(),
+                QuantityAvailable = s.Material?.QuantityAvailable ?? 0,
+                PricePerUnit = s.Material?.PricePerUnit ?? 0
             }).ToList();
         }
 
@@ -94,7 +94,11 @@ namespace EcoFashionBackEnd.Services
                 MaterialName = t.Material?.Name,
                 WarehouseName = t.Warehouse?.Name,
                 SupplierName = warehouseIdToSupplierName.TryGetValue(t.WarehouseId, out var sn) ? sn : null,
-                ImageUrl = t.Material?.MaterialImages?.Select(mi => mi.Image!.ImageUrl).FirstOrDefault()
+                ImageUrl = t.Material?.MaterialImages?.Select(mi => mi.Image!.ImageUrl).FirstOrDefault(),
+                // Expose WarehouseType for FE filters/search
+                // Map from entity (column Type)
+                // Using null-conditional to avoid NRE if not included
+                WarehouseType = t.Warehouse?.WarehouseType
             }).ToList();
         }
 

@@ -12,6 +12,7 @@ export const materialStockDtoSchema = z.object({
   warehouseName: z.string().nullable().optional(),
   unit: z.string().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
+  warehouseType: z.string().nullable().optional(),
   quantityAvailable: z.number(),
   pricePerUnit: z.number(),
 });
@@ -34,6 +35,7 @@ export const materialStockTransactionDtoSchema = z.object({
   warehouseName: z.string().nullable().optional(),
   supplierName: z.string().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
+  warehouseType: z.string().nullable().optional(),
 });
 
 export const receiveMaterialRequestSchema = z.object({
