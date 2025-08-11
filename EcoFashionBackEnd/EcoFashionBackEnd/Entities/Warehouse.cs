@@ -13,8 +13,7 @@ namespace EcoFashionBackEnd.Entities
         public string? Name { get; set; }
 
         // Phân loại kho: "Material" | "Product" | ... (dùng cho tách không gian)
-        [Column("Type")] // giữ tương thích DB cũ: cột tên "Type"
-        public string WarehouseType { get; set; } = "Material";
+        public required string WarehouseType { get; set; }
 
         // Nếu là kho của nhà cung cấp, SupplierId sẽ có giá trị.
         // Nếu null → kho hệ thống/global
@@ -30,9 +29,7 @@ namespace EcoFashionBackEnd.Entities
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public string? Address { get; set; }
-        public string? Note { get; set; }
-
+ 
         // Navigation tới ProductInventories (nếu dùng cho kho sản phẩm)
         public ICollection<ProductInventory> ProductInventories { get; set; } = new List<ProductInventory>();
     }
