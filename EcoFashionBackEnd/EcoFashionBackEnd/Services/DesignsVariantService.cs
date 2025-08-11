@@ -81,7 +81,9 @@ namespace EcoFashionBackEnd.Services
             {
                 DesignId = designId,
                 SizeId = request.SizeId,
-                ColorCode = request.ColorCode
+                ColorCode = request.ColorCode, 
+                Quantity = request.Quantity,
+                
             };
 
             await _designVariantRepository.AddAsync(variant);
@@ -99,6 +101,7 @@ namespace EcoFashionBackEnd.Services
 
             variant.SizeId = request.SizeId;
             variant.ColorCode = request.ColorCode;
+            variant.Quantity = request.Quantity;
 
             _designVariantRepository.Update(variant);
             await _designVariantRepository.Commit();

@@ -392,30 +392,30 @@ namespace EcoFashionBackEnd.Services
 
 
         //    // Upload ảnh
-        //    if (imageFiles?.Any() == true)
-        //    {
-        //        var uploadResults = await _cloudService.UploadImagesAsync(imageFiles);
-        //        foreach (var uploadResult in uploadResults)
-        //        {
-        //            if (!string.IsNullOrWhiteSpace(uploadResult?.SecureUrl?.ToString()))
-        //            {
-        //                var designImage = new DesignImage
-        //                {
-        //                    DesignId = design.DesignId,
-        //                    Image = new Image
-        //                    {
-        //                        ImageUrl = uploadResult.SecureUrl.ToString()
-        //                    }
-        //                };
+    //        if (imageFiles?.Any() == true)
+    //        {
+    //            var uploadResults = await _cloudService.UploadImagesAsync(imageFiles);
+    //            foreach (var uploadResult in uploadResults)
+    //            {
+    //                if (!string.IsNullOrWhiteSpace(uploadResult?.SecureUrl?.ToString()))
+    //                {
+    //                    var designImage = new DesignImage
+    //                    {
+    //                        DesignId = design.DesignId,
+    //                        Image = new Image
+    //                        {
+    //                            ImageUrl = uploadResult.SecureUrl.ToString()
+    //                        }
+    //                    };
 
-        //                await _designImageRepository.AddAsync(designImage);
-        //            }
-        //            else
-        //            {
-        //                Console.WriteLine(" Upload failed or returned null SecureUrl.");
-        //            }
-        //        }
-        //    }
+    //    await _designImageRepository.AddAsync(designImage);
+    //}
+    //                else
+    //                {
+    //                    Console.WriteLine(" Upload failed or returned null SecureUrl.");
+    //                }
+    //            }
+    //        }
 
         //    await _designRepository.Commit();
         //    return design.DesignId;
