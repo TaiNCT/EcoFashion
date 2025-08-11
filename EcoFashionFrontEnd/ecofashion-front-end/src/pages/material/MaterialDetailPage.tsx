@@ -240,6 +240,8 @@ const MaterialDetailPage: React.FC = () => {
       quantity: quantity,
       unit: "mét",
       type: "material",
+      sellerId: material.supplier?.supplierId || "unknown",
+      sellerName: material.supplier?.supplierName || "Nhà cung cấp",
     });
 
     toast.success(

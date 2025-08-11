@@ -48,6 +48,7 @@ import InventoryReport from "./pages/admin/InventoryReport";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastContainer } from "react-toastify";
 import BusinessInfor from "./pages/BusinessInfor";
+import Cart from "./pages/shop/cart";
 
 function App() {
   const location = useLocation();
@@ -78,6 +79,7 @@ function App() {
         <Route path="/" element={<Homepages />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
