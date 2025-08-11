@@ -102,6 +102,9 @@ namespace EcoFashionBackEnd.Data.test
                 
                 Console.WriteLine("Seeding Designer Material Inventory...");
                 await DesignerMaterialInventorySeeder.SeedAsync(_context);
+
+                Console.WriteLine("Seeding Supplier Material Warehouse/Stocks...");
+                await MaterialInventorySeeder.SeedAsync(_context);
                 
                 Console.WriteLine("Database seeding completed successfully!");
             }

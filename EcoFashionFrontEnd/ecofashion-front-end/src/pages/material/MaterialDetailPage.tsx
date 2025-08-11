@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -21,6 +21,8 @@ import {
   Link,
   TextField,
   Alert,
+  Dialog,
+  DialogContent,
 } from "@mui/material";
 import {
   FavoriteBorder,
@@ -28,6 +30,9 @@ import {
   ArrowBackIos,
   ArrowForwardIos,
   ShoppingCart,
+  ZoomIn,
+  ZoomOut,
+  Close,
 } from "@mui/icons-material";
 import { materialService } from "../../services/api/materialService";
 import { useCartStore } from "../../store/cartStore";
@@ -109,6 +114,18 @@ const MaterialDetailPage: React.FC = () => {
     []
   );
   const [sustainabilityReport, setSustainabilityReport] = useState<MaterialSustainabilityReport | null>(null);
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1.5);
+  const [dragging, setDragging] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+  // Hover magnifier state
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const [hovering, setHovering] = useState(false);
+  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
+  const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
+  const lensSize = 120; // px
+  const hoverZoom = 2.2; // scale for preview box
 
   const addToCart = useCartStore((state) => state.addToCart);
 
@@ -185,6 +202,16 @@ const MaterialDetailPage: React.FC = () => {
       prev === material.imageUrls.length - 1 ? 0 : prev + 1
     );
   };
+
+  const openZoom = () => {
+    setZoomScale(1.5);
+    setOffset({ x: 0, y: 0 });
+    setZoomOpen(true);
+  };
+  const onMouseDown = (e: React.MouseEvent) => { setDragging(true); setLastPos({ x: e.clientX, y: e.clientY }); };
+  const onMouseMove = (e: React.MouseEvent) => { if (!dragging) return; const dx = e.clientX - lastPos.x; const dy = e.clientY - lastPos.y; setOffset(o => ({ x: o.x + dx, y: o.y + dy })); setLastPos({ x: e.clientX, y: e.clientY }); };
+  const onMouseUp = () => setDragging(false);
+  const onWheel = (e: React.WheelEvent) => { e.preventDefault(); const delta = e.deltaY < 0 ? 0.1 : -0.1; setZoomScale(z => Math.min(4, Math.max(1, z + delta))); };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
@@ -317,6 +344,7 @@ const MaterialDetailPage: React.FC = () => {
             <Box sx={{ position: "relative", mb: 2 }}>
               <Box
                 component="img"
+                ref={imgRef}
                 src={
                   material.imageUrls && material.imageUrls.length > 0
                     ? material.imageUrls[currentImageIndex] || mainImage
@@ -328,8 +356,64 @@ const MaterialDetailPage: React.FC = () => {
                   height: { xs: "300px", md: "60vh" },
                   borderRadius: 2,
                   objectFit: "cover",
+                  cursor: "zoom-in",
                 }}
+                onClick={openZoom}
+                onMouseEnter={(e) => {
+                  setHovering(true);
+                  const rect = (e.currentTarget as HTMLImageElement).getBoundingClientRect();
+                  setImgSize({ w: rect.width, h: rect.height });
+                }}
+                onMouseMove={(e) => {
+                  if (!imgRef.current) return;
+                  const rect = imgRef.current.getBoundingClientRect();
+                  let x = e.clientX - rect.left;
+                  let y = e.clientY - rect.top;
+                  // clamp within image
+                  x = Math.max(0, Math.min(rect.width, x));
+                  y = Math.max(0, Math.min(rect.height, y));
+                  setHoverPos({ x, y });
+                }}
+                onMouseLeave={() => setHovering(false)}
               />
+              {/* Lens overlay */}
+              {hovering && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: Math.max(0, Math.min(imgSize.h - lensSize, hoverPos.y - lensSize / 2)),
+                    left: Math.max(0, Math.min(imgSize.w - lensSize, hoverPos.x - lensSize / 2)),
+                    width: lensSize,
+                    height: lensSize,
+                    border: "2px solid rgba(255,255,255,0.9)",
+                    borderRadius: 1,
+                    boxShadow: "0 0 0 1px rgba(0,0,0,0.15)",
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
+              {/* Preview box (magnifier) */}
+              {hovering && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 12,
+                    left: "calc(100% + 16px)",
+                    width: 320,
+                    height: 320,
+                    borderRadius: 2,
+                    border: "1px solid #e0e0e0",
+                    backgroundColor: "#fff",
+                    backgroundImage: `url(${material.imageUrls && material.imageUrls.length > 0 ? material.imageUrls[currentImageIndex] || mainImage : mainImage})`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundSize: `${imgSize.w * hoverZoom}px ${imgSize.h * hoverZoom}px`,
+                    backgroundPosition: `${(hoverPos.x / imgSize.w) * 100}% ${(hoverPos.y / imgSize.h) * 100}%`,
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+                    zIndex: 1300,
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
               {material.imageUrls &&
                 material.imageUrls.length > 1 &&
                 material.imageUrls.length > 0 && (
@@ -520,6 +604,13 @@ const MaterialDetailPage: React.FC = () => {
                 sx={{ mb: 2, display: "block" }}
               >
                 💡 Gợi ý: Nhập số lượng mét cần mua
+              </Typography>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mb: 2, display: "block" }}
+              >
+                📐 Phân loại kích cỡ (ước tính khổ vải 1.4m): 1m ≈ (1 × 1.4m), 2m ≈ (2 × 1.4m), 3m ≈ (3 × 1.4m)
               </Typography>
 
               <Box
@@ -1243,6 +1334,40 @@ const MaterialDetailPage: React.FC = () => {
           </Box>
         )}
       </Box>
+      <Dialog open={zoomOpen} onClose={() => setZoomOpen(false)} fullWidth maxWidth="lg">
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", p: 1, borderBottom: "1px solid #eee" }}>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <IconButton onClick={() => setZoomScale(z => Math.min(4, z + 0.2))} aria-label="Phóng to"><ZoomIn /></IconButton>
+            <IconButton onClick={() => setZoomScale(z => Math.max(1, z - 0.2))} aria-label="Thu nhỏ"><ZoomOut /></IconButton>
+          </Box>
+          <IconButton onClick={() => setZoomOpen(false)} aria-label="Đóng"><Close /></IconButton>
+        </Box>
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ position: "relative", overflow: "hidden", cursor: dragging ? "grabbing" : "grab", height: { xs: "70vh", md: "80vh" } }}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
+            onWheel={onWheel}
+          >
+            <Box
+              component="img"
+              src={material.imageUrls && material.imageUrls.length > 0 ? material.imageUrls[currentImageIndex] || mainImage : mainImage}
+              alt={material.name || "Material"}
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${zoomScale})`,
+                transformOrigin: "center center",
+                userSelect: "none",
+                pointerEvents: "none",
+                maxWidth: "none",
+              }}
+            />
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
