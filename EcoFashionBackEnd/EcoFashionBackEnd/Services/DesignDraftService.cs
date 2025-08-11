@@ -24,6 +24,7 @@ namespace EcoFashionBackEnd.Services
         private readonly IRepository<DraftSketch, int> _draftSketchRepository;
         private readonly IRepository<Image, int> _imageRepository;
         private readonly IRepository<ItemTypeSizeRatio, int> _itemTypeSizeRatioRepository;
+        private readonly IRepository<ItemType, int> _itemTypeRepository;
 
         private readonly CloudService _cloudService;
         private readonly IMapper _mapper;
@@ -38,6 +39,7 @@ namespace EcoFashionBackEnd.Services
             IRepository<DraftSketch, int> draftSketchRepository,
             IRepository<Image, int> imageRepository,
             IRepository<ItemTypeSizeRatio, int> itemTypeSizeRatioRepository,
+            IRepository<ItemType, int> itemTypeRepository,
 
             CloudService cloudService,
             IMapper mapper)
@@ -51,6 +53,8 @@ namespace EcoFashionBackEnd.Services
             _draftSketchRepository = draftSketchRepository;
             _imageRepository = imageRepository;
             _itemTypeSizeRatioRepository = itemTypeSizeRatioRepository;
+            _itemTypeRepository = itemTypeRepository;
+
             _cloudService = cloudService;
             _mapper = mapper;
         }
@@ -408,6 +412,38 @@ namespace EcoFashionBackEnd.Services
             };
         }
 
+
+        public async Task<IEnumerable<ItemTypeDto>> GetAllItemTypesAsync()
+        {
+            return await _itemTypeRepository
+                .GetAll()
+                .AsNoTracking()
+                .Select(it => new ItemTypeDto
+                {
+                    ItemTypeId = it.ItemTypeId,
+                    TypeName = it.TypeName,
+                    Description = it.Description
+                })
+                .ToListAsync();
+        }
+
+
+        public async Task<IEnumerable<ItemTypeSizeRatioDto>> GetAllItemTypeSizeRatiosAsync()
+        {
+            return await _itemTypeSizeRatioRepository
+                .GetAll()
+                .AsNoTracking()
+                .Include(itsr => itsr.ItemType)
+                .Include(itsr => itsr.Size)
+                .Select(itsr => new ItemTypeSizeRatioDto
+                {
+                    Id = itsr.Id,
+                    TypeName = itsr.ItemType.TypeName,
+                    SizeName = itsr.Size.SizeName,
+                    Ratio = itsr.Ratio
+                })
+                .ToListAsync();
+        }
 
 
     }

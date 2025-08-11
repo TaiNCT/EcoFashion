@@ -7,6 +7,7 @@ using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Dtos.Design;
 using EcoFashionBackEnd.Dtos.DesignDraft;
+using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Services;
 using Humanizer;
 using Microsoft.AspNetCore.Mvc;
@@ -131,7 +132,24 @@ public class DesignDraftController : ControllerBase
     }
 
 
+    
+    [HttpGet("types")]
+   
+    public async Task<IActionResult> GetAllItemTypes()
+    {
+        var itemTypes = await _designDraftService.GetAllItemTypesAsync();
+        return  Ok(ApiResult<object>.Succeed(itemTypes));
+    }
 
+    
+    [HttpGet("ratios")]
+    public async Task<IActionResult> GetAllItemTypeSizeRatios()
+    {
+        var ratios = await _designDraftService.GetAllItemTypeSizeRatiosAsync();
+        return Ok(ApiResult<object>.Succeed(ratios));
+
+    }
+}
 
 
     //[HttpPost("finalize")]
@@ -170,4 +188,4 @@ public class DesignDraftController : ControllerBase
 
 
 
-}
+
