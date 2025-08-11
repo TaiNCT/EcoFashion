@@ -3,6 +3,7 @@ using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Services;
 using Microsoft.AspNetCore.Mvc;
+using EcoFashionBackEnd.Dtos.DesignDraft;
 
 namespace EcoFashionBackEnd.Controllers
 {
@@ -16,26 +17,22 @@ namespace EcoFashionBackEnd.Controllers
         }
 
         [HttpGet("{designId}/variants")]
-        public async Task<ActionResult<ApiResult<List<DesignsVariant>>>> GetVariants(int designId)
+        public async Task<ActionResult<ApiResult<List<VariantDetailsDto>>>> GetVariants(int designId)
         {
             var variants = await _variantService.GetVariantsByDesignIdAsync(designId);
-            return Ok(ApiResult<List<DesignsVariant>>.Succeed(variants));
+            return Ok(ApiResult<List<VariantDetailsDto>>.Succeed(variants));
         }
-
-
-
-
 
         [HttpGet("variants/{variantId}")]
-        public async Task<ActionResult<ApiResult<DesignsVariant>>> GetVariant(int variantId)
+        public async Task<ActionResult<ApiResult<VariantDetailsDto>>> GetVariant(int variantId)
         {
             var variant = await _variantService.GetVariantByIdAsync(variantId);
-            if (variant == null) return NotFound(ApiResult<DesignsVariant>.Fail("Variant không tồn tại."));
-            return Ok(ApiResult<DesignsVariant>.Succeed(variant));
+            if (variant == null)
+            {
+                return NotFound(ApiResult<VariantDetailsDto>.Fail("Variant không tồn tại."));
+            }
+            return Ok(ApiResult<VariantDetailsDto>.Succeed(variant));
         }
-
-
-
 
         [HttpPost("{designId}/variants")]
         public async Task<ActionResult<ApiResult<bool>>> CreateVariant(int designId, [FromBody] DesignsVariantCreateRequest request)

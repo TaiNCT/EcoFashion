@@ -1,4 +1,5 @@
 ﻿using EcoFashionBackEnd.Common.Payloads.Requests.Variant;
+using EcoFashionBackEnd.Dtos.DesignDraft;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -22,19 +23,50 @@ namespace EcoFashionBackEnd.Services
             _sizeRepository = sizeRepository;
         }
 
-        public async Task<List<DesignsVariant>> GetVariantsByDesignIdAsync(int designId)
+        public async Task<List<VariantDetailsDto>> GetVariantsByDesignIdAsync(int designId)
         {
-            return await _designVariantRepository.GetAll()
+            return await _designVariantRepository
+                .GetAll()
+                .AsNoTracking()
                 .Where(v => v.DesignId == designId)
+                .Include(v => v.Design)
+                    .ThenInclude(d => d.ItemTypes)
                 .Include(v => v.Size)
+                .Select(v => new VariantDetailsDto
+                {
+                    VariantId = v.Id,
+                    DesignName = v.Design.Name,
+                    SizeName = v.Size.SizeName,
+                    ColorCode = v.ColorCode,
+                    Quantity = v.Quantity,
+                    Ratio = v.Design.ItemTypes.TypeSizeRatios
+                        .FirstOrDefault(r => r.SizeId == v.SizeId)
+                        .Ratio
+                })
                 .ToListAsync();
         }
 
-        public async Task<DesignsVariant> GetVariantByIdAsync(int variantId)
+        public async Task<VariantDetailsDto?> GetVariantByIdAsync(int variantId)
         {
-            return await _designVariantRepository.GetAll()
+            return await _designVariantRepository
+                .GetAll()
+                .AsNoTracking()
+                .Where(v => v.Id == variantId)
+                .Include(v => v.Design)
                 .Include(v => v.Size)
-                .FirstOrDefaultAsync(v => v.Id == variantId);
+                .Select(v => new VariantDetailsDto
+                {
+                    VariantId = v.Id,
+                    DesignName = v.Design.Name,
+                    SizeName = v.Size.SizeName,
+                    ColorCode = v.ColorCode,
+                    Quantity = v.Quantity,
+                    // Find the correct ratio based on the variant's SizeId and the design's ItemTypeId.
+                    Ratio = v.Design.ItemTypes.TypeSizeRatios
+                        .FirstOrDefault(r => r.SizeId == v.SizeId)
+                        .Ratio
+                })
+                .FirstOrDefaultAsync();
         }
 
         public async Task<bool> CreateVariantAsync(int designId, DesignsVariantCreateRequest request)

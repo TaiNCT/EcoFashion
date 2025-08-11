@@ -99,6 +99,8 @@ public static class ServicesExtensions
         services.AddScoped<IVnPayService, VnPayService>();
         services.AddScoped<ProductService>();
         services.AddScoped<InventoryService>();
+        services.AddScoped<DesignsVariantService>();
+
 
 
 
