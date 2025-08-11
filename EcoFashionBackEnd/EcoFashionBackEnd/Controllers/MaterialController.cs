@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using EcoFashionBackEnd.Services;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Common.Payloads.Responses;
 using Microsoft.AspNetCore.Http;
+using EcoFashionBackEnd.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace EcoFashionBackEnd.Controllers
 {
@@ -13,7 +16,6 @@ namespace EcoFashionBackEnd.Controllers
     {
         private readonly MaterialService _materialService;
         private readonly SustainabilityService _sustainabilityService;
-
         public MaterialController(MaterialService materialService, SustainabilityService sustainabilityService)
         {
             _materialService = materialService;
@@ -27,6 +29,15 @@ namespace EcoFashionBackEnd.Controllers
             return Ok(result);
         }
 
+        // Admin: get all materials regardless of approval/availability
+        [HttpGet("admin/all")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetAllMaterialsAdmin()
+        {
+            var result = await _materialService.GetAllMaterialsAdminAsync();
+            return Ok(result);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetMaterialById(int id)
         {
@@ -35,13 +46,16 @@ namespace EcoFashionBackEnd.Controllers
         }
 
         [HttpPost("CreateWithSustainability")]
+        [Authorize(Roles = "supplier")]
         public async Task<IActionResult> CreateMaterialFromForm([FromBody] MaterialCreationFormRequest request)
         {
+            // Clean flow: trust supplierId from client (FE ensures correct), no fallback
             var result = await _materialService.CreateMaterialFromFormAsync(request);
             return Ok(result);
         }
 
         [HttpPost("{materialId}/images")]
+        [Authorize(Roles = "supplier")]
         public async Task<IActionResult> UploadMaterialImages([FromRoute] int materialId, [FromForm] List<IFormFile> files)
         {
             var result = await _materialService.UploadMaterialImagesAsync(materialId, files);
@@ -49,6 +63,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteMaterial(int id)
         {
             var result = await _materialService.DeleteMaterialAsync(id);
@@ -56,13 +71,15 @@ namespace EcoFashionBackEnd.Controllers
         }
 
         [HttpPost("{id}/approve")]
-        public async Task<IActionResult> ApproveMaterial(int id)
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> ApproveMaterial(int id, [FromBody] string? adminNote)
         {
-            var result = await _materialService.SetMaterialApprovalStatusAsync(id, true);
+            var result = await _materialService.SetMaterialApprovalStatusAsync(id, true, adminNote);
             return Ok(result);
         }
 
         [HttpPost("{id}/reject")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> RejectMaterial(int id, [FromBody] string? adminNote)
         {
             var result = await _materialService.SetMaterialApprovalStatusAsync(id, false, adminNote);
@@ -129,6 +146,7 @@ namespace EcoFashionBackEnd.Controllers
         }
 
         [HttpGet("GetSupplierMaterials")]
+        [Authorize(Roles = "admin,supplier")]
         public async Task<IActionResult> GetSupplierMaterials([FromQuery] string supplierId, [FromQuery] string? approvalStatus)
         {
             try

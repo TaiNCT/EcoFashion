@@ -1,8 +1,10 @@
 ﻿using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Dtos;
+using EcoFashionBackEnd.Dtos.Material;
 using EcoFashionBackEnd.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EcoFashionBackEnd.Controllers
 {
@@ -35,6 +37,17 @@ namespace EcoFashionBackEnd.Controllers
             {
                 return BadRequest(ApiResult<object>.Fail($"Lỗi khi lấy danh sách loại vật liệu: {ex.Message}"));
             }
+        }
+
+        // Benchmarks for a specific material type admin only 
+        [HttpGet("{id}/benchmarks")]
+        [Authorize(Roles = "admin")] 
+        public async Task<IActionResult> GetBenchmarksByType(int id)
+        {
+            var result = await _materialTypeService.GetBenchmarksByTypeAsync(id);
+            if (!result.Success)
+                return BadRequest(result);
+            return Ok(result);
         }
         [HttpPost]
         public async Task<IActionResult> CreateMaterialType([FromBody] MaterialTypeRequest model)

@@ -3,7 +3,11 @@ import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import Avatar from '../common/Avatar';
 import { useNavigate } from 'react-router-dom';
+import MaterialDetailModal from '../admin/MaterialDetailModal';
 import { toast } from 'react-toastify';
+import notificationService, { type NotificationItem } from '../../services/api/notificationService';
+import { formatViDateTime } from '../../utils/date';
+import { useQuery } from '@tanstack/react-query';
 
 const SupplierHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +22,8 @@ const SupplierHeader: React.FC = () => {
   } = useAuthStore();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailId, setDetailId] = useState<number | null>(null);
 
   const handleLogout = () => {
     logout();
@@ -31,7 +37,29 @@ const SupplierHeader: React.FC = () => {
     setIsUserMenuOpen(false);
   };
 
+  const { data: notifications = [] } = useQuery<NotificationItem[]>({
+    queryKey: ['supplierNotifications', user?.userId],
+    enabled: !!user,
+    queryFn: () => notificationService.getUserNotifications(user!.userId, 1, 10),
+    // Nếu server khởi động chậm, thử lại theo backoff mặc định của React Query
+    retry: 2,
+    refetchInterval: isNotificationOpen ? 10000 : false,
+    refetchOnWindowFocus: false,
+    staleTime: 5000,
+  });
+
+  const { data: unreadCount = 0 } = useQuery<number>({
+    queryKey: ['supplierUnreadCount', user?.userId],
+    enabled: !!user,
+    queryFn: () => notificationService.getUnreadCount(user!.userId),
+    retry: 2,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: false,
+    staleTime: 5000,
+  });
+
   return (
+    <>
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between bg-white px-4 shadow-sm dark:bg-gray-900 lg:px-6">
       <div className="flex items-center gap-4">
         {/* Mobile menu button */}
@@ -69,7 +97,11 @@ const SupplierHeader: React.FC = () => {
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
             </svg>
-            <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-h-4 min-w-4 px-1 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
 
           {/* Notification dropdown */}
@@ -79,30 +111,46 @@ const SupplierHeader: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h3>
               </div>
               <div className="max-h-64 overflow-y-auto">
-                <div className="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-brand-500 rounded-full mt-2"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">New order received</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Order #12345 has been placed</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">2 minutes ago</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Low stock alert</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Cotton fabric is running low</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">1 hour ago</p>
-                    </div>
-                  </div>
-                </div>
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-sm text-gray-500">Không có thông báo</div>
+                ) : (
+                  notifications.map((n) => (
+                    <button
+                      key={n.notificationId}
+                      className="w-full text-left p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      onClick={async () => {
+                        if (!user) return;
+                        try { await notificationService.markAsRead(n.notificationId, user.userId); } catch {}
+                        setIsNotificationOpen(false);
+                        const type = (n.relatedType || '').toLowerCase();
+                        const id = n.relatedId ? parseInt(n.relatedId) : NaN;
+                        if (type === 'material' && !Number.isNaN(id)) {
+                          setDetailId(id);
+                          setDetailOpen(true);
+                        }
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-2 h-2 rounded-full mt-2 ${n.type === 'success' ? 'bg-green-500' : n.type === 'error' ? 'bg-red-500' : n.type === 'warning' ? 'bg-yellow-500' : 'bg-brand-500'}`}></div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{n.title}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{n.message}</p>
+                          <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{formatViDateTime(n.createdAt as any)}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
-              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                <button className="w-full text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300">
-                  View all notifications
+              <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                <button
+                  className="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400"
+                  onClick={async () => {
+                    if (!user) return;
+                    await notificationService.markAllAsRead(user.userId);
+                  }}
+                >
+                  Đánh dấu tất cả đã đọc
                 </button>
               </div>
             </div>
@@ -139,6 +187,12 @@ const SupplierHeader: React.FC = () => {
               </div>
               <div className="py-1">
                 <button 
+                  onClick={() => { navigate('/'); setIsUserMenuOpen(false); }}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Trang Chủ
+                </button>
+                <button 
                   onClick={handleProfileClick}
                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
@@ -166,6 +220,8 @@ const SupplierHeader: React.FC = () => {
         </div>
       </div>
     </header>
+    <MaterialDetailModal open={detailOpen} materialId={detailId} onClose={() => setDetailOpen(false)} />
+    </>
   );
 };
 

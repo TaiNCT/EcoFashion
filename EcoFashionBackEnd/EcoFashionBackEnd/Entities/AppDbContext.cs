@@ -40,10 +40,11 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<Warehouse> Warehouses { get; set; }
+        public DbSet<MaterialStock> MaterialStocks { get; set; }
+        public DbSet<MaterialStockTransaction> MaterialStockTransactions { get; set; }
         public DbSet<ProductInventory> ProductInventories { get; set; }
         public DbSet<ProductInventoryTransaction> ProductInventoryTransactions { get; set; }
-        public DbSet<Warehouse> Warehouses { get; set; }
-
 
 
         #endregion
@@ -280,11 +281,10 @@ namespace EcoFashionBackEnd.Entities
                 entity.HasKey(w => w.WarehouseId);
 
                 // 1 Designer -> N Warehouses
-                entity.HasOne(w => w.Designer) // <-- Chỉ rõ Navigation Property của Warehouse
-                .WithMany(d => d.Warehouses)
-                .HasForeignKey(w => w.DesignerId)
-                .OnDelete(DeleteBehavior.NoAction);
-                // Cascade: Xóa Designer xóa luôn các kho
+                entity.HasOne(w => w.Designer)
+                      .WithMany(d => d.Warehouses)
+                      .HasForeignKey(w => w.DesignerId)
+                      .OnDelete(DeleteBehavior.NoAction);
 
                 entity.Property(w => w.WarehouseType)
                       .IsRequired()
@@ -352,6 +352,48 @@ namespace EcoFashionBackEnd.Entities
             });
             #endregion
             #region Material 
+            // -------- INVENTORY (MATERIAL) --------
+            modelBuilder.Entity<Warehouse>(entity =>
+            {
+                entity.HasKey(w => w.WarehouseId);
+                entity.Property(w => w.Name).HasMaxLength(200);
+                entity.Property(w => w.WarehouseType).HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<MaterialStock>(entity =>
+            {
+                entity.HasKey(s => s.StockId);
+                entity.Property(s => s.QuantityOnHand).HasPrecision(18, 2);
+                entity.Property(s => s.MinThreshold).HasPrecision(18, 2);
+                entity.HasOne(s => s.Material)
+                    .WithMany()
+                    .HasForeignKey(s => s.MaterialId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(s => s.Warehouse)
+                    .WithMany()
+                    .HasForeignKey(s => s.WarehouseId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(s => new { s.MaterialId, s.WarehouseId }).IsUnique();
+            });
+
+            modelBuilder.Entity<MaterialStockTransaction>(entity =>
+            {
+                entity.HasKey(t => t.TransactionId);
+                entity.Property(t => t.QuantityChange).HasPrecision(18, 2);
+                entity.Property(t => t.BeforeQty).HasPrecision(18, 2);
+                entity.Property(t => t.AfterQty).HasPrecision(18, 2);
+                entity.Property(t => t.TransactionType).HasMaxLength(50);
+                entity.Property(t => t.ReferenceType).HasMaxLength(50);
+                entity.HasOne(t => t.Material)
+                    .WithMany()
+                    .HasForeignKey(t => t.MaterialId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(t => t.Warehouse)
+                    .WithMany()
+                    .HasForeignKey(t => t.WarehouseId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(t => new { t.MaterialId, t.WarehouseId, t.CreatedAt });
+            });
             // Configure relationships for Materials
             modelBuilder.Entity<Material>()
                 .HasOne(m => m.Supplier)

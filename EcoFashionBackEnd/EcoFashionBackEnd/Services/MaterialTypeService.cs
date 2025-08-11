@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using EcoFashionBackEnd.Dtos;
+using EcoFashionBackEnd.Dtos.Material;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using Microsoft.EntityFrameworkCore;
+using EcoFashionBackEnd.Common;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -65,6 +67,34 @@ namespace EcoFashionBackEnd.Services
             _materialTypeRepository.Remove(id);
             await _appDbContext.SaveChangesAsync();
             return true;
+        }
+
+        // Benchmarks for a specific material type admin only 
+        public async Task<ApiResult<List<MaterialTypeBenchmarkModel>>> GetBenchmarksByTypeAsync(int typeId)
+        {
+            try
+            {
+                var benchmarks = await _appDbContext.MaterialTypesBenchmarks
+                    .Include(b => b.MaterialType)
+                    .Include(b => b.SustainabilityCriteria)
+                    .Where(b => b.TypeId == typeId)
+                    .Select(b => new MaterialTypeBenchmarkModel
+                    {
+                        BenchmarkId = b.BenchmarkId,
+                        TypeId = b.TypeId,
+                        CriteriaId = b.CriteriaId,
+                        Value = (float)b.Value,
+                        MaterialType = b.MaterialType,
+                        SustainabilityCriteria = b.SustainabilityCriteria
+                    })
+                    .ToListAsync();
+
+                return ApiResult<List<MaterialTypeBenchmarkModel>>.Succeed(benchmarks);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<MaterialTypeBenchmarkModel>>.Fail(ex.Message);
+            }
         }
     }
 }
