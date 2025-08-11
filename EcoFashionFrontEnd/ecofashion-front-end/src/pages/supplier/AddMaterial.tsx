@@ -9,6 +9,7 @@ import { useTransportDetails } from '../../hooks/useTransportDetails';
 import { useCreateMaterial } from '../../hooks/useCreateMaterial';
 import { useUploadMaterialImages } from '../../hooks/useUploadMaterialImages';
 import { PlusIcon, UploadIcon, SaveIcon, CancelIcon } from '../../assets/icons/index.tsx';
+import { ApiError } from '../../services/api/baseApi';
 
 // Toast notification component
 const Toast: React.FC<{ message: string; type: 'success' | 'error' | 'info'; onClose: () => void }> = ({ message, type, onClose }) => {
@@ -73,6 +74,7 @@ const AddMaterial: React.FC = () => {
     reset,
     watch,
     setValue,
+    setError,
   } = useForm<MaterialCreationFormRequest>({
     resolver: zodResolver(materialCreationFormRequestSchema) as any,
     defaultValues: {
@@ -218,7 +220,18 @@ const AddMaterial: React.FC = () => {
       
     } catch (error) {
       console.error('Error creating material:', error);
-      addToast('Lỗi tạo vật liệu. Vui lòng thử lại.', 'error');
+      if (error instanceof ApiError) {
+        const message = error.message || 'Lỗi tạo vật liệu.';
+        // Bắt lỗi trùng tên từ backend và hiển thị ngay tại field Name
+        if (message.toLowerCase().includes('cùng tên')) {
+          setError('name', { type: 'server', message });
+          addToast(message, 'error');
+        } else {
+          addToast(message, 'error');
+        }
+      } else {
+        addToast('Lỗi tạo vật liệu. Vui lòng thử lại.', 'error');
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BoxIcon, ListIcon, PieChartIcon, PlusIcon } from '../../assets/icons/index.tsx';
+import { formatViDateTime, parseApiDate } from '../../utils/date';
 import MaterialDetailModal from '../../components/admin/MaterialDetailModal';
 import { useSupplierMaterials } from '../../hooks/useSupplierMaterials';
 import { useAuthStore } from '../../store/authStore';
@@ -75,14 +76,22 @@ const SupplierMaterials: React.FC = () => {
   ];
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+    // Chuẩn hóa thời gian về VN để tránh lệch múi giờ, sau đó tính relative
+    const d = parseApiDate(dateString);
+    const vn = new Date(
+      d.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' })
+    );
+    const now = new Date(
+      new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' })
+    );
+    const diffMs = now.getTime() - vn.getTime();
+    const diffInHours = Math.floor(diffMs / (1000 * 60 * 60));
     if (diffInHours < 1) return 'Vừa xong';
     if (diffInHours < 24) return `${diffInHours} giờ trước`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)} ngày trước`;
-    return `${Math.floor(diffInHours / 168)} tuần trước`;
+    const days = Math.floor(diffInHours / 24);
+    if (days < 7) return `${days} ngày trước`;
+    const weeks = Math.floor(days / 7);
+    return `${weeks} tuần trước`;
   };
 
   const formatPrice = (price: number) => {

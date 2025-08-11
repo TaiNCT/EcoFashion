@@ -528,10 +528,7 @@ export default function Homepage() {
             console.log("Toggle favorite:", product.name);
             // TODO: Toggle favorite logic
           }}
-          onViewMore={() => {
-            console.log("View more featured products");
-            // TODO: Navigate to featured products page
-          }}
+          onViewMore={() => "/fashion"}
         />
         <Divider
           sx={{ height: "2px", backgroundColor: "black", opacity: "20%" }}
@@ -553,11 +550,7 @@ export default function Homepage() {
             console.log("Toggle favorite:", product.name);
             // TODO: Toggle favorite logic
           }}
-          onViewMore={() => {
-            console.log("View more featured products");
-            navigate("/fashion");
-            // TODO: Navigate to featured products page
-          }}
+          onViewMore={() => "/fashion"}
         />
         <Divider
           sx={{ height: "2px", backgroundColor: "black", opacity: "20%" }}
@@ -726,8 +719,7 @@ export default function Homepage() {
           </Stack>
         </Container>
       </Box>
-      {error && <div className="explore-error">{error}</div>}
-      {loading && <div className="explore-loading">Đang tải...</div>}
+      
     </Box>
   );
 }

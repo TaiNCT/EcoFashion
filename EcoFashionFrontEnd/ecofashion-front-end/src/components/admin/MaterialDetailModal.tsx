@@ -132,27 +132,60 @@ const MaterialDetailModal: React.FC<Props> = ({ open, materialId, onClose }) => 
                   <p className="text-xs text-gray-500">Waste Diverted</p>
                   <p className="text-sm text-gray-900 dark:text-white">{data.wasteDiverted ?? 0} {data.wasteDivertedUnit || ''}</p>
                 </div>
-              </div>
+              </div>             
 
-              {/* Criteria table */}
-              {data.sustainabilityCriteria && data.sustainabilityCriteria.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">Sustainability Criteria</h4>
+              {/* Benchmark comparison & improvements */}
+              {data.benchmarks && data.benchmarks.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold">So sánh với chuẩn & mức cải thiện</h4>
+                    <p className="text-xs text-gray-500">
+                      Tổng điểm: <span className="font-semibold text-gray-900 dark:text-white">{(data.sustainabilityScore ?? 0).toFixed(0)}%</span>
+                    </p>
+                  </div>
                   <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-800">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 dark:bg-gray-800">
                         <tr>
                           <th className="text-left p-2">Tiêu chí</th>
-                          <th className="text-left p-2">Giá trị</th>
+                          <th className="text-left p-2">Chuẩn</th>
+                          <th className="text-left p-2">Thực tế</th>
                           <th className="text-left p-2">Đơn vị</th>
+                          <th className="text-left p-2">Cải thiện</th>
+                          <th className="text-left p-2">Đánh giá</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {data.sustainabilityCriteria.map((c, idx) => (
+                        {data.benchmarks.map((b, idx) => (
                           <tr key={idx} className="border-t border-gray-100 dark:border-gray-800">
-                            <td className="p-2">{c.name}</td>
-                            <td className="p-2">{c.value}</td>
-                            <td className="p-2">{c.unit}</td>
+                            <td className="p-2 whitespace-nowrap">{b.sustainabilityCriteria?.name}</td>
+                            <td className="p-2">{typeof b.value === 'number' ? b.value : Number(b.value)}{b.sustainabilityCriteria?.unit ? ` ${b.sustainabilityCriteria?.unit}` : ''}</td>
+                            <td className="p-2">{b.actualValue ?? '—'}{b.sustainabilityCriteria?.unit ? ` ${b.sustainabilityCriteria?.unit}` : ''}</td>
+                            <td className="p-2">{b.sustainabilityCriteria?.unit || '—'}</td>
+                            <td className="p-2">
+                              {typeof b.improvementPercentage === 'number' ? (
+                                <span className={
+                                  b.improvementPercentage > 0
+                                    ? 'text-green-600'
+                                    : b.improvementPercentage < 0
+                                    ? 'text-red-600'
+                                    : 'text-gray-600'
+                                }>
+                                  {b.improvementPercentage.toFixed(1)}%
+                                </span>
+                              ) : '—'}
+                            </td>
+                            <td className="p-2">
+                              <span className={
+                                b.improvementColor === 'success'
+                                  ? 'text-green-600'
+                                  : b.improvementColor === 'error'
+                                  ? 'text-red-600'
+                                  : 'text-amber-600'
+                              }>
+                                {b.improvementStatus || '—'}
+                              </span>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
