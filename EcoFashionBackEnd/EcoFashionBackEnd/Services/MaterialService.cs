@@ -274,10 +274,259 @@ namespace EcoFashionBackEnd.Services
             }
         }
 
+        // // Unified filtered method (admin/supplier/public)
+        // public async Task<ApiResult<List<MaterialDetailDto>>> GetMaterialsFilteredAsync(string? approvalStatus, bool? isAvailable, string? supplierId, bool includeAll)
+        // {
+        //     try
+        //     {
+        //         var query = _dbContext.Materials
+        //             .Include(m => m.MaterialType)
+        //             .Include(m => m.Supplier)
+        //             .Include(m => m.MaterialImages).ThenInclude(mi => mi.Image)
+        //             .Include(m => m.MaterialSustainabilityMetrics)
+        //             .ThenInclude(ms => ms.SustainabilityCriterion)
+        //             .AsQueryable();
+
+        //         if (!includeAll)
+        //         {
+        //             if (string.IsNullOrWhiteSpace(approvalStatus) && !isAvailable.HasValue && string.IsNullOrWhiteSpace(supplierId))
+        //             {
+        //                 query = query.Where(m => m.IsAvailable && m.ApprovalStatus == "Approved");
+        //             }
+        //             else
+        //             {
+        //                 if (!string.IsNullOrWhiteSpace(approvalStatus)) query = query.Where(m => m.ApprovalStatus == approvalStatus);
+        //                 if (isAvailable.HasValue) query = query.Where(m => m.IsAvailable == isAvailable.Value);
+        //                 if (!string.IsNullOrWhiteSpace(supplierId)) query = query.Where(m => m.SupplierId.ToString() == supplierId);
+        //             }
+        //         }
+
+        //         var materials = await query.ToListAsync();
+
+        //         var materialIds = materials.Select(m => m.MaterialId).ToList();
+        //         var sustainabilityReports = await _sustainabilityService.CalculateMaterialsSustainabilityScores(materialIds);
+        //         var allBenchmarks = await _dbContext.MaterialTypesBenchmarks
+        //             .Include(b => b.MaterialType)
+        //             .Include(b => b.SustainabilityCriteria)
+        //             .ToListAsync();
+
+        //         var materialDtos = new List<MaterialDetailDto>();
+        //         foreach (var material in materials)
+        //         {
+        //             sustainabilityReports.TryGetValue(material.MaterialId, out var sustainabilityReport);
+        //             var materialBenchmarks = allBenchmarks.Where(b => b.TypeId == material.TypeId).Select(b => new MaterialTypeBenchmarkModel
+        //             {
+        //                 BenchmarkId = b.BenchmarkId,
+        //                 TypeId = b.TypeId,
+        //                 CriteriaId = b.CriteriaId,
+        //                 Value = (float)b.Value,
+        //                 MaterialType = b.MaterialType,
+        //                 SustainabilityCriteria = b.SustainabilityCriteria
+        //             }).ToList();
+
+        //             var dto = new MaterialDetailDto
+        //             {
+        //                 MaterialId = material.MaterialId,
+        //                 Name = material.Name ?? string.Empty,
+        //                 Description = material.Description ?? string.Empty,
+        //                 MaterialTypeName = material.MaterialType?.TypeName ?? string.Empty,
+        //                 RecycledPercentage = material.RecycledPercentage,
+        //                 QuantityAvailable = material.QuantityAvailable,
+        //                 PricePerUnit = material.PricePerUnit,
+        //                 CreatedAt = material.CreatedAt,
+        //                 CarbonFootprint = material.CarbonFootprint,
+        //                 CarbonFootprintUnit = material.CarbonFootprintUnit,
+        //                 WaterUsage = material.WaterUsage,
+        //                 WaterUsageUnit = material.WaterUsageUnit,
+        //                 WasteDiverted = material.WasteDiverted,
+        //                 WasteDivertedUnit = material.WasteDivertedUnit,
+        //                 ProductionCountry = material.ProductionCountry,
+        //                 ProductionRegion = material.ProductionRegion,
+        //                 ManufacturingProcess = material.ManufacturingProcess,
+        //                 CertificationDetails = material.CertificationDetails,
+        //                 CertificationExpiryDate = material.CertificationExpiryDate,
+        //                 TransportDistance = material.TransportDistance,
+        //                 TransportMethod = material.TransportMethod,
+        //                 ApprovalStatus = material.ApprovalStatus,
+        //                 AdminNote = material.AdminNote,
+        //                 IsAvailable = material.IsAvailable,
+        //                 LastUpdated = material.LastUpdated,
+        //                 ImageUrls = material.MaterialImages?.Select(mi => mi.Image?.ImageUrl ?? string.Empty).Where(u => !string.IsNullOrWhiteSpace(u)).ToList() ?? new List<string>(),
+        //                 SustainabilityScore = sustainabilityReport?.OverallSustainabilityScore,
+        //                 SustainabilityLevel = sustainabilityReport?.SustainabilityLevel,
+        //                 SustainabilityColor = sustainabilityReport?.LevelColor,
+        //                 Supplier = material.Supplier == null ? null : new SupplierPublicModel
+        //                 {
+        //                     SupplierId = material.Supplier.SupplierId.ToString(),
+        //                     SupplierName = material.Supplier.SupplierName,
+        //                     AvatarUrl = material.Supplier.AvatarUrl,
+        //                     Bio = material.Supplier.Bio,
+        //                     SpecializationUrl = material.Supplier.SpecializationUrl,
+        //                     PortfolioUrl = material.Supplier.PortfolioUrl,
+        //                     PortfolioFiles = material.Supplier.PortfolioFiles,
+        //                     BannerUrl = material.Supplier.BannerUrl,
+        //                     Email = material.Supplier.Email,
+        //                     PhoneNumber = material.Supplier.PhoneNumber,
+        //                     Address = material.Supplier.Address,
+        //                     Rating = material.Supplier.Rating,
+        //                     ReviewCount = material.Supplier.ReviewCount,
+        //                     Certificates = material.Supplier.Certificates,
+        //                     CreatedAt = material.Supplier.CreatedAt,
+        //                     UserFullName = material.Supplier.User?.FullName
+        //                 },
+        //                 SustainabilityCriteria = material.MaterialSustainabilityMetrics?.Select(ms => new MaterialSustainabilityCriterionDto
+        //                 {
+        //                     CriterionId = ms.CriterionId,
+        //                     Name = ms.SustainabilityCriterion?.Name,
+        //                     Description = ms.SustainabilityCriterion?.Description,
+        //                     Unit = ms.SustainabilityCriterion?.Unit,
+        //                     Value = ms.Value
+        //                 }).ToList() ?? new List<MaterialSustainabilityCriterionDto>(),
+        //                 Benchmarks = materialBenchmarks
+        //             };
+
+        //             materialDtos.Add(dto);
+        //         }
+
+        //         return ApiResult<List<MaterialDetailDto>>.Succeed(materialDtos);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return ApiResult<List<MaterialDetailDto>>.Fail(ex.Message);
+        //     }
+        // }
+
+        // Admin: get ALL materials regardless of approval/availability
+        public async Task<ApiResult<List<MaterialDetailDto>>> GetAllMaterialsAdminAsync()
+        {
+            try
+            {
+                var materials = await _dbContext.Materials
+                    .Include(m => m.MaterialType)
+                    .Include(m => m.Supplier)
+                    .Include(m => m.MaterialImages).ThenInclude(mi => mi.Image)
+                    .Include(m => m.MaterialSustainabilityMetrics)
+                    .ThenInclude(ms => ms.SustainabilityCriterion)
+                    .ToListAsync();
+
+                // Batch calculate sustainability scores for all materials
+                var materialIds = materials.Select(m => m.MaterialId).ToList();
+                var sustainabilityReports = await _sustainabilityService.CalculateMaterialsSustainabilityScores(materialIds);
+
+                // Get all benchmarks for all material types
+                var allBenchmarks = await _dbContext.MaterialTypesBenchmarks
+                    .Include(b => b.MaterialType)
+                    .Include(b => b.SustainabilityCriteria)
+                    .ToListAsync();
+
+                var materialDtos = new List<MaterialDetailDto>();
+
+                foreach (var material in materials)
+                {
+                    sustainabilityReports.TryGetValue(material.MaterialId, out var sustainabilityReport);
+
+                    // Get benchmarks for this material's type
+                    var materialBenchmarks = allBenchmarks
+                        .Where(b => b.TypeId == material.TypeId)
+                        .Select(b => new MaterialTypeBenchmarkModel
+                        {
+                            BenchmarkId = b.BenchmarkId,
+                            TypeId = b.TypeId,
+                            CriteriaId = b.CriteriaId,
+                            Value = (float)b.Value,
+                            MaterialType = b.MaterialType,
+                            SustainabilityCriteria = b.SustainabilityCriteria
+                        })
+                        .ToList();
+
+                    var dto = new MaterialDetailDto
+                    {
+                        MaterialId = material.MaterialId,
+                        Name = material.Name ?? string.Empty,
+                        Description = material.Description ?? string.Empty,
+                        MaterialTypeName = material.MaterialType?.TypeName ?? string.Empty,
+                        RecycledPercentage = material.RecycledPercentage,
+                        QuantityAvailable = material.QuantityAvailable,
+                        PricePerUnit = material.PricePerUnit,
+                        CreatedAt = material.CreatedAt,
+                        CarbonFootprint = material.CarbonFootprint,
+                        CarbonFootprintUnit = material.CarbonFootprintUnit,
+                        WaterUsage = material.WaterUsage,
+                        WaterUsageUnit = material.WaterUsageUnit,
+                        WasteDiverted = material.WasteDiverted,
+                        WasteDivertedUnit = material.WasteDivertedUnit,
+                        ProductionCountry = material.ProductionCountry,
+                        ProductionRegion = material.ProductionRegion,
+                        ManufacturingProcess = material.ManufacturingProcess,
+                        CertificationDetails = material.CertificationDetails,
+                        CertificationExpiryDate = material.CertificationExpiryDate,
+                        TransportDistance = material.TransportDistance,
+                        TransportMethod = material.TransportMethod,
+                        ApprovalStatus = material.ApprovalStatus,
+                        AdminNote = material.AdminNote,
+                        IsAvailable = material.IsAvailable,
+                        LastUpdated = material.LastUpdated,
+                        ImageUrls = material.MaterialImages?.Select(mi => mi.Image?.ImageUrl ?? string.Empty).Where(u => !string.IsNullOrWhiteSpace(u)).ToList() ?? new List<string>(),
+                        SustainabilityScore = sustainabilityReport?.OverallSustainabilityScore,
+                        SustainabilityLevel = sustainabilityReport?.SustainabilityLevel,
+                        SustainabilityColor = sustainabilityReport?.LevelColor,
+                        Supplier = material.Supplier == null ? null : new SupplierPublicModel
+                        {
+                            SupplierId = material.Supplier.SupplierId,
+                            SupplierName = material.Supplier.SupplierName,
+                            AvatarUrl = material.Supplier.AvatarUrl,
+                            Bio = material.Supplier.Bio,
+                            SpecializationUrl = material.Supplier.SpecializationUrl,
+                            PortfolioUrl = material.Supplier.PortfolioUrl,
+                            PortfolioFiles = material.Supplier.PortfolioFiles,
+                            BannerUrl = material.Supplier.BannerUrl,
+                            Email = material.Supplier.Email,
+                            PhoneNumber = material.Supplier.PhoneNumber,
+                            Address = material.Supplier.Address,
+                            Rating = material.Supplier.Rating,
+                            ReviewCount = material.Supplier.ReviewCount,
+                            Certificates = material.Supplier.Certificates,
+                            CreatedAt = material.Supplier.CreatedAt,
+                            UserFullName = material.Supplier.User?.FullName
+                        },
+                        SustainabilityCriteria = material.MaterialSustainabilityMetrics?.Select(ms => new MaterialSustainabilityCriterionDto
+                        {
+                            CriterionId = ms.CriterionId,
+                            Name = ms.SustainabilityCriterion?.Name,
+                            Description = ms.SustainabilityCriterion?.Description,
+                            Unit = ms.SustainabilityCriterion?.Unit,
+                            Value = ms.Value
+                        }).ToList() ?? new List<MaterialSustainabilityCriterionDto>(),
+                        Benchmarks = materialBenchmarks
+                    };
+
+                    materialDtos.Add(dto);
+                }
+
+                return ApiResult<List<MaterialDetailDto>>.Succeed(materialDtos);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<MaterialDetailDto>>.Fail(ex.Message);
+            }
+        }
+
         public async Task<ApiResult<MaterialCreationResponse>> CreateMaterialFromFormAsync(MaterialCreationFormRequest request)
         {
             try
             {
+                // Guard: validate supplier and material type to avoid FK errors
+                var supplierExists = await _dbContext.Suppliers.AnyAsync(s => s.SupplierId == request.SupplierId);
+                if (!supplierExists)
+                {
+                    return ApiResult<MaterialCreationResponse>.Fail("Supplier not found or not loaded. Vui lòng đăng nhập lại hoặc thử lại sau.");
+                }
+
+                var materialTypeExists = await _dbContext.MaterialTypes.AnyAsync(mt => mt.TypeId == request.TypeId);
+                if (!materialTypeExists)
+                {
+                    return ApiResult<MaterialCreationResponse>.Fail("Material type không hợp lệ.");
+                }
                 // Tự động tính toán thông tin vận chuyển nếu chưa có
                 TransportCalculationService.CalculateTransportInfo(request);
 
@@ -534,6 +783,10 @@ namespace EcoFashionBackEnd.Services
                 material.LastUpdated = DateTime.UtcNow;
 
                 await _dbContext.SaveChangesAsync();
+                
+                if (approve) {
+                    await EnsureInventoryForApprovedMaterialAsync(material);
+                }
 
                 // Send notification to supplier about approval status
                 await _notificationService.CreateMaterialApprovalNotificationAsync(materialId, material.SupplierId, material.ApprovalStatus, adminNote);
@@ -544,6 +797,64 @@ namespace EcoFashionBackEnd.Services
             {
                 return ApiResult<bool>.Fail(ex.Message);
             }
+        }
+
+
+        //Tự động tạo kho mặc định cho supplier nếu chưa có
+                private async Task EnsureInventoryForApprovedMaterialAsync(Material material)
+        {
+            // 1) Tạo kho mặc định cho supplier nếu chưa có
+            var warehouse = await _dbContext.Warehouses
+                .FirstOrDefaultAsync(w => w.SupplierId == material.SupplierId && w.IsDefault);
+
+            if (warehouse == null)
+            {
+                warehouse = new Warehouse
+                {
+                    Name = "Kho nhà cung cấp",
+                    WarehouseType = "Material",
+                    SupplierId = material.SupplierId,
+                    IsDefault = true,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _dbContext.Warehouses.Add(warehouse);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            // 2) Tạo dòng tồn cho material ở kho mặc định nếu chưa có
+            var stock = await _dbContext.MaterialStocks
+                .FirstOrDefaultAsync(s => s.MaterialId == material.MaterialId && s.WarehouseId == warehouse.WarehouseId);
+
+            if (stock == null)
+            {
+                stock = new MaterialStock
+                {
+                    MaterialId = material.MaterialId,
+                    WarehouseId = warehouse.WarehouseId,
+
+                    // Chọn 1 trong 2 CASE:
+                    // CASE A (đồng bộ với QuantityAvailable đã nhập khi tạo):
+                    QuantityOnHand = Convert.ToDecimal(material.QuantityAvailable),
+
+                    // CASE B (tách bạch): để 0 và bắt supplier nhập kho thủ công
+                    // QuantityOnHand = 0m,
+
+                    MinThreshold = 0m,
+                    LastUpdated = DateTime.UtcNow
+                };
+                _dbContext.MaterialStocks.Add(stock);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            // 3) Đồng bộ tổng về Material để homepage hiển thị đúng
+            var total = await _dbContext.MaterialStocks
+                .Where(s => s.MaterialId == material.MaterialId)
+                .SumAsync(s => s.QuantityOnHand);
+
+            material.QuantityAvailable = (int)total;
+            material.LastUpdated = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
         }
 
         private async Task<string> GetMaterialTypeName(int typeId)

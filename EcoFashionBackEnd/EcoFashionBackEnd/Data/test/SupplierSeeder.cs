@@ -8,9 +8,9 @@ namespace EcoFashionBackEnd.Data.test
     {
         public static async Task SeedAsync(AppDbContext context)
         {
-            if (await context.Suppliers.AnyAsync()) return;
+            // Rollback to original behavior: only seed if none exists, let DB generate GUID
 
-            // Sử dụng user đã có từ UserSeeder
+            // Ensure base user exists
             var supplierUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "supplier@example.com");
             if (supplierUser == null)
             {
@@ -20,7 +20,9 @@ namespace EcoFashionBackEnd.Data.test
 
             var now = DateTime.UtcNow;
 
-            // Tạo 1 Supplier One duy nhất
+            if (await context.Suppliers.AnyAsync()) return;
+
+            // Create new supplier
             var supplier = new Supplier
             {
                 UserId = supplierUser.UserId,
