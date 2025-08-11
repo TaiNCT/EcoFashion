@@ -11,7 +11,7 @@ namespace EcoFashionBackEnd.Data.test
 
             // Giả sử đã có designId, sizeId, variantId trong db
             // Lấy mẫu data từ db cho reference
-            var designs = await context.Designs.Take(3).ToListAsync();
+            var designs = await context.Designs.Take(12).ToListAsync();
             var sizes = await context.Sizes.ToListAsync();
             var variants = await context.DesignsVarients.ToListAsync();
             var warehouses = await context.Warehouses.Where(w => w.WarehouseType == "Product").ToListAsync();

@@ -6,7 +6,7 @@
         public string MaterialName { get; set; }
         public decimal MeterUsed { get; set; }
 
-
+        public double PersentageUsed { get; set; }
 
 
         //public int MaterialId { get; set; }

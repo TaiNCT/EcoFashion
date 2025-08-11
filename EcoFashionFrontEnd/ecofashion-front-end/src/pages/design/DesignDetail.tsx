@@ -41,7 +41,13 @@ import {
   ArrowForwardIcon,
 } from "../../assets/icons/icon";
 import React, { useEffect, useState } from "react";
-import { data, useNavigate, useParams } from "react-router-dom";
+import {
+  data,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 // Icon
 import StarIcon from "@mui/icons-material/Star";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -66,6 +72,7 @@ import FashionsSection from "../../components/fashion/FashionsSection";
 import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
 import DesignService, {
   Design,
+  DesignDetails,
   Feature,
 } from "../../services/api/designService";
 import { toast } from "react-toastify";
@@ -104,12 +111,12 @@ const ratingData = [
 ];
 
 export default function DesignDetail() {
-  const { id } = useParams(); // lấy id từ URL
+  const { id, designerId } = useParams(); // lấy id từ URL
   // const product = products.find((p) => p.id === Number(id));
   //Design Detail Data
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [designDetail, setDesignDetail] = useState<Design | null>(null);
+  const [designDetail, setDesignDetail] = useState<DesignDetails | null>(null);
   const [relatedDesign, setRelatedDesign] = useState<Design[]>([]);
   //Size
   const [size, setSize] = useState("M");
@@ -118,13 +125,13 @@ export default function DesignDetail() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handlePrev = () => {
-    const images = designDetail.imageUrls ?? [];
+    const images = designDetail.designImages ?? [];
     if (!images || images.length === 0) return;
 
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
   const handleNext = () => {
-    const images = designDetail.imageUrls ?? [];
+    const images = designDetail.designImages ?? [];
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
@@ -165,32 +172,17 @@ export default function DesignDetail() {
     const fetchDesigner = async () => {
       try {
         setLoading(true);
-        const data = await DesignService.getDesignDetailById(Number(id));
-        let totalWasteDiverted = 0;
-        let totalWaterUsed = 0;
-        let totalCarbonFootprint = 0;
-        data.materials.forEach((material) => {
-          totalWasteDiverted +=
-            material.wasteDiverted * (material.persentageUsed / 100);
-          totalWaterUsed +=
-            material.waterUsage *
-            (material.persentageUsed / 100) *
-            material.meterUsed;
-          totalCarbonFootprint +=
-            material.carbonFootprint *
-            (material.persentageUsed / 100) *
-            material.meterUsed;
-        });
-        setWasteDiverted(Math.ceil(totalWasteDiverted));
-        setCarbonFootprint(Math.ceil(totalCarbonFootprint));
-        setWaterUsed(Math.ceil(totalWaterUsed));
+        const data = await DesignService.getDesignDetailById(
+          Number(id),
+          designerId
+        );
+        setDesignDetail(data);
         const relatedData =
           await DesignService.getAllDesignByDesignerPagination(
-            data.designer.designerId,
+            designerId,
             currentPage,
             pageSize
           );
-        setDesignDetail(data);
         setRelatedDesign(relatedData);
       } catch (err: any) {
         const msg = err.message || "Không thể tải thông tin nhà thiết kế.";
@@ -330,7 +322,7 @@ export default function DesignDetail() {
             <Box sx={{ position: "relative", marginBottom: 2 }}>
               <Box
                 component="img"
-                src={designDetail.imageUrls?.[currentIndex] ?? ""}
+                src={designDetail.designImages?.[currentIndex] ?? ""}
                 alt={designDetail.name}
                 sx={{
                   width: "100%",
@@ -367,7 +359,7 @@ export default function DesignDetail() {
               </IconButton>
             </Box>
             <Box sx={{ display: "flex", gap: 1 }}>
-              {designDetail.imageUrls?.slice(0, 3).map((img, index) => (
+              {designDetail.designImages?.slice(0, 3).map((img, index) => (
                 <Box
                   key={index}
                   component="img"
@@ -406,7 +398,7 @@ export default function DesignDetail() {
                 >
                   {designDetail.name}
                 </Typography>
-                <Box
+                {/* <Box
                   sx={{ width: "30%", display: "flex", alignItems: "center" }}
                 >
                   <Rating
@@ -421,7 +413,7 @@ export default function DesignDetail() {
                   <Box sx={{ ml: 2, fontSize: "20px" }}>
                     {designDetail.productScore}
                   </Box>
-                </Box>
+                </Box> */}
               </Box>
               <Box
                 sx={{
@@ -843,7 +835,7 @@ export default function DesignDetail() {
             <IconButton
               disableRipple
               // href={`/explore/designers/${designDetail.designer.designerId}`}
-              href={`/brand/${designDetail.designer.designerId}`}
+              href={`/brand/${designerId}`}
               sx={{ textDecoration: "none" }}
             >
               <Avatar
@@ -863,7 +855,7 @@ export default function DesignDetail() {
             >
               <Link
                 // href={`/explore/designers/${designDetail.designer.designerId}`}
-                href={`/brand/${designDetail.designer.designerId}`}
+                href={`/brand/${designerId}`}
                 sx={{ textDecoration: "none", color: "black" }}
               >
                 <Typography
@@ -1006,7 +998,7 @@ export default function DesignDetail() {
                   component="div"
                   sx={{ whiteSpace: "pre-line", fontSize: "15px" }}
                 >
-                  {designDetail.description}
+                  {/* {designDetail.description} */}
                 </Typography>
               </Grid>
 
@@ -1015,7 +1007,7 @@ export default function DesignDetail() {
                 <Typography variant="subtitle1" fontWeight="bold">
                   Đặc điểm
                 </Typography>
-                <List dense>{renderFeatures(designDetail.feature)}</List>
+                {/* <List dense>{renderFeatures(designDetail.feature)}</List> */}
 
                 <Typography
                   variant="subtitle1"
@@ -1025,7 +1017,7 @@ export default function DesignDetail() {
                   Hướng Dẫn Bảo Quản
                 </Typography>
                 <Typography variant="body2">
-                  {designDetail.careInstructions}
+                  {/* {designDetail.careInstructions} */}
                 </Typography>
               </Grid>
             </Box>
@@ -1240,13 +1232,13 @@ export default function DesignDetail() {
                   <Typography variant="h6" fontWeight="bold" gutterBottom>
                     Đánh Giá
                   </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                  {/* <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                     <Box
                       sx={{ width: 200, display: "flex", alignItems: "center" }}
                     >
                       <Rating
                         name="text-feedback"
-                        value={designDetail.productScore}
+                        // value={designDetail.productScore}
                         readOnly
                         precision={0.5}
                         emptyIcon={
@@ -1260,7 +1252,7 @@ export default function DesignDetail() {
                         {designDetail.productScore}
                       </Box>
                     </Box>
-                  </Box>
+                  </Box> */}
                   {ratingData.map((item) => (
                     <Box
                       key={item.star}
@@ -1430,7 +1422,7 @@ export default function DesignDetail() {
         <FashionsSection
           products={relatedDesign}
           title="SẢN PHẨM LIÊN QUAN"
-          onViewMore={() => `/brand/${designDetail.designer.designerId}`}
+          onViewMore={() => `/brand/${designerId}`}
         />
       </Box>
     </Box>

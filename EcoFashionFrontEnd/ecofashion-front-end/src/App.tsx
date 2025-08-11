@@ -78,7 +78,7 @@ function App() {
 
         {/* ===== DESIGN and MATERIAL ROUTES ===== */}
         <Route path="/fashion" element={<FashionList />} />
-        <Route path="/detail/:id" element={<DesignDetail />} />
+        <Route path="/detail/:id/:designerId" element={<DesignDetail />} />
         <Route path="/brand/:id" element={<DesingBrandProfile />} />
         <Route path="/material/:id" element={<MaterialDetailPage />} />
 

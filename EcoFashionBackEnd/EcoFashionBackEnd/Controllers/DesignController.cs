@@ -9,6 +9,7 @@ using EcoFashionBackEnd.Dtos.DesignShow;
 using EcoFashionBackEnd.Services;
 using Humanizer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 namespace EcoFashionBackEnd.Controllers;
@@ -82,9 +83,23 @@ public class DesignController : ControllerBase
         }
     }
 
+    [HttpGet("GetDesignsWithProductsPagination")]
+    public async Task<IActionResult> GetAllDesignPagination([FromQuery] int page, [FromQuery] int pageSize)
+    {
+        var result = await _designService.GetDesignsWithProductsPaginationAsync(page, pageSize);
+        return Ok(ApiResult<List<DesignWithProductInfoDto>>.Succeed(result));
+    }
 
+    [HttpGet("GetAllPagination-by-designer/{designerId}")]
+    public async Task<IActionResult> GetAllDesignsByDesignerIdPagination(Guid designerId, [FromQuery] int page = 1, [FromQuery] int pageSize = 12)
+    {
+        var result = await _designService.GetDesignsWithDesignerPaginationAsync(designerId, page, pageSize);
 
+        if (result == null || !result.Any())
+            return NotFound(ApiResult<List<DesignWithProductInfoDto>>.Fail("Không tìm thấy thiết kế nào cho nhà thiết kế này."));
 
+        return Ok(ApiResult<List<DesignWithProductInfoDto>>.Succeed(result));
+    }
 
     //[HttpGet("GetAll")]
     //public async Task<IActionResult> GetAllDesigns()

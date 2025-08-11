@@ -20,5 +20,6 @@ namespace EcoFashionBackEnd.Dtos.Design
         public List<ProductDto> Products { get; set; }
         public List<string> DesignImages { get; set; }
         public List<string> Materials { get; set; }
+        public DesignerPublicDto Designer { get; set; }
     }
 }
