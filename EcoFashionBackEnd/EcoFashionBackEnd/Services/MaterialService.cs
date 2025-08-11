@@ -812,7 +812,7 @@ namespace EcoFashionBackEnd.Services
                 warehouse = new Warehouse
                 {
                     Name = "Kho nhà cung cấp",
-                    Type = "Material",
+                    WarehouseType = "Material",
                     SupplierId = material.SupplierId,
                     IsDefault = true,
                     IsActive = true,

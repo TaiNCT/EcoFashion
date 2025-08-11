@@ -1401,12 +1401,14 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WarehouseId"));
 
-<<<<<<< HEAD
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DesignerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -1424,24 +1426,16 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<Guid?>("SupplierId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Type")
-=======
-                    b.Property<Guid>("DesignerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("WarehouseType")
->>>>>>> 73fc58726349d17ec8fd03c3eafc6f15ec1d5275
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Type");
 
                     b.HasKey("WarehouseId");
 
-<<<<<<< HEAD
-=======
                     b.HasIndex("DesignerId");
 
->>>>>>> 73fc58726349d17ec8fd03c3eafc6f15ec1d5275
                     b.ToTable("Warehouses");
                 });
 
@@ -1973,8 +1967,7 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasOne("EcoFashionBackEnd.Entities.Designer", "Designer")
                         .WithMany("Warehouses")
                         .HasForeignKey("DesignerId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Designer");
                 });

@@ -23,7 +23,7 @@ namespace EcoFashionBackEnd.Data.test
                 warehouse = new Warehouse
                 {
                     Name = "Kho nhà cung cấp",
-                    Type = "Material",
+                    WarehouseType = "Material",
                     SupplierId = supplier.SupplierId,
                     IsDefault = true,
                     IsActive = true,

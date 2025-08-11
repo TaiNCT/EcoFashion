@@ -40,16 +40,11 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<Product> Products { get; set; }
-<<<<<<< HEAD
         public DbSet<Warehouse> Warehouses { get; set; }
         public DbSet<MaterialStock> MaterialStocks { get; set; }
         public DbSet<MaterialStockTransaction> MaterialStockTransactions { get; set; }
-=======
         public DbSet<ProductInventory> ProductInventories { get; set; }
         public DbSet<ProductInventoryTransaction> ProductInventoryTransactions { get; set; }
-        public DbSet<Warehouse> Warehouses { get; set; }
->>>>>>> 73fc58726349d17ec8fd03c3eafc6f15ec1d5275
-
 
 
         #endregion
@@ -286,11 +281,10 @@ namespace EcoFashionBackEnd.Entities
                 entity.HasKey(w => w.WarehouseId);
 
                 // 1 Designer -> N Warehouses
-                entity.HasOne(w => w.Designer) // <-- Chỉ rõ Navigation Property của Warehouse
-                .WithMany(d => d.Warehouses)
-                .HasForeignKey(w => w.DesignerId)
-                .OnDelete(DeleteBehavior.NoAction);
-                // Cascade: Xóa Designer xóa luôn các kho
+                entity.HasOne(w => w.Designer)
+                      .WithMany(d => d.Warehouses)
+                      .HasForeignKey(w => w.DesignerId)
+                      .OnDelete(DeleteBehavior.NoAction);
 
                 entity.Property(w => w.WarehouseType)
                       .IsRequired()
@@ -363,7 +357,7 @@ namespace EcoFashionBackEnd.Entities
             {
                 entity.HasKey(w => w.WarehouseId);
                 entity.Property(w => w.Name).HasMaxLength(200);
-                entity.Property(w => w.Type).HasMaxLength(50);
+                entity.Property(w => w.WarehouseType).HasMaxLength(50);
             });
 
             modelBuilder.Entity<MaterialStock>(entity =>
