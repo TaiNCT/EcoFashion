@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 using System;
 
 namespace EcoFashionBackEnd.Entities
@@ -23,3 +24,20 @@ namespace EcoFashionBackEnd.Entities
 }
 
 
+=======
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace EcoFashionBackEnd.Entities
+{
+    [Table("Warehouses")]
+    public class Warehouse
+    {
+        public int WarehouseId { get; set; }
+        public Guid DesignerId { get; set; }
+        public virtual Designer Designer { get; set; }
+        public string WarehouseType { get; set; } // "Material" hoặc "Product"
+        public virtual ICollection<ProductInventory> ProductInventories { get; set; } = new List<ProductInventory>();
+
+    }
+}
+>>>>>>> 73fc58726349d17ec8fd03c3eafc6f15ec1d5275

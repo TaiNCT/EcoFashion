@@ -21,6 +21,8 @@ namespace EcoFashionBackEnd.Entities
         // Mã màu hoặc tên màu
         [MaxLength(50)]
         public string ColorCode { get; set; }
+        public int Quantity { get; set; }
+
 
     }
 }

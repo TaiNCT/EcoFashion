@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EcoFashionBackEnd.Migrations
 {
     /// <inheritdoc />
-    public partial class V : Migration
+    public partial class v : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -430,7 +430,8 @@ namespace EcoFashionBackEnd.Migrations
                     WaterUsage = table.Column<float>(type: "real", nullable: true),
                     WasteDiverted = table.Column<float>(type: "real", nullable: true),
                     LaborHours = table.Column<float>(type: "real", nullable: true),
-                    LaborCostPerHour = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
+                    LaborCostPerHour = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    CareInstruction = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -447,6 +448,25 @@ namespace EcoFashionBackEnd.Migrations
                         principalTable: "ItemTypes",
                         principalColumn: "ItemTypeId",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Warehouses",
+                columns: table => new
+                {
+                    WarehouseId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DesignerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    WarehouseType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Warehouses", x => x.WarehouseId);
+                    table.ForeignKey(
+                        name: "FK_Warehouses_Designer_DesignerId",
+                        column: x => x.DesignerId,
+                        principalTable: "Designer",
+                        principalColumn: "DesignerId");
                 });
 
             migrationBuilder.CreateTable(
@@ -561,6 +581,29 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DesignFeatures",
+                columns: table => new
+                {
+                    FeatureId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DesignId = table.Column<int>(type: "int", nullable: false),
+                    ReduceWaste = table.Column<bool>(type: "bit", nullable: false),
+                    LowImpactDyes = table.Column<bool>(type: "bit", nullable: false),
+                    Durable = table.Column<bool>(type: "bit", nullable: false),
+                    EthicallyManufactured = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DesignFeatures", x => x.FeatureId);
+                    table.ForeignKey(
+                        name: "FK_DesignFeatures_Designs_DesignId",
+                        column: x => x.DesignId,
+                        principalTable: "Designs",
+                        principalColumn: "DesignId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DesignImages",
                 columns: table => new
                 {
@@ -594,7 +637,8 @@ namespace EcoFashionBackEnd.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DesignId = table.Column<int>(type: "int", nullable: false),
                     SizeId = table.Column<int>(type: "int", nullable: false),
-                    ColorCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                    ColorCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -838,9 +882,7 @@ namespace EcoFashionBackEnd.Migrations
                     SizeId = table.Column<int>(type: "int", nullable: false),
                     ColorCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     SKU = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    QuantityInStock = table.Column<int>(type: "int", nullable: false),
-                    CareInstruction = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false)
+                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -866,26 +908,61 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductFeatures",
+                name: "ProductInventories",
                 columns: table => new
                 {
-                    FeatureId = table.Column<int>(type: "int", nullable: false)
+                    InventoryId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
-                    ReduceWaste = table.Column<bool>(type: "bit", nullable: false),
-                    LowImpactDyes = table.Column<bool>(type: "bit", nullable: false),
-                    Durable = table.Column<bool>(type: "bit", nullable: false),
-                    EthicallyManufactured = table.Column<bool>(type: "bit", nullable: false)
+                    WarehouseId = table.Column<int>(type: "int", nullable: false),
+                    QuantityAvailable = table.Column<int>(type: "int", nullable: false),
+                    LastUpdated = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductFeatures", x => x.FeatureId);
+                    table.PrimaryKey("PK_ProductInventories", x => x.InventoryId);
                     table.ForeignKey(
-                        name: "FK_ProductFeatures_Products_ProductId",
+                        name: "FK_ProductInventories_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "ProductId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ProductInventories_Warehouses_WarehouseId",
+                        column: x => x.WarehouseId,
+                        principalTable: "Warehouses",
+                        principalColumn: "WarehouseId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductInventoryTransactions",
+                columns: table => new
+                {
+                    TransactionId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    InventoryId = table.Column<int>(type: "int", nullable: false),
+                    PerformedByUserId = table.Column<int>(type: "int", nullable: false),
+                    QuantityChanged = table.Column<int>(type: "int", nullable: false),
+                    TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TransactionType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductInventoryTransactions", x => x.TransactionId);
+                    table.ForeignKey(
+                        name: "FK_ProductInventoryTransactions_ProductInventories_InventoryId",
+                        column: x => x.InventoryId,
+                        principalTable: "ProductInventories",
+                        principalColumn: "InventoryId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProductInventoryTransactions_Users_PerformedByUserId",
+                        column: x => x.PerformedByUserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -928,6 +1005,12 @@ namespace EcoFashionBackEnd.Migrations
                 name: "IX_DesignerMaterialInventories_MaterialId",
                 table: "DesignerMaterialInventories",
                 column: "MaterialId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DesignFeatures_DesignId",
+                table: "DesignFeatures",
+                column: "DesignId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_DesignImages_DesignId",
@@ -1077,10 +1160,24 @@ namespace EcoFashionBackEnd.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductFeatures_ProductId",
-                table: "ProductFeatures",
-                column: "ProductId",
-                unique: true);
+                name: "IX_ProductInventories_ProductId",
+                table: "ProductInventories",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductInventories_WarehouseId",
+                table: "ProductInventories",
+                column: "WarehouseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductInventoryTransactions_InventoryId",
+                table: "ProductInventoryTransactions",
+                column: "InventoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductInventoryTransactions_PerformedByUserId",
+                table: "ProductInventoryTransactions",
+                column: "PerformedByUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_DesignId",
@@ -1122,6 +1219,11 @@ namespace EcoFashionBackEnd.Migrations
                 name: "IX_Users_RoleId",
                 table: "Users",
                 column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Warehouses_DesignerId",
+                table: "Warehouses",
+                column: "DesignerId");
         }
 
         /// <inheritdoc />
@@ -1135,6 +1237,9 @@ namespace EcoFashionBackEnd.Migrations
 
             migrationBuilder.DropTable(
                 name: "DesignerMaterialInventories");
+
+            migrationBuilder.DropTable(
+                name: "DesignFeatures");
 
             migrationBuilder.DropTable(
                 name: "DesignImages");
@@ -1170,7 +1275,7 @@ namespace EcoFashionBackEnd.Migrations
                 name: "PaymentTransactions");
 
             migrationBuilder.DropTable(
-                name: "ProductFeatures");
+                name: "ProductInventoryTransactions");
 
             migrationBuilder.DropTable(
                 name: "Saved_Supplier");
@@ -1191,13 +1296,19 @@ namespace EcoFashionBackEnd.Migrations
                 name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "ProductInventories");
 
             migrationBuilder.DropTable(
                 name: "MaterialTypes");
 
             migrationBuilder.DropTable(
                 name: "Supplier");
+
+            migrationBuilder.DropTable(
+                name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "Warehouses");
 
             migrationBuilder.DropTable(
                 name: "DesignsVariants");

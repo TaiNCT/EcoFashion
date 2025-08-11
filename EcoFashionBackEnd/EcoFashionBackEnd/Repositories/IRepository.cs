@@ -10,7 +10,7 @@ public interface IRepository<TEntity, in TKey>
     Task<TEntity?> GetByIdAsync(TKey id);
     Task<TEntity> AddAsync(TEntity entity);
     Task AddRangeAsync(IEnumerable<TEntity> entities);
-
+    void RemoveRange(IEnumerable<TEntity> entities);
     TEntity Update(TEntity entity);
     TEntity Remove(TKey id);
     Task<int> Commit();

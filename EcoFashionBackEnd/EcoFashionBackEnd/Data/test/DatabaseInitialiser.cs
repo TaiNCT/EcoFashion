@@ -78,34 +78,33 @@ namespace EcoFashionBackEnd.Data.test
                 
                 Console.WriteLine("Seeding Material Images...");
                 await MaterialImageSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Colors...");
-                //await DesignColorSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Sizes...");
-                //await DesignsSizeSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Types...");
-                //await DesignsTypeSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Designs...");
+
+                #region -- design -- 
+
+                await ItemTypeSeeder.SeedAsync(_context);
+                await SizeSeeder.SeedAsync(_context);
+                await ItemTypeSizeRatioSeeder.SeedAsync(_context);
                 await DesignSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Materials...");
                 await DesignMaterialSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Images...");
                 await DesignImageSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Design Type Size Ratios...");
-                //await DesignTypeSizeRatioSeeder.SeedAsync(_context);
-                
-                Console.WriteLine("Seeding Designer Material Inventory...");
+                await DesignsVariantSeeder.SeedAsync(_context);
+
                 await DesignerMaterialInventorySeeder.SeedAsync(_context);
+<<<<<<< HEAD
 
                 Console.WriteLine("Seeding Supplier Material Warehouse/Stocks...");
                 await MaterialInventorySeeder.SeedAsync(_context);
                 
+=======
+                #endregion
+                #region -- Product -- 
+                await ProductSeeder.SeedAsync(_context);
+
+
+
+                #endregion
+
+>>>>>>> 73fc58726349d17ec8fd03c3eafc6f15ec1d5275
                 Console.WriteLine("Database seeding completed successfully!");
             }
             catch (Exception ex)

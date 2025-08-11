@@ -45,6 +45,23 @@ namespace EcoFashionBackEnd.Data.test
 
             await context.Designers.AddAsync(designer);
             await context.SaveChangesAsync();
+            // Tạo Warehouse cho designer vừa tạo
+            var warehouses = new List<Warehouse>
+    {
+        new Warehouse
+        {
+            DesignerId = designer.DesignerId,
+            WarehouseType = "Material"
+        },
+        new Warehouse
+        {
+            DesignerId = designer.DesignerId,
+            WarehouseType = "Product"
+        }
+    };
+
+            await context.Warehouses.AddRangeAsync(warehouses);
+            await context.SaveChangesAsync();
         }
     }
 

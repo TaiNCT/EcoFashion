@@ -34,13 +34,17 @@ namespace EcoFashionBackEnd.Entities
 
         public float? LaborHours { get; set; }
         public decimal? LaborCostPerHour { get; set; }
+        public string CareInstruction { get; set; }
 
         public virtual ItemType ItemTypes { get; set; }
+        public virtual DesignFeature DesignFeatures { get; set; }
         public virtual ICollection<DesignsVariant> DesignsVariants { get; set; } = new List<DesignsVariant>();
         public virtual ICollection<DesignsMaterial> DesignsMaterials { get; set; } = new List<DesignsMaterial>();
         public virtual ICollection<DraftSketch> DraftSketches { get; set; } = new List<DraftSketch>();
         public virtual ICollection<DraftPart> DraftParts { get; set; } = new List<DraftPart>();
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+        public virtual ICollection<DesignImage> DesignImages { get; set; } = new List<DesignImage>();
+
     }
    
 }

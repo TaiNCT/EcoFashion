@@ -2,6 +2,7 @@
 using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Requests.DessignDraft;
+using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos.DesignDraft;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
@@ -22,6 +23,9 @@ namespace EcoFashionBackEnd.Services
         private readonly IRepository<DraftPart, int> _draftPartRepository;
         private readonly IRepository<DraftSketch, int> _draftSketchRepository;
         private readonly IRepository<Image, int> _imageRepository;
+        private readonly IRepository<ItemTypeSizeRatio, int> _itemTypeSizeRatioRepository;
+        private readonly IRepository<ItemType, int> _itemTypeRepository;
+
         private readonly CloudService _cloudService;
         private readonly IMapper _mapper;
 
@@ -34,6 +38,9 @@ namespace EcoFashionBackEnd.Services
             IRepository<DraftPart, int> draftPartRepository,
             IRepository<DraftSketch, int> draftSketchRepository,
             IRepository<Image, int> imageRepository,
+            IRepository<ItemTypeSizeRatio, int> itemTypeSizeRatioRepository,
+            IRepository<ItemType, int> itemTypeRepository,
+
             CloudService cloudService,
             IMapper mapper)
         {
@@ -45,6 +52,9 @@ namespace EcoFashionBackEnd.Services
             _draftPartRepository = draftPartRepository;
             _draftSketchRepository = draftSketchRepository;
             _imageRepository = imageRepository;
+            _itemTypeSizeRatioRepository = itemTypeSizeRatioRepository;
+            _itemTypeRepository = itemTypeRepository;
+
             _cloudService = cloudService;
             _mapper = mapper;
         }
@@ -59,35 +69,44 @@ namespace EcoFashionBackEnd.Services
                 Description = request.Description,
                 RecycledPercentage = request.RecycledPercentage,
                 CreatedAt = DateTime.UtcNow,
+                CarbonFootprint = request.TotalCarbon,
+                WaterUsage = request.TotalWater,
+                WasteDiverted = request.TotalWaste,
+                LaborCostPerHour = request.LaborCostPerHour,
+                LaborHours = request.LaborHours,
+                UnitPrice = request.UnitPrice,
+                SalePrice = request.SalePrice,
+                ItemTypeId = request.DesignTypeId,
             };
 
             await _designRepository.AddAsync(design);
             await _designRepository.Commit();
 
+            // 2. Parse DraftPartsJson
             try
             {
                 var draftParts = JsonConvert.DeserializeObject<List<DraftPartDto>>(request.DraftPartsJson ?? "[]");
-            if (draftParts != null && draftParts.Any())
-            {
-                var draftPartEntities = draftParts.Select(part => new DraftPart
+                if (draftParts != null && draftParts.Any())
                 {
-                    DesignId = design.DesignId,
-                    Name = part.Name,
-                    Length = (decimal)part.Length,
-                    Width = (decimal)part.Width,
-                    Quantity = part.Quantity,
-                    MaterialId = part.MaterialId,
-                    MaterialStatus = part.MaterialStatus
-                }).ToList();
+                    var draftPartEntities = draftParts.Select(part => new DraftPart
+                    {
+                        DesignId = design.DesignId,
+                        Name = part.Name,
+                        Length = (decimal)part.Length,
+                        Width = (decimal)part.Width,
+                        Quantity = part.Quantity,
+                        MaterialId = part.MaterialId,
+                    }).ToList();
 
-                await _draftPartRepository.AddRangeAsync(draftPartEntities);
-            }
+                    await _draftPartRepository.AddRangeAsync(draftPartEntities);
+                }
             }
             catch (JsonException ex)
             {
-                throw new Exception("Lỗi khi parse DraftPartsJson. Kiểm tra định dạng JSON: phải là một mảng [].", ex);
-            } 
+                throw new Exception("Lỗi khi parse DraftPartsJson: phải là một mảng [].", ex);
+            }
 
+            // 3. Upload Sketch Images
             if (request.SketchImages != null && request.SketchImages.Any())
             {
                 var uploadResults = await _cloudService.UploadImagesAsync(request.SketchImages);
@@ -111,35 +130,101 @@ namespace EcoFashionBackEnd.Services
             await _draftPartRepository.Commit();
             await _draftSketchRepository.Commit();
 
+            // 4. Parse MaterialsJson
+            try
+            {
+                var materials = JsonConvert.DeserializeObject<List<DesignMaterialRequest>>(request.MaterialsJson ?? "[]");
+                if (materials != null && materials.Any())
+                {
+                    var newMaterials = materials.Select(m => new DesignsMaterial
+                    {
+                        DesignId = design.DesignId,
+                        MaterialId = m.MaterialId,
+                        MeterUsed = (int)m.MeterUsed
+                    }).ToList();
+
+                    await _designMaterialRepository.AddRangeAsync(newMaterials);
+                    await _designMaterialRepository.Commit();
+                }
+            }
+            catch (JsonException ex)
+            {
+                throw new Exception("Lỗi khi parse MaterialsJson: phải là một mảng [].", ex);
+            }
+
             return design.DesignId;
         }
+
+
+
+
         public async Task<List<DesignDraftDto>> GetAllDraftsAsync(Guid designerId)
         {
-            var drafts = await _designRepository
-                .GetAll().Include(d => d.DraftSketches)
-                  .ThenInclude(ds => ds.Image)
+            return await _designRepository
+                .GetAll()
+                .AsNoTracking()
+                .Where(d => d.DesignerId == designerId)
                 .OrderByDescending(d => d.CreatedAt)
-                .ToListAsync();
+                .Select(d => new DesignDraftDto
+                {
+                    DesignId = d.DesignId,
+                    Name = d.Name,
+                    CreatedAt = d.CreatedAt,
+                    Description= d.Description,
+                    UnitPrice = d.UnitPrice,
+                    SalePrice = d.SalePrice,
+                    LaborCostPerHour = d.LaborCostPerHour,  
+                    LaborHours  = d.LaborHours,
+                    RecycledPercentage = d.RecycledPercentage,
+                    TotalCarbon = (float)d.CarbonFootprint,
+                    TotalWaste = (float)d.WasteDiverted,
+                    TotalWater = (float)d.WasteDiverted,
+ 
+                    // Ảnh sketch
+                    SketchImageUrls = d.DraftSketches
+                        .Select(ds => ds.Image.ImageUrl)
+                        .ToList(),
 
-            return drafts.Select(d => new DesignDraftDto
-            {
-                DesignId = d.DesignId,
-                Name = d.Name,
-                CreatedAt = d.CreatedAt,
-                SketchImageUrls = d.DraftSketches.Select(ds => ds.Image.ImageUrl).ToList()
-            }).ToList();
+                    // Danh sách materials
+                    Materials = d.DesignsMaterials
+                        .Select(m => new DesignMaterialDto
+                        {
+                            MaterialId = m.MaterialId,
+                            MeterUsed = m.MeterUsed,
+                            MaterialName = m.Materials.Name
+                        }).ToList(),
+
+                    // Danh sách parts
+                    DraftParts = d.DraftParts
+                        .Select(p => new DraftPartDto
+                        {
+                            Name = p.Name,
+                            Length = (float)p.Length,
+                            Width = (float)p.Width,
+                            Quantity = p.Quantity,
+                            MaterialId = p.MaterialId,
+                        }).ToList()
+                })
+                .ToListAsync();
         }
+
+
 
         public async Task<DraftDesignDetailDto?> GetDraftDetailAsync(int designId, Guid designerId)
         {
             var design = await _designRepository
                 .GetAll()
+                .AsNoTracking()
+                .Where(d => d.DesignId == designId && d.DesignerId == designerId)
                 .Include(d => d.DraftParts)
+                .Include(d => d.DesignsMaterials)
+                    .ThenInclude(dm => dm.Materials)
                 .Include(d => d.DraftSketches)
-                .ThenInclude(s => s.Image)
-                .FirstOrDefaultAsync(d => d.DesignId == designId && d.DesignerId == designerId );
+                    .ThenInclude(ds => ds.Image)
+                .FirstOrDefaultAsync();
 
-            if (design == null) return null;
+            if (design == null)
+                return null;
 
             return new DraftDesignDetailDto
             {
@@ -147,7 +232,10 @@ namespace EcoFashionBackEnd.Services
                 Name = design.Name,
                 Description = design.Description,
                 RecycledPercentage = design.RecycledPercentage,
-                //DesignTypeId = design.DesignTypeId ?? 0,
+                TotalCarbon = (float)design.CarbonFootprint,
+                TotalWater = (float)design.WaterUsage,
+                TotalWaste = (float)design.WasteDiverted,
+
                 DraftParts = design.DraftParts.Select(p => new DraftPartDto
                 {
                     Name = p.Name,
@@ -155,192 +243,209 @@ namespace EcoFashionBackEnd.Services
                     Width = (float)p.Width,
                     Quantity = p.Quantity,
                     MaterialId = p.MaterialId,
-                    MaterialStatus = p.MaterialStatus
                 }).ToList(),
-                SketchImageUrls = design.DraftSketches.Select(s => s.Image.ImageUrl).ToList()
+
+                Materials = design.DesignsMaterials.Select(m => new DesignMaterialDto
+                {
+                    MaterialId = m.MaterialId,
+                    MaterialName = m.Materials.Name,
+                    MeterUsed = m.MeterUsed
+                }).ToList(),
+
+                SketchImageUrls = design.DraftSketches
+                    .Select(ds => ds.Image.ImageUrl)
+                    .ToList()
             };
         }
 
-        public async Task<bool> FinalizeDesignAsync(FinalizeDesignRequest request)
+        public async Task UpdateDraftDesignAsync(  DraftDesignUpdateRequest request, Guid designerId)
         {
-            var design = await _designRepository
-                .GetAll()
-                .Include(d => d.DesignsMaterials)
-                //.Include(d => d.DesignTypes)
-                .FirstOrDefaultAsync(d => d.DesignId == request.DesignId);
-
-            if (design == null)
-                throw new Exception("Design không tồn tại.");
-
-          
-
-            // Thêm mới vật liệu
-            var newMaterials = request.Materials.Select(m => new DesignsMaterial
+         
+            // 1. Update Design info
+            var design = new Design
             {
-                DesignId = request.DesignId,
-                MaterialId = m.MaterialId,
-                MeterUsed = (int)m.MeterUsed
-            }).ToList();
+                DesignerId = designerId,
+                Name = request.Name,
+                Description = request.Description,
+                RecycledPercentage = request.RecycledPercentage,
+                CarbonFootprint = request.TotalCarbon,
+                WaterUsage = request.TotalWater,
+                WasteDiverted = request.TotalWaste,
+                LaborCostPerHour = request.LaborCostPerHour,
+                LaborHours = request.LaborHours,
+                UnitPrice = request.UnitPrice,
+                SalePrice = request.SalePrice,
+                ItemTypeId = request.DesignTypeId
+            };
+            _designRepository.Update(design);
+            await _designRepository.Commit();
 
-            await _designMaterialRepository.AddRangeAsync(newMaterials);
+            // 2. Replace DraftParts
+            var oldParts = _draftPartRepository.GetAll().Where(p => p.DesignId == request.DesignId);
+            _draftPartRepository.RemoveRange(oldParts);
+            await _draftPartRepository.Commit();
 
-            //// Thêm mới feature
-            //var newFeature = new DesignFeature
-            //{
-            //    DesignId = request.DesignId,
-            //    ReduceWaste = request.ReduceWaste,
-            //    LowImpactDyes = request.LowImpactDyes,
-            //    Durable = request.Durable,
-            //    EthicallyManufactured = request.EthicallyManufactured
-            //};
-            //await _designFeatureRepository.AddAsync(newFeature);
-
-            decimal unitPrice = 0;
-            foreach (var mat in request.Materials)
+            var draftParts = JsonConvert.DeserializeObject<List<DraftPartDto>>(request.DraftPartsJson ?? "[]") ?? new();
+            if (draftParts.Any())
             {
-                var material = await _MaterialRepository
-                    .GetAll()
-                    .FirstOrDefaultAsync(m => m.MaterialId == mat.MaterialId);
-
-                if (material != null)
+                var draftPartEntities = draftParts.Select(p => new DraftPart
                 {
-                    unitPrice += (decimal)mat.MeterUsed * material.PricePerUnit;
+                    DesignId = request.DesignId,
+                    Name = p.Name,
+                    Length = (decimal)p.Length,
+                    Width = (decimal)p.Width,
+                    Quantity = p.Quantity,
+                    MaterialId = p.MaterialId
+                }).ToList();
+                await _draftPartRepository.AddRangeAsync(draftPartEntities);
+                await _draftPartRepository.Commit();
+            }
+
+            // 3. Replace Sketch Images (only if new images provided)
+            if (request.SketchImages != null && request.SketchImages.Any())
+            {
+                var oldSketches = _draftSketchRepository.GetAll().Where(s => s.DesignId == request.DesignId);
+                _draftSketchRepository.RemoveRange(oldSketches);
+                await _draftSketchRepository.Commit();
+
+                var uploadResults = await _cloudService.UploadImagesAsync(request.SketchImages);
+                var newSketches = uploadResults
+                    .Where(u => !string.IsNullOrWhiteSpace(u?.SecureUrl?.ToString()))
+                    .Select(u => new DraftSketch
+                    {
+                        DesignId = request.DesignId,
+                        Image = new Image { ImageUrl = u.SecureUrl.ToString() }
+                    }).ToList();
+
+                if (newSketches.Any())
+                {
+                    await _draftSketchRepository.AddRangeAsync(newSketches);
+                    await _draftSketchRepository.Commit();
                 }
             }
 
-            decimal laborCost = 0;
-            //if (design.DesignTypes?.LaborHours != null && design.DesignTypes?.LaborCostPerHour != null)
-            //{
-            //    laborCost = ((decimal)design.DesignTypes.LaborHours.Value * design.DesignTypes.LaborCostPerHour.Value);
-            //}
+            // 4. Replace Materials
+            var oldMaterials = _designMaterialRepository.GetAll().Where(m => m.DesignId == request.DesignId);
+            _designMaterialRepository.RemoveRange(oldMaterials);
+            await _designMaterialRepository.Commit();
 
-            decimal defaultSalePrice = unitPrice + laborCost;
-
-            if (request.CustomSalePrice.HasValue)
+            var materials = JsonConvert.DeserializeObject<List<DesignMaterialRequest>>(request.MaterialsJson ?? "[]") ?? new();
+            if (materials.Any())
             {
-                var custom = request.CustomSalePrice.Value;
-
-                // Giới hạn 0% - 20% markup
-                if (custom < defaultSalePrice)
-                    throw new Exception("Giá bán thấp hơn chi phí gốc. Vui lòng kiểm tra lại.");
-
-                if (custom > defaultSalePrice * 1.2m)
-                    throw new Exception("Giá bán không được vượt quá 20% so với chi phí gốc.");
-
-                design.SalePrice = custom;
+                var newMaterials = materials.Select(m => new DesignsMaterial
+                {
+                    DesignId = request.DesignId,
+                    MaterialId = m.MaterialId,
+                    MeterUsed = (int)m.MeterUsed
+                }).ToList();
+                await _designMaterialRepository.AddRangeAsync(newMaterials);
+                await _designMaterialRepository.Commit();
             }
-            else
-            {
-                // Nếu không nhập thì gán mặc định
-                design.SalePrice = defaultSalePrice;
-            }
-
-
-            design.UnitPrice = unitPrice;
-            // Cập nhật footprint & stage
-            design.CarbonFootprint= request.TotalCarbon;
-            design.WaterUsage= request.TotalWater;
-            design.WasteDiverted = request.TotalWaste;
-
-            _designRepository.Update(design);
-            await _designRepository.Commit();
-            return true;
         }
 
-
-        public async Task<bool> AddVariantAndUpdateMaterialsAsync(CreateDesignVariantRequest request, int userId)
+        public async Task<FabricUsageResponse> CalculateFabricUsageByMaterialAsync(int designId)
         {
-            // 🔐 DesignerId
-            var designer = await _designerRepository
+            var design = await _designRepository.GetByIdAsync(designId);
+            if (design == null) throw new Exception("Design không tồn tại.");
+
+            var materials = _designMaterialRepository
                 .GetAll()
-                .FirstOrDefaultAsync(d => d.UserId == userId);
+                .Where(m => m.DesignId == designId)
+                .Select(m => new { m.MaterialId, m.MeterUsed, m.Materials.Name })
+                .ToList();
 
-            if (designer == null)
-                throw new Exception("Không tìm thấy designer tương ứng với user này.");
+            if (!materials.Any()) return new FabricUsageResponse
+            {
+                DesignId = design.DesignId,
+                DesignName = design.Name,
+                MaterialsUsage = new List<MaterialFabricUsageDto>(),
+            };
 
-            var designerId = designer.DesignerId;
-
-            // 🎨 design
-            var design = await _designRepository
+            var variants = _designVariantRepository
                 .GetAll()
-                .Include(d => d.DesignsMaterials)
-                    .ThenInclude(dm => dm.Materials)
-                ////.Include(d => d.DesignTypes)
-                .FirstOrDefaultAsync(d => d.DesignId == request.DesignId);
+                .Where(v => v.DesignId == designId)
+                .ToList();
 
-            if (design == null || design.DesignerId != designerId)
-                throw new Exception("Không tìm thấy thiết kế hoặc bạn không có quyền tạo biến thể cho thiết kế này.");
+            if (!variants.Any()) return new FabricUsageResponse
+            {
+                DesignId = design.DesignId,
+                DesignName = design.Name,
+                MaterialsUsage = new List<MaterialFabricUsageDto>(),
+            };
 
-            //// 📏 size multiplier
-            //var ratio = await _DesignTypeSizeRatioRepository
-            //    .GetAll()
-            //    .FirstOrDefaultAsync(r =>
-            //        r.DesignTypeId == design.DesignTypeId &&
-            //        r.SizeId == request.SizeId);
+            var usageMap = new Dictionary<int, decimal>();
 
-            //float sizeMultiplier = ratio?.Ratio ?? 0;
-            //if (sizeMultiplier == 0)
-            //    throw new Exception("Không tìm thấy hệ số size phù hợp.");
+            foreach (var variant in variants)
+            {
+                var ratio = _itemTypeSizeRatioRepository
+                    .GetAll()
+                    .Where(r => r.ItemTypeId == design.ItemTypeId && r.SizeId == variant.SizeId)
+                    .Select(r => r.Ratio)
+                    .FirstOrDefault();
 
-            // 🔁 check  variant exist 
-            //string normalizedColor = request.Color?.Trim().ToLower() ?? "";
-            //var existingVariant = await _designVariantRepository
-            //    .GetAll()
-            //    .FirstOrDefaultAsync(v =>
-            //        v.DesignId == request.DesignId &&
-            //        v.SizeId == request.SizeId &&
-            //        v.Color.ToLower() == normalizedColor);
+                if (ratio == 0) continue;
 
-            // 📦 check inventory and deduct materials.
-            //foreach (var dm in design.DesignsMaterials)
-            //{
-            //    float required = dm.MeterUsed * sizeMultiplier * request.Quantity;
+                foreach (var material in materials)
+                {
+                    var meterForVariant = material.MeterUsed
+                        * (decimal)ratio
+                        * variant.Quantity;
 
-            //    var inventory = await _designerMaterialInventoryRepository
-            //        .GetAll()
-            //        .FirstOrDefaultAsync(i =>
-            //            i.DesignerId == designerId &&
-            //            i.MaterialId == dm.MaterialId);
+                    if (!usageMap.ContainsKey(material.MaterialId))
+                        usageMap[material.MaterialId] = 0;
 
-            //    if (inventory == null || inventory.Quantity < required)
-            //        throw new Exception($"Không đủ vật liệu [{dm.Materials?.Name}] trong kho.");
+                    usageMap[material.MaterialId] += meterForVariant;
+                }
+            }
 
-            //    inventory.Quantity -= (int)Math.Ceiling(required);
-            //    _designerMaterialInventoryRepository.Update(inventory);
-            //}
+            var resultList = usageMap.Select(kvp => new MaterialFabricUsageDto
+            {
+                MaterialId = kvp.Key,
+                TotalMeters = kvp.Value
+            }).ToList();
 
-            // ➕ variant
-            //if (existingVariant != null)
-            //{
-            //    existingVariant.Quantity += request.Quantity;
-            //    _designVariantRepository.Update(existingVariant);
-            //}
-            //else
-            //{
-            //    var newVariant = new DesignsVariant
-            //    {
-            //        DesignId = request.DesignId,
-            //        SizeId = request.SizeId,
-            //        ColorCode = request.Color?.Trim(), 
-            //    };
-
-            //    await _designVariantRepository.AddAsync(newVariant);
-            //}
-         
-
-            // 💾 Lưu thay đổi
-            await _designerMaterialInventoryRepository.Commit();
-            await _designVariantRepository.Commit();
-            await _designRepository.Commit();
-
-            return true;
+            return new FabricUsageResponse
+            {
+                DesignId = design.DesignId,
+                DesignName = design.Name,
+                MaterialsUsage = resultList,
+            };
         }
 
 
+        public async Task<IEnumerable<ItemTypeDto>> GetAllItemTypesAsync()
+        {
+            return await _itemTypeRepository
+                .GetAll()
+                .AsNoTracking()
+                .Select(it => new ItemTypeDto
+                {
+                    ItemTypeId = it.ItemTypeId,
+                    TypeName = it.TypeName,
+                    Description = it.Description
+                })
+                .ToListAsync();
+        }
 
 
-
+        public async Task<IEnumerable<ItemTypeSizeRatioDto>> GetAllItemTypeSizeRatiosAsync()
+        {
+            return await _itemTypeSizeRatioRepository
+                .GetAll()
+                .AsNoTracking()
+                .Include(itsr => itsr.ItemType)
+                .Include(itsr => itsr.Size)
+                .Select(itsr => new ItemTypeSizeRatioDto
+                {
+                    Id = itsr.Id,
+                    TypeName = itsr.ItemType.TypeName,
+                    SizeName = itsr.Size.SizeName,
+                    Ratio = itsr.Ratio
+                })
+                .ToListAsync();
+        }
 
 
     }
 }
+

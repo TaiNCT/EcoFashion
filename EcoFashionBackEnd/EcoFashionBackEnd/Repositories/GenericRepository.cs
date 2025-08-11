@@ -61,7 +61,10 @@ where TEntity : class
     {
         return await _dbSet.Where(predicate).SumAsync(selector);
     }
-
+    public void RemoveRange(IEnumerable<TEntity> entities) 
+    {
+        _dbSet.RemoveRange(entities);
+    }
 }
 
 
