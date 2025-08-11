@@ -45,7 +45,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<MaterialStockTransaction> MaterialStockTransactions { get; set; }
         public DbSet<ProductInventory> ProductInventories { get; set; }
         public DbSet<ProductInventoryTransaction> ProductInventoryTransactions { get; set; }
-
+        public DbSet<Review> Reviews { get; set; }
 
         #endregion
 
@@ -560,6 +560,28 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany()
                 .HasForeignKey(bi => bi.ImageId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Product)
+                .WithMany()
+                .HasForeignKey(r => r.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Material)
+                .WithMany()
+                .HasForeignKey(r => r.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Review>()
+                .Property(r => r.RatingScore)
+                .HasPrecision(2, 1);
+            modelBuilder.Entity<Review>()
+                .Property(r => r.Comment)
+                .HasMaxLength(1000);
             #endregion
             #region Notification
             modelBuilder.Entity<Notification>()

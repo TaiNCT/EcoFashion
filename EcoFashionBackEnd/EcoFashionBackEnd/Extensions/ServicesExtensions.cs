@@ -103,7 +103,7 @@ public static class ServicesExtensions
         services.AddScoped<ProductService>();
         services.AddScoped<InventoryService>();
         services.AddScoped<DesignsVariantService>();
-
+        services.AddScoped<ReviewService>();
 
 
 
