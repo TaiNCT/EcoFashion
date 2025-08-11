@@ -111,18 +111,26 @@ const ratingData = [
 ];
 
 export default function DesignDetail() {
-  const { id, designerId } = useParams(); // lấy id từ URL
-  // const product = products.find((p) => p.id === Number(id));
-  //Design Detail Data
+  const { id, designerId } = useParams();
+
+  // State
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [designDetail, setDesignDetail] = useState<DesignDetails | null>(null);
   const [relatedDesign, setRelatedDesign] = useState<Design[]>([]);
-  //Size
-  const [size, setSize] = useState("M");
-
-  //Change Image
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(0);
+  const [open, setOpen] = useState(false);
+
+  // Add to cart state
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [quantity, setQuantity] = useState(1);
+
+  //Reset Mỗi Lần  Chọn Size Hoặc Màu
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedColor, selectedSize]);
 
   const handlePrev = () => {
     const images = designDetail.designImages ?? [];
@@ -136,8 +144,6 @@ export default function DesignDetail() {
   };
 
   //Change Tab
-  const [tabIndex, setTabIndex] = useState(0);
-
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
@@ -161,11 +167,6 @@ export default function DesignDetail() {
   //Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 12;
-
-  //Impact Data
-  const [wasteDiverted, setWasteDiverted] = useState(0);
-  const [carbonFootprint, setCarbonFootprint] = useState(0);
-  const [waterUsed, setWaterUsed] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -207,7 +208,7 @@ export default function DesignDetail() {
   //   );
   // }
   //Open popup
-  const [open, setOpen] = useState(false);
+
   if (loading) return <div className="designer-loading">Đang tải...</div>;
   if (error || !designDetail)
     return (
@@ -215,10 +216,18 @@ export default function DesignDetail() {
         <Typography color="error">Không tìm thấy sản phẩm.</Typography>
       </Box>
     );
+
+  const totalMeter = designDetail.materials.reduce(
+    (sum, mat) => sum + mat.meterUsed,
+    0
+  );
   const materialData = designDetail.materials.map((mat) => ({
     label: mat.materialName,
-    value: Math.round(mat.persentageUsed),
+    value: totalMeter
+      ? Math.round(Number((mat.meterUsed / totalMeter) * 100))
+      : 0,
   }));
+
   //Render Feature
   const renderFeatures = (feature?: Feature | null) => {
     if (!feature) {
@@ -276,6 +285,81 @@ export default function DesignDetail() {
   const valueFormatter = (item: { value: number }) => `${item.value}%`;
   const data = { data: materialData, valueFormatter };
 
+  // Color map
+  const colorMap: Record<string, string> = {
+    RED: "#ff0000",
+    BLK: "#000000",
+    WHT: "#ffffff",
+    BLU: "#0432ecff",
+    GRN: "#00ff4cff",
+  };
+  const products = designDetail.products;
+
+  // Lấy danh sách màu duy nhất
+  const uniqueColors = [...new Set(products.map((p) => p.colorCode))];
+
+  // Lấy danh sách size duy nhất kèm sizeName
+  const uniqueSizes = Array.from(
+    products.reduce((map, product) => {
+      if (!map.has(product.sizeId)) {
+        map.set(product.sizeId, product.sizeName);
+      }
+      return map;
+    }, new Map<number, string>())
+  );
+
+  // Kiểm tra màu có size được chọn (selectedSize) hay không
+  const colorsWithAvailability = uniqueColors.map((colorCode) => {
+    const isAvailable = products.some(
+      (p) =>
+        p.colorCode === colorCode &&
+        p.sizeId === selectedSize &&
+        p.quantityAvailable > 0
+    );
+    return { colorCode, isAvailable };
+  });
+
+  // Kiểm tra size có màu được chọn (selectedColor) hay không
+  const sizesWithAvailability = uniqueSizes.map(([sizeId, sizeName]) => {
+    const isAvailable = products.some(
+      (p) =>
+        p.sizeId === sizeId &&
+        p.colorCode === selectedColor &&
+        p.quantityAvailable > 0
+    );
+    return { sizeId, sizeName, isAvailable };
+  });
+
+  // Tìm productId theo lựa chọn
+  const selectedProduct = products.find(
+    (p) => p.colorCode === selectedColor && p.sizeId === selectedSize
+  );
+
+  const handleAddToCart = () => {
+    if (!selectedProduct) {
+      alert("Chọn màu và kích thước trước!");
+      return;
+    }
+    console.log(
+      "Add to cart với productId:",
+      selectedProduct.productId,
+      "Số lượng:",
+      quantity,
+      "Giá: ",
+      designDetail.salePrice * quantity
+    );
+    // dispatch(addToCart(selectedProduct.productId, quantity))
+  };
+
+  //Add Số Lượng
+  const handleDecrease = () => {
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1)); // Không cho nhỏ hơn 1
+  };
+
+  const handleIncrease = () => {
+    setQuantity((prev) => prev + 1);
+  };
+
   return (
     <Box
       sx={{
@@ -291,13 +375,10 @@ export default function DesignDetail() {
           backgroundColor: "white",
           borderBottom: "1px solid black",
           borderTop: "1px solid black",
+          p: 2,
         }}
       >
-        <Breadcrumbs
-          separator="›"
-          aria-label="breadcrumb"
-          sx={{ paddingLeft: 2 }}
-        >
+        <Breadcrumbs separator="›" aria-label="breadcrumb">
           <Link underline="hover" color="inherit" href="/">
             Trang chủ
           </Link>
@@ -519,32 +600,6 @@ export default function DesignDetail() {
               <Typography sx={{ margin: "auto 0", fontSize: "20px" }}>
                 Chất Liệu:
               </Typography>
-              {/* <Box
-                sx={{
-                  width: "100%",
-                }}
-              >
-                {product.materials.map((mat, index) => (
-                  <Box
-                    key={mat.name}
-                    sx={{
-                      width: `${mat.percentageUse}%`,
-                      borderColor:
-                        materialColors[index % materialColors.length],
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: materialColors[index % materialColors.length],
-                      fontSize: 20,
-                      padding: 2,
-                      fontWeight: "bold",
-                      flex: 1,
-                    }}
-                  >
-                    {mat.name}: {mat.percentageUse}%
-                  </Box>
-                ))}
-              </Box> */}
               <PieChart
                 series={[
                   {
@@ -564,21 +619,22 @@ export default function DesignDetail() {
             </Box>
 
             {/* Color */}
-            <Box>
-              <Typography sx={{ margin: "auto 0", fontSize: "25px" }}>
-                Màu sắc:
-              </Typography>
-              {/* Replace with mapped color swatches */}
+            <Box sx={{ mt: 3 }}>
+              <Typography sx={{ fontSize: "25px" }}>Màu sắc:</Typography>
               <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                {["#c9bfb3", "#c4c0b9", "#a09c92"].map((color) => (
+                {colorsWithAvailability.map(({ colorCode }) => (
                   <Box
-                    key={color}
+                    key={colorCode}
+                    onClick={() => setSelectedColor(colorCode)}
                     sx={{
                       width: 40,
                       height: 40,
                       borderRadius: "50%",
-                      backgroundColor: color,
-                      border: "1px solid #ccc",
+                      backgroundColor: colorMap[colorCode],
+                      border:
+                        selectedColor === colorCode
+                          ? "3px solid #1976d2"
+                          : "1px solid #ccc",
                       cursor: "pointer",
                     }}
                   />
@@ -589,20 +645,30 @@ export default function DesignDetail() {
             {/* Size selector */}
             <Box sx={{ mt: 2, width: "100%" }}>
               <Typography sx={{ margin: "auto 0", fontSize: "25px" }}>
-                Size:
+                Kích Thước:
               </Typography>
               <Box sx={{ display: "flex" }}>
                 <ToggleButtonGroup
-                  value={size}
+                  value={selectedSize}
                   exclusive
-                  onChange={(e, newSize) => setSize(newSize)}
+                  onChange={(e, newSize) => setSelectedSize(newSize)}
                   size="large"
                   sx={{ mt: 1 }}
                 >
-                  <ToggleButton value="S">S</ToggleButton>
-                  <ToggleButton value="M">M</ToggleButton>
-                  <ToggleButton value="L">L</ToggleButton>
+                  {sizesWithAvailability.map(
+                    ({ sizeId, sizeName, isAvailable }) => (
+                      <ToggleButton
+                        key={sizeId}
+                        value={sizeId}
+                        disabled={!isAvailable}
+                        sx={{ opacity: isAvailable ? 1 : 0.4 }}
+                      >
+                        {sizeName}
+                      </ToggleButton>
+                    )
+                  )}
                 </ToggleButtonGroup>
+                {/* Hướng Dẫn Chọn Size */}
                 <Link
                   sx={{
                     margin: "auto 0",
@@ -794,18 +860,40 @@ export default function DesignDetail() {
             </Box>
 
             {/* Số Lượng */}
-            <Box sx={{ mt: 2, display: "flex", gap: 2 }}>
-              <Typography sx={{ margin: "auto 0", fontSize: "25px" }}>
-                Số Lượng:
+            <Box sx={{ mt: 2, display: "flex", gap: 2, alignItems: "center" }}>
+              <Typography sx={{ fontSize: "25px" }}>Số Lượng:</Typography>
+              <Button
+                variant="outlined"
+                onClick={handleDecrease}
+                disabled={quantity <= 1}
+              >
+                -
+              </Button>
+              <Typography variant="h6">{quantity}</Typography>
+              <Button
+                variant="outlined"
+                onClick={handleIncrease}
+                disabled={
+                  !selectedProduct ||
+                  quantity >= selectedProduct.quantityAvailable
+                }
+              >
+                +
+              </Button>
+              <Typography variant="h6">
+                {selectedProduct?.quantityAvailable
+                  ? `Còn Lại: ${selectedProduct.quantityAvailable}`
+                  : ""}
               </Typography>
-              <Button variant="outlined">-</Button>
-              <Typography variant="h6">1</Typography>
-              <Button variant="outlined">+</Button>
             </Box>
 
             {/* Buttons */}
             <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
-              <Button variant="contained" color="success">
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleAddToCart}
+              >
                 Thêm vào giỏ
               </Button>
               <Button variant="outlined">Mua ngay</Button>
@@ -861,7 +949,7 @@ export default function DesignDetail() {
                 <Typography
                   sx={{
                     width: "100%",
-                    fontSize: "25px",
+                    fontSize: "30px",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -870,9 +958,6 @@ export default function DesignDetail() {
                   {designDetail.designer.designerName}
                 </Typography>{" "}
               </Link>
-              <Typography sx={{ width: "100%", fontSize: "15px" }}>
-                Online 3 phút trước
-              </Typography>
             </Box>
           </Grid>
           <Grid
@@ -891,17 +976,28 @@ export default function DesignDetail() {
                 <Grid size={6}>
                   <Box sx={{ display: "flex", width: "100%" }}>
                     <Typography sx={{ marginRight: "auto" }}>
-                      Đánh Giá:
+                      Tham Gia:
                     </Typography>
-                    <Typography>80k</Typography>
+                    <Typography>
+                      {(() => {
+                        const yearsAgo =
+                          new Date().getFullYear() -
+                          new Date(
+                            designDetail.designer.createAt
+                          ).getFullYear();
+                        return yearsAgo === 0
+                          ? "Mới năm nay"
+                          : `${yearsAgo} năm trước`;
+                      })()}
+                    </Typography>
                   </Box>
                 </Grid>
                 <Grid size={6}>
                   <Box sx={{ display: "flex", width: "100%" }}>
                     <Typography sx={{ marginRight: "auto" }}>
-                      Tham Gia:
+                      Đánh Giá:
                     </Typography>
-                    <Typography>4 năm trước</Typography>
+                    <Typography>Đang Tính Toán</Typography>
                   </Box>
                 </Grid>
                 <Grid size={6}>
@@ -909,15 +1005,16 @@ export default function DesignDetail() {
                     <Typography sx={{ marginRight: "auto" }}>
                       Sản Phẩm:
                     </Typography>
-                    <Typography>800</Typography>
+                    <Typography>{relatedDesign.length}</Typography>
                   </Box>
                 </Grid>
+
                 <Grid size={6}>
                   <Box sx={{ display: "flex", width: "100%" }}>
                     <Typography sx={{ marginRight: "auto" }}>
                       Người Theo Dõi:
                     </Typography>
-                    <Typography>100k</Typography>
+                    <Typography>Đang Tính Toán</Typography>
                   </Box>
                 </Grid>
               </Grid>
@@ -998,7 +1095,7 @@ export default function DesignDetail() {
                   component="div"
                   sx={{ whiteSpace: "pre-line", fontSize: "15px" }}
                 >
-                  {/* {designDetail.description} */}
+                  {designDetail.description}
                 </Typography>
               </Grid>
 
@@ -1007,7 +1104,7 @@ export default function DesignDetail() {
                 <Typography variant="subtitle1" fontWeight="bold">
                   Đặc điểm
                 </Typography>
-                {/* <List dense>{renderFeatures(designDetail.feature)}</List> */}
+                <List dense>{renderFeatures(designDetail.feature)}</List>
 
                 <Typography
                   variant="subtitle1"
@@ -1017,7 +1114,7 @@ export default function DesignDetail() {
                   Hướng Dẫn Bảo Quản
                 </Typography>
                 <Typography variant="body2">
-                  {/* {designDetail.careInstructions} */}
+                  {designDetail.careInstruction}
                 </Typography>
               </Grid>
             </Box>
@@ -1074,7 +1171,7 @@ export default function DesignDetail() {
                       Tiết kiệm nước
                     </Typography>
                     <Typography variant="h5" fontWeight="bold" color="primary">
-                      {waterUsed} L
+                      {designDetail.waterUsage} L
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Thấp hơn so với quy trình sản xuất thông thường
@@ -1101,7 +1198,7 @@ export default function DesignDetail() {
                       fontWeight="bold"
                       color="success.main"
                     >
-                      {carbonFootprint} Kg
+                      {designDetail.carbonFootprint} Kg
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Thấp hơn so với phương pháp sản xuất thông thường.
@@ -1123,12 +1220,8 @@ export default function DesignDetail() {
                     <Typography variant="subtitle1" fontWeight="bold">
                       Rác Thải Chuyển Hướng
                     </Typography>
-                    <Typography
-                      variant="h5"
-                      fontWeight="bold"
-                      color="success.main"
-                    >
-                      {wasteDiverted} %
+                    <Typography variant="h5" fontWeight="bold" color="warning">
+                      {designDetail.wasteDiverted} %
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Rác thải dệt may đã tránh được khỏi bãi rác
@@ -1192,7 +1285,7 @@ export default function DesignDetail() {
                               sx={{ whiteSpace: "pre-line" }}
                               component="div"
                             >
-                              {mat.materialDescription}
+                              {mat.description}
                             </Typography>
                           </TableCell>
                           <TableCell>
@@ -1201,20 +1294,9 @@ export default function DesignDetail() {
                               sx={{ fontWeight: "bold" }}
                               component="div"
                             >
-                              {mat.certificationDetails}
+                              {mat.certificates}
                             </Typography>
                           </TableCell>
-                          {/* <TableCell>
-                            <img
-                              src={GRS}
-                              alt="Material Certificate"
-                              style={{
-                                height: "100px",
-                                width: "90px",
-                                background: "white",
-                              }}
-                            />
-                          </TableCell> */}
                         </TableRow>
                       ))}
                     </TableBody>

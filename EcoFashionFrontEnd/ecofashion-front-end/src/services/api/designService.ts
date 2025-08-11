@@ -42,7 +42,7 @@ export interface Material {
   materialName: string;
   materialTypeName: string;
   sustainabilityCriteria: SustainabilityCriterion[];
-  materialDescription: string;
+  description: string;
   sustainabilityScore: number;
   carbonFootprint: number;
   carbonFootprintUnit: string;
@@ -50,7 +50,7 @@ export interface Material {
   waterUsageUnit: string;
   wasteDiverted: number;
   wasteDivertedUnit: string;
-  certificationDetails: string;
+  certificates: string;
   supplierName: string;
   pricePerUnit: number;
   createdAt: string;
@@ -119,6 +119,7 @@ export interface Designer {
   rating: number | null;
   reviewCount: number | null;
   certificates: string; // or string[] if you parse JSON
+  createAt: string;
 }
 
 export interface DesignType {
@@ -147,6 +148,17 @@ export interface Design {
   materials: Material[];
   productCount: number;
   designer: Designer;
+  createAt: string;
+}
+
+export interface Products {
+  productId: number;
+  sku: string;
+  price: number;
+  colorCode: string;
+  sizeId: number;
+  quantityAvailable: number;
+  sizeName: string;
 }
 
 export interface DesignDetails {
@@ -159,6 +171,14 @@ export interface DesignDetails {
   materials: Material[];
   productCount: number;
   designer: Designer;
+  createAt: string;
+  description: string;
+  feature: Feature;
+  careInstruction: string;
+  carbonFootprint: number;
+  waterUsage: number;
+  wasteDiverted: number;
+  products: Products[];
 }
 
 export interface DesignResponse {

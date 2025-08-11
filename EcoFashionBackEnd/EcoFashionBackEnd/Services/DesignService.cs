@@ -119,6 +119,7 @@ namespace EcoFashionBackEnd.Services
                     CarbonFootprint = d.CarbonFootprint,
                     WaterUsage = d.WaterUsage,
                     WasteDiverted = d.WasteDiverted,
+                    CareInstruction = d.CareInstruction,
                     Feature = d.DesignFeatures == null ? null : new DesignFeatureDto
                     {
                         ReduceWaste = d.DesignFeatures.ReduceWaste,
@@ -133,13 +134,21 @@ namespace EcoFashionBackEnd.Services
                         Price = p.Price,
                         ColorCode = p.ColorCode,
                         SizeId = p.SizeId,
+                        SizeName = p.Size.SizeName,
                         QuantityAvailable = p.Inventories
                             .Where(pi => pi.WarehouseId == productWarehouseId)
                             .Select(pi => pi.QuantityAvailable)
                             .FirstOrDefault()
                     }).ToList(),
                     DesignImages = d.DesignImages.Select(di => di.Image.ImageUrl).ToList(),
-                    Materials = d.DesignsMaterials.Select(dm => dm.Materials.Name).ToList(),
+                    Materials = d.DesignsMaterials.Select(dm => new MaterialDto
+                    {
+                        MaterialId = dm.MaterialId,
+                        MaterialName = dm.Materials.Name,
+                        MeterUsed = dm.MeterUsed,
+                        Certificates = dm.Materials.CertificationDetails,
+                        Description = dm.Materials.Description
+                    }).ToList(),
                     Designer = new DesignerPublicDto
                     {
                         DesignerId = d.DesignerProfile.DesignerId,
@@ -149,7 +158,8 @@ namespace EcoFashionBackEnd.Services
                         SpecializationUrl = d.DesignerProfile.SpecializationUrl,
                         PortfolioUrl = d.DesignerProfile.PortfolioUrl,
                         BannerUrl = d.DesignerProfile.BannerUrl,
-                        Certificates = d.DesignerProfile.Certificates
+                        Certificates = d.DesignerProfile.Certificates,
+                        CreateAt = d.DesignerProfile.CreatedAt
                     }
                 })
                 .FirstOrDefaultAsync();

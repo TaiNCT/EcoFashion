@@ -316,6 +316,7 @@ export default function Homepage() {
                   Nhà Cung Cấp
                 </Typography>
               </Button>
+
               <Button
                 variant="outlined"
                 sx={{
@@ -326,7 +327,7 @@ export default function Homepage() {
                   textAlign: "center",
                   justifyContent: "center",
                 }}
-                href="/register"
+                href="/signup"
               >
                 <Box
                   sx={{
@@ -491,12 +492,12 @@ export default function Homepage() {
           sx={{ height: "2px", backgroundColor: "black", opacity: "20%" }}
         />
         {/* Bán Chạy Nhất */}
-        <FashionsSection
+        {/* <FashionsSection
           products={designs}
           title="BÁN CHẠY NHẤT"
           type="special"
           onViewMore={() => "/fashion"}
-        />
+        /> */}
         <Divider
           sx={{ height: "2px", backgroundColor: "black", opacity: "20%" }}
         />
@@ -574,7 +575,7 @@ export default function Homepage() {
               bgcolor: "#00a651",
               "&:hover": { bgcolor: "#008b45" },
             }}
-            onClick={() => navigate("/explore")}
+            onClick={() => navigate("/businessinfor")}
           >
             Tìm hiểu thêm ➞
           </Button>
@@ -622,19 +623,22 @@ export default function Homepage() {
             justifyContent="center"
             flexWrap="wrap"
           >
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "white",
-                color: "rgba(52, 168, 83, 1)",
-                "&:hover": {
-                  backgroundColor: "#f0f0f0",
-                },
-                fontWeight: "bold",
-              }}
-            >
-              Đăng Ký
-            </Button>
+            {!user && (
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: "white",
+                  color: "rgba(52, 168, 83, 1)",
+                  "&:hover": {
+                    backgroundColor: "#f0f0f0",
+                  },
+                  fontWeight: "bold",
+                }}
+                onClick={() => navigate("/signup")}
+              >
+                Đăng Ký
+              </Button>
+            )}
             <Button
               variant="outlined"
               sx={{
