@@ -170,31 +170,7 @@ const MaterialsSection: React.FC<MaterialsSectionProps> = ({
         </Box>
       </Box>
       
-      {/* Sustainability Stats */}
-      {materials.length > 0 && (
-        <Box sx={{ mb: 3, display: "flex", justifyContent: "center", gap: 2 }}>
-          <Chip
-            label={`${materials.filter(m => (m.sustainabilityScore || 0) >= 80).length} Xuất sắc`}
-            color="success"
-            size="small"
-          />
-          <Chip
-            label={`${materials.filter(m => (m.sustainabilityScore || 0) >= 60 && (m.sustainabilityScore || 0) < 80).length} Tốt`}
-            color="warning"
-            size="small"
-          />
-          <Chip
-            label={`${materials.filter(m => (m.sustainabilityScore || 0) >= 40 && (m.sustainabilityScore || 0) < 60).length} Trung bình`}
-            color="info"
-            size="small"
-          />
-          <Chip
-            label={`${materials.filter(m => (m.sustainabilityScore || 0) < 40).length} Cần cải thiện`}
-            color="error"
-            size="small"
-          />
-        </Box>
-      )}
+      {/* Sustainability Stats removed as requested */}
       
       <Box sx={{ width: "100%", gap: 2 }}>
         <Grid container spacing={2}>

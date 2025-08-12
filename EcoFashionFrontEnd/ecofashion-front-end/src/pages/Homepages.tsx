@@ -668,8 +668,6 @@ export default function Homepage() {
           </Stack>
         </Container>
       </Box>
-      {error && <div className="explore-error">{error}</div>}
-      {loading && <div className="explore-loading">Đang tải...</div>}
     </Box>
   );
 }

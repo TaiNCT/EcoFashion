@@ -1,4 +1,4 @@
-import apiClient, { handleApiResponse } from './baseApi';
+import apiClient, { handleApiResponse, handleApiError } from './baseApi';
 import {
   materialDetailDtoSchema,
   materialDetailResponseSchema,
@@ -12,6 +12,7 @@ import {
   type MaterialCreationFormRequest,
   type MaterialTypeModel,
   type MaterialSustainabilityReport,
+  type MaterialTypeBenchmarkModel,
   materialCreationResponseSchema,
   type MaterialCreationResponse,
 } from '../../schemas/materialSchema';
@@ -56,6 +57,14 @@ class MaterialService {
     return this.getAllMaterialsWithSustainability();
   }
 
+  // Admin: get all materials regardless of approval/availability
+  async getAllMaterialsAdmin(): Promise<MaterialDetailDto[]> {
+    const response = await apiClient.get<any>(`/Material/admin/all`);
+    const result = handleApiResponse<MaterialDetailDto[] | { success: boolean; result: MaterialDetailDto[] }>(response);
+    const data = Array.isArray(result) ? result : (result as any).result;
+    return data.map((item) => materialDetailDtoSchema.parse(item));
+  }
+
   // Get material detail by ID
   async getMaterialDetail(id: number): Promise<MaterialDetailResponse> {
     const response = await apiClient.get<any>(`${this.API_BASE}/${id}`);
@@ -72,10 +81,14 @@ class MaterialService {
 
   // Create new material with sustainability (returns creation response)
   async createMaterialWithSustainability(request: MaterialCreationFormRequest): Promise<MaterialCreationResponse> {
-    const validatedRequest = materialCreationFormRequestSchema.parse(request);
-    const response = await apiClient.post<any>(`${this.API_BASE}/CreateWithSustainability`, validatedRequest);
-    const result = handleApiResponse<MaterialCreationResponse>(response);
-    return materialCreationResponseSchema.parse(result);
+    try {
+      const validatedRequest = materialCreationFormRequestSchema.parse(request);
+      const response = await apiClient.post<any>(`${this.API_BASE}/CreateWithSustainability`, validatedRequest);
+      const result = handleApiResponse<MaterialCreationResponse>(response);
+      return materialCreationResponseSchema.parse(result);
+    } catch (error) {
+      handleApiError(error as any);
+    }
   }
 
   // Upload images for a material (multipart form)
@@ -89,16 +102,21 @@ class MaterialService {
   }
 
   // Admin: approve material
-  async approveMaterial(materialId: number): Promise<boolean> {
-    const response = await apiClient.post<any>(`${this.API_BASE}/${materialId}/approve`, {});
+  async approveMaterial(materialId: number, adminNote?: string): Promise<boolean> {
+    const body = JSON.stringify(adminNote ?? null);
+    const response = await apiClient.post<any>(`${this.API_BASE}/${materialId}/approve`, body, {
+      headers: { 'Content-Type': 'application/json' },
+    });
     const result = handleApiResponse<boolean>(response);
     return !!result;
   }
 
   // Admin: reject material with optional admin note
   async rejectMaterial(materialId: number, adminNote?: string): Promise<boolean> {
-    const body = adminNote ?? null;
-    const response = await apiClient.post<any>(`${this.API_BASE}/${materialId}/reject`, body);
+    const body = JSON.stringify(adminNote ?? null);
+    const response = await apiClient.post<any>(`${this.API_BASE}/${materialId}/reject`, body, {
+      headers: { 'Content-Type': 'application/json' },
+    });
     const result = handleApiResponse<boolean>(response);
     return !!result;
   }
@@ -121,6 +139,15 @@ class MaterialService {
     const response = await apiClient.get<any>(`${this.API_BASE}/GetAllMaterialTypes`);
     const result = handleApiResponse<MaterialTypeModel[]>(response);
     return result.map((item) => materialTypeModelSchema.parse(item));
+  }
+
+  // Admin: get benchmarks for a material type (requires admin auth)
+  async getBenchmarksByMaterialType(typeId: number): Promise<MaterialTypeBenchmarkModel[]> {
+    const response = await apiClient.get<any>(`/MaterialTypes/${typeId}/benchmarks`);
+    const api = handleApiResponse<{ success: boolean; result: MaterialTypeBenchmarkModel[] } | MaterialTypeBenchmarkModel[]>(response);
+    // Support both ApiResult-wrapped and plain array (just in case)
+    const data = Array.isArray(api) ? api : (api as any).result;
+    return data as MaterialTypeBenchmarkModel[];
   }
 
   // Get transport evaluation from backend

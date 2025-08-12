@@ -8,10 +8,14 @@ export interface CartItem {
   quantity: number;
   unit: string; // Đơn vị: "mét", "cái", "kg", etc.
   type: string; // Loại sản phẩm: "material", "product", "design", etc.
+  sellerId: string; // Nhà cung cấp/nhà thiết kế
+  sellerName?: string;
 }
 
 interface CartState {
   items: CartItem[];
+  // Nhóm theo seller để hiển thị/checkout từng đơn
+  getItemsGroupedBySeller: () => Record<string, CartItem[]>;
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
@@ -23,6 +27,14 @@ interface CartState {
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
+  getItemsGroupedBySeller: () => {
+    const groups: Record<string, CartItem[]> = {};
+    get().items.forEach((item) => {
+      if (!groups[item.sellerId]) groups[item.sellerId] = [];
+      groups[item.sellerId].push(item);
+    });
+    return groups;
+  },
   addToCart: (item) => set((state) => {
     const existing = state.items.find((i) => i.id === item.id);
     if (existing) {

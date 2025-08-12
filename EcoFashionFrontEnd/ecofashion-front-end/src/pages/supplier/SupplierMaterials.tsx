@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BoxIcon, ListIcon, PieChartIcon, PlusIcon } from '../../assets/icons/index.tsx';
+import { formatViDateTime, parseApiDate } from '../../utils/date';
+import MaterialDetailModal from '../../components/admin/MaterialDetailModal';
 import { useSupplierMaterials } from '../../hooks/useSupplierMaterials';
 import { useAuthStore } from '../../store/authStore';
 
@@ -74,14 +76,22 @@ const SupplierMaterials: React.FC = () => {
   ];
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+    // Chuẩn hóa thời gian về VN để tránh lệch múi giờ, sau đó tính relative
+    const d = parseApiDate(dateString);
+    const vn = new Date(
+      d.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' })
+    );
+    const now = new Date(
+      new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' })
+    );
+    const diffMs = now.getTime() - vn.getTime();
+    const diffInHours = Math.floor(diffMs / (1000 * 60 * 60));
     if (diffInHours < 1) return 'Vừa xong';
     if (diffInHours < 24) return `${diffInHours} giờ trước`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)} ngày trước`;
-    return `${Math.floor(diffInHours / 168)} tuần trước`;
+    const days = Math.floor(diffInHours / 24);
+    if (days < 7) return `${days} ngày trước`;
+    const weeks = Math.floor(days / 7);
+    return `${weeks} tuần trước`;
   };
 
   const formatPrice = (price: number) => {
@@ -91,6 +101,9 @@ const SupplierMaterials: React.FC = () => {
   const formatQuantity = (quantity: number) => {
     return `${quantity}m`;
   };
+
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailId, setDetailId] = useState<number | null>(null);
 
   if (isLoading) {
     return (
@@ -138,6 +151,7 @@ const SupplierMaterials: React.FC = () => {
   }
 
   return (
+    <>
     <div className="dashboard-main">
       <div className="dashboard-container">
         <div className="dashboard-content">
@@ -298,30 +312,14 @@ const SupplierMaterials: React.FC = () => {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
-                            <Link
-                              to={`/material/${material.materialId}`}
+                            <button
+                              onClick={() => { setDetailId(material.materialId); setDetailOpen(true); }}
                               className="p-1 text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400"
                               title="Xem chi tiết"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                            </Link>
-                            <button 
-                              className="p-1 text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400"
-                              title="Chỉnh sửa"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
-                            <button 
-                              className="p-1 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
-                              title="Xóa"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                             </button>
                           </div>
@@ -336,6 +334,8 @@ const SupplierMaterials: React.FC = () => {
         </div>
       </div>
     </div>
+    <MaterialDetailModal open={detailOpen} materialId={detailId} onClose={() => setDetailOpen(false)} />
+    </>
   );
 };
 
