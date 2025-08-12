@@ -3,6 +3,24 @@ import { z } from "zod";
 // Helper function để tạo nullable string schema
 const nullableString = () => z.string().nullable().optional();
 
+// Helper: chuyển các giá trị rỗng/NaN thành undefined cho số optional
+const optionalNonNegativeNumber = () =>
+  z.preprocess((val) => {
+    if (val === '' || val === null || typeof val === 'undefined') return undefined;
+    if (typeof val === 'string' && val.trim() === '') return undefined;
+    if (typeof val === 'number' && Number.isNaN(val)) return undefined;
+    return val;
+  }, z.number().min(0, { message: 'Giá trị phải >= 0' }));
+
+// Helper: phần trăm 0-100 (optional)
+const optionalPercentNumber = () =>
+  z.preprocess((val) => {
+    if (val === '' || val === null || typeof val === 'undefined') return undefined;
+    if (typeof val === 'string' && val.trim() === '') return undefined;
+    if (typeof val === 'number' && Number.isNaN(val)) return undefined;
+    return val;
+  }, z.number().min(0, { message: 'Tối thiểu 0%' }).max(100, { message: 'Tối đa 100%' }));
+
 // Schema cho Sustainability Criterion (theo MaterialSustainabilityCriterionDto)
 export const sustainabilityCriterionSchema = z.object({
   criterionId: z.union([z.number(), z.string()]).transform((val) => typeof val === 'string' ? parseInt(val) : val),
@@ -45,6 +63,8 @@ export const materialTypeBenchmarkSchema = z.object({
   improvementStatus: nullableString(), // Trạng thái: "Tốt hơn", "Kém hơn", "Bằng"
   improvementColor: nullableString(), // Màu sắc: "success", "error", "warning"
 });
+
+export type MaterialTypeBenchmarkModel = z.infer<typeof materialTypeBenchmarkSchema>;
 
 // Schema cho Supplier Public Info (theo SupplierPublicModel từ backend)
 export const supplierPublicSchema = z.object({
@@ -197,23 +217,23 @@ export const materialModelSchema = z.object({
 // Schema cho Material Creation Form Request (theo MaterialCreationFormRequest từ backend)
 export const materialCreationFormRequestSchema = z.object({
   // Backend expects: SupplierId (Guid), TypeId (int)
-  supplierId: z.string(),
-  typeId: z.number(),
+  supplierId: z.string().uuid({ message: 'Supplier không hợp lệ' }),
+  typeId: z.number().int({ message: 'Loại vật liệu không hợp lệ' }).min(1, { message: 'Vui lòng chọn loại vật liệu' }),
 
-  name: z.string(),
+  name: z.string().trim().min(2, { message: 'Tên vật liệu quá ngắn' }),
   description: nullableString(),
-  recycledPercentage: z.number(),
-  quantityAvailable: z.number(),
-  pricePerUnit: z.number(),
-  documentationUrl: nullableString(),
+  recycledPercentage: z.number().min(0, { message: 'Tối thiểu 0%' }).max(100, { message: 'Tối đa 100%' }),
+  quantityAvailable: z.number().min(1, { message: 'Số lượng phải >= 1' }),
+  pricePerUnit: z.number().min(0, { message: 'Giá phải >= 0' }),
+  documentationUrl: z.union([z.string().url({ message: 'URL không hợp lệ' }), z.literal('')]).optional(),
 
   // Sustainability numeric fields (optional)
-  carbonFootprint: z.number().optional(),
-  waterUsage: z.number().optional(),
-  wasteDiverted: z.number().optional(),
+  carbonFootprint: optionalNonNegativeNumber(),
+  waterUsage: optionalNonNegativeNumber(),
+  wasteDiverted: optionalPercentNumber(),
 
   // Production info
-  productionCountry: nullableString(),
+  productionCountry: z.string().trim().min(1, { message: 'Vui lòng chọn quốc gia sản xuất' }),
   productionRegion: nullableString(),
   manufacturingProcess: nullableString(),
 

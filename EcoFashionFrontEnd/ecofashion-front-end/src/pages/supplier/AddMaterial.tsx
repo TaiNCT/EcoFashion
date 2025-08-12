@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState, useEffect } from 'react';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { materialCreationFormRequestSchema, MaterialCreationFormRequest } from '../../schemas/materialSchema';
 import { useAuthStore } from '../../store/authStore';
@@ -9,6 +9,7 @@ import { useTransportDetails } from '../../hooks/useTransportDetails';
 import { useCreateMaterial } from '../../hooks/useCreateMaterial';
 import { useUploadMaterialImages } from '../../hooks/useUploadMaterialImages';
 import { PlusIcon, UploadIcon, SaveIcon, CancelIcon } from '../../assets/icons/index.tsx';
+import { ApiError } from '../../services/api/baseApi';
 
 // Toast notification component
 const Toast: React.FC<{ message: string; type: 'success' | 'error' | 'info'; onClose: () => void }> = ({ message, type, onClose }) => {
@@ -47,11 +48,13 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error' | 'info'; onC
 
 const AddMaterial: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toasts, setToasts] = useState<Array<{ id: string; message: string; type: 'success' | 'error' | 'info' }>>([]);
   const [isLocked, setIsLocked] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const supplierId = useAuthStore((s) => s.supplierProfile?.supplierId);
+  const loadUserProfile = useAuthStore((s) => s.loadUserProfile);
   
   // React Query hooks for data fetching
   const { data: materialTypes = [], isLoading: isLoadingTypes, error: typesError } = useMaterialTypes();
@@ -71,8 +74,9 @@ const AddMaterial: React.FC = () => {
     reset,
     watch,
     setValue,
+    setError,
   } = useForm<MaterialCreationFormRequest>({
-    resolver: zodResolver(materialCreationFormRequestSchema),
+    resolver: zodResolver(materialCreationFormRequestSchema) as any,
     defaultValues: {
       supplierId: supplierId ?? '',
       typeId: 0,
@@ -99,6 +103,20 @@ const AddMaterial: React.FC = () => {
   // Watch productionCountry to preview transport details
   const productionCountry = watch('productionCountry');
   const { data: transportPreview, isLoading: isLoadingTransport } = useTransportDetails(productionCountry || null);
+
+  // Ensure supplierId is synced into form for schema validation (uuid required)
+  useEffect(() => {
+    if (supplierId) {
+      setValue('supplierId', supplierId);
+    }
+  }, [supplierId, setValue]);
+
+  // Load supplier profile if missing (to obtain SupplierId GUID)
+  useEffect(() => {
+    if (!supplierId) {
+      try { loadUserProfile(); } catch {}
+    }
+  }, [supplierId, loadUserProfile]);
 
   // Add toast function
   const addToast = (message: string, type: 'success' | 'error' | 'info') => {
@@ -135,8 +153,9 @@ const AddMaterial: React.FC = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const onSubmit = async (data: MaterialCreationFormRequest) => {
+  const onSubmit: SubmitHandler<MaterialCreationFormRequest> = async (data) => {
     if (isSubmitting) return; // Prevent spam
+    // Backend will override SupplierId from claims; allow submit even if supplierId chưa load
     
     setIsSubmitting(true);
     
@@ -201,7 +220,18 @@ const AddMaterial: React.FC = () => {
       
     } catch (error) {
       console.error('Error creating material:', error);
-      addToast('Lỗi tạo vật liệu. Vui lòng thử lại.', 'error');
+      if (error instanceof ApiError) {
+        const message = error.message || 'Lỗi tạo vật liệu.';
+        // Bắt lỗi trùng tên từ backend và hiển thị ngay tại field Name
+        if (message.toLowerCase().includes('cùng tên')) {
+          setError('name', { type: 'server', message });
+          addToast(message, 'error');
+        } else {
+          addToast(message, 'error');
+        }
+      } else {
+        addToast('Lỗi tạo vật liệu. Vui lòng thử lại.', 'error');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -209,12 +239,46 @@ const AddMaterial: React.FC = () => {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    setUploadedFiles(prev => [...prev, ...files]);
+
+    // Filter only image files
+    const imageFiles = files.filter((f) => f.type.startsWith('image/'));
+    const nonImageCount = files.length - imageFiles.length;
+    if (nonImageCount > 0) {
+      addToast(`${nonImageCount} tệp không phải hình ảnh đã bị bỏ qua.`, 'info');
+    }
+
+    setUploadedFiles((prev) => {
+      if (prev.length >= 3) {
+        addToast('Bạn chỉ có thể tải tối đa 3 ảnh.', 'error');
+        return prev;
+      }
+
+      const remainingSlots = 3 - prev.length;
+      const filesToAdd = imageFiles.slice(0, remainingSlots);
+
+      if (imageFiles.length > remainingSlots) {
+        addToast(`Chỉ có thể thêm ${remainingSlots} ảnh nữa (tối đa 3).`, 'error');
+      }
+
+      return [...prev, ...filesToAdd];
+    });
+
+    // Reset input value to allow re-selecting the same file if needed
+    event.currentTarget.value = '';
   };
 
   const removeFile = (index: number) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
+
+  // Generate and cleanup preview URLs when uploadedFiles changes
+  useEffect(() => {
+    const urls = uploadedFiles.map((file) => URL.createObjectURL(file));
+    setImagePreviews(urls);
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [uploadedFiles]);
 
   return (
     <>
@@ -312,6 +376,8 @@ const AddMaterial: React.FC = () => {
             {/* Form */}
             {!isLoadingData && !hasError && (
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                {/* hidden supplierId field for validation binding */}
+                <input type="hidden" {...register('supplierId')} />
                 {/* Basic Information */}
                 <div className="dashboard-card">
                   <div className="card-header">
@@ -666,45 +732,51 @@ const AddMaterial: React.FC = () => {
                       <input
                         type="file"
                         multiple
-                        accept="image/*,.pdf,.doc,.docx"
+                        accept="image/*"
                         onChange={handleFileUpload}
                         className="hidden"
                         id="file-upload"
+                        disabled={uploadedFiles.length >= 3}
                       />
                       <label
                         htmlFor="file-upload"
-                        className="btn-secondary cursor-pointer inline-flex items-center gap-2"
+                        className={`btn-secondary cursor-pointer inline-flex items-center gap-2 ${uploadedFiles.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={(e) => {
+                          if (uploadedFiles.length >= 3) {
+                            e.preventDefault();
+                            addToast('Đã đạt giới hạn 3 ảnh.', 'info');
+                          }
+                        }}
                       >
                         <PlusIcon className="w-4 h-4" />
-                        Chọn Hình Ảnh
+                        {uploadedFiles.length >= 3 ? 'Đã đạt tối đa (3 ảnh)' : 'Chọn Hình Ảnh'}
                       </label>
                     </div>
 
-                    {/* Uploaded Files List */}
-                    {uploadedFiles.length > 0 && (
+                    {/* Uploaded Images Preview Grid */}
+                    {imagePreviews.length > 0 && (
                       <div className="mt-6">
-                        <h5 className="font-medium text-gray-800 mb-3">Tệp Đã Tải Lên:</h5>
-                        <div className="space-y-2">
-                          {uploadedFiles.map((file, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-brand-100 rounded flex items-center justify-center">
-                                  <UploadIcon className="w-4 h-4 text-brand-600" />
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-800">{file.name}</p>
-                                  <p className="text-sm text-gray-500">
-                                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                                  </p>
-                                </div>
-                              </div>
+                        <div className="flex items-center justify-between mb-3">
+                          <h5 className="font-medium text-gray-800">Xem trước hình ảnh</h5>
+                          <span className="text-sm text-gray-600">{uploadedFiles.length}/3 ảnh</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                          {imagePreviews.map((url, index) => (
+                            <div key={index} className="relative group">
+                              <img src={url} alt={`preview-${index}`} className="w-full h-32 object-cover rounded-lg border border-gray-200" />
                               <button
                                 type="button"
                                 onClick={() => removeFile(index)}
-                                className="text-red-500 hover:text-red-700"
+                                className="absolute top-2 right-2 bg-white/90 hover:bg-white text-red-600 border border-red-200 rounded-full p-1 shadow transition"
+                                aria-label="Xoá ảnh"
                               >
                                 <CancelIcon className="w-4 h-4" />
                               </button>
+                              {uploadedFiles[index]?.size !== undefined && (
+                                <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded">
+                                  {(uploadedFiles[index]!.size / 1024 / 1024).toFixed(2)} MB
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>

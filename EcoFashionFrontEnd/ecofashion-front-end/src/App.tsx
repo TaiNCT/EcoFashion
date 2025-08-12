@@ -23,6 +23,7 @@ import SupplierDetailedProfile from "./pages/supplier/SupplierDetailedProfile";
 import SupplierDashboard from "./pages/supplier/SupplierDashboard";
 import SupplierDashboardHome from "./pages/supplier/SupplierDashboardHome";
 import SupplierMaterials from "./pages/supplier/SupplierMaterials";
+import SupplierInventory from "./pages/supplier/SupplierInventory";
 import MaterialDetailPage from "./pages/material/MaterialDetailPage";
 import AddMaterial from "./pages/supplier/AddMaterial";
 import CustomerProfile from "./pages/customer/CustomerProfile";
@@ -39,9 +40,15 @@ import AddDesign from "./pages/design/AddDesign";
 import DashboardHome from "./pages/admin/DashboardHome";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ApplicationManagement from "./pages/admin/ApplicationManagement";
+import MaterialsAll from "./pages/admin/MaterialsAll";
+import MaterialsPending from "./pages/admin/MaterialsPending";
+import MaterialsApproved from "./pages/admin/MaterialsApproved";
+import MaterialTypesAll from "./pages/admin/MaterialTypesAll";
+import InventoryReport from "./pages/admin/InventoryReport";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastContainer } from "react-toastify";
 import BusinessInfor from "./pages/BusinessInfor";
+import Cart from "./pages/shop/cart";
 
 function App() {
   const location = useLocation();
@@ -72,6 +79,7 @@ function App() {
         <Route path="/" element={<Homepages />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
@@ -205,6 +213,7 @@ function App() {
           <Route index element={<SupplierDashboardHome />} />
           <Route path="materials" element={<SupplierMaterials />} />
           <Route path="materials/add" element={<AddMaterial />} />
+          <Route path="materials/inventory" element={<SupplierInventory />} />
         </Route>
 
         {/* ===== EXPLORE ROUTES ===== */}
@@ -230,6 +239,11 @@ function App() {
         >
           <Route index element={<DashboardHome />} />
           <Route path="applications" element={<ApplicationManagement />} />
+          <Route path="material-types" element={<MaterialTypesAll />} />
+          <Route path="materials" element={<MaterialsAll />} />
+          <Route path="materials/pending" element={<MaterialsPending />} />
+          <Route path="materials/approved" element={<MaterialsApproved />} />
+          <Route path="analytics/inventory" element={<InventoryReport />} />
         </Route>
 
         {/* Allow direct access to /admin/applications for admin */}

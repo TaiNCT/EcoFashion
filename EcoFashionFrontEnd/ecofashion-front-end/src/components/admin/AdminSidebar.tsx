@@ -14,6 +14,7 @@ import {
   HorizontaLDots,
   PlusIcon
 } from '../../assets/icons/index.tsx'; // Updated import path and icons
+import logo2 from '../../assets/pictures/homepage/logo2.png';
 
 type NavItem = {
   name: string;
@@ -56,8 +57,10 @@ const navItems: NavItem[] = [
     icon: <BoxCubeIcon className="w-6 h-6" />,
     name: "Vật Liệu",
     subItems: [
+      { name: "Tất Cả Loại Vật Liệu", path: "/admin/dashboard/material-types", pro: false },
       { name: "Tất Cả Vật Liệu", path: "/admin/dashboard/materials", pro: false },
-      { name: "Thêm Vật Liệu", path: "/admin/dashboard/materials/add", pro: false, new: true },
+      { name: "Chờ Phê Duyệt", path: "/admin/dashboard/materials/pending", pro: false },
+      { name: "Đã Phê Duyệt", path: "/admin/dashboard/materials/approved", pro: false },
     ],
   },
 ];
@@ -68,8 +71,7 @@ const otherItems: NavItem[] = [
     name: "Phân Tích",
     subItems: [
       { name: "Báo Cáo Bán Hàng", path: "/admin/dashboard/analytics/sales", pro: false },
-      { name: "Phân Tích Người Dùng", path: "/admin/dashboard/analytics/users", pro: false },
-      { name: "Phân Tích Thiết Kế", path: "/admin/dashboard/analytics/designs", pro: false },
+      { name: "Báo Cáo Kho Hàng", path: "/admin/dashboard/analytics/inventory", pro: false },
     ],
   },
   {
@@ -155,7 +157,7 @@ const AdminSidebar: React.FC = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-theme-sm cursor-pointer ${
+              className={`relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-theme-sm cursor-pointer min-w-0 ${
                 openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active"
                   : "menu-item-inactive"
@@ -175,10 +177,10 @@ const AdminSidebar: React.FC = () => {
                 {nav.icon}
               </span>
               {(isExpanded || isHovered || isMobileOpen) && (
-                <span className="text-sm font-medium">{nav.name}</span>
+                <span className="text-sm font-medium truncate">{nav.name}</span>
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
-                <span className={`menu-item-arrow ${
+                <span className={`menu-item-arrow flex-shrink-0 ${
                   openSubmenu?.type === menuType &&
                   openSubmenu?.index === index
                     ? "menu-item-arrow-active"
@@ -192,7 +194,7 @@ const AdminSidebar: React.FC = () => {
             nav.path && (
               <Link
                 to={nav.path}
-                className={`menu-item ${
+                className={`menu-item min-w-0 ${
                   isActive(nav.path) 
                     ? "menu-item-active" 
                     : "menu-item-inactive"
@@ -208,7 +210,7 @@ const AdminSidebar: React.FC = () => {
                   {nav.icon}
                 </span>
                 {(isExpanded || isHovered || isMobileOpen) && (
-                  <span className="text-sm font-medium">{nav.name}</span>
+                  <span className="text-sm font-medium truncate">{nav.name}</span>
                 )}
               </Link>
             )
@@ -293,22 +295,22 @@ const AdminSidebar: React.FC = () => {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-        }`}
-      >
-        <Link to="/admin/dashboard">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <div className="text-xl font-bold text-brand-600 dark:text-brand-400">
-              EcoFashion Admin
-            </div>
-          ) : (
-            <div className="text-2xl font-bold text-brand-600 dark:text-brand-400">
-              EF
-            </div>
+      <div className="flex h-16 items-center justify-between px-0 border-b border-gray-200 dark:border-gray-800">
+        <Link to="/admin/dashboard" className="flex items-center gap-3">
+          <div className="flex-shrink-0">
+            <img src={logo2} alt="EcoFashion" className="h-8 w-auto" />
+          </div>
+          {(isExpanded || isHovered || isMobileOpen) && (
+            <span className="text-lg font-semibold text-gray-900 dark:text-white">
+              EcoFashion
+            </span>
           )}
         </Link>
+        {(isExpanded || isHovered || isMobileOpen) && (
+          <button className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <HorizontaLDots />
+          </button>
+        )}
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear">
         <nav className="mb-6">

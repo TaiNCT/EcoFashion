@@ -35,7 +35,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Tất Cả Vật Liệu", path: "/supplier/dashboard/materials", pro: false },
       { name: "Thêm Vật Liệu", path: "/supplier/dashboard/materials/add", pro: false, new: true },
-      { name: "Danh Mục", path: "/supplier/dashboard/materials/categories", pro: false },
+      { name: "Quản Lý Kho", path: "/supplier/dashboard/materials/inventory", pro: false },
     ],
   },
   {
@@ -45,15 +45,6 @@ const navItems: NavItem[] = [
       { name: "Tất Cả Đơn Hàng", path: "/supplier/dashboard/orders", pro: false },
       { name: "Đơn Hàng Chờ", path: "/supplier/dashboard/orders/pending", pro: false },
       { name: "Đơn Hàng Hoàn Thành", path: "/supplier/dashboard/orders/completed", pro: false },
-    ],
-  },
-  {
-    icon: <BoxIcon />,
-    name: "Kho Hàng",
-    subItems: [
-      { name: "Quản Lý Kho", path: "/supplier/dashboard/inventory", pro: false },
-      { name: "Cảnh Báo Hết Hàng", path: "/supplier/dashboard/inventory/alerts", pro: false },
-      { name: "Báo Cáo Kho", path: "/supplier/dashboard/inventory/reports", pro: false },
     ],
   },
   {
