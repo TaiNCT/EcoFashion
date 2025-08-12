@@ -6,11 +6,14 @@ using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
 using System.Security.Claims;
 
 namespace EcoFashionBackEnd.Controllers;
 [Route("api/Order")]
 [ApiController]
+[Authorize]
 public class OrderController : ControllerBase
 {
     private readonly OrderService _orderService;
@@ -23,8 +26,17 @@ public class OrderController : ControllerBase
     [HttpGet("GetAll")]
     public async Task<IActionResult> GetAllOrders()
     {
-        var orders = await _orderService.GetAllOrdersAsync();
-        return Ok(ApiResult<IEnumerable<OrderModel>>.Succeed(orders));
+        // Admin xem tất cả, các role khác chỉ xem của mình
+        var isAdmin = User.IsInRole("admin");
+        if (isAdmin)
+        {
+            var orders = await _orderService.GetAllOrdersAsync();
+            return Ok(ApiResult<IEnumerable<OrderModel>>.Succeed(orders));
+        }
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+            return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
+        var myOrders = await _orderService.GetOrdersByUserIdAsync(userId);
+        return Ok(ApiResult<IEnumerable<OrderModel>>.Succeed(myOrders));
     }
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrderById(int id)
@@ -32,6 +44,15 @@ public class OrderController : ControllerBase
         var order = await _orderService.GetOrderByIdAsync(id);
         if (order == null)
             return NotFound(ApiResult<object>.Fail("Không tìm thấy Order"));
+        // Non-admin chỉ xem đơn của mình
+        var isAdmin = User.IsInRole("admin");
+        if (!isAdmin)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+                return Unauthorized(ApiResult<object>.Fail("Không thể xác định người dùng."));
+            if (order.UserId != userId)
+                return Forbid();
+        }
         return Ok(ApiResult<OrderModel>.Succeed(order));
     }
     [HttpPost("Create")]
@@ -71,4 +92,6 @@ public class OrderController : ControllerBase
 
         return Ok(statuses);
     }
+    
+
 }

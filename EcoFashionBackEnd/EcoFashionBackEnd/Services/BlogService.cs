@@ -182,5 +182,29 @@ namespace EcoFashionBackEnd.Services
             if (!isDesigner && !isSupplier)
                 throw new ArgumentException("Người dùng không có quyền tạo");
         }
+        public async Task<bool> DeleteReviewAsync(int reviewId, int userId)
+        {
+            // Tìm review theo ID
+            var review = await _dbContext.Reviews
+                .FirstOrDefaultAsync(r => r.ReviewId == reviewId);
+
+            if (review == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy đánh giá.");
+            }
+
+            // Kiểm tra quyền sở hữu
+            if (review.UserId != userId)
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền xóa đánh giá này.");
+            }
+
+            // Xóa review
+            _dbContext.Reviews.Remove(review);
+            await _dbContext.SaveChangesAsync();
+
+            return true;
+        }
+
     }
 }

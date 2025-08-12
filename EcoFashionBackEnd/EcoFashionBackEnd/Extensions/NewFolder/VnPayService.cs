@@ -5,6 +5,7 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Linq;
 
 namespace EcoFashionBackEnd.Extensions.NewFolder
 {
@@ -22,7 +23,9 @@ namespace EcoFashionBackEnd.Extensions.NewFolder
         {
             Console.WriteLine($"Creating payment URL for OrderId: {model.OrderId}, Amount: {model.Amount}");
 
-            var txnRef = $"{model.OrderId}_{DateTime.Now:yyyyMMddHHmmss}"; // ví dụ: 1_20250807101530
+            var txnRef = string.IsNullOrWhiteSpace(model.TxnRef)
+                ? $"{model.OrderId}_{DateTime.Now:yyyyMMddHHmmss}"
+                : model.TxnRef; // ưu tiên TxnRef từ service để đồng bộ DB
             var vnpay = new VnPayLibrary();
             vnpay.AddRequestData("vnp_Version", _config["VnPay:Version"]);
             vnpay.AddRequestData("vnp_Command", _config["VnPay:Command"]);
@@ -67,28 +70,47 @@ namespace EcoFashionBackEnd.Extensions.NewFolder
                 }
             }
             var txnRef = vnpay.GetResponseData("vnp_TxnRef");
-            var vnp_orderId = int.Parse(txnRef.Split('_')[0]);
-            //var vnp_orderId = Convert.ToInt64(vnpay.GetResponseData("vnp_TxnRef"));
-            var vnp_TransactionId = Convert.ToInt64(vnpay.GetResponseData("vnp_TransactionNo"));
-            var vnp_SecureHash = collections.FirstOrDefault(p => p.Key == "vnp_SecureHash").Value;
-            var vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
             var vnp_OrderInfo = vnpay.GetResponseData("vnp_OrderInfo");
+            var vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
             var vnp_BankCode = vnpay.GetResponseData("vnp_BankCode");
+            var vnp_SecureHash = collections.FirstOrDefault(p => p.Key == "vnp_SecureHash").Value;
+            var vnp_TransactionId = Convert.ToInt64(vnpay.GetResponseData("vnp_TransactionNo"));
+
+            // Try parse OrderId from TxnRef formats: ORD-{orderId}-... or {orderId}_timestamp
+            int vnp_orderId = 0;
+            var dashParts = (txnRef ?? string.Empty).Split('-');
+            if (dashParts.Length >= 3 && string.Equals(dashParts[0], "ORD", StringComparison.OrdinalIgnoreCase))
+            {
+                _ = int.TryParse(dashParts[1], out vnp_orderId);
+            }
+            if (vnp_orderId == 0)
+            {
+                var underscoreParts = (txnRef ?? string.Empty).Split('_');
+                _ = int.TryParse(underscoreParts.FirstOrDefault() ?? "0", out vnp_orderId);
+            }
+            if (vnp_orderId == 0 && !string.IsNullOrWhiteSpace(vnp_OrderInfo))
+            {
+                var digits = new string(vnp_OrderInfo.Where(char.IsDigit).ToArray());
+                _ = int.TryParse(digits, out vnp_orderId);
+            }
             bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _config["VnPay:HashSecret"]);
             if (!checkSignature)
             {
                 return new VnPaymentResponseModel
                 {
-                    Success = false
+                    Success = false,
+                    TxnRef = txnRef,
+                    OrderId = vnp_orderId.ToString()
                 };
             }
 
             return new VnPaymentResponseModel
             {
-                Success = true,
-                PaymentMethod = "VnPay",
+                Success = vnp_ResponseCode == "00",
+                PaymentMethod = vnpay.GetResponseData("vnp_CardType") ?? "VnPay",
                 OrderDescription = vnp_OrderInfo,
                 OrderId = vnp_orderId.ToString(),
+                TxnRef = txnRef,
                 TransactionId = vnp_TransactionId.ToString(),
                 Token = vnp_SecureHash,
                 BankCode = vnp_BankCode,
