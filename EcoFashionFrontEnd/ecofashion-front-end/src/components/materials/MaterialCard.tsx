@@ -231,7 +231,9 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
       price: material.pricePerUnit * 1000,
       quantity: quantity,
       unit: "mét",
-      type: "material"
+      type: "material",
+      sellerId: String(material.supplier?.supplierId ?? ""),
+      sellerName: material.supplier?.supplierName
     });
     
     // Show success message

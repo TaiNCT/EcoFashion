@@ -1,17 +1,20 @@
 import { Link } from "react-router-dom";
-
-import NavbarOne from "../../components/navbar/navbar-one";
 import { useEffect, useMemo, useState } from "react";
 import Aos from "aos";
 import { useCartStore } from "../../store/cartStore";
 import { useNavigate } from "react-router-dom";
-// Use existing homepage banner image to avoid missing asset path
+//----------------
+import ShippingModal from "../../components/checkout/ShippingModal";
+import { useState as useReactState } from 'react';
 import bg from '../../assets/img/images/grid-image/fabric.png'
 
 const formatVND = (n: number) => n.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
 
 export default function Cart() {
   const navigate = useNavigate();
+//-----------------
+  const [openShip, setOpenShip] = useReactState(false);
+  const [pendingSellerId, setPendingSellerId] = useReactState<string | null>(null);
   const items = useCartStore((s) => s.items);
   const grouped = useMemo(() => {
     const groups: Record<string, typeof items> = {} as any;
@@ -69,7 +72,7 @@ export default function Cart() {
 
         <div className="mt-8 md:mt-10 lg:mt-12 mb-16 md:mb-24">
             <div className="max-w-[1120px] mx-auto px-3 sm:px-4 space-y-4 md:space-y-6 pb-10 md:pb-14">
-                {/* Header like Shopee */}
+                {/* Header  */}
                 <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-4 bg-white border rounded-md text-gray-700 text-sm">
                   <div className="col-span-6 flex items-center gap-3">
                     <input type="checkbox" checked={allSelected} onChange={toggleAll} className="w-4 h-4" />
@@ -120,7 +123,16 @@ export default function Cart() {
                         </div>
                         <div className="px-4 py-3 bg-gray-50 border-t flex items-center justify-end gap-3">
                           <button className="px-4 py-2 rounded-md border hover:bg-gray-100 text-sm">Lưu nhóm</button>
-                          <button className="px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm">Thanh toán nhóm này</button>
+                          <button
+                            className="px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm"
+                            onClick={() => {
+                              //-------------------
+                              setPendingSellerId(sellerId);
+                              setOpenShip(true);
+                            }}
+                          >
+                            Thanh toán nhóm này
+                          </button>
                         </div>
                       </div>
                     );
@@ -145,6 +157,17 @@ export default function Cart() {
             </div>
         </div>
 
+        {/* Shipping modal */}
+        <ShippingModal
+          open={openShip}
+          onClose={() => setOpenShip(false)}
+          onSaved={() => {
+            if (pendingSellerId) {
+              const params = new URLSearchParams({ groupSellerId: pendingSellerId });
+              navigate(`/checkout?${params.toString()}`);
+            }
+          }}
+        />
 
     </>
   )

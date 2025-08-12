@@ -35,6 +35,15 @@ namespace EcoFashionBackEnd.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? PaidAt { get; set; }
+
+        // Extended fields for robust VNPay flow
+        [MaxLength(64)]
+        public string? TxnRef { get; set; }
+        public string? PayUrl { get; set; }
+        public string? Provider { get; set; } // e.g., VNPAY
+        public string? MerchantCode { get; set; }
+        public string? ReturnPayload { get; set; }
+        public string? IpnPayload { get; set; }
     }
 
 }

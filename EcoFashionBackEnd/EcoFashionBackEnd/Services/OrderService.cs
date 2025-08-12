@@ -23,15 +23,142 @@ namespace EcoFashionBackEnd.Services
             var orders = await _dbContext.Orders
                 .Include(o => o.User)
                 .ToListAsync();
-            return orders.Select(order => new OrderModel
+            return orders.Select(order =>
             {
-                OrderId = order.OrderId,
-                UserId = order.UserId,
-                UserName = order.User.FullName,
-                ShippingAddress = order.ShippingAddress,
-                TotalPrice = order.TotalPrice,
-                OrderDate = order.OrderDate,
-                Status = order.Status.ToString(),
+                var supplier = order.SellerId.HasValue ? _dbContext.Suppliers
+                    .Where(s => s.SupplierId == order.SellerId)
+                    .Select(s => new { s.SupplierName, s.AvatarUrl })
+                    .FirstOrDefault() : null;
+                var designer = order.SellerId.HasValue ? _dbContext.Designers
+                    .Where(d => d.DesignerId == order.SellerId)
+                    .Select(d => new { d.DesignerName, d.AvatarUrl })
+                    .FirstOrDefault() : null;
+
+                if (supplier == null && designer == null)
+                {
+                    // Fallback: suy ra từ dòng hàng đầu tiên
+                    var od = _dbContext.OrderDetails
+                        .Where(od => od.OrderId == order.OrderId)
+                        .Select(od => new { od.SupplierId, od.DesignerId })
+                        .FirstOrDefault();
+                    if (od != null)
+                    {
+                        if (od.SupplierId.HasValue)
+                        {
+                            supplier = _dbContext.Suppliers
+                                .Where(s => s.SupplierId == od.SupplierId)
+                                .Select(s => new { s.SupplierName, s.AvatarUrl })
+                                .FirstOrDefault();
+                        }
+                        else if (od.DesignerId.HasValue)
+                        {
+                            designer = _dbContext.Designers
+                                .Where(d => d.DesignerId == od.DesignerId)
+                                .Select(d => new { d.DesignerName, d.AvatarUrl })
+                                .FirstOrDefault();
+                        }
+                    }
+                }
+
+                // Auto-fix legacy orders: nếu đã paid nhưng fulfillment = None, tự động set thành Delivered
+                var fulfillmentStatus = order.FulfillmentStatus;
+                if (order.PaymentStatus == PaymentStatus.Paid && order.FulfillmentStatus == FulfillmentStatus.None)
+                {
+                    fulfillmentStatus = FulfillmentStatus.Delivered;
+                    // Cập nhật luôn trong database
+                    order.FulfillmentStatus = FulfillmentStatus.Delivered;
+                    order.Status = OrderStatus.delivered;
+                    _dbContext.Orders.Update(order);
+                    _dbContext.SaveChanges();
+                }
+
+                return new OrderModel
+                {
+                    OrderId = order.OrderId,
+                    UserId = order.UserId,
+                    UserName = order.User.FullName,
+                    ShippingAddress = order.ShippingAddress,
+                    TotalPrice = order.TotalPrice,
+                    OrderDate = order.OrderDate,
+                    Status = order.Status.ToString(),
+                    PaymentStatus = order.PaymentStatus.ToString(),
+                    FulfillmentStatus = fulfillmentStatus.ToString(),
+                    SellerType = order.SellerType,
+                    SellerName = supplier?.SupplierName ?? designer?.DesignerName,
+                    SellerAvatarUrl = supplier?.AvatarUrl ?? designer?.AvatarUrl,
+                };
+            });
+        }
+        public async Task<IEnumerable<OrderModel>> GetOrdersByUserIdAsync(int userId)
+        {
+            var orders = await _dbContext.Orders
+                .Where(o => o.UserId == userId)
+                .Include(o => o.User)
+                .ToListAsync();
+            return orders.Select(order =>
+            {
+                var supplier = order.SellerId.HasValue ? _dbContext.Suppliers
+                    .Where(s => s.SupplierId == order.SellerId)
+                    .Select(s => new { s.SupplierName, s.AvatarUrl })
+                    .FirstOrDefault() : null;
+                var designer = order.SellerId.HasValue ? _dbContext.Designers
+                    .Where(d => d.DesignerId == order.SellerId)
+                    .Select(d => new { d.DesignerName, d.AvatarUrl })
+                    .FirstOrDefault() : null;
+
+                if (supplier == null && designer == null)
+                {
+                    // Fallback: suy ra từ dòng hàng đầu tiên
+                    var od = _dbContext.OrderDetails
+                        .Where(od => od.OrderId == order.OrderId)
+                        .Select(od => new { od.SupplierId, od.DesignerId })
+                        .FirstOrDefault();
+                    if (od != null)
+                    {
+                        if (od.SupplierId.HasValue)
+                        {
+                            supplier = _dbContext.Suppliers
+                                .Where(s => s.SupplierId == od.SupplierId)
+                                .Select(s => new { s.SupplierName, s.AvatarUrl })
+                                .FirstOrDefault();
+                        }
+                        else if (od.DesignerId.HasValue)
+                        {
+                            designer = _dbContext.Designers
+                                .Where(d => d.DesignerId == od.DesignerId)
+                                .Select(d => new { d.DesignerName, d.AvatarUrl })
+                                .FirstOrDefault();
+                        }
+                    }
+                }
+
+                // Auto-fix legacy orders: nếu đã paid nhưng fulfillment = None, tự động set thành Delivered
+                var fulfillmentStatus = order.FulfillmentStatus;
+                if (order.PaymentStatus == PaymentStatus.Paid && order.FulfillmentStatus == FulfillmentStatus.None)
+                {
+                    fulfillmentStatus = FulfillmentStatus.Delivered;
+                    // Cập nhật luôn trong database
+                    order.FulfillmentStatus = FulfillmentStatus.Delivered;
+                    order.Status = OrderStatus.delivered;
+                    _dbContext.Orders.Update(order);
+                    _dbContext.SaveChanges();
+                }
+
+                return new OrderModel
+                {
+                    OrderId = order.OrderId,
+                    UserId = order.UserId,
+                    UserName = order.User.FullName,
+                    ShippingAddress = order.ShippingAddress,
+                    TotalPrice = order.TotalPrice,
+                    OrderDate = order.OrderDate,
+                    Status = order.Status.ToString(),
+                    PaymentStatus = order.PaymentStatus.ToString(),
+                    FulfillmentStatus = fulfillmentStatus.ToString(),
+                    SellerType = order.SellerType,
+                    SellerName = supplier?.SupplierName ?? designer?.DesignerName,
+                    SellerAvatarUrl = supplier?.AvatarUrl ?? designer?.AvatarUrl,
+                };
             });
         }
         public async Task<OrderModel?> GetOrderByIdAsync(int id)
@@ -40,6 +167,40 @@ namespace EcoFashionBackEnd.Services
                 .Include(o => o.User)
                 .FirstOrDefaultAsync(o => o.OrderId == id);
             if (order == null) return null;
+            var supplier = order.SellerId.HasValue ? _dbContext.Suppliers
+                .Where(s => s.SupplierId == order.SellerId)
+                .Select(s => new { s.SupplierName, s.AvatarUrl })
+                .FirstOrDefault() : null;
+            var designer = order.SellerId.HasValue ? _dbContext.Designers
+                .Where(d => d.DesignerId == order.SellerId)
+                .Select(d => new { d.DesignerName, d.AvatarUrl })
+                .FirstOrDefault() : null;
+
+            if (supplier == null && designer == null)
+            {
+                var od = _dbContext.OrderDetails
+                    .Where(od => od.OrderId == order.OrderId)
+                    .Select(od => new { od.SupplierId, od.DesignerId })
+                    .FirstOrDefault();
+                if (od != null)
+                {
+                    if (od.SupplierId.HasValue)
+                    {
+                        supplier = _dbContext.Suppliers
+                            .Where(s => s.SupplierId == od.SupplierId)
+                            .Select(s => new { s.SupplierName, s.AvatarUrl })
+                            .FirstOrDefault();
+                    }
+                    else if (od.DesignerId.HasValue)
+                    {
+                        designer = _dbContext.Designers
+                            .Where(d => d.DesignerId == od.DesignerId)
+                            .Select(d => new { d.DesignerName, d.AvatarUrl })
+                            .FirstOrDefault();
+                    }
+                }
+            }
+
             return new OrderModel
             {
                 OrderId = order.OrderId,
@@ -49,6 +210,10 @@ namespace EcoFashionBackEnd.Services
                 TotalPrice = order.TotalPrice,
                 OrderDate = order.OrderDate,
                 Status = order.Status.ToString(),
+                PaymentStatus = order.PaymentStatus.ToString(),
+                SellerType = order.SellerType,
+                SellerName = supplier?.SupplierName ?? designer?.DesignerName,
+                SellerAvatarUrl = supplier?.AvatarUrl ?? designer?.AvatarUrl,
             };
         }
         public async Task<int> CreateOrderAsync(int userId, CreateOrderRequest request)
@@ -88,5 +253,7 @@ namespace EcoFashionBackEnd.Services
             await _dbContext.SaveChangesAsync();
             return result != null;
         }
+
+
     }
 }
