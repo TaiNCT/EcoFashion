@@ -37,6 +37,7 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<BlogImage> BlogImages { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<OrderGroup> OrderGroups { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<Product> Products { get; set; }
@@ -477,11 +478,40 @@ namespace EcoFashionBackEnd.Entities
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Order>()
+                .HasOne(o => o.OrderGroup)
+                .WithMany(g => g.Orders)
+                .HasForeignKey(o => o.OrderGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Order>()
                 .Property(o => o.TotalPrice)
                 .HasPrecision(18, 2);
             modelBuilder.Entity<Order>()
                 .Property(o => o.Status)
                 .HasConversion<string>();
+            modelBuilder.Entity<Order>()
+                .Property(o => o.PaymentStatus)
+                .HasConversion<string>();
+            modelBuilder.Entity<Order>()
+                .Property(o => o.FulfillmentStatus)
+                .HasConversion<string>();
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Subtotal)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.ShippingFee)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Discount)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.CommissionRate)
+                .HasPrecision(5, 4);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.CommissionAmount)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.NetAmount)
+                .HasPrecision(18, 2);
             modelBuilder.Entity<OrderDetail>()
                 .HasOne(od => od.Design).WithMany()
                 .HasForeignKey(od => od.DesignId)
@@ -538,6 +568,10 @@ namespace EcoFashionBackEnd.Entities
                 .WithMany(u => u.PaymentTransactions)
                 .HasForeignKey(pt => pt.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => pt.TxnRef)
+                .IsUnique();
 
             #endregion
 
