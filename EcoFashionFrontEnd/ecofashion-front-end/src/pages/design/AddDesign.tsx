@@ -118,7 +118,7 @@ const AddDesign = () => {
       .replace(/Đ/g, "D"); // Replace Đ
   };
   const filteredMaterials = storedMaterial.filter((mat) => {
-    const combined = `${mat.material.materialName} ${mat.materialId}`;
+    const combined = `${mat.materialId}`; //${mat.material.materialName}
     const matchesSearch = removeVietnameseTones(
       combined.toLowerCase()
     ).includes(removeVietnameseTones(searchTerm.toLowerCase()));

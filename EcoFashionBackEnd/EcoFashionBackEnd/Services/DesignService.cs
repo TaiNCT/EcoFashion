@@ -4,6 +4,7 @@ using EcoFashionBackEnd.Dtos.DesignShow;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -261,8 +262,103 @@ namespace EcoFashionBackEnd.Services
 
             return designs;
         }
+        public async Task<List<DesignSummaryDto>> GetDesignsWithoutProductsByDesignerIdAsync(Guid designerId)
+        {
+            return await _designRepository.GetAll()
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Where(d => d.DesignerId == designerId)
+                .Select(d => new DesignSummaryDto
+                {
+                    DesignId = d.DesignId,
+                    Name = d.Name,
+                    RecycledPercentage = d.RecycledPercentage,
+                    ItemTypeName = d.ItemTypes.TypeName,
+                    SalePrice = d.SalePrice,
 
+                    // Only select URLs, not entire image entity
+                    DesignImageUrls = d.DesignImages
+                        .Select(di => di.Image.ImageUrl)
+                        .ToList(),
 
+                    // Keep material selection minimal
+                    Materials = d.DesignsMaterials
+                        .Select(dm => new MaterialDto
+                        {
+                            MaterialId = dm.MaterialId,
+                            MaterialName = dm.Materials.Name,
+                            MeterUsed = dm.MeterUsed
+                        }).ToList(),
+
+                    // Select only necessary variant data
+                    DesignsVariants = d.DesignsVariants
+                        .Select(dv => new DesignVariantsDto
+                        {
+                            Id = dv.Id,
+                            DesignId = dv.DesignId,
+                        }).ToList(),
+                         // Only select URLs, not entire image entity
+                    DrafSketches = d.DraftSketches
+                        .Select(di => di.Image.ImageUrl)
+                        .ToList(),
+                })
+                .ToListAsync();
+        }
+        public async Task<List<DesignWithProductInfoDto>> GetDesignsWithProductsAndDesignerIdAsync(Guid designerId)
+        {
+            var productWarehouseId = await GetDefaultProductWarehouseIdForDesigner(designerId);
+            return await _designRepository.GetAll()
+                .Where(d => d.Products.Any()) // Only designs with products
+                .Where(d => d.DesignerId == designerId)
+                .Select(d => new DesignWithProductInfoDto
+                {
+                    DesignId = d.DesignId,
+                    Name = d.Name,
+                    RecycledPercentage = d.RecycledPercentage,
+                    ItemTypeName = d.ItemTypes.TypeName,
+                    SalePrice = d.SalePrice,
+                    DesignImageUrls = d.DesignImages
+                        .Select(di => di.Image.ImageUrl)
+                        .ToList(),
+                    Materials = d.DesignsMaterials
+                        .Select(dm => new MaterialDto
+                        {
+                            MaterialId = dm.MaterialId,
+                            MaterialName = dm.Materials.Name,
+                            MeterUsed = (decimal)dm.MeterUsed
+                        })
+                        .ToList(),
+                    ProductCount = d.Products.Count,
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<ProductDto>> GetProductsByDesignAsync(int designId, Guid designerId)
+        {
+            var productWarehouseId = await GetDefaultProductWarehouseIdForDesigner(designerId);
+
+            var products = await _designRepository.GetAll()
+                .Where(d => d.DesignId == designId && d.DesignerId == designerId)
+                .SelectMany(d => d.Products.Select(p => new ProductDto
+                {
+                    ProductId = p.ProductId,
+                    SKU = p.SKU,
+                    Price = p.Price,
+                    ColorCode = p.ColorCode,
+                    SizeId = p.SizeId,
+                    SizeName = p.Size.SizeName,
+                    QuantityAvailable = p.Inventories
+                        .Where(pi => pi.WarehouseId == productWarehouseId)
+                        .Select(pi => pi.QuantityAvailable)
+                        .FirstOrDefault()
+                }))
+                .ToListAsync();
+
+            if (!products.Any())
+                throw new Exception("Không tìm thấy sản phẩm cho thiết kế này hoặc không thuộc Designer này.");
+
+            return products;
+        }
 
         //public async Task<DesignDetailDto?> GetDesignDetailById(int id)
         //{
@@ -402,30 +498,30 @@ namespace EcoFashionBackEnd.Services
 
 
         //    // Upload ảnh
-    //        if (imageFiles?.Any() == true)
-    //        {
-    //            var uploadResults = await _cloudService.UploadImagesAsync(imageFiles);
-    //            foreach (var uploadResult in uploadResults)
-    //            {
-    //                if (!string.IsNullOrWhiteSpace(uploadResult?.SecureUrl?.ToString()))
-    //                {
-    //                    var designImage = new DesignImage
-    //                    {
-    //                        DesignId = design.DesignId,
-    //                        Image = new Image
-    //                        {
-    //                            ImageUrl = uploadResult.SecureUrl.ToString()
-    //                        }
-    //                    };
+        //        if (imageFiles?.Any() == true)
+        //        {
+        //            var uploadResults = await _cloudService.UploadImagesAsync(imageFiles);
+        //            foreach (var uploadResult in uploadResults)
+        //            {
+        //                if (!string.IsNullOrWhiteSpace(uploadResult?.SecureUrl?.ToString()))
+        //                {
+        //                    var designImage = new DesignImage
+        //                    {
+        //                        DesignId = design.DesignId,
+        //                        Image = new Image
+        //                        {
+        //                            ImageUrl = uploadResult.SecureUrl.ToString()
+        //                        }
+        //                    };
 
-    //    await _designImageRepository.AddAsync(designImage);
-    //}
-    //                else
-    //                {
-    //                    Console.WriteLine(" Upload failed or returned null SecureUrl.");
-    //                }
-    //            }
-    //        }
+        //    await _designImageRepository.AddAsync(designImage);
+        //}
+        //                else
+        //                {
+        //                    Console.WriteLine(" Upload failed or returned null SecureUrl.");
+        //                }
+        //            }
+        //        }
 
         //    await _designRepository.Commit();
         //    return design.DesignId;

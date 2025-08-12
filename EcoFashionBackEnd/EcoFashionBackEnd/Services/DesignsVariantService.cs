@@ -40,6 +40,7 @@ namespace EcoFashionBackEnd.Services
                     SizeName = v.Size.SizeName,
                     ColorCode = v.ColorCode,
                     Quantity = v.Quantity,
+                    SizeId = v.SizeId,
                     Ratio = v.Design.ItemTypes.TypeSizeRatios
                         .FirstOrDefault(r => r.SizeId == v.SizeId)
                         .Ratio
@@ -87,17 +88,42 @@ namespace EcoFashionBackEnd.Services
                     throw new Exception($"Size {r.SizeId} không tồn tại.");
             }
 
-            var variants = requests.Select(r => new DesignsVariant
+            // Lấy danh sách variants hiện có để kiểm tra trùng
+            var existingVariants = await _designVariantRepository
+                .GetAll()
+                .Where(v => v.DesignId == designId)
+                .ToListAsync();
+
+            var newVariants = new List<DesignsVariant>();
+
+            foreach (var r in requests)
             {
-                DesignId = designId,
-                ColorCode = r.ColorCode,
-                SizeId = r.SizeId,
-                Quantity = r.Quantity,
-            }).ToList();
+                var existing = existingVariants
+                    .FirstOrDefault(v => v.ColorCode == r.ColorCode && v.SizeId == r.SizeId);
 
-            await _designVariantRepository.AddRangeAsync(variants);
+                if (existing != null)
+                {
+                    // Nếu trùng thì cộng quantity
+                    existing.Quantity += r.Quantity;
+                    _designVariantRepository.Update(existing);
+                }
+                else
+                {
+                    // Nếu không trùng thì tạo mới
+                    newVariants.Add(new DesignsVariant
+                    {
+                        DesignId = designId,
+                        ColorCode = r.ColorCode,
+                        SizeId = r.SizeId,
+                        Quantity = r.Quantity
+                    });
+                }
+            }
+
+            if (newVariants.Any())
+                await _designVariantRepository.AddRangeAsync(newVariants);
+
             await _designVariantRepository.Commit();
-
             return true;
         }
 

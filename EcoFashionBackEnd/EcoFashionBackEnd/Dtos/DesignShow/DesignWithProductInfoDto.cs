@@ -13,5 +13,6 @@ namespace EcoFashionBackEnd.Dtos.DesignShow
         public List<MaterialDto> Materials { get; set; } = new List<MaterialDto>();
         public int ProductCount { get; set; }// bỏ chưa cần 
         public DesignerPublicDto Designer { get; set; }
+        public List<ProductDto> Products { get; set; }
     }
 }
