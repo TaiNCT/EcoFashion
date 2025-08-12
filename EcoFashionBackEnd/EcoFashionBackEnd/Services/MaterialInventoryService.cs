@@ -162,6 +162,79 @@ namespace EcoFashionBackEnd.Services
             await tx.CommitAsync();
             return true;
         }
+
+        /// <summary>
+        /// Trừ inventory khi có order được hoàn thành (payment success)
+        /// </summary>
+        /// <param name="materialId">ID của material cần trừ</param>
+        /// <param name="warehouseId">ID của warehouse (thường là warehouse của supplier)</param>
+        /// <param name="quantity">Số lượng cần trừ (số dương)</param>
+        /// <param name="unit">Đơn vị (mét, kg, etc.)</param>
+        /// <param name="note">Ghi chú</param>
+        /// <param name="referenceType">Loại tham chiếu (ví dụ: "Order")</param>
+        /// <param name="referenceId">ID của order</param>
+        /// <param name="userId">ID user thực hiện (có thể null cho system)</param>
+        /// <returns>True nếu thành công</returns>
+        public async Task<bool> DeductAsync(int materialId, int warehouseId, decimal quantity, string? unit, string? note, string? referenceType, string? referenceId, int? userId)
+        {
+            if (quantity <= 0) throw new ArgumentException("Quantity must be positive");
+
+            using var tx = await _dbContext.Database.BeginTransactionAsync();
+
+            var stock = await _dbContext.MaterialStocks
+                .FirstOrDefaultAsync(s => s.MaterialId == materialId && s.WarehouseId == warehouseId);
+            
+            if (stock == null)
+            {
+                throw new InvalidOperationException($"No stock found for MaterialId {materialId} in WarehouseId {warehouseId}");
+            }
+
+            var before = stock.QuantityOnHand;
+            var after = before - quantity;
+
+            // Cho phép âm số (overdraft) nhưng log warning
+            if (after < 0)
+            {
+                // Log warning nhưng vẫn tiếp tục
+                Console.WriteLine($"WARNING: Stock going negative for MaterialId {materialId}. Before: {before}, After: {after}");
+            }
+
+            var tr = new MaterialStockTransaction
+            {
+                MaterialId = materialId,
+                WarehouseId = warehouseId,
+                TransactionType = "OrderSale", // Phân biệt với "SupplierReceipt"
+                QuantityChange = -quantity, // Số âm cho deduction
+                BeforeQty = before,
+                AfterQty = after,
+                Unit = unit,
+                ReferenceType = referenceType,
+                ReferenceId = referenceId,
+                Note = note,
+                CreatedByUserId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+            _dbContext.MaterialStockTransactions.Add(tr);
+
+            stock.QuantityOnHand = after;
+            stock.LastUpdated = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+
+            // Update Material.QuantityAvailable as sum of stocks
+            var total = await _dbContext.MaterialStocks
+                .Where(s => s.MaterialId == materialId)
+                .SumAsync(s => s.QuantityOnHand);
+            var material = await _dbContext.Materials.FindAsync(materialId);
+            if (material != null)
+            {
+                material.QuantityAvailable = (int)total;
+                material.LastUpdated = DateTime.UtcNow;
+                await _dbContext.SaveChangesAsync();
+            }
+
+            await tx.CommitAsync();
+            return true;
+        }
     }
 }
 

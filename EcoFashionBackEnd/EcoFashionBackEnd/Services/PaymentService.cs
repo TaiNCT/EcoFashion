@@ -11,18 +11,24 @@ namespace EcoFashionBackEnd.Services
         private readonly IVnPayService _vnPayService;
         private readonly IRepository<Order, int> _orderRepository;
         private readonly IRepository<PaymentTransaction, int> _paymentTransactionRepository;
+        private readonly MaterialInventoryService _materialInventoryService;
+        private readonly AppDbContext _dbContext;
 
         public PaymentService(
             IRepository<User, int> userRepository,
             IVnPayService vnPayService,
             IRepository<Order, int> orderRepository,
-            IRepository<PaymentTransaction, int> paymentTransactionRepository
+            IRepository<PaymentTransaction, int> paymentTransactionRepository,
+            MaterialInventoryService materialInventoryService,
+            AppDbContext dbContext
            )
         {
             _userRepository= userRepository;
             _vnPayService = vnPayService;
             _orderRepository = orderRepository;
             _paymentTransactionRepository = paymentTransactionRepository;
+            _materialInventoryService = materialInventoryService;
+            _dbContext = dbContext;
         }
 
         public async Task<string> CreateVNPayUrlAsync(HttpContext context, VnPaymentRequestModel model, int userId)
@@ -146,6 +152,12 @@ namespace EcoFashionBackEnd.Services
             {
                 _orderRepository.Update(order);
                 await _orderRepository.Commit();
+                
+                // Trừ inventory khi payment thành công
+                if (response.VnPayResponseCode == "00")
+                {
+                    await DeductInventoryForOrderAsync(orderId);
+                }
             }
             return response;
         }
@@ -214,10 +226,70 @@ namespace EcoFashionBackEnd.Services
                 {
                     _orderRepository.Update(order);
                     await _orderRepository.Commit();
+                    
+                    // Trừ inventory khi payment thành công
+                    if (isSuccess)
+                    {
+                        await DeductInventoryForOrderAsync(orderId);
+                    }
                 }
             }
 
             return new { RspCode = "00", Message = "OK" };
+        }
+
+        /// <summary>
+        /// Trừ inventory cho tất cả materials trong order khi payment thành công
+        /// </summary>
+        /// <param name="orderId">ID của order đã thanh toán thành công</param>
+        private async Task DeductInventoryForOrderAsync(int orderId)
+        {
+            try
+            {
+                // Lấy tất cả order details có MaterialId (loại material, không phải design)
+                var materialOrderDetails = await _dbContext.OrderDetails
+                    .Include(od => od.Material)
+                    .ThenInclude(m => m.Supplier)
+                    .Where(od => od.OrderId == orderId && od.Type == OrderDetailType.material && od.MaterialId.HasValue)
+                    .ToListAsync();
+
+                foreach (var orderDetail in materialOrderDetails)
+                {
+                    var materialId = orderDetail.MaterialId!.Value;
+                    var quantity = orderDetail.Quantity;
+                    var supplierId = orderDetail.SupplierId;
+
+                    // Tìm warehouse mặc định của supplier
+                    var warehouse = await _dbContext.Warehouses
+                        .FirstOrDefaultAsync(w => w.SupplierId == supplierId && w.IsDefault && w.IsActive);
+
+                    if (warehouse == null)
+                    {
+                        Console.WriteLine($"WARNING: No default warehouse found for SupplierId {supplierId}. Skipping deduction for MaterialId {materialId}");
+                        continue;
+                    }
+
+                    // Trừ inventory
+                    await _materialInventoryService.DeductAsync(
+                        materialId: materialId,
+                        warehouseId: warehouse.WarehouseId,
+                        quantity: quantity,
+                        unit: "mét", // Default unit cho material
+                        note: $"Đã bán cho đơn hàng #{orderId}",
+                        referenceType: "Order",
+                        referenceId: orderId.ToString(),
+                        userId: null // System operation
+                    );
+
+                    Console.WriteLine($"Successfully deducted {quantity} units of MaterialId {materialId} from WarehouseId {warehouse.WarehouseId} for OrderId {orderId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error nhưng không throw để không làm fail payment
+                Console.WriteLine($"ERROR in DeductInventoryForOrderAsync: {ex.Message}");
+                // Có thể log vào database để admin review sau
+            }
         }
 
         private string GetMessageFromResponseCode(string code)
