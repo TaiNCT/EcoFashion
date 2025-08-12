@@ -3,6 +3,7 @@ using EcoFashionBackEnd.Dtos.DesignDraft;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
 using Microsoft.EntityFrameworkCore;
+using EcoFashionBackEnd.Helpers;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -69,27 +70,38 @@ namespace EcoFashionBackEnd.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<bool> CreateVariantAsync(int designId, DesignsVariantCreateRequest request)
+        public async Task<bool> CreateVariantAsync(int designId, List<DesignsVariantCreateRequest> requests)
         {
+            if (requests == null || requests.Count == 0)
+                throw new ArgumentException("Variant list cannot be empty.");
+
             var design = await _designRepository.GetByIdAsync(designId);
-            if (design == null) return false;
+            if (design == null)
+                throw new KeyNotFoundException($"Design {designId} not found.");
 
-            var size = await _sizeRepository.GetByIdAsync(request.SizeId);
-            if (size == null) throw new Exception("Size không tồn tại.");
+            // Check từng SizeId tồn tại
+            foreach (var r in requests)
+            {
+                var size = await _sizeRepository.GetByIdAsync(r.SizeId);
+                if (size == null)
+                    throw new Exception($"Size {r.SizeId} không tồn tại.");
+            }
 
-            var variant = new DesignsVariant
+            var variants = requests.Select(r => new DesignsVariant
             {
                 DesignId = designId,
-                SizeId = request.SizeId,
-                ColorCode = request.ColorCode, 
-                Quantity = request.Quantity,
-                
-            };
+                ColorCode = r.ColorCode,
+                SizeId = r.SizeId,
+                Quantity = r.Quantity,
+            }).ToList();
 
-            await _designVariantRepository.AddAsync(variant);
+            await _designVariantRepository.AddRangeAsync(variants);
             await _designVariantRepository.Commit();
+
             return true;
         }
+
+
 
         public async Task<bool> UpdateVariantAsync(int variantId, DesignsVariantUpdateRequest request)
         {
@@ -107,6 +119,52 @@ namespace EcoFashionBackEnd.Services
             await _designVariantRepository.Commit();
             return true;
         }
+
+        public async Task<bool> UpdateVariantsAsync(int designId, List<DesignsVariantUpdateRequest> newVariants)
+        {
+            if (newVariants == null)
+                throw new ArgumentException("Variant list cannot be null.");
+
+            var design = await _designRepository.GetByIdAsync(designId);
+            if (design == null)
+                throw new KeyNotFoundException($"Design {designId} not found.");
+
+            // Check size tồn tại
+            foreach (var v in newVariants)
+            {
+                var size = await _sizeRepository.GetByIdAsync(v.SizeId);
+                if (size == null)
+                    throw new Exception($"Size {v.SizeId} không tồn tại.");
+            }
+
+            // Lấy hết variant cũ
+            var existingVariants = await _designVariantRepository.GetAll()
+                .Where(v => v.DesignId == designId)
+                .ToListAsync();
+
+            // Xóa hết variant cũ
+            if (existingVariants.Any())
+            {
+                _designVariantRepository.RemoveRange(existingVariants);
+            }
+
+            // Thêm variant mới
+            var variants = newVariants.Select(v => new DesignsVariant
+            {
+                DesignId = designId,
+                SizeId = v.SizeId,
+                ColorCode = v.ColorCode,
+                Quantity = v.Quantity
+            }).ToList();
+
+            await _designVariantRepository.AddRangeAsync(variants);
+
+            // Commit
+            await _designVariantRepository.Commit();
+
+            return true;
+        }
+
 
         public async Task<bool> DeleteVariantAsync(int variantId)
         {

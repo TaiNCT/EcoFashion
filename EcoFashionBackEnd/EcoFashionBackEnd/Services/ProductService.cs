@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using EcoFashionBackEnd.Dtos.DesignShow;
+using EcoFashionBackEnd.Helpers;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -107,7 +108,8 @@ namespace EcoFashionBackEnd.Services
             // 3️ Tạo sản phẩm cho từng variant
             foreach (var variant in variants)
             {
-                var sku = $"{design.DesignId}-S{variant.SizeId}-C{variant.ColorCode.Replace(" ", "").ToUpper()}";
+                var basicColorName = ColorExchange.ClassifyColorAdvanced(variant.ColorCode);
+                var sku = $"{design.DesignId}-S{variant.SizeId}-C{basicColorName.Replace(" ", "").ToUpper()}";
 
                 var existingProduct = await _productRepository
                     .GetAll()
@@ -214,7 +216,8 @@ namespace EcoFashionBackEnd.Services
             // 3️ Tạo sản phẩm cho từng variant
             foreach (var variant in variants)
             {
-                var sku = $"{design.DesignId}-S{variant.SizeId}-C{variant.ColorCode.Replace(" ", "").ToUpper()}";
+                var basicColorName = ColorExchange.ClassifyColorAdvanced(variant.ColorCode);
+                var sku = $"{design.DesignId}-S{variant.SizeId}-C{basicColorName.Replace(" ", "").ToUpper()}";
 
                 var existingProduct = await _productRepository
                     .GetAll()

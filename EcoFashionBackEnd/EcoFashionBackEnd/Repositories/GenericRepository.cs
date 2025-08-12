@@ -42,6 +42,11 @@ where TEntity : class
         var entityEntry = _dbContext.Set<TEntity>().Update(entity);
         return entityEntry.Entity;
     }
+    public Task<TEntity> UpdateAsync(TEntity entity)
+    {
+        var entityEntry = _dbContext.Set<TEntity>().Update(entity);
+        return Task.FromResult(entityEntry.Entity);
+    }
 
     public TEntity Remove(TKey id)
     {
