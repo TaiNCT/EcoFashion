@@ -75,16 +75,16 @@ namespace EcoFashionBackEnd.Services
 
             var userId = blog.UserID;
 
-            // Try to find the user in Designer or Supplier
+            // Thử tìm Designer hoặc Supplier
             var designer = await _dbContext.Designers
                 .FirstOrDefaultAsync(d => d.UserId == userId);
 
             var supplier = await _dbContext.Suppliers
                 .FirstOrDefaultAsync(s => s.UserId == userId);
 
-            // Extract name and avatar from available role
-            string userName = designer?.DesignerName ?? supplier?.SupplierName ?? "Unknown";
-            string avatarUrl = designer?.AvatarUrl ?? supplier?.AvatarUrl ?? "default-avatar.png";
+            // Lấy tên và ảnh đại diện
+            string userName = designer?.DesignerName ?? supplier?.SupplierName ?? "";
+            string avatarUrl = designer?.AvatarUrl ?? supplier?.AvatarUrl ?? "";
 
             return new BlogDetailDto
             {
@@ -175,13 +175,6 @@ namespace EcoFashionBackEnd.Services
             await _blogRepository.Commit();
             return true;
         }
-        private async Task CheckUserPermissionAsync(int userId)
-        {
-            var isDesigner = await _dbContext.Designers.AnyAsync(d => d.UserId == userId);
-            var isSupplier = await _dbContext.Suppliers.AnyAsync(s => s.UserId == userId);
-            if (!isDesigner && !isSupplier)
-                throw new ArgumentException("Người dùng không có quyền tạo");
-        }
         public async Task<bool> DeleteReviewAsync(int reviewId, int userId)
         {
             // Tìm review theo ID
@@ -204,6 +197,51 @@ namespace EcoFashionBackEnd.Services
             await _dbContext.SaveChangesAsync();
 
             return true;
+        }
+        private async Task CheckUserPermissionAsync(int userId)
+        {
+            var isDesigner = await _dbContext.Designers.AnyAsync(d => d.UserId == userId);
+            var isSupplier = await _dbContext.Suppliers.AnyAsync(s => s.UserId == userId);
+            if (!isDesigner && !isSupplier)
+                throw new ArgumentException("Người dùng không có quyền tạo");
+        }
+        public async Task<IEnumerable<BlogDetailDto>> GetBlogsByUserIdAsync(int userId)
+        {
+            // Lấy tất cả blog của user kèm thông tin ảnh và người dùng
+            var blogs = await _dbContext.Blogs
+                .Include(b => b.User)
+                .Include(b => b.BlogImages)
+                    .ThenInclude(bi => bi.Image)
+                .Where(b => b.UserID == userId)
+                .ToListAsync();
+
+            if (!blogs.Any())
+                return Enumerable.Empty<BlogDetailDto>();
+
+            // Lấy thông tin Designer hoặc Supplier (nếu có)
+            var designer = await _dbContext.Designers
+                .FirstOrDefaultAsync(d => d.UserId == userId);
+
+            var supplier = await _dbContext.Suppliers
+                .FirstOrDefaultAsync(s => s.UserId == userId);
+            // Tên và ảnh đại diện mặc định không gửi
+            string displayName = designer?.DesignerName ?? supplier?.SupplierName ?? "";
+            string avatarUrl = designer?.AvatarUrl ?? supplier?.AvatarUrl ?? "";
+
+            var blogDtos = blogs.Select(blog => new BlogDetailDto
+            {
+                BlogId = blog.BlogId,
+                UserID = blog.UserID,
+                UserName = displayName,
+                AvatarUrl = avatarUrl,
+                Title = blog.Title,
+                Content = blog.Content,
+                ImageUrls = [.. blog.BlogImages.Select(bi => bi.Image.ImageUrl) ?? []],
+                CreatedAt = blog.CreatedAt,
+                LastUpdatedAt = blog.LastUpdatedAt,
+            });
+
+            return blogDtos;
         }
 
     }

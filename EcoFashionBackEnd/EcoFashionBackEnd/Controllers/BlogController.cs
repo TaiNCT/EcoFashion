@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using EcoFashionBackEnd.Common;
+﻿using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Responses;
 using EcoFashionBackEnd.Dtos.Blog;
@@ -13,11 +12,9 @@ namespace EcoFashionBackEnd.Controllers;
 [ApiController]
 public class BlogController : ControllerBase
 {
-    private readonly IMapper _mapper;
     private readonly BlogService _blogService;
-    public BlogController(IMapper mapper, BlogService blogService)
+    public BlogController(BlogService blogService)
     {
-        _mapper = mapper;
         _blogService = blogService;
     }
     [HttpGet("GetAll")]
@@ -61,5 +58,13 @@ public class BlogController : ControllerBase
         if (result)
             return Ok(ApiResult<object>.Succeed("Blog đã được xóa."));
         return BadRequest("Xóa blog thất bại.");
+    }
+    [HttpGet("user")]
+    public async Task<IActionResult> GetBlogsByUserId()
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+            return Unauthorized(ApiResult<CreateDesignResponse>.Fail("Không thể xác định người dùng."));
+        var blogs = await _blogService.GetBlogsByUserIdAsync(userId);
+        return Ok(ApiResult<object>.Succeed(blogs));
     }
 }

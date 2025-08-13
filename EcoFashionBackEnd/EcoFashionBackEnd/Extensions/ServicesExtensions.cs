@@ -107,7 +107,6 @@ public static class ServicesExtensions
         services.AddScoped<ReviewService>();
 
 
-
         return services;
     }
 }
