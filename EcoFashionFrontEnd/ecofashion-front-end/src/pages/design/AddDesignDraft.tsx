@@ -778,7 +778,7 @@ export default function AddDesignDraft() {
               >
                 <CheckroomIcon sx={{ color: "rgba(22, 163, 74, 1)" }} />
                 <Typography variant="h6" fontWeight="bold">
-                  Thông Tin Sản Phẩm
+                  Thông Tin Rập
                 </Typography>
               </Box>
               <Grid container spacing={2} sx={{ marginBottom: 5 }}>
@@ -787,7 +787,7 @@ export default function AddDesignDraft() {
                   <Box sx={{ width: "100%" }}>
                     <TextField
                       fullWidth
-                      label="Tên sản phẩm"
+                      label="Tên rập"
                       {...register("name")}
                       error={!!errors.name}
                       helperText={errors.name?.message}
@@ -873,7 +873,7 @@ export default function AddDesignDraft() {
                 <Grid flex={1}>
                   <TextField
                     name="description"
-                    label="Mô tả sản phẩm"
+                    label="Mô tả"
                     multiline
                     rows={5}
                     placeholder="Nhập vào"
@@ -889,7 +889,7 @@ export default function AddDesignDraft() {
                     fontWeight={"bold"}
                     sx={{ mb: 2 }}
                   >
-                    Ảnh Sản Phẩm
+                    Ảnh Rập
                   </Typography>
                   <Controller
                     name="sketchImages"

@@ -267,7 +267,7 @@ namespace EcoFashionBackEnd.Services
             return await _designRepository.GetAll()
                 .AsNoTracking()
                 .AsSplitQuery()
-                .Where(d => d.DesignerId == designerId)
+                .Where(d => d.DesignerId == designerId )
                 .Select(d => new DesignSummaryDto
                 {
                     DesignId = d.DesignId,

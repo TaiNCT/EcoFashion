@@ -182,7 +182,6 @@ namespace EcoFashionBackEnd.Services
             // Map DB variants sang list
             var variants = design.DesignsVariants.Select(v => new
             {
-                v.Id,
                 v.SizeId,
                 v.ColorCode,
                 v.Quantity
@@ -233,7 +232,6 @@ namespace EcoFashionBackEnd.Services
                 // Nếu chưa tồn tại → tạo mới
                 var product = new Product
                 {
-                    VariantId = variant.Id,
                     DesignId = design.DesignId,
                     SKU = sku,
                     Price = (decimal)design.SalePrice,

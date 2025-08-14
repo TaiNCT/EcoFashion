@@ -1150,11 +1150,26 @@ export default function DesignerDashBoard() {
       toast.success("Gửi đơn thành công!");
 
       setOpenCreateDialog(false); // đóng dialog
+      if (tabIndex === 1) {
+        reloadTabProduct(selectedDesignProduct.id);
+      }
     } catch (err: any) {
       console.error("❌ Error submitting application:", err);
       toast.error("Có lỗi xảy ra khi gửi đơn.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const reloadTabProduct = async (id: number) => {
+    try {
+      const response = await DesignService.getDesignProductDetailsAsync(
+        id,
+        getDesignerId()
+      );
+      setDesignProductDetail(response);
+    } catch (error) {
+      console.error("Lỗi khi load lại tab 2:", error);
     }
   };
 
@@ -1639,7 +1654,7 @@ export default function DesignerDashBoard() {
               onSubmit: handleSubmit(onSubmit),
             }}
           >
-            <DialogTitle>Tạo sản phẩm từ rập</DialogTitle>
+            <DialogTitle>Sản xuất từ rập</DialogTitle>
             <DialogContent>
               <Box
                 sx={{
@@ -1656,8 +1671,15 @@ export default function DesignerDashBoard() {
                   defaultValue={0} // hoặc 0
                   render={({ field, fieldState }) => (
                     <FormControl fullWidth error={!!fieldState.error}>
-                      <InputLabel>Chọn rập thiết kế</InputLabel>
-                      <Select {...field} value={field.value || ""}>
+                      <InputLabel id="design-product-label">
+                        Chọn rập thiết kế
+                      </InputLabel>
+                      <Select
+                        {...field}
+                        value={field.value || ""}
+                        labelId="design-product-label"
+                        label="Chọn rập thiết kế"
+                      >
                         {designs.map((design) => (
                           <MenuItem
                             key={design.designId}
@@ -2080,7 +2102,12 @@ export default function DesignerDashBoard() {
                                 quantity: e.target.value,
                               })
                             }
+                            onKeyDown={(e) => {
+                              if (e.key === "-" || e.key === "e")
+                                e.preventDefault();
+                            }}
                             size="small"
+                            inputProps={{ min: 0, step: 1 }}
                           />
 
                           <Stack
