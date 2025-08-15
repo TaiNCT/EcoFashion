@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { cartService, type ServerCartDto } from '../services/api/cartService';
 
 export interface CartItem {
   id: string;
@@ -16,13 +17,16 @@ interface CartState {
   items: CartItem[];
   // Nhóm theo seller để hiển thị/checkout từng đơn
   getItemsGroupedBySeller: () => Record<string, CartItem[]>;
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (id: string) => void;
-  clearCart: () => void;
+  // Server-first actions
+  syncFromServer: () => Promise<void>;
+  addToCart: (payload: { materialId: number; quantity: number }) => Promise<void>;
+  removeFromCart: (id: string) => Promise<void>;
+  clearCart: () => Promise<void>;
+  resetLocal: () => void; // Xoá UI cart, không gọi server
   getTotalCount: () => number;
   getItemCount: () => number; // Số loại sản phẩm khác nhau
-  increaseQuantity: (id: string) => void;
-  decreaseQuantity: (id: string) => void;
+  increaseQuantity: (id: string) => Promise<void>;
+  decreaseQuantity: (id: string) => Promise<void>;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -35,47 +39,106 @@ export const useCartStore = create<CartState>((set, get) => ({
     });
     return groups;
   },
-  addToCart: (item) => set((state) => {
-    const existing = state.items.find((i) => i.id === item.id);
-    if (existing) {
-      return {
-        items: state.items.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
-        ),
-      };
-    }
-    return { items: [...state.items, item] };
-  }),
-  removeFromCart: (id) => set((state) => ({
-    items: state.items.filter((i) => i.id !== id),
-  })),
-  clearCart: () => set({ items: [] }),
+  syncFromServer: async () => {
+    const cart: ServerCartDto = await cartService.getCart();
+    const items: CartItem[] = cart.items.map((i) => ({
+      id: String(i.cartItemId),
+      name: i.materialName || `Material #${i.materialId}`,
+      image: i.imageUrl || '',
+      price: i.currentPrice || i.unitPriceSnapshot,
+      quantity: i.quantity,
+      unit: i.unitLabel || 'mét',
+      type: 'material',
+      sellerId: i.supplierId,
+      sellerName: i.supplierName,
+    }));
+    set({ items });
+  },
+  addToCart: async ({ materialId, quantity }) => {
+    const cart = await cartService.upsertItem({ materialId, quantity });
+    const items: CartItem[] = cart.items.map((i) => ({
+      id: String(i.cartItemId),
+      name: i.materialName || `Material #${i.materialId}`,
+      image: i.imageUrl || '',
+      price: i.currentPrice || i.unitPriceSnapshot,
+      quantity: i.quantity,
+      unit: i.unitLabel || 'mét',
+      type: 'material',
+      sellerId: i.supplierId,
+      sellerName: i.supplierName,
+    }));
+    set({ items });
+  },
+  removeFromCart: async (id) => {
+    const cartItemId = Number(id);
+    const cart = await cartService.removeItem(cartItemId);
+    const items: CartItem[] = cart.items.map((i) => ({
+      id: String(i.cartItemId),
+      name: i.materialName || `Material #${i.materialId}`,
+      image: i.imageUrl || '',
+      price: i.currentPrice || i.unitPriceSnapshot,
+      quantity: i.quantity,
+      unit: i.unitLabel || 'mét',
+      type: 'material',
+      sellerId: i.supplierId,
+      sellerName: i.supplierName,
+    }));
+    set({ items });
+  },
+  clearCart: async () => {
+    const cart = await cartService.clear();
+    const items: CartItem[] = cart.items.map((i) => ({
+      id: String(i.cartItemId),
+      name: i.materialName || `Material #${i.materialId}`,
+      image: i.imageUrl || '',
+      price: i.currentPrice || i.unitPriceSnapshot,
+      quantity: i.quantity,
+      unit: i.unitLabel || 'mét',
+      type: 'material',
+      sellerId: i.supplierId,
+      sellerName: i.supplierName,
+    }));
+    set({ items });
+  },
+  resetLocal: () => set({ items: [] }),
   getTotalCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
   getItemCount: () => get().items.length, // Số loại sản phẩm khác nhau
-  increaseQuantity: (id) => set((state) => {
-    const item = state.items.find((i) => i.id === id);
-    if (item) {
-      return {
-        items: state.items.map((i) =>
-          i.id === id ? { ...i, quantity: i.quantity + 1 } : i
-        ),
-      };
+  increaseQuantity: async (id) => {
+    const item = get().items.find((i) => i.id === id);
+    if (!item) return;
+    const cart = await cartService.updateQuantity(Number(id), item.quantity + 1);
+    const items: CartItem[] = cart.items.map((i) => ({
+      id: String(i.cartItemId),
+      name: i.materialName || `Material #${i.materialId}`,
+      image: i.imageUrl || '',
+      price: i.currentPrice || i.unitPriceSnapshot,
+      quantity: i.quantity,
+      unit: i.unitLabel || 'mét',
+      type: 'material',
+      sellerId: i.supplierId,
+      sellerName: i.supplierName,
+    }));
+    set({ items });
+  },
+  decreaseQuantity: async (id) => {
+    const item = get().items.find((i) => i.id === id);
+    if (!item) return;
+    if (item.quantity > 1) {
+      const cart = await cartService.updateQuantity(Number(id), item.quantity - 1);
+      const items: CartItem[] = cart.items.map((i) => ({
+        id: String(i.cartItemId),
+        name: i.materialName || `Material #${i.materialId}`,
+        image: i.imageUrl || '',
+        price: i.currentPrice || i.unitPriceSnapshot,
+        quantity: i.quantity,
+        unit: i.unitLabel || 'mét',
+        type: 'material',
+        sellerId: i.supplierId,
+        sellerName: i.supplierName,
+      }));
+      set({ items });
+    } else if (item.quantity === 1) {
+      await get().removeFromCart(id);
     }
-    return {};
-  }),
-  decreaseQuantity: (id) => set((state) => {
-    const item = state.items.find((i) => i.id === id);
-    if (item && item.quantity > 1) {
-      return {
-        items: state.items.map((i) =>
-          i.id === id ? { ...i, quantity: i.quantity - 1 } : i
-        ),
-      };
-    } else if (item && item.quantity === 1) {
-      return {
-        items: state.items.filter((i) => i.id !== id),
-      };
-    }
-    return {};
-  }),
+  },
 }));

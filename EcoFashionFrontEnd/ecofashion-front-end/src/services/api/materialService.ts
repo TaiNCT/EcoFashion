@@ -17,29 +17,26 @@ import {
   type MaterialCreationResponse,
 } from '../../schemas/materialSchema';
 
-// Mapping schema cho backend field names
-export const backendFieldMapping = {
-  // Frontend field -> Backend field
-  name: "Name",
-  description: "Description",
-  typeId: "TypeId",
-  quantityAvailable: "QuantityAvailable",
-  pricePerUnit: "PricePerUnit",
-  documentationUrl: "DocumentationUrl",
-  materialSustainabilityCriteria1: "MaterialSustainabilityCriteria1",
-  materialSustainabilityCriteria2: "MaterialSustainabilityCriteria2",
-  materialSustainabilityCriteria3: "MaterialSustainabilityCriteria3",
-} as const;
+// Type for transport method options from backend
+export interface TransportMethodOption {
+  method: string;
+  estimatedDistance: number;
+  icon: string;
+  description: string;
+  isRecommended: boolean;
+  sustainabilityImpact: string;
+  color: string;
+}
+
+// REMOVED: backendFieldMapping is no longer needed as backend uses consistent camelCase naming
 
 class MaterialService {
   private readonly API_BASE = "Material";
 
-  // Get all materials with sustainability scores (for homepage)
+  // Get all materials with sustainability scores (for homepage) - uses new filtered endpoint
   async getAllMaterialsWithSustainability(): Promise<MaterialDetailDto[]> {
     const response = await apiClient.get<any>(`${this.API_BASE}`);
     const result = handleApiResponse<MaterialDetailDto[]>(response);
-    
-
     
     return result.map((item) => {
       try {
@@ -52,9 +49,61 @@ class MaterialService {
     });
   }
 
-  // Get all materials (alias for getAllMaterialsWithSustainability)
+  // Get all materials with comprehensive filtering
+  async getAllMaterialsWithFilters(filters?: {
+    typeId?: number;
+    supplierId?: string;
+    supplierName?: string;
+    materialName?: string;
+    productionCountry?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    minQuantity?: number;
+    hasCertification?: boolean;
+    transportMethod?: string;
+    sortBySustainability?: boolean;
+    publicOnly?: boolean;
+  }): Promise<MaterialDetailDto[]> {
+    const params = new URLSearchParams();
+    
+    if (filters?.typeId !== undefined) params.append('typeId', filters.typeId.toString());
+    if (filters?.supplierId) params.append('supplierId', filters.supplierId);
+    if (filters?.supplierName) params.append('supplierName', filters.supplierName);
+    if (filters?.materialName) params.append('materialName', filters.materialName);
+    if (filters?.productionCountry) params.append('productionCountry', filters.productionCountry);
+    if (filters?.minPrice !== undefined) params.append('minPrice', filters.minPrice.toString());
+    if (filters?.maxPrice !== undefined) params.append('maxPrice', filters.maxPrice.toString());
+    if (filters?.minQuantity !== undefined) params.append('minQuantity', filters.minQuantity.toString());
+    if (filters?.hasCertification !== undefined) params.append('hasCertification', filters.hasCertification.toString());
+    if (filters?.transportMethod) params.append('transportMethod', filters.transportMethod);
+    if (filters?.sortBySustainability !== undefined) params.append('sortBySustainability', filters.sortBySustainability.toString());
+    if (filters?.publicOnly !== undefined) params.append('publicOnly', filters.publicOnly.toString());
+    
+    const queryString = params.toString();
+    const url = queryString ? `${this.API_BASE}/filtered?${queryString}` : `${this.API_BASE}/filtered`;
+    
+    const response = await apiClient.get<any>(url);
+    const result = handleApiResponse<MaterialDetailDto[]>(response);
+    
+    return result.map((item) => {
+      try {
+        return materialDetailDtoSchema.parse(item);
+      } catch (error) {
+        console.error("Schema validation error:", error);
+        console.error("Item that failed validation:", item);
+        throw error;
+      }
+    });
+  }
+
+  // Get all materials (uses default filtering with public only and sustainability sorting)
   async getAllMaterials(): Promise<MaterialDetailDto[]> {
     return this.getAllMaterialsWithSustainability();
+  }
+
+  // Get materials by type (uses new filtered endpoint)
+  async getMaterialsByType(typeId: number): Promise<MaterialDetailDto[]> {
+    return this.getAllMaterialsWithFilters({ typeId, sortBySustainability: true, publicOnly: true });
   }
 
   // Admin: get all materials regardless of approval/availability
@@ -178,6 +227,20 @@ class MaterialService {
     return handleApiResponse(response);
   }
 
+  // Get available transport methods for a country (for selection)
+  async getAvailableTransportMethods(country: string): Promise<TransportMethodOption[]> {
+    const response = await apiClient.get<any>(`${this.API_BASE}/GetAvailableTransportMethods?country=${encodeURIComponent(country)}`);
+    const result = handleApiResponse<TransportMethodOption[]>(response);
+    return result;
+  }
+
+  // Get list of supported countries
+  async getSupportedCountries(): Promise<string[]> {
+    const response = await apiClient.get<any>(`${this.API_BASE}/GetSupportedCountries`);
+    const result = handleApiResponse<string[]>(response);
+    return result;
+  }
+
   // Get common production countries (for dropdown)
   async getProductionCountries(): Promise<string[]> {
     const response = await apiClient.get<any>(`/material/GetProductionCountries`);
@@ -196,16 +259,35 @@ class MaterialService {
     }
   }
 
-  // Get supplier's materials with approval status filter
-  async getSupplierMaterials(supplierId: string, approvalStatus?: string) {
+  // Get supplier's materials with approval status filter (includes all statuses for supplier)
+  async getSupplierMaterials(supplierId: string, approvalStatus?: string): Promise<MaterialDetailDto[]> {
     const params = new URLSearchParams();
+    params.append('supplierId', supplierId);
+    
+    // Only add approval status if it's specified and not 'all'
     if (approvalStatus && approvalStatus !== 'all') {
       params.append('approvalStatus', approvalStatus);
     }
-    params.append('supplierId', supplierId);
     
     const response = await apiClient.get<any>(`${this.API_BASE}/GetSupplierMaterials?${params}`);
-    return handleApiResponse(response);
+    const result = handleApiResponse<MaterialDetailDto[]>(response);
+    
+    return result.map((item) => {
+      try {
+        return materialDetailDtoSchema.parse(item);
+      } catch (error) {
+        console.error("Schema validation error:", error);
+        console.error("Item that failed validation:", item);
+        throw error;
+      }
+    });
+  }
+
+  // DEPRECATED: Use getAllMaterialsWithFilters instead
+  // Legacy method for backward compatibility - will be removed in future versions
+  async getAllMaterialByType(typeId: number): Promise<MaterialDetailDto[]> {
+    console.warn('getAllMaterialByType is deprecated. Use getMaterialsByType or getAllMaterialsWithFilters instead.');
+    return this.getMaterialsByType(typeId);
   }
 }
 

@@ -40,6 +40,8 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<OrderGroup> OrderGroups { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Warehouse> Warehouses { get; set; }
         public DbSet<MaterialStock> MaterialStocks { get; set; }
@@ -546,6 +548,36 @@ namespace EcoFashionBackEnd.Entities
                 .Property(od => od.Status)
                 .HasConversion<string>();
             #endregion Order
+
+            // ------------------ CART ------------------
+            modelBuilder.Entity<Cart>(entity =>
+            {
+                entity.HasKey(c => c.CartId);
+                entity.HasOne(c => c.User)
+                      .WithMany()
+                      .HasForeignKey(c => c.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(c => new { c.UserId, c.IsActive })
+                      .HasFilter("[UserId] IS NOT NULL AND [IsActive] = 1")
+                      .IsUnique();
+                entity.Property(c => c.CreatedAt);
+                entity.Property(c => c.UpdatedAt);
+            });
+
+            modelBuilder.Entity<CartItem>(entity =>
+            {
+                entity.HasKey(ci => ci.CartItemId);
+                entity.HasOne(ci => ci.Cart)
+                      .WithMany(c => c.Items)
+                      .HasForeignKey(ci => ci.CartId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Khóa logic: CartId + MaterialId để tránh trùng cùng một chất liệu trong cart
+                entity.HasIndex(ci => new { ci.CartId, ci.MaterialId })
+                      .IsUnique();
+
+                entity.Property(ci => ci.UnitPriceSnapshot).HasPrecision(18, 2);
+            });
 
             #region PaymentTransaction
             // Order ↔ User

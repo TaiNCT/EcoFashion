@@ -149,17 +149,24 @@ const MaterialDetailPage: React.FC = () => {
           // Continue without sustainability report
         }
 
-        // Fetch related materials
-        const allMaterials = await materialService.getAllMaterials();
-        const related = allMaterials
-          .filter(
-            (m) =>
-              m.materialId !== materialData.materialId &&
-              m.materialTypeName === materialData.materialTypeName &&
-              m.materialTypeName != null
-          )
-          .slice(0, 3);
-        setRelatedMaterials(related);
+        // Fetch related materials using server-side filtering for better performance
+        if (materialData.materialTypeName) {
+          try {
+            const allMaterials = await materialService.getAllMaterialsWithFilters({
+              materialName: materialData.materialTypeName,
+              sortBySustainability: true,
+              publicOnly: true
+            });
+            const related = allMaterials
+              .filter((m) => m.materialId !== materialData.materialId)
+              .slice(0, 3);
+            setRelatedMaterials(related);
+          } catch (relatedError) {
+            console.error("Error fetching related materials:", relatedError);
+            // Fallback to empty array if related materials fail
+            setRelatedMaterials([]);
+          }
+        }
       } catch (err) {
         setError("Không thể tải thông tin nguyên liệu");
         console.error("Error fetching material:", err);
@@ -217,7 +224,7 @@ const MaterialDetailPage: React.FC = () => {
     setTabIndex(newValue);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!material) return;
 
     if (!quantity || quantity <= 0) {
@@ -232,17 +239,7 @@ const MaterialDetailPage: React.FC = () => {
     }
 
     setQuantityError("");
-    addToCart({
-      id: (material.materialId || 0).toString(),
-      name: material.name || "Nguyên liệu",
-      image: material.imageUrls?.[0] || "",
-      price: (material.pricePerUnit || 0) * PRICE_MULTIPLIER,
-      quantity: quantity,
-      unit: "mét",
-      type: "material",
-      sellerId: material.supplier?.supplierId || "unknown",
-      sellerName: material.supplier?.supplierName || "Nhà cung cấp",
-    });
+    await addToCart({ materialId: material.materialId || 0, quantity });
 
     toast.success(
       `Đã thêm ${quantity} mét ${

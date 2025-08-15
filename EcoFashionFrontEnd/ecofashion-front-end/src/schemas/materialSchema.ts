@@ -168,12 +168,22 @@ export const materialDetailResponseSchema = z.object({
   sustainabilityScore: z.union([z.number(), z.string()]).transform((val) => typeof val === 'string' ? parseFloat(val) : val).optional(),
   sustainabilityLevel: nullableString(),
   sustainabilityColor: nullableString(),
+  criterionDetails: z.array(z.object({
+    criterionName: z.string(),
+    actualValue: z.union([z.number(), z.string()]).transform((val) => typeof val === 'string' ? parseFloat(val) : val),
+    benchmarkValue: z.union([z.number(), z.string()]).transform((val) => typeof val === 'string' ? parseFloat(val) : val),
+    unit: z.string(),
+    score: z.union([z.number(), z.string()]).transform((val) => typeof val === 'string' ? parseFloat(val) : val),
+    status: z.string(),
+    explanation: z.string(),
+  })).optional(),
 });
 
 // Schema cho Material Type Model (theo MaterialTypeModel từ backend)
 export const materialTypeModelSchema = z.object({
   typeId: z.number(),
   typeName: nullableString(),
+  imageUrl: nullableString(),
   description: nullableString(),
   category: nullableString(),
   isOrganic: z.boolean(),
@@ -220,12 +230,12 @@ export const materialCreationFormRequestSchema = z.object({
   supplierId: z.string().uuid({ message: 'Supplier không hợp lệ' }),
   typeId: z.number().int({ message: 'Loại vật liệu không hợp lệ' }).min(1, { message: 'Vui lòng chọn loại vật liệu' }),
 
-  name: z.string().trim().min(2, { message: 'Tên vật liệu quá ngắn' }),
+  name: z.string().trim().min(1, { message: 'Tên vật liệu không được để trống' }),
   description: nullableString(),
   recycledPercentage: z.number().min(0, { message: 'Tối thiểu 0%' }).max(100, { message: 'Tối đa 100%' }),
-  quantityAvailable: z.number().min(1, { message: 'Số lượng phải >= 1' }),
-  pricePerUnit: z.number().min(0, { message: 'Giá phải >= 0' }),
-  documentationUrl: z.union([z.string().url({ message: 'URL không hợp lệ' }), z.literal('')]).optional(),
+  quantityAvailable: z.number().min(0.001, { message: 'Số lượng phải > 0' }),
+  pricePerUnit: z.number().min(0.01, { message: 'Giá phải > 0' }),
+  documentationUrl: z.union([z.string().url({ message: 'URL không hợp lệ' }), z.literal(''), z.undefined()]).optional(),
 
   // Sustainability numeric fields (optional)
   carbonFootprint: optionalNonNegativeNumber(),
@@ -233,7 +243,7 @@ export const materialCreationFormRequestSchema = z.object({
   wasteDiverted: optionalPercentNumber(),
 
   // Production info
-  productionCountry: z.string().trim().min(1, { message: 'Vui lòng chọn quốc gia sản xuất' }),
+  productionCountry: z.string().trim().min(1, { message: 'Vui lòng chọn quốc gia sản xuất' }).optional(),
   productionRegion: nullableString(),
   manufacturingProcess: nullableString(),
 

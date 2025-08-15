@@ -85,6 +85,10 @@ public static class ServicesExtensions
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<CloudService>();
         services.AddScoped<DesignService>();
+        // Material System Services (in dependency order)
+        services.AddScoped<MaterialQueryService>();
+        services.AddScoped<MaterialEnrichmentService>();
+        services.AddScoped<MaterialBusinessService>();
         services.AddScoped<MaterialService>();
         services.AddScoped<MaterialTypeService>();
         services.AddScoped<DesignerMaterialInventoryService>();
@@ -95,6 +99,7 @@ public static class ServicesExtensions
         services.AddScoped<OrderService>();
         services.AddScoped<CheckoutService>();
         services.AddScoped<OrderDetailService>();
+        services.AddScoped<CartService>();
         services.AddScoped<NotificationService>();
         services.AddScoped<MaterialInventoryService>();
         services.AddScoped<InventoryAnalyticsService>();
