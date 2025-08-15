@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCartStore } from '../../store/cartStore';
-import { checkoutService, type CartItemDto } from '../../services/api/checkoutService';
+import { checkoutService } from '../../services/api/checkoutService';
 import { paymentsService } from '../../services/api/paymentsService';
 import { useCheckoutWizard } from '../../store/checkoutWizardStore';
 //---------
@@ -23,21 +23,7 @@ export default function CheckoutPage() {
   const [openPayment, setOpenPayment] = useState(false);
   const [preferredBank, setPreferredBank] = useState<string | undefined>(undefined);
 
-  const cartToPayload = useMemo(() => {
-    // Nếu có groupSellerId trong query, chỉ lấy items thuộc seller đó
-    const onlySellerId = searchParams.get('groupSellerId');
-    const filtered = onlySellerId ? items.filter(i => i.sellerId === onlySellerId) : items;
-    const payload: CartItemDto[] = filtered.map((i) => ({
-      itemType: i.type === 'material' ? 'material' : 'design',
-      materialId: i.type === 'material' ? Number(i.id) : undefined,
-      designId: i.type === 'design' ? Number(i.id) : undefined,
-      sellerId: i.sellerId,
-      sellerType: 'Supplier',
-      quantity: i.quantity,
-      unitPrice: i.price,
-    }));
-    return payload;
-  }, [items, searchParams]);
+  // Payload không còn cần trên FE nếu dùng create-session-from-cart
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -47,11 +33,7 @@ export default function CheckoutPage() {
       }
       try {
         setLoading(true);
-        const resp = await checkoutService.createSession({
-          items: cartToPayload,
-          shippingAddress: shipping ? `${shipping.fullName} | ${shipping.phone} | ${shipping.addressLine}` : 'Địa chỉ giao hàng',
-          holdMinutes: 30,
-        });
+        const resp = await checkoutService.createSessionFromCart();
         wizard.start(resp);
       } catch (e: any) {
         setError(e?.message || 'Không tạo được session');

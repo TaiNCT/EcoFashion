@@ -38,6 +38,10 @@ export const checkoutService = {
     const { data } = await apiClient.post<CreateSessionResponse>(`/checkout/create-session`, payload);
     return data;
   },
+  createSessionFromCart: async () => {
+    const { data } = await apiClient.post<CreateSessionResponse>(`/checkout/create-session-from-cart`, {});
+    return data;
+  },
 };
 
 

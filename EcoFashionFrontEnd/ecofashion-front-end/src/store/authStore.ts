@@ -19,6 +19,7 @@ import {
   isAuthenticated,
 } from "../utils/authUtils";
 import { clearAllAuthData } from "../utils/authUtils";
+import { useCartStore } from "./cartStore";
 
 interface AuthState {
   // State
@@ -151,6 +152,12 @@ export const useAuthStore = create<AuthState>()(
 
           // Always clear local data
           clearAllAuthData();
+          // Clear cart UI locally; server cart vẫn giữ cho lần đăng nhập sau
+          try {
+            useCartStore.getState().resetLocal();
+          } catch (e) {
+            // no-op
+          }
           set({
             user: null,
             supplierProfile: null,

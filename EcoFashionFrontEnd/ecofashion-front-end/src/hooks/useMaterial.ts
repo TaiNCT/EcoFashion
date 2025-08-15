@@ -9,10 +9,20 @@ interface UseMaterialState {
 }
 
 interface UseMaterialFilters {
-  type?: string;
+  typeId?: number;
+  type?: string; // For backward compatibility
   availability?: 'in-stock' | 'limited' | 'out-of-stock';
   sustainableOnly?: boolean;
   minRecycledPercentage?: number;
+  supplierId?: string;
+  supplierName?: string;
+  materialName?: string;
+  productionCountry?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minQuantity?: number;
+  hasCertification?: boolean;
+  transportMethod?: string;
 }
 
 export const useMaterial = (initialFilters: UseMaterialFilters = {}) => {
@@ -65,12 +75,35 @@ export const useMaterial = (initialFilters: UseMaterialFilters = {}) => {
     return result;
   }, [state.materials, filters]);
 
-  // Load materials from API
-  const loadMaterials = useCallback(async () => {
+  // Load materials from API with server-side filtering
+  const loadMaterials = useCallback(async (useServerFilters = false) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
-      // Sử dụng API để lấy materials với sustainability scores
-      const materials = await materialService.getAllMaterialsWithSustainability();
+      let materials: MaterialDetailDto[];
+      
+      if (useServerFilters && Object.keys(filters).length > 0) {
+        // Use server-side filtering for better performance
+        const serverFilters = {
+          typeId: filters.typeId,
+          supplierId: filters.supplierId,
+          supplierName: filters.supplierName,
+          materialName: filters.materialName,
+          productionCountry: filters.productionCountry,
+          minPrice: filters.minPrice,
+          maxPrice: filters.maxPrice,
+          minQuantity: filters.minQuantity,
+          hasCertification: filters.hasCertification,
+          transportMethod: filters.transportMethod,
+          sortBySustainability: true,
+          publicOnly: true
+        };
+        
+        materials = await materialService.getAllMaterialsWithFilters(serverFilters);
+      } else {
+        // Use existing method for backward compatibility
+        materials = await materialService.getAllMaterialsWithSustainability();
+      }
+      
       setState(prev => ({ 
         ...prev, 
         materials, 
@@ -86,7 +119,7 @@ export const useMaterial = (initialFilters: UseMaterialFilters = {}) => {
         loading: false 
       }));
     }
-  }, []);
+  }, [filters]);
 
   // Load materials on mount with delay
   useEffect(() => {
@@ -139,6 +172,33 @@ export const useMaterial = (initialFilters: UseMaterialFilters = {}) => {
     return filteredMaterials.filter((material) => material.quantityAvailable > 0);
   }, [filteredMaterials]);
 
+  // Load materials with server-side filtering (for better performance)
+  const loadMaterialsWithServerFilters = useCallback(async () => {
+    return loadMaterials(true);
+  }, [loadMaterials]);
+
+  // Get materials by type using server-side filtering
+  const getMaterialsByType = useCallback(async (typeId: number) => {
+    setState(prev => ({ ...prev, loading: true, error: null }));
+    try {
+      const materials = await materialService.getMaterialsByType(typeId);
+      setState(prev => ({ 
+        ...prev, 
+        materials, 
+        loading: false 
+      }));
+      return materials;
+    } catch (error: any) {
+      const errorMessage = error.message || 'Unknown error occurred';
+      setState(prev => ({ 
+        ...prev, 
+        error: `Failed to load materials by type: ${errorMessage}`,
+        loading: false 
+      }));
+      throw error;
+    }
+  }, []);
+
   return {
     // State
     materials: state.materials,
@@ -149,9 +209,11 @@ export const useMaterial = (initialFilters: UseMaterialFilters = {}) => {
 
     // Actions
     loadMaterials,
+    loadMaterialsWithServerFilters,
     updateFilters,
     resetFilters,
     getMaterialDetail,
+    getMaterialsByType,
 
     // Helper methods
     getOrganicMaterials,

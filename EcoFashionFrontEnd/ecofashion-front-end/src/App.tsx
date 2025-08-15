@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
 import Navigation from "./components/Navigation";
@@ -54,11 +54,23 @@ import CheckoutResultPage from "./pages/checkout/result";
 import OrdersPage from "./pages/shop/OrdersPage";
 import OrdersDetails from "./components/orders/OrdersDetails";
 import OrdersList from "./components/orders/OrdersList";
+import { useAuthStore } from "./store/authStore";
+import { useCartStore } from "./store/cartStore";
 
 //import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   const location = useLocation();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const syncCart = useCartStore((s) => s.syncFromServer);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Đồng bộ giỏ hàng từ server ngay khi người dùng đã đăng nhập
+      syncCart().catch((err) => console.warn("Sync cart failed:", err));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // Hide layout for dashboard pages
   const hideLayout =

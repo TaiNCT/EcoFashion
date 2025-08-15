@@ -12,7 +12,6 @@ import {
   Button,
   SwipeableDrawer,
   styled,
-  Drawer,
   Avatar,
   AppBar,
   Breadcrumbs,
@@ -29,7 +28,6 @@ import {
 } from "@mui/material";
 import "./MaterialCard.css";
 import {
-  FavoriteBorderOutlined,
   LocalShipping,
   Recycling,
   Star,
@@ -61,12 +59,28 @@ const CertificationDetails = ({ certificationDetails }: { certificationDetails: 
   
   const getCertificationLink = (cert: string) => {
     const certMap: { [key: string]: string } = {
+      // Tier 1: Comprehensive sustainability standards
       'GOTS': 'https://global-standard.org/',
-      'OEKO-TEX': 'https://www.oeko-tex.com/',
-      'GRS': 'https://textileexchange.org/standards/grs/',
-      'RWS': 'https://textileexchange.org/standards/rws/',
+      'Cradle to Cradle': 'https://www.c2ccertified.org/',
       'USDA': 'https://www.usda.gov/topics/organic',
+      'USDA Organic': 'https://www.usda.gov/topics/organic',
+      'BLUESIGN': 'https://www.bluesign.com/',
+      
+      // Tier 2: High-value specialized standards
+      'OCS': 'https://textileexchange.org/standards/organic-content-standard/',
       'EU Ecolabel': 'https://ec.europa.eu/environment/ecolabel/',
+      'Fairtrade': 'https://www.fairtrade.net/',
+      'BCI': 'https://bettercotton.org/',
+      'Better Cotton': 'https://bettercotton.org/',
+      'OEKO-TEX': 'https://www.oeko-tex.com/',
+      'RWS': 'https://textileexchange.org/standards/rws/',
+      'ECO PASSPORT': 'https://www.oeko-tex.com/en/our-standards/eco-passport',
+      
+      // Tier 3: Material-specific recycling standards
+      'GRS': 'https://textileexchange.org/standards/grs/',
+      'RCS': 'https://textileexchange.org/standards/recycled-claim-standard/',
+      
+      // Legacy mappings
       'Soil Association': 'https://www.soilassociation.org/'
     };
     
@@ -184,13 +198,21 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
 
   const fetchRelatedMaterials = async () => {
     try {
-      const allMaterials = await materialService.getAllMaterials();
-      const related = allMaterials
-        .filter(m => m.materialId !== material.materialId && m.materialTypeName === material.materialTypeName)
-        .slice(0, 3);
-      setRelatedMaterials(related);
+      // Use server-side filtering for better performance
+      if (material.materialTypeName) {
+        const allMaterials = await materialService.getAllMaterialsWithFilters({
+          materialName: material.materialTypeName,
+          sortBySustainability: true,
+          publicOnly: true
+        });
+        const related = allMaterials
+          .filter(m => m.materialId !== material.materialId)
+          .slice(0, 3);
+        setRelatedMaterials(related);
+      }
     } catch (error) {
       console.error("Error fetching related materials:", error);
+      setRelatedMaterials([]); // Fallback to empty array
     }
   };
 
@@ -213,7 +235,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
   };
 
   // Handle add to cart
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!quantity || quantity <= 0) {
       setQuantityError("Vui lòng nhập số lượng hợp lệ!");
       return;
@@ -222,21 +244,9 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
       setQuantityError(`Chỉ còn ${material.quantityAvailable} mét có sẵn!`);
       return;
     }
-    
+
     setQuantityError("");
-    addToCart({
-      id: (material.materialId || 0).toString(),
-      name: material.name,
-      image: material.imageUrls?.[0] || "/assets/default-material.jpg",
-      price: material.pricePerUnit * 1000,
-      quantity: quantity,
-      unit: "mét",
-      type: "material",
-      sellerId: String(material.supplier?.supplierId ?? ""),
-      sellerName: material.supplier?.supplierName
-    });
-    
-    // Show success message
+    await addToCart({ materialId: material.materialId || 0, quantity });
     toast.success(`Đã thêm ${quantity} mét ${material.name} vào giỏ hàng!`);
   };
 
@@ -311,7 +321,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
             }}
             onClick={handleToggleFavorite}
           >
-            <FavoriteBorderOutlined 
+            <FavoriteBorder 
               sx={{
                 color: isFavorite ? "#f44336" : grey[600],
               }}
