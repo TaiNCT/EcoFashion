@@ -1,31 +1,15 @@
 // Designer service - specialized for designer operations
 import {
+  CreateDesignDraftFormValues,
+  CreateDesignDraftModelResponse,
+} from "../../schemas/createDesignDraftTesting";
+import {
   CreateDesignFormValues,
   CreateDesignModelResponse,
   createDesignModelResponseSchema,
 } from "../../schemas/designSchema";
 import { apiClient, handleApiResponse, handleApiError } from "./baseApi";
 import type { BaseApiResponse } from "./baseApi";
-
-// export interface DesignTypes {
-//     type_id: string;
-//     name: string;
-// }
-
-// Types for designer operations
-// export interface Design {
-//   designId: number;
-//   designerId: string;
-//   name?: string  ;
-//   description?: string;
-//   recycledPercentage: number ;
-//   careInstructions?: string ;
-//   price: number;
-//   productScore: number;
-//   status?: string;
-//   createdAt: string;
-//   designTypeId?: number;
-// }
 
 export interface SustainabilityCriterion {
   criterionId: number;
@@ -42,7 +26,7 @@ export interface Material {
   materialName: string;
   materialTypeName: string;
   sustainabilityCriteria: SustainabilityCriterion[];
-  materialDescription: string;
+  description: string;
   sustainabilityScore: number;
   carbonFootprint: number;
   carbonFootprintUnit: string;
@@ -50,7 +34,10 @@ export interface Material {
   waterUsageUnit: string;
   wasteDiverted: number;
   wasteDivertedUnit: string;
-  certificationDetails: string;
+  certificates: string;
+  supplierName: string;
+  pricePerUnit: number;
+  createdAt: string;
 }
 
 export interface TypeMaterial {
@@ -74,12 +61,35 @@ export interface TypeMaterial {
   certificationDetails: string;
 }
 
+export interface MaterialInStored {
+  materialId: number;
+  persentageUsed: number;
+  meterUsed: number;
+  name: string;
+  materialTypeName: string;
+  sustainabilityCriteria: SustainabilityCriterion[];
+  materialDescription: string;
+  sustainabilityScore: number;
+  carbonFootprint: number;
+  carbonFootprintUnit: string;
+  waterUsage: number;
+  waterUsageUnit: string;
+  wasteDiverted: number;
+  wasteDivertedUnit: string;
+  certificationDetails: string;
+  supplierName: string;
+  pricePerUnit: number;
+  createdAt: string;
+}
+
 export interface StoredMaterial {
   inventoryId: number;
   designerId: number;
-  material: Material;
+  material: MaterialInStored;
   materialId: number;
   quantity: number;
+  cost: number;
+  lastBuyDate: string;
 }
 
 export interface Designer {
@@ -93,11 +103,12 @@ export interface Designer {
   rating: number | null;
   reviewCount: number | null;
   certificates: string; // or string[] if you parse JSON
+  createAt: string;
 }
 
 export interface DesignType {
-  designTypeId: number;
-  designName: string;
+  itemTypeId: number;
+  typeName: string;
 }
 
 export interface MaterialType {
@@ -111,28 +122,65 @@ export interface Feature {
   durable?: boolean;
   ethicallyManufactured?: boolean;
 }
+
+export interface DesignsVariants {
+  id: number;
+  designId: number;
+}
+
 export interface Design {
   designId: number;
-  designerId: string;
   name: string;
-  description: string;
   recycledPercentage: number;
-  careInstructions: string;
+  itemTypeName: string;
   salePrice: number;
-  productScore: number;
-  status: string;
-  createdAt: string;
-  // designTypeId?: number;
-  designTypeName: string;
-  // designType: DesignType;
-  imageUrls: string[];
-  feature?: Feature | null; // Define type if you know the structure
-  variants: any[]; // Define type if needed
+  designImageUrls: string[];
+  drafSketches: string[];
   materials: Material[];
-  avgRating: number | null;
-  reviewCount: number;
+  productCount: number;
   designer: Designer;
-  stage: string;
+  createAt: string;
+  designsVariants: DesignsVariants[];
+}
+
+export interface Products {
+  productId: number;
+  sku: string;
+  price: number;
+  colorCode: string;
+  sizeId: number;
+  quantityAvailable: number;
+  sizeName: string;
+}
+
+export interface DesignDetails {
+  designId: number;
+  name: string;
+  recycledPercentage: number;
+  itemTypeName: string;
+  salePrice: number;
+  designImages: string[];
+  materials: Material[];
+  productCount: number;
+  designer: Designer;
+  createAt: string;
+  description: string;
+  feature: Feature;
+  careInstruction: string;
+  carbonFootprint: number;
+  waterUsage: number;
+  wasteDiverted: number;
+  products: Products[];
+}
+
+export interface FullProductDetail {
+  productId: number;
+  sku: string;
+  price: number;
+  colorCode: string;
+  sizeId: number;
+  sizeName: string;
+  quantityAvailable: number;
 }
 
 export interface DesignResponse {
@@ -159,6 +207,26 @@ export const designFieldMapping = {
   imageFiles: "ImageFiles", // multi-file upload
 };
 
+export const designDraftFieldMapping = {
+  name: "Name",
+  description: "Description",
+  recycledPercentage: "RecycledPercentage",
+  designTypeId: "DesignTypeId",
+
+  unitPrice: "UnitPrice",
+  salePrice: "SalePrice",
+  laborHours: "LaborHours",
+  laborCostPerHour: "LaborCostPerHour",
+
+  draftPartsJson: "DraftPartsJson",
+  materialsJson: "MaterialsJson",
+
+  totalCarbon: "TotalCarbon",
+  totalWater: "TotalWater",
+  totalWaste: "TotalWaste",
+
+  sketchImages: "SketchImages", // multi-file upload
+};
 /**
  * Design Service
  * Handles all designer-related API calls
@@ -172,7 +240,7 @@ export class DesignService {
   static async getAllDesign(): Promise<Design[]> {
     try {
       const response = await apiClient.get<BaseApiResponse<Design[]>>(
-        `/${this.API_BASE}/GetAll`
+        `/${this.API_BASE}/designs-with-products`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -186,7 +254,7 @@ export class DesignService {
   static async getAllDesignByDesigner(designerId: string): Promise<Design[]> {
     try {
       const response = await apiClient.get<BaseApiResponse<Design[]>>(
-        `/${this.API_BASE}/Designs-by-designer/${designerId}`
+        `/${this.API_BASE}/design-variant/${designerId}`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -198,12 +266,12 @@ export class DesignService {
    * Get all design with pagination
    */
   static async getAllDesignPagination(
-    page: number = 1,
-    pageSize: number = 12
+    page: number,
+    pageSize: number
   ): Promise<Design[]> {
     try {
       const response = await apiClient.get<BaseApiResponse<Design[]>>(
-        `/${this.API_BASE}/GetAllPagination?page=${page}&pageSize=${pageSize}`
+        `/${this.API_BASE}/GetDesignsWithProductsPagination?page=${page}&pageSize=${pageSize}`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -229,13 +297,16 @@ export class DesignService {
   /**
    * Get designer profile by designer ID
    */
-  static async getDesignDetailById(id: number): Promise<Design> {
+  static async getDesignDetailById(
+    id: number,
+    designerId: string
+  ): Promise<DesignDetails> {
     try {
       //   const response = await apiClient.get<BaseApiResponse<DesignerResponse>>(
       //     `/${this.API_BASE}/Detail/${designId}`
       //   );
-      const response = await apiClient.get<BaseApiResponse<Design>>(
-        `/${this.API_BASE}/Detail/${id}`
+      const response = await apiClient.get<BaseApiResponse<DesignDetails>>(
+        `/${this.API_BASE}/${id}/designer/${designerId}`
       );
       return handleApiResponse(response);
     } catch (error) {
@@ -398,6 +469,152 @@ export class DesignService {
       const response = await apiClient.get<BaseApiResponse<TypeMaterial[]>>(
         `/Material/GetAllMaterialByType/${id}`
       );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Helper method to create FormData for file upload
+   */
+  private static createDraftFormData(
+    request: CreateDesignDraftFormValues
+  ): FormData {
+    const formData = new FormData();
+
+    // Text/number fields
+    if (request.name)
+      formData.append(designDraftFieldMapping.name, request.name);
+    if (request.description)
+      formData.append(designDraftFieldMapping.description, request.description);
+    if (
+      request.recycledPercentage !== undefined &&
+      request.recycledPercentage !== null
+    )
+      formData.append(
+        designDraftFieldMapping.recycledPercentage,
+        request.recycledPercentage.toString()
+      );
+    if (request.designTypeId)
+      formData.append(
+        designDraftFieldMapping.designTypeId,
+        request.designTypeId.toString()
+      );
+
+    if (request.unitPrice !== undefined && request.unitPrice !== null)
+      formData.append(
+        designDraftFieldMapping.unitPrice,
+        request.unitPrice.toString()
+      );
+    if (request.salePrice !== undefined && request.salePrice !== null)
+      formData.append(
+        designDraftFieldMapping.salePrice,
+        request.salePrice.toString()
+      );
+    if (request.laborHours !== undefined && request.laborHours !== null)
+      formData.append(
+        designDraftFieldMapping.laborHours,
+        request.laborHours.toString()
+      );
+    if (
+      request.laborCostPerHour !== undefined &&
+      request.laborCostPerHour !== null
+    )
+      formData.append(
+        designDraftFieldMapping.laborCostPerHour,
+        request.laborCostPerHour.toString()
+      );
+
+    if (request.draftPartsJson)
+      formData.append(
+        designDraftFieldMapping.draftPartsJson,
+        request.draftPartsJson
+      );
+
+    if (request.materialsJson)
+      formData.append(
+        designDraftFieldMapping.materialsJson,
+        JSON.stringify(request.materialsJson)
+      );
+
+    if (request.totalCarbon !== undefined && request.totalCarbon !== null)
+      formData.append(
+        designDraftFieldMapping.totalCarbon,
+        request.totalCarbon.toString()
+      );
+    if (request.totalWater !== undefined && request.totalWater !== null)
+      formData.append(
+        designDraftFieldMapping.totalWater,
+        request.totalWater.toString()
+      );
+    if (request.totalWaste !== undefined && request.totalWaste !== null)
+      formData.append(
+        designDraftFieldMapping.totalWaste,
+        request.totalWaste.toString()
+      );
+
+    // Sketch images (multi-file)
+    if (request.sketchImages && request.sketchImages.length > 0) {
+      request.sketchImages.forEach((file: File) => {
+        formData.append(designDraftFieldMapping.sketchImages, file);
+      });
+    }
+
+    return formData;
+  }
+  /**
+   * Create Design Draft
+   */
+  static async createDesignDraft(
+    request: CreateDesignDraftFormValues
+  ): Promise<CreateDesignDraftModelResponse> {
+    const formData = this.createDraftFormData(request);
+
+    try {
+      const response = await apiClient.post<any>(
+        `/DesignDraft/create-draft`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          timeout: 300000, // 5 minutes for file upload
+        }
+      );
+      // const result = handleApiResponse<CreateDesignModelResponse>(response);
+      // return createDesignModelResponseSchema.parse(result);
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Get all design that have product
+   */
+  static async getAllDesignProuct(designerId: string): Promise<Design[]> {
+    try {
+      const response = await apiClient.get<BaseApiResponse<Design[]>>(
+        `/${this.API_BASE}/designs-with-products/${designerId}`
+      );
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Get all design with product detail
+   */
+  static async getDesignProductDetailsAsync(
+    id: number,
+    desingerId: string
+  ): Promise<FullProductDetail[]> {
+    try {
+      const response = await apiClient.get<
+        BaseApiResponse<FullProductDetail[]>
+      >(`/${this.API_BASE}/designProductDetails/${id}/${desingerId}`);
       return handleApiResponse(response);
     } catch (error) {
       return handleApiError(error);

@@ -29,8 +29,6 @@ import AddMaterial from "./pages/supplier/AddMaterial";
 import CustomerProfile from "./pages/customer/CustomerProfile";
 import Explore from "./pages/explore/Explore";
 import AddDesignDraft from "./pages/design/AddDesignDraft";
-//test
-import TestingCreate from "./pages/design/testingCreate";
 
 import ExploreDesigners from "./pages/explore/ExploreDesigners";
 import ExploreSuppliers from "./pages/explore/ExploreSuppliers";
@@ -54,9 +52,13 @@ import CheckoutResultPage from "./pages/checkout/result";
 import OrdersPage from "./pages/shop/OrdersPage";
 import OrdersDetails from "./components/orders/OrdersDetails";
 import OrdersList from "./components/orders/OrdersList";
+<<<<<<< HEAD
 import { useAuthStore } from "./store/authStore";
 import { useCartStore } from "./store/cartStore";
 
+=======
+import CountryCitySelect from "./pages/design/tesitng";
+>>>>>>> 68bce53b45dbbdcb18a6cb982d74d5917d4f007d
 //import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -100,28 +102,27 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/cart" element={<Cart />} />
 
-        
-         {/* ===== CHECKOUT and ORDERS ROUTES ===== */}
-<Route
-  path="/checkout"
-  element={
-    <ProtectedRoute allowedRoles={['customer','supplier','designer']}>
-      <CheckoutPage />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/checkout/result"
-  element={
-    <ProtectedRoute allowedRoles={['customer','supplier','designer']}>
-      <CheckoutResultPage />
-    </ProtectedRoute>
-  }
-/>
+        {/* ===== CHECKOUT and ORDERS ROUTES ===== */}
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute allowedRoles={["customer", "supplier", "designer"]}>
+              <CheckoutPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout/result"
+          element={
+            <ProtectedRoute allowedRoles={["customer", "supplier", "designer"]}>
+              <CheckoutResultPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/orders"
           element={
-            <ProtectedRoute allowedRoles={['customer','supplier','designer']}>
+            <ProtectedRoute allowedRoles={["customer", "supplier", "designer"]}>
               <OrdersPage />
             </ProtectedRoute>
           }
@@ -135,7 +136,7 @@ function App() {
 
         {/* ===== DESIGN and MATERIAL ROUTES ===== */}
         <Route path="/fashion" element={<FashionList />} />
-        <Route path="/detail/:id" element={<DesignDetail />} />
+        <Route path="/detail/:id/:designerId" element={<DesignDetail />} />
         <Route path="/brand/:id" element={<DesingBrandProfile />} />
         <Route path="/material/:id" element={<MaterialDetailPage />} />
 
@@ -201,14 +202,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/designer/dashboard/testing"
           element={
             <ProtectedRoute allowedRoles={["designer"]}>
               <TestingCreate />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/designer/detailed-profile"
           element={

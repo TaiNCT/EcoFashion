@@ -126,7 +126,7 @@ namespace EcoFashionBackEnd.Services
                         {
                             DesignerName = inventorie.Designer.DesignerName,
                         },
-
+                        LastBuyDate = inventorie.LastBuyDate,
                         Material = new DesginerStoredMaterialsDto
                         {
                             MaterialId = inventorie.Material.MaterialId,
