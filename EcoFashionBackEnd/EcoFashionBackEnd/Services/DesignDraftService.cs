@@ -3,6 +3,7 @@ using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Common.Payloads.Requests.DessignDraft;
 using EcoFashionBackEnd.Common.Payloads.Responses;
+using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Dtos.DesignDraft;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
@@ -217,6 +218,7 @@ namespace EcoFashionBackEnd.Services
                 .AsNoTracking()
                 .Where(d => d.DesignId == designId && d.DesignerId == designerId)
                 .Include(d => d.DraftParts)
+                .Include(d =>d.DesignFeatures)
                 .Include(d => d.DesignsMaterials)
                     .ThenInclude(dm => dm.Materials)
                 .Include(d => d.DraftSketches)
@@ -244,7 +246,13 @@ namespace EcoFashionBackEnd.Services
                     Quantity = p.Quantity,
                     MaterialId = p.MaterialId,
                 }).ToList(),
-
+                DesignFeature = new DesignFeatureModel
+                {
+                    ReduceWaste = design.DesignFeatures?.ReduceWaste ?? false,
+                    LowImpactDyes = design.DesignFeatures?.LowImpactDyes ?? false,
+                    Durable = design.DesignFeatures?.Durable ?? false,
+                    EthicallyManufactured = design.DesignFeatures?.EthicallyManufactured ?? false
+                },
                 Materials = design.DesignsMaterials.Select(m => new DesignMaterialDto
                 {
                     MaterialId = m.MaterialId,
