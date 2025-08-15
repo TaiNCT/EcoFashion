@@ -172,6 +172,33 @@ public class DesignController : ControllerBase
             return StatusCode(500, ApiResult<List<ProductDto>>.Fail(ex.Message));
         }
     }
+    [HttpPut("update-basic-info")]
+    public async Task<IActionResult> UpdateProductBasicInfo([FromForm] UpdateProductDto input)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return Unauthorized(ApiResult<bool>.Fail("Không thể xác định người dùng."));
+        }
+
+        var designerId = await _designerService.GetDesignerIdByUserId(userId);
+        if (designerId == Guid.Empty)
+        {
+            return BadRequest(ApiResult<bool>.Fail("Không tìm thấy Designer tương ứng."));
+        }
+
+        var success = await _designService.UpdateProductBasicInfoAsync(input, (Guid)designerId);
+
+        if (!success)
+        {
+            return BadRequest(ApiResult<object>.Fail("Cập nhật thất bại. Thiết kế không tồn tại hoặc bạn không có quyền."));
+        }
+
+        return Ok(ApiResult<object>.Succeed("Cập nhật thành công."));
+    }
+
+
+
 
     //[HttpGet("GetAll")]
     //public async Task<IActionResult> GetAllDesigns()

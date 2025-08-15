@@ -367,12 +367,12 @@ namespace EcoFashionBackEnd.Services
             return warehouse.WarehouseId;
         }
 
-        public async Task<bool> UpdateProductBasicInfoAsync(UpdateProductDto request)
+        public async Task<bool> UpdateProductBasicInfoAsync(UpdateProductDto request, Guid designerId)
         {
             // Tìm sản phẩm dựa trên ID
             var design = await _designRepository
                 .GetAll()
-                .Where(d => d.DesignId == request.DesignId)
+                .Where(d => d.DesignId == request.DesignId&&d.DesignerId ==designerId)
                 .Include(d => d.DesignFeatures)
                 .Include(d => d.DesignImages)
                 .FirstOrDefaultAsync();
