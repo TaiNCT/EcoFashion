@@ -51,7 +51,7 @@ namespace EcoFashionBackEnd.Services
         #endregion
         public async Task<List<DesignWithProductInfoDto>> GetDesignsWithProductsAsync()
         {
-            return await _designRepository.GetAll()
+            return await _designRepository.GetAll().AsNoTracking()
                 .Where(d => d.Products.Any()) // Only designs with products
                 .Select(d => new DesignWithProductInfoDto
                 {
@@ -78,7 +78,7 @@ namespace EcoFashionBackEnd.Services
 
         public async Task<List<DesignSummaryDto>> GetDesignsWithProductsByDesignerAsync(Guid designerId)
         {
-            var designs = await _designRepository.GetAll()
+            var designs = await _designRepository.GetAll().AsNoTracking()
                 .Where(d => d.DesignerId == designerId && d.Products.Any())
                 .Include(d => d.DesignImages)
                 .Include(d => d.DesignsMaterials).ThenInclude(dm => dm.Materials)
@@ -107,7 +107,7 @@ namespace EcoFashionBackEnd.Services
         {
             var productWarehouseId = await GetDefaultProductWarehouseIdForDesigner(designerId);
 
-            var designDetailDto = await _designRepository.GetAll()
+            var designDetailDto = await _designRepository.GetAll().AsNoTracking()
                 .Where(d => d.DesignId == designId && d.DesignerId == designerId)
                 .Select(d => new DesignDetailDto
                 {
@@ -302,7 +302,7 @@ namespace EcoFashionBackEnd.Services
         public async Task<List<DesignWithProductInfoDto>> GetDesignsWithProductsAndDesignerIdAsync(Guid designerId)
         {
             var productWarehouseId = await GetDefaultProductWarehouseIdForDesigner(designerId);
-            return await _designRepository.GetAll()
+            return await _designRepository.GetAll().AsNoTracking()
                 .Where(d => d.Products.Any()) // Only designs with products
                 .Where(d => d.DesignerId == designerId)
                 .Select(d => new DesignWithProductInfoDto
@@ -333,7 +333,7 @@ namespace EcoFashionBackEnd.Services
         {
             var productWarehouseId = await GetDefaultProductWarehouseIdForDesigner(designerId);
 
-            var products = await _designRepository.GetAll()
+            var products = await _designRepository.GetAll().AsNoTracking()
                 .Where(d => d.DesignId == designId && d.DesignerId == designerId)
                 .SelectMany(d => d.Products.Select(p => new ProductDto
                 {

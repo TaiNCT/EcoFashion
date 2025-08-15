@@ -166,7 +166,7 @@ public class DesignDraftController : ControllerBase
         if (!success)
         {
            
-            return BadRequest(ApiResult<object>.Fail("Xóa thất bại. Thiết kế không tồn tại, bạn không có quyền, hoặc đã có sản phẩm liên kết."));
+            return BadRequest(ApiResult<object>.Fail(" Đã có sản phẩm liên kết."));
         }
 
         return Ok(ApiResult<object>.Succeed("Xóa thiết kế thành công."));
