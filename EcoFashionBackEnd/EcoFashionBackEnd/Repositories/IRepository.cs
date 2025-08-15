@@ -17,7 +17,8 @@ public interface IRepository<TEntity, in TKey>
     Task<int> Commit();
     Task<int> CountAsync();
     Task<decimal> SumAsync(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, decimal>> selector);
-
+    void Remove(TEntity entity);
+    Task RemoveAsync(TKey id);
 
 
 

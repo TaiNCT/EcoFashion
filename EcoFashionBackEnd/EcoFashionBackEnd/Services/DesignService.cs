@@ -10,6 +10,7 @@ namespace EcoFashionBackEnd.Services
 {
     public class DesignService
     {
+        #region injection
         private readonly IRepository<Design, int> _designRepository;
         private readonly IRepository<DesignFeature, int> _designsFeatureRepository;
         private readonly IRepository<DesignsVariant, int> _designsVarientRepository;
@@ -47,7 +48,7 @@ namespace EcoFashionBackEnd.Services
             _mapper = mapper;
             _cloudService = cloudService;
         }
-
+        #endregion
         public async Task<List<DesignWithProductInfoDto>> GetDesignsWithProductsAsync()
         {
             return await _designRepository.GetAll()
@@ -100,6 +101,7 @@ namespace EcoFashionBackEnd.Services
 
             return designs;
         }
+
 
         public async Task<DesignDetailDto> GetDesignDetailWithProductsAsync(int designId, Guid designerId)
         {
@@ -172,18 +174,6 @@ namespace EcoFashionBackEnd.Services
         }
 
 
-        public async Task<int> GetDefaultProductWarehouseIdForDesigner(Guid designerId)
-        {
-            var warehouse = await _warehouseRepository.GetAll()
-                .FirstOrDefaultAsync(w => w.DesignerId == designerId && w.WarehouseType == "Product");
-
-            if (warehouse == null)
-                throw new Exception("Không tìm thấy kho sản phẩm (Product) mặc định cho designer.");
-
-            return warehouse.WarehouseId;
-        }
-
-
         public async Task<List<DesignWithProductInfoDto>> GetDesignsWithProductsPaginationAsync(int page, int pageSize)
         {
             var designs = await _dbContext.Designs
@@ -222,6 +212,7 @@ namespace EcoFashionBackEnd.Services
 
             return designs;
         }
+
 
         public async Task<List<DesignWithProductInfoDto>> GetDesignsWithDesignerPaginationAsync(Guid designerId, int page, int pageSize)
         {
@@ -262,6 +253,8 @@ namespace EcoFashionBackEnd.Services
 
             return designs;
         }
+
+
         public async Task<List<DesignSummaryDto>> GetDesignsWithoutProductsByDesignerIdAsync(Guid designerId)
         {
             return await _designRepository.GetAll()
@@ -304,6 +297,8 @@ namespace EcoFashionBackEnd.Services
                 })
                 .ToListAsync();
         }
+
+
         public async Task<List<DesignWithProductInfoDto>> GetDesignsWithProductsAndDesignerIdAsync(Guid designerId)
         {
             var productWarehouseId = await GetDefaultProductWarehouseIdForDesigner(designerId);
@@ -333,6 +328,7 @@ namespace EcoFashionBackEnd.Services
                 .ToListAsync();
         }
 
+
         public async Task<List<ProductDto>> GetProductsByDesignAsync(int designId, Guid designerId)
         {
             var productWarehouseId = await GetDefaultProductWarehouseIdForDesigner(designerId);
@@ -359,6 +355,87 @@ namespace EcoFashionBackEnd.Services
 
             return products;
         }
+
+        public async Task<int> GetDefaultProductWarehouseIdForDesigner(Guid designerId)
+        {
+            var warehouse = await _warehouseRepository.GetAll()
+                .FirstOrDefaultAsync(w => w.DesignerId == designerId && w.WarehouseType == "Product");
+
+            if (warehouse == null)
+                throw new Exception("Không tìm thấy kho sản phẩm (Product) mặc định cho designer.");
+
+            return warehouse.WarehouseId;
+        }
+
+        public async Task<bool> UpdateProductBasicInfoAsync(UpdateProductDto request)
+        {
+            // Tìm sản phẩm dựa trên ID
+            var design = await _designRepository
+                .GetAll()
+                .Where(d => d.DesignId == request.DesignId)
+                .Include(d => d.DesignFeatures)
+                .Include(d => d.DesignImages)
+                .FirstOrDefaultAsync();
+
+            if (design == null)
+            {
+                return false; // Sản phẩm không tồn tại
+            }
+
+            // Cập nhật thông tin cơ bản
+            design.Name = request.Name;
+            design.Description = request.Description;
+            design.CareInstruction = request.CareInstruction;
+
+            // Cập nhật DesignFeatures
+            // Giả định DesignFeatures là một đối tượng duy nhất
+            if (design.DesignFeatures == null)
+            {
+                design.DesignFeatures = new DesignFeature
+                {
+                    DesignId = request.DesignId,
+                    ReduceWaste = request.DesignFeatures.ReduceWaste,
+                    LowImpactDyes = request.DesignFeatures.LowImpactDyes,
+                    Durable = request.DesignFeatures.Durable,
+                    EthicallyManufactured = request.DesignFeatures.EthicallyManufactured
+                };
+            }
+            else
+            {
+                design.DesignFeatures.ReduceWaste = request.DesignFeatures.ReduceWaste;
+                design.DesignFeatures.LowImpactDyes = request.DesignFeatures.LowImpactDyes;
+                design.DesignFeatures.Durable = request.DesignFeatures.Durable;
+                design.DesignFeatures.EthicallyManufactured = request.DesignFeatures.EthicallyManufactured;
+            }
+
+            if (request.DesignImages != null && request.DesignImages.Any())
+            {
+                var oldImages = _designImageRepository.GetAll().Where(s => s.DesignId == request.DesignId);
+                _designImageRepository.RemoveRange(oldImages);
+                await _designImageRepository.Commit();
+
+                var uploadResults = await _cloudService.UploadImagesAsync(request.DesignImages);
+                var newImages = uploadResults
+                    .Where(u => !string.IsNullOrWhiteSpace(u?.SecureUrl?.ToString()))
+                    .Select(u => new DesignImage
+                    {
+                        DesignId = request.DesignId,
+                        Image = new Image { ImageUrl = u.SecureUrl.ToString() }
+                    }).ToList();
+
+                if (newImages.Any())
+                {
+                    await _designImageRepository.AddRangeAsync(newImages);
+                    await _designImageRepository.Commit();
+                }
+            }
+
+            // Lưu thay đổi vào cơ sở dữ liệu
+            _designRepository.Update(design);
+            return true;
+        }
+
+
 
         //public async Task<DesignDetailDto?> GetDesignDetailById(int id)
         //{
