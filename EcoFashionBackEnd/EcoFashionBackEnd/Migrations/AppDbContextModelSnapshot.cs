@@ -469,8 +469,8 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<int>("MaterialId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Quantity")
-                        .HasColumnType("int");
+                    b.Property<decimal?>("Quantity")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
@@ -787,11 +787,11 @@ namespace EcoFashionBackEnd.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PerformedByUserId")
+                    b.Property<int?>("PerformedByUserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("QuantityChanged")
-                        .HasColumnType("int");
+                    b.Property<decimal>("QuantityChanged")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
@@ -803,8 +803,6 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasKey("TransactionId");
 
                     b.HasIndex("InventoryId");
-
-                    b.HasIndex("PerformedByUserId");
 
                     b.ToTable("MaterialInventoryTransactions");
                 });
@@ -1382,7 +1380,7 @@ namespace EcoFashionBackEnd.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("PerformedByUserId")
+                    b.Property<int?>("PerformedByUserId")
                         .HasColumnType("int");
 
                     b.Property<int>("QuantityChanged")
@@ -2070,15 +2068,7 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EcoFashionBackEnd.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("PerformedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("MaterialInventory");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialStock", b =>
@@ -2311,8 +2301,7 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasOne("EcoFashionBackEnd.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("PerformedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ProductInventory");
 

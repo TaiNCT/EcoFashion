@@ -815,7 +815,7 @@ namespace EcoFashionBackEnd.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     WarehouseId = table.Column<int>(type: "int", nullable: false),
                     MaterialId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: true),
+                    Quantity = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Cost = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     LastBuyDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -1134,8 +1134,8 @@ namespace EcoFashionBackEnd.Migrations
                     TransactionId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     InventoryId = table.Column<int>(type: "int", nullable: false),
-                    PerformedByUserId = table.Column<int>(type: "int", nullable: false),
-                    QuantityChanged = table.Column<int>(type: "int", nullable: false),
+                    PerformedByUserId = table.Column<int>(type: "int", nullable: true),
+                    QuantityChanged = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     BeforeQty = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     AfterQty = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     TransactionType = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -1150,12 +1150,6 @@ namespace EcoFashionBackEnd.Migrations
                         column: x => x.InventoryId,
                         principalTable: "DesignerMaterialInventories",
                         principalColumn: "InventoryId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MaterialInventoryTransactions_Users_PerformedByUserId",
-                        column: x => x.PerformedByUserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -1229,7 +1223,7 @@ namespace EcoFashionBackEnd.Migrations
                     TransactionId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     InventoryId = table.Column<int>(type: "int", nullable: false),
-                    PerformedByUserId = table.Column<int>(type: "int", nullable: false),
+                    PerformedByUserId = table.Column<int>(type: "int", nullable: true),
                     QuantityChanged = table.Column<int>(type: "int", nullable: false),
                     BeforeQty = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     AfterQty = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
@@ -1395,11 +1389,6 @@ namespace EcoFashionBackEnd.Migrations
                 name: "IX_MaterialInventoryTransactions_InventoryId",
                 table: "MaterialInventoryTransactions",
                 column: "InventoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MaterialInventoryTransactions_PerformedByUserId",
-                table: "MaterialInventoryTransactions",
-                column: "PerformedByUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Materials_SupplierId",

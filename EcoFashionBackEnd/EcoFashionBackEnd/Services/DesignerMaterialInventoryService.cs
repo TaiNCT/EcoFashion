@@ -112,7 +112,7 @@ namespace EcoFashionBackEnd.Services
                     {
                         InventoryId = inventorie.InventoryId,
                         MaterialId = inventorie.MaterialId,
-                        Quantity = inventorie.Quantity,
+                        Quantity = (int?)inventorie.Quantity,
                         LastBuyDate = inventorie.LastBuyDate,
                         Material = new DesginerStoredMaterialsDto
                         {

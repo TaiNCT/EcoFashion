@@ -17,7 +17,7 @@ namespace EcoFashionBackEnd.Entities
         public int MaterialId { get; set; }
         [ForeignKey("MaterialId")]
         public virtual Material Material { get; set; }
-        public int? Quantity { get; set; }
+        public decimal? Quantity { get; set; }
         public decimal? Cost { get; set; }
         public DateTime LastBuyDate { get; set; }
         public string? Status { get; set; } // e.g., "In Stock", "Out of Stock"

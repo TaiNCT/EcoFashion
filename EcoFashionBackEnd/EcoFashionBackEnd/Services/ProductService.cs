@@ -207,7 +207,7 @@ namespace EcoFashionBackEnd.Services
             }
 
             // 2️ Trừ kho nguyên liệu
-            //await _inventoryService.DeductMaterialsAsync(designerId, totalUsageMap);
+            await _inventoryService.DeductMaterialsAsync(designerId, totalUsageMap);
 
             var createdProductIds = new List<int>();
             var productInventoryChanges = new List<(int productId, int warehouseId, int quantity)>();
