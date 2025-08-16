@@ -22,7 +22,6 @@ namespace EcoFashionBackEnd.Data.test
                 var quantity = random.Next(50, 201);
                 inventoryList.Add(new DesignerMaterialInventory
                 {
-                    DesignerId = designer.DesignerId,
                     MaterialId = material.MaterialId,
                     Quantity = quantity, // từ 50 đến 200 mét
                     Cost = (decimal) material.PricePerUnit *1000 * quantity, // từ 10.0 đến 60.0

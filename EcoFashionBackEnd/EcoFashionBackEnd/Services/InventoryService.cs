@@ -9,18 +9,24 @@ namespace EcoFashionBackEnd.Services
         private readonly IRepository<Product, int> _productRepository;
         private readonly IRepository<ProductInventory, int> _productInventoryRepository;
         private readonly IRepository<DesignerMaterialInventory, int> _designerMaterialInventory;
+        private readonly IRepository<MaterialInventoryTransaction, int> _materialInventoryTransactionRepository;
+        private readonly IRepository<Warehouse, int> _warehouseRepository;
 
 
         public InventoryService(
           IRepository<Product, int> productRepository,
           IRepository<ProductInventory, int> productInventoryRepository,
-          IRepository<DesignerMaterialInventory, int> designerMaterialInventory
+          IRepository<DesignerMaterialInventory, int> designerMaterialInventory,
+          IRepository<MaterialInventoryTransaction, int> materialInventoryTransactionRepository,
+          IRepository<Warehouse, int> warehouseRepository
 
           )
         {
             _productRepository = productRepository;
             _productInventoryRepository = productInventoryRepository;
             _designerMaterialInventory = designerMaterialInventory;
+            _materialInventoryTransactionRepository = materialInventoryTransactionRepository;
+            _warehouseRepository = warehouseRepository;
         }
 
         public async Task AddProductInventoriesAsync(List<(int productId, int warehouseId, int quantity)> changes)
@@ -71,36 +77,63 @@ namespace EcoFashionBackEnd.Services
             await _productInventoryRepository.Commit();
         }
 
-        public async Task DeductMaterialsAsync(Guid designerId, Dictionary<int, decimal> usageMap)
+        public async Task DeductMaterialsAsync(Guid designerId, Dictionary<int, int> usageMap)
         {
             // Bước 1: Chuẩn bị dữ liệu và tối ưu hóa truy vấn
-            // Lấy danh sách các MaterialId cần trừ từ dictionary.
+            // Lấy ID của kho nguyên vật liệu của designer.
+            // Giả sử mỗi designer chỉ có một kho nguyên vật liệu mặc định.
+            var warehouse = await _warehouseRepository
+             .FindByCondition(w => w.DesignerId == designerId && w.WarehouseType == "Material")
+                .FirstOrDefaultAsync();
+            if (warehouse == null)
+            {
+                throw new Exception($"Không tìm thấy kho vật liệu cho designerId={designerId}");
+            }
 
             var materialIds = usageMap.Keys.ToList();
-            // Thực hiện một truy vấn DUY NHẤT để lấy tất cả các bản ghi tồn kho vật liệu
-            // của nhà thiết kế cụ thể và các vật liệu liên quan.
+
+            // Thực hiện một truy vấn duy nhất để lấy tất cả các bản ghi tồn kho
+            // dựa trên WarehouseId và các MaterialId cần trừ.
             var inventories = await _designerMaterialInventory.GetAll()
-                .Where(i => i.DesignerId == designerId && materialIds.Contains(i.MaterialId))
-                .ToListAsync();
+                .Where(i => i.WarehouseId == warehouse.WarehouseId && materialIds.Contains(i.MaterialId))
+                .ToDictionaryAsync(i => i.MaterialId); // Tối ưu hóa bằng cách chuyển thành Dictionary
+
             // Bước 2: Xử lý từng vật liệu cần trừ
             foreach (var materialId in usageMap.Keys)
             {
+                var requiredQty = usageMap[materialId];
 
-                // Tìm bản ghi tồn kho vật liệu tương ứng trong bộ nhớ.
-                var inventory = inventories.FirstOrDefault(i => i.MaterialId == materialId);
-                // Kiểm tra logic nghiệp vụ:
-                if (inventory == null)// Nếu không tìm thấy, báo lỗi.
+                // Tìm bản ghi tồn kho vật liệu tương ứng trong Dictionary (O(1)).
+                if (!inventories.TryGetValue(materialId, out var inventory))
+                {
                     throw new Exception($"Không tìm thấy kho vật liệu MaterialId={materialId} của designer");
+                }
 
-                var requiredQty = (int)usageMap[materialId];
-                if (inventory.Quantity < requiredQty)// Nếu số lượng tồn kho không đủ, báo lỗi.
-                    throw new Exception($"Kho vật liệu không đủ cho MaterialId={materialId}");
+                // Kiểm tra số lượng tồn kho
+                if (inventory.Quantity < requiredQty)
+                {
+                    throw new Exception($"Kho vật liệu không đủ cho MaterialId={materialId}. Yêu cầu: {requiredQty}, Tồn: {inventory.Quantity}");
+                }
 
-                // Nếu hợp lệ, trừ số lượng và đánh dấu để cập nhật.
+                // Nếu hợp lệ, trừ số lượng và tạo giao dịch lịch sử.
+                var originalQuantity = inventory.Quantity;
                 inventory.Quantity -= requiredQty;
+
+                // Bổ sung: Tạo bản ghi lịch sử giao dịch tồn kho
+                var transaction = new MaterialInventoryTransaction
+                {
+                    InventoryId = inventory.InventoryId,
+                    QuantityChanged = -requiredQty,
+                    TransactionType = "Usage", // Ví dụ: sử dụng để sản xuất
+                    Notes = $"Trừ vật liệu cho sản phẩm",
+                };
+                _materialInventoryTransactionRepository.AddAsync(transaction);
+
                 _designerMaterialInventory.Update(inventory);
             }
-            // Bước 3: Lưu tất cả thay đổi vào database
+
+            // Bước 3: Lưu tất cả thay đổi vào database trong một giao dịch duy nhất.
+            // Điều này đảm bảo tính toàn vẹn (atomicity).
             await _designerMaterialInventory.Commit();
         }
 
