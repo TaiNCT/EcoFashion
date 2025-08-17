@@ -7,6 +7,7 @@ namespace EcoFashionBackEnd.Entities
     public class Wallet
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int WalletId { get; set; }
 
         [Required]
@@ -16,7 +17,7 @@ namespace EcoFashionBackEnd.Entities
         public virtual User User { get; set; }
 
         [Required]
-        public decimal Balance { get; set; } = 0;
+        public double Balance { get; set; } = 0;
 
        
         [EnumDataType(typeof(WalletStatus))]
