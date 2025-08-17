@@ -52,7 +52,7 @@ namespace EcoFashionBackEnd.Services
                 CreatedDate = DateTime.Now
             };
 
-            var paymentUrl = await _vnPayService.CreatePaymentUrlAsync(httpContext, vnPayModel);
+            var paymentUrl = await _vnPayService.CreateDepositPaymentUrlAsync(httpContext, vnPayModel);
 
             return ApiResult<object>.Succeed(new { PaymentUrl = paymentUrl });
         }
@@ -62,54 +62,10 @@ namespace EcoFashionBackEnd.Services
         {
             var response = _vnPayService.PaymentExecute(collection);
 
-            // =========================================================
-            // 1. Handle PaymentTransaction (y chang logic HandleVNPayReturnAsync)
-            // =========================================================
-            if (!int.TryParse(response.OrderId, out var orderId))
-            {
-                throw new Exception("Invalid OrderId in VNPay response");
-            }
+            if (!int.TryParse(response.OrderId, out int orderId))
+                throw new Exception("Invalid OrderId from VNPay");
 
-            // Ưu tiên map theo TxnRef
-            PaymentTransaction? paymentTransaction = null;
-            if (!string.IsNullOrWhiteSpace(response.TxnRef))
-            {
-                paymentTransaction = await _paymentTransactionRepository
-                    .FindByCondition(pt => pt.TxnRef == response.TxnRef)
-                    .FirstOrDefaultAsync();
-            }
 
-            paymentTransaction ??= await _paymentTransactionRepository
-                .FindByCondition(pt => pt.OrderId == orderId && pt.Status == "Pending")
-                .OrderByDescending(pt => pt.CreatedAt)
-                .FirstOrDefaultAsync();
-
-            if (paymentTransaction == null)
-            {
-                throw new Exception($"PaymentTransaction not found for OrderId: {orderId}");
-            }
-
-            // Idempotent: nếu đã Paid/Failed thì bỏ qua
-            if (string.Equals(paymentTransaction.Status, "Paid", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(paymentTransaction.Status, "Failed", StringComparison.OrdinalIgnoreCase))
-            {
-                return response;
-            }
-
-            paymentTransaction.Status = response.VnPayResponseCode == "00" ? "Paid" : "Failed";
-            paymentTransaction.VnPayTransactionId = response.TransactionId;
-            paymentTransaction.VnPayResponseCode = response.VnPayResponseCode;
-            paymentTransaction.PaidAt = DateTime.UtcNow;
-            paymentTransaction.Message = GetMessageFromResponseCode(response.VnPayResponseCode);
-            paymentTransaction.BankCode = response.BankCode;
-            paymentTransaction.ReturnPayload = string.Join('&', collection.Select(kv => $"{kv.Key}={kv.Value}"));
-
-            _paymentTransactionRepository.Update(paymentTransaction);
-            await _paymentTransactionRepository.Commit();
-
-            // =========================================================
-            // 2. Handle WalletTransaction (update ví & balance)
-            // =========================================================
             var walletTransaction = await _walletTransactionRepository.GetByIdAsync(orderId) ;
             if (walletTransaction == null)
             {

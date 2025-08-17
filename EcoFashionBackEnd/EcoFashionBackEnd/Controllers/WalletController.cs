@@ -71,7 +71,6 @@
         }
 
         // 4️⃣ Callback VNPay (server-to-server)
-        [AllowAnonymous]
         [HttpGet("deposit/callback")]
         public async Task<IActionResult> DepositCallback()
         {
@@ -89,7 +88,7 @@
             {
                 Status = result.VnPayResponseCode == "00" ? "Success" : "Fail",
                 TransactionId = result.TransactionId,
-                OrderId = result.OrderId
+                WalletTransaction = result.OrderId
             });
         }
     }
