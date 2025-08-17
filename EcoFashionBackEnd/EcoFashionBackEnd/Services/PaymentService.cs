@@ -269,14 +269,15 @@ namespace EcoFashionBackEnd.Services
                         continue;
                     }
 
-                    // Trừ inventory
-                    await _materialInventoryService.DeductAsync(
+                    // Trừ inventory sử dụng method mới với logging đầy đủ
+                    await _materialInventoryService.CreateTransactionAsync(
                         materialId: materialId,
                         warehouseId: warehouse.WarehouseId,
-                        quantity: quantity,
+                        transactionType: MaterialTransactionType.CustomerSale,
+                        quantityChange: -quantity, // Số âm cho việc bán
                         unit: "mét", // Default unit cho material
-                        note: $"Đã bán cho đơn hàng #{orderId}",
-                        referenceType: "Order",
+                        note: $"Bán material cho đơn hàng #{orderId} - Khách hàng thanh toán thành công",
+                        referenceType: "OrderPayment",
                         referenceId: orderId.ToString(),
                         userId: null // System operation
                     );

@@ -70,6 +70,21 @@ where TEntity : class
     {
         _dbSet.RemoveRange(entities);
     }
+    // Bổ sung: Hàm xóa trực tiếp một thực thể
+    public void Remove(TEntity entity)
+    {
+        _dbSet.Remove(entity);
+    }
+
+    // Bổ sung: Hàm xóa bất đồng bộ an toàn hơn
+    public async Task RemoveAsync(TKey id)
+    {
+        var entity = await _dbSet.FindAsync(id);
+        if (entity != null)
+        {
+            _dbSet.Remove(entity);
+        }
+    }
 }
 
 

@@ -43,7 +43,7 @@ const MaterialTypesAll: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {types.map((t) => (
                     <div key={t.typeId} className="p-4 border rounded-lg bg-white shadow-sm">
-                      <div className="flex items-start justify-between gap-3">
+                      <div className=" pb-2 flex items-start justify-between gap-3">
                         <div>
                           <h3 className="font-semibold text-gray-900">{t.typeName}</h3>
                           <p className="text-sm text-gray-500">{t.category || '—'}</p>
@@ -64,6 +64,7 @@ const MaterialTypesAll: React.FC = () => {
                           </button>
                         </div>
                       </div>
+                      <img src={t.imageUrl || 'https://res.cloudinary.com/dguz8gz6s/image/upload/v1754826927/organic-coton_b9zo4y.webp'} alt={t.typeName} className="w-full h-40 object-cover rounded-lg" />
                       {t.description && (
                         <p className="mt-2 text-sm text-gray-600">{t.description}</p>
                       )}

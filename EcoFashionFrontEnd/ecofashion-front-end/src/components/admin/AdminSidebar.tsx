@@ -15,6 +15,7 @@ import {
   PlusIcon
 } from '../../assets/icons/index.tsx'; // Updated import path and icons
 import logo2 from '../../assets/pictures/homepage/logo2.png';
+import { useAuthStore } from '../../store/authStore';
 
 type NavItem = {
   name: string;
@@ -88,6 +89,7 @@ const otherItems: NavItem[] = [
 const AdminSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useAdminSidebar();
   const location = useLocation();
+  const user = useAuthStore((s) => s.user);
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
@@ -312,8 +314,8 @@ const AdminSidebar: React.FC = () => {
           </button>
         )}
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear">
-        <nav className="mb-6">
+      <div className="flex flex-col overflow-y-auto duration-300 ease-linear flex-1">
+        <nav className="mb-6 flex-1">
           <div className="flex flex-col gap-4">
             <div>
               <h2
@@ -349,6 +351,15 @@ const AdminSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
+        {/* Admin Info Section */}
+        <div className="border-t border-gray-200 dark:border-gray-800 px-2 py-4 mt-2">
+          <div className="text-xs font-semibold text-gray-900 dark:text-white">
+            {user?.fullName || 'Tên Quản Trị Viên'}
+          </div>
+          <div className="text-xs text-gray-500 truncate">
+            {user?.email || 'admin@email.com'}
+          </div>
+        </div>
       </div>
     </aside>
   );
