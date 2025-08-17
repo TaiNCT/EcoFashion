@@ -276,11 +276,7 @@ namespace EcoFashionBackEnd.Entities
                     .OnDelete(DeleteBehavior.Restrict);
                 // Restrict: tránh xóa design làm mất hết sản phẩm
 
-                // Variant (có thể null vì chỉ phục vụ kế hoạch)
-                entity.HasOne(p => p.Variant)
-                    .WithMany()
-                    .HasForeignKey(p => p.VariantId)
-                    .OnDelete(DeleteBehavior.SetNull);
+              
                 // SetNull: nếu variant kế hoạch bị xóa, product vẫn tồn tại
 
                 // Size (bắt buộc)

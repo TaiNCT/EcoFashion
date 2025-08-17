@@ -1312,9 +1312,6 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<int>("SizeId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("VariantId")
-                        .HasColumnType("int");
-
                     b.HasKey("ProductId");
 
                     b.HasIndex("DesignId");
@@ -1323,8 +1320,6 @@ namespace EcoFashionBackEnd.Migrations
                         .IsUnique();
 
                     b.HasIndex("SizeId");
-
-                    b.HasIndex("VariantId");
 
                     b.ToTable("Products");
                 });
@@ -2259,16 +2254,9 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("EcoFashionBackEnd.Entities.DesignsVariant", "Variant")
-                        .WithMany()
-                        .HasForeignKey("VariantId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Design");
 
                     b.Navigation("Size");
-
-                    b.Navigation("Variant");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.ProductInventory", b =>

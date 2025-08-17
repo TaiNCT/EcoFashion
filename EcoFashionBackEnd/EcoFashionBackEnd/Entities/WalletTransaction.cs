@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.Transactions;
 
 namespace EcoFashionBackEnd.Entities
 {
@@ -7,7 +8,8 @@ namespace EcoFashionBackEnd.Entities
     public class WalletTransaction
     {
         [Key]
-        public Guid Id { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int  Id { get; set; }
 
         [Required]
         public int WalletId { get; set; }
@@ -16,19 +18,21 @@ namespace EcoFashionBackEnd.Entities
         public virtual Wallet Wallet { get; set; }
 
         [Required]
-        public decimal Amount { get; set; }
+        public double Amount { get; set; }
 
         [Required]
-        public decimal BalanceBefore { get; set; }
+        public double BalanceBefore { get; set; }
 
         [Required]
-        public decimal BalanceAfter { get; set; }
+        public double BalanceAfter { get; set; }
 
         [Required]
         [EnumDataType(typeof(TransactionType))]
         public TransactionType Type { get; set; }
 
         public string? Description { get; set; }
+        public TransactionStatus? Status { get; set; }
+
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -47,5 +51,11 @@ namespace EcoFashionBackEnd.Entities
         Payment,      // Thanh toán Order
         Refund,       // Hoàn tiền
         Transfer      // Chuyển khoản nội bộ
+    }
+    public enum TransactionStatus
+    {
+        Pending,
+        Success,
+        Fail
     }
 }
