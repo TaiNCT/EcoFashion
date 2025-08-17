@@ -1151,7 +1151,7 @@ export default function DesignerDashBoard() {
 
       setOpenCreateDialog(false); // đóng dialog
       if (tabIndex === 1) {
-        reloadTabProduct(selectedDesignProduct.id);
+        reloadTabProduct();
       }
     } catch (err: any) {
       console.error("❌ Error submitting application:", err);
@@ -1161,17 +1161,86 @@ export default function DesignerDashBoard() {
     }
   };
 
-  const reloadTabProduct = async (id: number) => {
+  const reloadTabProduct = async () => {
     try {
-      const response = await DesignService.getDesignProductDetailsAsync(
-        id,
+      const designProductData = await DesignService.getAllDesignProuct(
         getDesignerId()
       );
-      setDesignProductDetail(response);
+      setDesignProduct(designProductData);
     } catch (error) {
       console.error("Lỗi khi load lại tab 2:", error);
     }
   };
+
+  //Datagrid variant
+  const variant_columns = [
+    { field: "sizeName", headerName: "Kích Thước", flex: 1 },
+    {
+      field: "colorCode",
+      headerName: "Màu sắc",
+      flex: 1,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center", // vertical center
+            gap: 1,
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <Box
+            sx={{
+              width: 20,
+              height: 20,
+              borderRadius: "50%",
+              backgroundColor: mapColorCodeToHex(params.value),
+              border: "1px solid #ccc",
+            }}
+          />
+          <Typography variant="body2">{params.value}</Typography>
+        </Box>
+      ),
+    },
+    { field: "quantity", headerName: "Số lượng", flex: 1 },
+  ];
+
+  //Datagrid Product
+  const product_columns = [
+    { field: "sku", headerName: "SKU", flex: 1 },
+    { field: "sizeName", headerName: "Kích Thước", width: 120 },
+    {
+      field: "colorCode",
+      headerName: "Màu",
+      flex: 1,
+      renderCell: (params) => (
+        <Box display="flex" alignItems="center" gap={1}>
+          <Box
+            sx={{
+              width: 20,
+              height: 20,
+              bgcolor: mapColorCodeToHex(params.value),
+              border: "1px solid #ccc",
+              borderRadius: "50%",
+            }}
+          />
+          {params.value}
+        </Box>
+      ),
+    },
+    {
+      field: "quantityAvailable",
+      headerName: "Tồn kho",
+      width: 150,
+      renderCell: (params) => (
+        <Chip
+          label={`Còn lại: ${params.value}`}
+          color={params.value > 10 ? "success" : "warning"}
+          size="small"
+        />
+      ),
+    },
+  ];
 
   return (
     <Box sx={{ width: "95%", margin: "auto" }}>
@@ -1680,14 +1749,20 @@ export default function DesignerDashBoard() {
                         labelId="design-product-label"
                         label="Chọn rập thiết kế"
                       >
-                        {designs.map((design) => (
-                          <MenuItem
-                            key={design.designId}
-                            value={design.designId}
-                          >
-                            {design.name}
-                          </MenuItem>
-                        ))}
+                        {designs
+                          .filter(
+                            (design) =>
+                              design.designsVariants &&
+                              design.designsVariants.length > 0
+                          ) // chỉ lấy có variant
+                          .map((design) => (
+                            <MenuItem
+                              key={design.designId}
+                              value={design.designId}
+                            >
+                              {design.name}
+                            </MenuItem>
+                          ))}
                       </Select>
                       {fieldState.error && (
                         <FormHelperText>
@@ -1763,55 +1838,20 @@ export default function DesignerDashBoard() {
               <DialogTitle>Chi Tiết Sản Phẩm</DialogTitle>
               <DialogContent dividers>
                 <Grid container spacing={2}>
-                  {designProductDetail.map((product) => (
-                    <Grid key={product.productId}>
-                      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
-                        <CardHeader
-                          title={product.sku}
-                          subheader={`Size: ${product.sizeName}`}
-                          sx={{ pb: 0 }}
-                        />
-                        <CardContent>
-                          <Box
-                            display="flex"
-                            alignItems="center"
-                            gap={1}
-                            mb={1}
-                          >
-                            <Box
-                              sx={{
-                                width: 20,
-                                height: 20,
-                                bgcolor: mapColorCodeToHex(product.colorCode),
-                                border: "1px solid #ccc",
-                                borderRadius: "50%",
-                              }}
-                            />
-                            <Typography variant="body2">
-                              {product.colorCode}
-                            </Typography>
-                          </Box>
-                          {/* <Typography
-                            variant="h6"
-                            fontWeight="bold"
-                            color="primary"
-                          >
-                            {selectedDesignProduct.price}
-                          </Typography> */}
-                          <Chip
-                            label={`Còn lại: ${product.quantityAvailable}`}
-                            color={
-                              product.quantityAvailable > 10
-                                ? "success"
-                                : "warning"
-                            }
-                            size="small"
-                            sx={{ mt: 1 }}
-                          />
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
+                  <Box sx={{ height: 400, width: "100%" }}>
+                    <DataGrid
+                      rows={designProductDetail}
+                      columns={product_columns}
+                      getRowId={(row) => row.productId}
+                      initialState={{
+                        pagination: {
+                          paginationModel: { page: 0, pageSize: 5 },
+                        },
+                      }}
+                      pageSizeOptions={[5, 10, 20]}
+                      disableRowSelectionOnClick
+                    />
+                  </Box>
                 </Grid>
               </DialogContent>
               <DialogActions>
@@ -1926,7 +1966,7 @@ export default function DesignerDashBoard() {
             maxWidth="sm"
             fullWidth
           >
-            <DialogTitle>Chi Tiết Sản Phẩm</DialogTitle>
+            <DialogTitle>Chi Tiết Rập</DialogTitle>
             <DialogContent dividers>
               {selectedItem && (
                 <Box>
@@ -2103,7 +2143,11 @@ export default function DesignerDashBoard() {
                               })
                             }
                             onKeyDown={(e) => {
-                              if (e.key === "-" || e.key === "e")
+                              if (
+                                e.key === "-" ||
+                                e.key === "e" ||
+                                e.key === "E"
+                              )
                                 e.preventDefault();
                             }}
                             size="small"
@@ -2139,64 +2183,43 @@ export default function DesignerDashBoard() {
                   )}
                   {variant && variant.length > 0 ? (
                     <Box
-                      sx={{ mt: 3, display: "flex", flexWrap: "wrap", gap: 2 }}
+                      sx={{
+                        height: 420,
+                        width: "100%",
+                        bgcolor: "background.paper",
+                        p: 2,
+                        borderRadius: 3,
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      }}
                     >
-                      {variant.map((v) => (
-                        <Card
-                          key={v.variantId}
-                          variant="outlined"
-                          sx={{
-                            width: 220,
-                            borderRadius: 3,
-                            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                            transition: "transform 0.3s ease",
-                            "&:hover": {
-                              transform: "scale(1.05)",
-                              boxShadow: "0 8px 16px rgba(0,0,0,0.2)",
-                            },
-                          }}
-                        >
-                          <CardContent>
-                            <Stack spacing={1}>
-                              <Typography
-                                variant="h6"
-                                component="div"
-                                sx={{ fontWeight: "bold", color: "#2E7D32" }}
-                              >
-                                Size: {v.sizeName}
-                              </Typography>
-
-                              <Box
-                                sx={{
-                                  display: "inline-block",
-                                  width: 24,
-                                  height: 24,
-                                  borderRadius: "50%",
-                                  backgroundColor: mapColorCodeToHex(
-                                    v.colorCode
-                                  ), // giả sử colorCode là mã màu hợp lệ
-                                  border: "1px solid #ccc",
-                                }}
-                                title={`Color: ${v.colorCode}`}
-                              />
-
-                              <Typography
-                                variant="body1"
-                                color="text.secondary"
-                              >
-                                Màu sắc: {v.colorCode}
-                              </Typography>
-
-                              <Typography
-                                variant="body1"
-                                sx={{ fontWeight: "medium", mt: 1 }}
-                              >
-                                Số lượng: {v.quantity}
-                              </Typography>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      ))}
+                      <DataGrid
+                        rows={variant}
+                        columns={variant_columns}
+                        getRowId={(row) => row.variantId}
+                        initialState={{
+                          pagination: {
+                            paginationModel: { page: 0, pageSize: 5 },
+                          },
+                        }}
+                        pageSizeOptions={[5, 10, 20]}
+                        disableRowSelectionOnClick
+                        sx={{
+                          border: "none", // removes default DataGrid border
+                          "& .MuiDataGrid-columnHeaders": {
+                            backgroundColor: "#f5f5f5",
+                            color: "#333",
+                            fontWeight: "bold",
+                            fontSize: "0.9rem",
+                          },
+                          "& .MuiDataGrid-cell": {
+                            alignItems: "center",
+                            fontSize: "0.875rem",
+                          },
+                          "& .MuiDataGrid-row:hover": {
+                            backgroundColor: "#fafafa",
+                          },
+                        }}
+                      />
                     </Box>
                   ) : (
                     <Box

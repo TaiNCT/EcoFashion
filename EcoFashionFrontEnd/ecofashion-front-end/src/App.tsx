@@ -186,14 +186,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* <Route
-          path="/designer/dashboard/testing"
-          element={
-            <ProtectedRoute allowedRoles={["designer"]}>
-              <TestingCreate />
-            </ProtectedRoute>
-          }
-        /> */}
         <Route
           path="/designer/detailed-profile"
           element={

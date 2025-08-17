@@ -140,7 +140,7 @@ namespace EcoFashionBackEnd.Services
                     {
                         DesignId = design.DesignId,
                         MaterialId = m.MaterialId,
-                        MeterUsed = (int)m.MeterUsed
+                        MeterUsed =(decimal) m.MeterUsed
                     }).ToList();
 
                     await _designMaterialRepository.AddRangeAsync(newMaterials);

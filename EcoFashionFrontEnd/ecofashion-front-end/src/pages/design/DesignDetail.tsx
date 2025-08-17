@@ -286,12 +286,17 @@ export default function DesignDetail() {
   const data = { data: materialData, valueFormatter };
 
   // Color map
-  const colorMap: Record<string, string> = {
-    RED: "#ff0000",
-    BLK: "#000000",
-    WHT: "#ffffff",
-    BLU: "#0432ecff",
-    GRN: "#00ff4cff",
+  const mapColorCodeToHex = (code: string): string => {
+    const colorMap: Record<string, string> = {
+      RED: "#ff0000",
+      BLK: "#000000",
+      WHT: "#ffffff",
+      BLU: "#0432ecff",
+      GRN: "#00ff4cff",
+      // thêm các mã khác tùy ý
+    };
+
+    return colorMap[code.toUpperCase()] || code;
   };
   const products = designDetail.products;
 
@@ -630,7 +635,7 @@ export default function DesignDetail() {
                       width: 40,
                       height: 40,
                       borderRadius: "50%",
-                      backgroundColor: colorMap[colorCode],
+                      backgroundColor: mapColorCodeToHex(colorCode),
                       border:
                         selectedColor === colorCode
                           ? "3px solid #1976d2"
