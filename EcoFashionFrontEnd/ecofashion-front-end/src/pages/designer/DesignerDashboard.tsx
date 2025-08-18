@@ -253,6 +253,7 @@ export default function DesignerDashBoard() {
         getDesignerId()
       );
       setStoredMaterial(materialData);
+      console.log("Stored Material: ", materialData);
 
       const designProductData = await DesignService.getAllDesignProuct(
         getDesignerId()

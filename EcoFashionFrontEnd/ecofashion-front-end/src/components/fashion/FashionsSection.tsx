@@ -144,10 +144,12 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
       </Box>
 
       <Box sx={{ textAlign: "center", paddingTop: 2, paddingBottom: 2 }}>
-          <Button
+        <Button
           variant="outlined"
           size="large"
-            onClick={() => onViewMore ? navigate(onViewMore()) : navigate('/fashion')}
+          onClick={() =>
+            onViewMore ? navigate(onViewMore()) : navigate("/fashion")
+          }
           sx={{
             color: "rgba(22, 163, 74, 1)",
             borderColor: "rgba(22, 163, 74, 1)",
