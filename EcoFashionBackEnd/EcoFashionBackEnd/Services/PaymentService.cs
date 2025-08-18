@@ -240,6 +240,7 @@ namespace EcoFashionBackEnd.Services
 
         /// <summary>
         /// Trừ inventory cho tất cả materials trong order khi payment thành công
+        /// Trừ inventory cho tất cả products trong order khi payment thành công
         /// </summary>
         /// <param name="orderId">ID của order đã thanh toán thành công</param>
         private async Task DeductInventoryForOrderAsync(int orderId)

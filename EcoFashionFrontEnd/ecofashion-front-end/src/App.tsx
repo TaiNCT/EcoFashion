@@ -52,13 +52,10 @@ import CheckoutResultPage from "./pages/checkout/result";
 import OrdersPage from "./pages/shop/OrdersPage";
 import OrdersDetails from "./components/orders/OrdersDetails";
 import OrdersList from "./components/orders/OrdersList";
-<<<<<<< HEAD
 import { useAuthStore } from "./store/authStore";
 import { useCartStore } from "./store/cartStore";
 
-=======
 import CountryCitySelect from "./pages/design/tesitng";
->>>>>>> 68bce53b45dbbdcb18a6cb982d74d5917d4f007d
 //import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {

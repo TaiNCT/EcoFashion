@@ -76,6 +76,7 @@ import DesignService, {
   Feature,
 } from "../../services/api/designService";
 import { toast } from "react-toastify";
+import { useCartStore } from "../../store/cartStore";
 
 const reviews = [
   {
@@ -126,6 +127,9 @@ export default function DesignDetail() {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(1);
+
+  // Cart store
+  const addProductToCart = useCartStore((state) => state.addProductToCart);
 
   //Reset Mỗi Lần  Chọn Size Hoặc Màu
   useEffect(() => {
@@ -335,20 +339,31 @@ export default function DesignDetail() {
     (p) => p.colorCode === selectedColor && p.sizeId === selectedSize
   );
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedProduct) {
-      alert("Chọn màu và kích thước trước!");
+      toast.error("Chọn màu và kích thước trước!");
       return;
     }
-    console.log(
-      "Add to cart với productId:",
-      selectedProduct.productId,
-      "Số lượng:",
-      quantity,
-      "Giá: ",
-      designDetail.salePrice * quantity
-    );
-    // dispatch(addToCart(selectedProduct.productId, quantity))
+
+    if (quantity <= 0) {
+      toast.error("Vui lòng nhập số lượng hợp lệ!");
+      return;
+    }
+
+    if (quantity > selectedProduct.quantityAvailable) {
+      toast.error(`Chỉ còn ${selectedProduct.quantityAvailable} sản phẩm có sẵn!`);
+      return;
+    }
+
+    try {
+      await addProductToCart({ productId: selectedProduct.productId, quantity });
+      toast.success(
+        `Đã thêm ${quantity} sản phẩm ${designDetail.name} vào giỏ hàng! 🛒`
+      );
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      toast.error("Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!");
+    }
   };
 
   //Add Số Lượng

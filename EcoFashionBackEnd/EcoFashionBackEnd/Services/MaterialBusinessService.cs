@@ -283,7 +283,7 @@ namespace EcoFashionBackEnd.Services
                 }
             }
 
-            // 3) Đồng bộ tổng về Material để homepage hiển thị đúng
+            // 3) Đồng bộ tổng về Material để homepage hiển thị Material (not in stock)
             var total = await _dbContext.MaterialStocks
                 .Where(s => s.MaterialId == material.MaterialId)
                 .SumAsync(s => s.QuantityOnHand);
