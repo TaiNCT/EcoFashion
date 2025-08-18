@@ -108,7 +108,7 @@ namespace EcoFashionBackEnd.Services
         }
 
 
-        public async Task<WalletTransaction> RequestWithdrawalAsync(int userId, double amount, string? description = null)
+        public async Task<WalletTransactionDto> RequestWithdrawalAsync(int userId, double amount, string? description = null)
         {
             var wallet = await _walletRepository.GetAll()
                 .FirstOrDefaultAsync(w => w.UserId == userId);
@@ -134,7 +134,17 @@ namespace EcoFashionBackEnd.Services
             await _walletTransactionRepository.AddAsync(transaction);
             await _walletTransactionRepository.Commit();
 
-            return transaction;
+            return new WalletTransactionDto
+            {
+                Id = transaction.Id,
+                Amount = transaction.Amount,
+                BalanceBefore = transaction.BalanceBefore,
+                BalanceAfter = transaction.BalanceAfter,
+                Type = transaction.Type,
+                Status = transaction.Status,
+                Description = transaction.Description,
+                CreatedAt = transaction.CreatedAt
+            }; 
         }
 
 
@@ -227,6 +237,8 @@ namespace EcoFashionBackEnd.Services
             var wallet = await _walletRepository.GetAll().FirstOrDefaultAsync(w => w.UserId == userId);
             return (decimal)(wallet?.Balance ?? 0);
         }
+
+
         public async Task<List<WalletTransactionDto>> GetTransactionsAsync(int userId)
         {
             var wallet = await _walletRepository.GetAll().FirstOrDefaultAsync(w => w.UserId == userId);
@@ -249,6 +261,8 @@ namespace EcoFashionBackEnd.Services
                 CreatedAt = t.CreatedAt
             }).ToList();
         }
+
+
         private string GetMessageFromResponseCode(string code)
         {
             return code switch
