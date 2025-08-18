@@ -397,6 +397,45 @@ namespace EcoFashionBackEnd.Entities
                     .HasMaxLength(500);
             });
             #endregion
+
+            #region MaterialInventoryTransaction
+            modelBuilder.Entity<MaterialInventoryTransaction>(entity =>
+            {
+                entity.HasKey(t => t.TransactionId);
+
+                // Transaction ↔ ProductInventory (N-1)
+                entity.HasOne(t => t.MaterialInventory)
+                      .WithMany(pi => pi.MaterialInventoryTransactions)
+                      .HasForeignKey(t => t.InventoryId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+
+                // ProductInventoryTransaction ↔ User: Nhiều giao dịch do 1 User thực hiện
+                // Transaction ↔ User (N-1)
+                entity.HasOne(t => t.User)
+                      .WithMany() // Nếu muốn tracking User → Transactions thì tạo ICollection<Transaction> bên User
+                      .HasForeignKey(t => t.PerformedByUserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                // Restrict: Giữ lịch sử, không cho xóa User nếu còn transaction
+
+                entity.Property(t => t.QuantityChanged)
+                    .IsRequired();
+
+                entity.Property(t => t.TransactionDate)
+                    .IsRequired();
+
+                entity.Property(t => t.TransactionType)
+                    .HasMaxLength(50);
+
+                entity.Property(t => t.Notes)
+                    .HasMaxLength(500);
+            });
+            #endregion
+
+
+
+
+
             #region Material 
             // -------- INVENTORY (MATERIAL) --------
             modelBuilder.Entity<Warehouse>(entity =>

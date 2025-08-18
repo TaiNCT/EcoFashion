@@ -1196,8 +1196,8 @@ namespace EcoFashionBackEnd.Migrations
                     QuantityChanged = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     BeforeQty = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     AfterQty = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    TransactionType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TransactionType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -1209,6 +1209,12 @@ namespace EcoFashionBackEnd.Migrations
                         principalTable: "DesignerMaterialInventories",
                         principalColumn: "InventoryId",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MaterialInventoryTransactions_Users_PerformedByUserId",
+                        column: x => x.PerformedByUserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -1219,7 +1225,7 @@ namespace EcoFashionBackEnd.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     InventoryId = table.Column<int>(type: "int", nullable: false),
                     PerformedByUserId = table.Column<int>(type: "int", nullable: true),
-                    QuantityChanged = table.Column<int>(type: "int", nullable: false),
+                    QuantityChanged = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     BeforeQty = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     AfterQty = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -1384,6 +1390,11 @@ namespace EcoFashionBackEnd.Migrations
                 name: "IX_MaterialInventoryTransactions_InventoryId",
                 table: "MaterialInventoryTransactions",
                 column: "InventoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MaterialInventoryTransactions_PerformedByUserId",
+                table: "MaterialInventoryTransactions",
+                column: "PerformedByUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Materials_SupplierId",

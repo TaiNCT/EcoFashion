@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250817114940_v1")]
+    [Migration("20250818165034_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -788,7 +788,8 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Property<string>("Notes")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int?>("PerformedByUserId")
                         .HasColumnType("int");
@@ -801,11 +802,14 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Property<string>("TransactionType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("TransactionId");
 
                     b.HasIndex("InventoryId");
+
+                    b.HasIndex("PerformedByUserId");
 
                     b.ToTable("MaterialInventoryTransactions");
                 });
@@ -1381,8 +1385,8 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<int?>("PerformedByUserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("QuantityChanged")
-                        .HasColumnType("int");
+                    b.Property<decimal>("QuantityChanged")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
@@ -2071,7 +2075,14 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("EcoFashionBackEnd.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("PerformedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("MaterialInventory");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialStock", b =>

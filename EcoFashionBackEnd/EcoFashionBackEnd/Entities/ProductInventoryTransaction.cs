@@ -17,7 +17,7 @@ namespace EcoFashionBackEnd.Entities
         public int? PerformedByUserId { get; set; }
         [ForeignKey(nameof(PerformedByUserId))]
         public virtual User User { get; set; } 
-        public int QuantityChanged { get; set; }  // Số lượng nhập (+) hoặc xuất (-)
+        public decimal QuantityChanged { get; set; }  // Số lượng nhập (+) hoặc xuất (-)
         public decimal? BeforeQty { get; set; }
         public decimal? AfterQty { get; set; }
         public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
