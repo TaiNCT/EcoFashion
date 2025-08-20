@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250820105656_v1")]
+    [Migration("20250820125827_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -1077,6 +1077,11 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("FulfillmentStatus")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsPaidOut")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<decimal?>("NetAmount")
                         .HasPrecision(18, 2)

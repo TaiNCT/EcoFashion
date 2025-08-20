@@ -94,7 +94,7 @@ public class OrderController : ControllerBase
     }
 
 
-    [HttpPost("seed-group")]
+    [HttpPost("Create Order for test")]
     public async Task<IActionResult> CreateSampleOrderGroup()
     {
         var orderGroup = await _orderService.CreateSampleOrderGroupAsync();

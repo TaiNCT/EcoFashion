@@ -660,6 +660,9 @@ namespace EcoFashionBackEnd.Entities
             #region PaymentTransaction
             // Order ↔ User
             modelBuilder.Entity<Order>()
+               .Property(o => o.IsPaidOut)
+               .HasDefaultValue(false);
+            modelBuilder.Entity<Order>()
                 .HasOne(o => o.User)
                 .WithMany(u => u.Orders)
                 .HasForeignKey(o => o.UserId)

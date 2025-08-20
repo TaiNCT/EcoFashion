@@ -31,7 +31,7 @@ namespace EcoFashionBackEnd.Data.test
             var wallets = users.Select(u => new Wallet
             {
                 UserId = u.UserId,
-                Balance = 0,
+                Balance = 1000000,
                 Status = WalletStatus.Active,
                 CreatedAt = DateTime.UtcNow,
                 LastUpdatedAt = DateTime.UtcNow

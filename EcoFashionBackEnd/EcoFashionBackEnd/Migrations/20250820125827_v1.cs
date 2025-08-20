@@ -566,6 +566,7 @@ namespace EcoFashionBackEnd.Migrations
                     NetAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     SellerType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SellerId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    IsPaidOut = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false)

@@ -19,7 +19,7 @@ public class OrderPayoutService : IOrderPayoutService
     public async Task ProcessPayoutsAsync()
     {
         var orders = await _context.Orders
-            .Where(o => o.FulfillmentStatus == FulfillmentStatus.Delivered)
+            .Where(o => o.FulfillmentStatus == FulfillmentStatus.Delivered && !o.IsPaidOut)
             .ToListAsync();
 
         if (!orders.Any()) return;
@@ -44,8 +44,9 @@ public class OrderPayoutService : IOrderPayoutService
             {
                 WalletId = systemWallet.WalletId,
                 BalanceBefore = systemWallet.Balance,
-                BalanceAfter = systemWallet.Balance - (double)sellerAmount,
+                BalanceAfter = systemWallet.Balance + (double)sellerAmount,
                 Type =TransactionType.Transfer,
+                Status =TransactionStatus.Success,
                 Amount = (double)-sellerAmount,
                 Description = $"Payout order {order.OrderId} to {order.SellerType} {order.SellerId}",
                 CreatedAt = DateTime.UtcNow
@@ -57,6 +58,7 @@ public class OrderPayoutService : IOrderPayoutService
                 Type = TransactionType.Transfer,
                 Amount = (double)sellerAmount,
                 BalanceBefore = systemWallet.Balance,
+                Status = TransactionStatus.Success,
                 BalanceAfter = systemWallet.Balance - (double)sellerAmount,
                 Description = $"Received payout for order {order.OrderId}, fee {systemFee}",
                 CreatedAt = DateTime.UtcNow
@@ -65,8 +67,8 @@ public class OrderPayoutService : IOrderPayoutService
             systemWallet.Balance -= (double)sellerAmount;
             sellerWallet.Balance += (double)sellerAmount;
 
-            // 6. Mark order payout
-            //order.IsPaidOut = true;
+            
+            order.IsPaidOut = true;
         }
 
         await _context.SaveChangesAsync();

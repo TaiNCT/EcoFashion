@@ -1075,6 +1075,11 @@ namespace EcoFashionBackEnd.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsPaidOut")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<decimal?>("NetAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");

@@ -41,6 +41,8 @@ namespace EcoFashionBackEnd.Entities
         // Per-seller routing
         public string? SellerType { get; set; } // "Supplier" or "Designer"
         public Guid? SellerId { get; set; }
+        public bool IsPaidOut { get; set; } = false;
+
         // Expiry to release reserved stock
         public DateTime? ExpiresAt { get; set; }
         public DateTime OrderDate { get; set; }

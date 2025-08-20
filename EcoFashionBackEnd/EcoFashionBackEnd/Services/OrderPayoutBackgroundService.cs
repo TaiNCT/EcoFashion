@@ -33,7 +33,7 @@
                     _logger.LogError(ex, "Error while processing order payouts");
                 }
 
-                // Sleep interval (vd: mỗi 1 phút check 1 lần)
+                // Sleep interval  1 min check 1  )
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
 

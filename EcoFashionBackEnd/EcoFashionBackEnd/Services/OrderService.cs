@@ -253,7 +253,7 @@ namespace EcoFashionBackEnd.Services
             await _dbContext.SaveChangesAsync();
             return result != null;
         }
-
+        #region test 
         public async Task<OrderGroup> CreateSampleOrderGroupAsync()
         {
             var customer = await _dbContext.Users.FirstAsync(u => u.UserId == 4);
@@ -263,14 +263,14 @@ namespace EcoFashionBackEnd.Services
             var designs = await _dbContext.Designs.Take(3).ToListAsync();
             var materials = await _dbContext.Materials.Take(3).ToListAsync();
 
-            // --- Create OrderGroup ---
+            
             var orderGroup = new OrderGroup
             {
                 UserId = customer.UserId,
                 CreatedAt = DateTime.UtcNow,
             };
             await _dbContext.OrderGroups.AddAsync(orderGroup);
-            await _dbContext.SaveChangesAsync(); // commit ngay -> có OrderGroupId thật
+            await _dbContext.SaveChangesAsync(); 
 
             // --- Designer Order ---
             var designerOrder = new Order
@@ -286,7 +286,7 @@ namespace EcoFashionBackEnd.Services
                 TotalPrice = designs.Sum(d => (decimal)d.SalePrice)
             };
             await _dbContext.Orders.AddAsync(designerOrder);
-            await _dbContext.SaveChangesAsync(); // ✅ có OrderId
+            await _dbContext.SaveChangesAsync(); 
 
             foreach (var d in designs)
             {
@@ -295,14 +295,14 @@ namespace EcoFashionBackEnd.Services
                     OrderId = designerOrder.OrderId,
                     DesignId = d.DesignId,
                     Type = OrderDetailType.design,
-                    Quantity = 1,
+                    Quantity = 5,
                     UnitPrice = (decimal)d.SalePrice
                 };
                 await _dbContext.OrderDetails.AddAsync(detail);
             }
             await _dbContext.SaveChangesAsync();
 
-            // --- Supplier Order ---
+            
             var supplierOrder = new Order
             {
                 OrderGroupId = orderGroup.OrderGroupId,
@@ -316,7 +316,7 @@ namespace EcoFashionBackEnd.Services
                 TotalPrice = materials.Sum(m => m.PricePerUnit)
             };
             await _dbContext.Orders.AddAsync(supplierOrder);
-            await _dbContext.SaveChangesAsync(); // ✅ có OrderId
+            await _dbContext.SaveChangesAsync(); 
 
             foreach (var m in materials)
             {
@@ -335,7 +335,7 @@ namespace EcoFashionBackEnd.Services
             return orderGroup;
         }
 
-
+        #endregion
 
 
     }
