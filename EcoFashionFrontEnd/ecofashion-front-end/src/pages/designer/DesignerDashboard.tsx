@@ -66,7 +66,8 @@ import DesignDefaultImage from "../../assets/pictures/fashion/design-default-ima
 //Icon
 import { CircularProgress } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-
+import FlashOnIcon from "@mui/icons-material/FlashOn";
+import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
 //Chart
 import { Line } from "react-chartjs-2";
 import {
@@ -81,6 +82,7 @@ import {
 } from "chart.js";
 import DesignService, {
   Design,
+  DesignDraftDetails,
   FullProductDetail,
   StoredMaterial,
 } from "../../services/api/designService";
@@ -89,6 +91,7 @@ import { useAuthStore } from "../../store/authStore";
 import DesignVariantService, {
   AddVariant,
   FullDesignVariant,
+  UpdateVariant,
 } from "../../services/api/designVariantService";
 import { Controller, useForm } from "react-hook-form";
 import FileUpload from "../../components/FileUpload";
@@ -99,7 +102,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import ProductService from "../../services/api/productService";
 import { Link } from "react-router-dom";
-
+import { useConfirm } from "material-ui-confirm";
 // Register chart components
 ChartJS.register(
   LineElement,
@@ -237,9 +240,15 @@ export default function DesignerDashBoard() {
   const [error, setError] = useState<string | null>(null);
   // Zustand stores
   const { getDesignerId } = useAuthStore();
+  //Confirm delete
+  const confirm = useConfirm();
+  //Hiện thông tin product
+  const [selectedDesign, setSelectedDesign] = useState(null);
+
   useEffect(() => {
     loadDesigners();
   }, []);
+
   const loadDesigners = async () => {
     try {
       setLoading(true);
@@ -268,6 +277,28 @@ export default function DesignerDashBoard() {
       setLoading(false);
     }
   };
+
+  //Get Material Used In Design
+  const currentDesign = designs.find(
+    (design) => design.designId === selectedDesign?.designId
+  );
+
+  //Get Material Used In Stored
+  const getMatchingStoredMaterials = () => {
+    if (!currentDesign || !storedMaterial) return [];
+
+    console.log(currentDesign);
+
+    // Lọc các storedMaterial có id trùng với material trong currentDesign
+    return storedMaterial.filter((storedMat) =>
+      currentDesign.materials.some(
+        (mat) => mat.materialId === storedMat.materialId
+      )
+    );
+  };
+
+  // Lấy matching stored materials
+  const matchingMaterials = getMatchingStoredMaterials();
 
   const yearData = [
     { label: "Jan", revenue: 64854, cost: 32652 },
@@ -588,11 +619,11 @@ export default function DesignerDashBoard() {
       const response = await DesignVariantService.getVariantsByDesignIdAsync(
         id
       );
-      console.log(response);
-      setVariant(response); // giả sử data là thông tin bạn cần hiển thị dialog
+      setVariant(response);
+      setVariantRows(generateMockVariant(response)); // cập nhật DataGrid
     } catch (error) {
       console.error(error);
-      // có thể hiện lỗi cho người dùng nếu muốn
+      toast.error("Không thể tải danh sách variant");
     }
   };
 
@@ -601,17 +632,41 @@ export default function DesignerDashBoard() {
     setOpenEditDialog(true);
   };
 
-  const handleDelete = (item: FashionRow) => {
-    // Xử lý xóa
+  type FashionRow = ReturnType<typeof generateMockDesigns>[number];
+
+  //Open Draft Detail Dialog
+  const [openDesignDraftDetailDialog, setOpenDesignDraftDetailDialog] =
+    React.useState(false);
+
+  const [designDraftDetail, setDesignDraftDetail] =
+    useState<DesignDraftDetails>();
+
+  const handleViewDesignDraftDetail = async (item: FashionRow) => {
+    setSelectedItem(item);
+    setOpenDesignDraftDetailDialog(true);
   };
 
-  type FashionRow = ReturnType<typeof generateMockDesigns>[number];
+  useEffect(() => {
+    if (openDesignDraftDetailDialog) {
+      getDesignDraftDetail(selectedItem.id);
+    }
+  }, [openDesignDraftDetailDialog]);
+
+  const getDesignDraftDetail = async (designId: number) => {
+    try {
+      const response = await DesignService.getDesignDraftDetailAsync(designId);
+      setDesignDraftDetail(response); // giờ OK
+    } catch (error) {
+      console.error(error);
+      toast.error("Không thể tải danh sách variant");
+    }
+  };
 
   const fashion_columns: GridColDef<FashionRow>[] = [
     { field: "id", headerName: "ID", width: 90 },
     {
       field: "image",
-      headerName: "Sản Phẩm",
+      headerName: "Rập",
       width: 110,
       flex: 1,
       renderCell: (params) => {
@@ -664,7 +719,7 @@ export default function DesignerDashBoard() {
     },
     {
       field: "title",
-      headerName: "Tên Sản Phảm",
+      headerName: "Tên Rập",
       width: 110,
       flex: 1,
     },
@@ -768,6 +823,13 @@ export default function DesignerDashBoard() {
             <Stack direction="row" spacing={1}>
               <IconButton
                 size="small"
+                onClick={() => handleViewDesignDraftDetail(params.row)}
+                color="primary"
+              >
+                <VisibilityIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
                 onClick={() => handleEdit(params.row)}
                 color="primary"
               >
@@ -775,7 +837,15 @@ export default function DesignerDashBoard() {
               </IconButton>
               <IconButton
                 size="small"
-                onClick={() => handleDelete(params.row)}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Bạn có chắc chắn muốn xoá variant này không?"
+                    )
+                  ) {
+                    handleDeleteDesign(params.row.id);
+                  }
+                }}
                 color="error"
               >
                 <DeleteIcon fontSize="small" />
@@ -787,6 +857,25 @@ export default function DesignerDashBoard() {
       flex: 1,
     },
   ];
+
+  const handleDeleteDesign = async (designId: number) => {
+    try {
+      const result = await DesignService.deleteDesign(designId);
+      if (result) {
+        // 🔄 Reload lại danh sách từ server
+        const designData = await DesignService.getAllDesignByDesigner(
+          getDesignerId()
+        );
+        setDesigns(designData);
+        toast.success("Xoá thành công!");
+      } else {
+        toast.error("Thiết Kế Đã Có Sản Phẩm");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Có lỗi khi xoá");
+    }
+  };
 
   const mapColorCodeToHex = (code) => {
     switch (code.toUpperCase()) {
@@ -844,7 +933,7 @@ export default function DesignerDashBoard() {
       return;
     }
 
-    const sizeId = Number(newVariant.sizeName); // từ form (id)
+    const sizeId = Number(newVariant.sizeName);
     const quantityToAdd = Number(newVariant.quantity);
     const colorCode = newVariant.colorCode;
 
@@ -862,37 +951,8 @@ export default function DesignerDashBoard() {
         addNewVariant
       );
 
-      // Tìm variant đã có trong state
-      const existingIndex = variant.findIndex(
-        (v) => v.sizeId === sizeId && v.colorCode === colorCode
-      );
-      console.log(variant);
-      if (existingIndex !== -1) {
-        // ✅ Nếu trùng thì cộng quantity
-        const updatedVariants = [...variant];
-        updatedVariants[existingIndex] = {
-          ...updatedVariants[existingIndex],
-          quantity: updatedVariants[existingIndex].quantity + quantityToAdd,
-        };
-        setVariant(updatedVariants);
-      } else {
-        // ✅ Nếu chưa có thì thêm mới
-        const newId = variant.length
-          ? Math.max(...variant.map((v) => v.variantId)) + 1
-          : 1;
-
-        const variantToAdd: FullDesignVariant = {
-          variantId: newId,
-          sizeName: sizeMapReverse[sizeId], // hiển thị tên size
-          sizeId: sizeId,
-          colorCode,
-          quantity: quantityToAdd,
-          designName: selectedItem?.title || "Unknown",
-          ratio: 0,
-        };
-
-        setVariant([...variant, variantToAdd]);
-      }
+      // 🔄 Reload lại danh sách từ server
+      await getVariantByDesignId(selectedItem.id);
 
       toast.success("Lưu thành công!");
       setAddingNew(false);
@@ -1011,6 +1071,15 @@ export default function DesignerDashBoard() {
       headerName: "Tên Sản Phảm",
       width: 110,
       flex: 1,
+      renderCell: (params) => (
+        <Link
+          to={`/detail/${params.row.id}/${getDesignerId()}`} // hoặc params.row.MaterialId
+          target="_blank"
+          style={{ color: "#1976d2", textDecoration: "underline" }}
+        >
+          {params.value}
+        </Link>
+      ),
     },
     {
       field: "price",
@@ -1149,6 +1218,19 @@ export default function DesignerDashBoard() {
   });
 
   const onSubmit = async (formData: CreateProductSchemaFormValues) => {
+    // Kiểm tra nguyên liệu trước
+    const insufficientMaterial = currentDesign.materials.some((mat) => {
+      const stored = matchingMaterials.find(
+        (m) => m.materialId === mat.materialId
+      );
+      return !stored || mat.meterUsed > stored.quantity;
+    });
+
+    if (insufficientMaterial) {
+      toast.error("Không đủ nguyên liệu để tạo sản phẩm");
+      return; // dừng submit
+    }
+
     const payload = { ...formData };
 
     console.log("📦 Payload gửi API:", payload);
@@ -1163,8 +1245,8 @@ export default function DesignerDashBoard() {
         reloadTabProduct();
       }
     } catch (err: any) {
+      toast.error(err.message);
       console.error("❌ Error submitting application:", err);
-      toast.error("Có lỗi xảy ra khi gửi đơn.");
     } finally {
       setLoading(false);
     }
@@ -1185,6 +1267,7 @@ export default function DesignerDashBoard() {
   const getTotalMeterUsed = (materials: { meterUsed: number }[]) => {
     return materials.reduce((sum, mat) => sum + (mat.meterUsed ?? 0), 0);
   };
+
   const generateMockVariant = (variant: FullDesignVariant[]) => {
     return variant.map((variant) => ({
       variantId: variant.variantId,
@@ -1194,11 +1277,52 @@ export default function DesignerDashBoard() {
       quantity: variant.quantity,
       ratio: variant.ratio,
       sizeId: variant.sizeId,
-      meterUsed: variant.quantity * getTotalMeterUsed(selectedItem.material),
+      meterUsed:
+        variant.quantity *
+        getTotalMeterUsed(selectedItem.material) *
+        variant.ratio,
     }));
   };
 
   type VariantColumn = ReturnType<typeof generateMockVariant>[number];
+  const [variantRows, setVariantRows] = useState<VariantColumn[]>([]);
+
+  const handleDeleteVariant = async (variantId: number) => {
+    try {
+      const result = await DesignVariantService.deleteVariant(variantId);
+      if (result) {
+        // 🔄 Reload lại danh sách từ server
+        await getVariantByDesignId(selectedItem.id);
+        toast.success("Xoá thành công!");
+      } else {
+        toast.error("Xóa Thất Bại");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Có lỗi khi xoá");
+    }
+  };
+
+  const handleUpdateVariant = async (
+    variantId: number,
+    updatedData: UpdateVariant
+  ) => {
+    try {
+      setLoading(true);
+
+      await DesignVariantService.updateVariantAsync(variantId, updatedData);
+
+      //Reload lại danh sách từ server
+      await getVariantByDesignId(selectedItem.id);
+
+      toast.success("Cập nhật thành công!");
+    } catch (err: any) {
+      console.error("❌ Error updating variant:", err);
+      toast.error(err.message || "Có lỗi khi cập nhật");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const variant_columns: GridColDef<VariantColumn>[] = [
     { field: "variantId", headerName: "ID", width: 90 },
@@ -1231,6 +1355,7 @@ export default function DesignerDashBoard() {
         </Box>
       ),
     },
+    { field: "ratio", headerName: "Tỉ Lệ", flex: 1, type: "number" },
     {
       field: "quantity",
       headerName: "Số lượng",
@@ -1246,7 +1371,7 @@ export default function DesignerDashBoard() {
     },
     {
       field: "actions",
-      headerName: "Hành Động",
+      headerName: "",
       width: 120,
       sortable: false,
       filterable: false,
@@ -1259,17 +1384,25 @@ export default function DesignerDashBoard() {
             sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
           >
             <Stack direction="row" spacing={1}>
-              <IconButton size="small" color="primary">
-                <EditIcon fontSize="small" />
-              </IconButton>
-              <IconButton size="small" color="error">
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Bạn có chắc chắn muốn xoá variant này không?"
+                    )
+                  ) {
+                    handleDeleteVariant(params.row.variantId);
+                  }
+                }}
+              >
                 <DeleteIcon fontSize="small" />
               </IconButton>
             </Stack>
           </Box>
         );
       },
-      flex: 1,
     },
   ];
 
@@ -1816,6 +1949,13 @@ export default function DesignerDashBoard() {
                         value={field.value || ""}
                         labelId="design-product-label"
                         label="Chọn rập thiết kế"
+                        onChange={(e) => {
+                          field.onChange(e); // cập nhật form value
+                          const design = designs.find(
+                            (d) => d.designId === e.target.value
+                          );
+                          setSelectedDesign(design || null); // cập nhật design chi tiết
+                        }}
                       >
                         {designs
                           .filter(
@@ -1828,7 +1968,32 @@ export default function DesignerDashBoard() {
                               key={design.designId}
                               value={design.designId}
                             >
-                              {design.name}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                {/* Ảnh thumbnail */}
+                                <Avatar
+                                  src={
+                                    design.drafSketches || DesignDefaultImage
+                                  } // nếu không có ảnh thì dùng default
+                                  alt={design.name}
+                                  sx={{ width: 32, height: 32 }}
+                                />
+
+                                {/* Tên và score */}
+                                <Box>
+                                  <Typography variant="body1">
+                                    {design.name}
+                                  </Typography>
+                                  <Typography variant="caption" color="green">
+                                    Tính Bền Vững: {design.recycledPercentage}%
+                                  </Typography>
+                                </Box>
+                              </Box>
                             </MenuItem>
                           ))}
                       </Select>
@@ -1840,6 +2005,88 @@ export default function DesignerDashBoard() {
                     </FormControl>
                   )}
                 />
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  {currentDesign && currentDesign.materials && (
+                    <Box mt={2}>
+                      <Typography variant="subtitle1">
+                        Danh sách vật liệu:
+                      </Typography>
+                      {currentDesign.materials.map((mat, index) => {
+                        // Tổng quantity của tất cả variant
+                        const totalQuantity =
+                          currentDesign.designsVariants.reduce(
+                            (sum, variant) => sum + variant.quantity,
+                            0
+                          );
+
+                        return (
+                          <Box
+                            key={index}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              p: 1,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box>
+                              <Typography variant="body2">
+                                {mat.materialName}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                Sử dụng: {mat.meterUsed * totalQuantity} m
+                              </Typography>
+                            </Box>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  )}
+
+                  {/* Danh sách stored material trùng với currentDesign */}
+                  {matchingMaterials && matchingMaterials.length > 0 && (
+                    <Box mt={2}>
+                      <Typography variant="subtitle1">
+                        Vật Liệu Trong Kho:
+                      </Typography>
+                      {matchingMaterials.map((mat, index) => (
+                        <Box
+                          key={index}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            p: 1,
+                            borderBottom: "1px solid #eee",
+                          }}
+                        >
+                          {/* <Avatar src={mat.image || "/default-material.png"} alt={mat.name} sx={{ width: 32, height: 32 }} /> */}
+                          <Box>
+                            <Typography variant="body2">
+                              {mat.material.name}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              Số lượng có sẵn: {mat.quantity} m
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                </Box>
                 {/* Upload hình ảnh */}
                 <Controller
                   name="images"
@@ -2292,7 +2539,7 @@ export default function DesignerDashBoard() {
                       }}
                     >
                       <DataGrid
-                        rows={generateMockVariant(variant)}
+                        rows={variantRows}
                         columns={variant_columns}
                         getRowId={(row) => row.variantId}
                         initialState={{
@@ -2317,6 +2564,18 @@ export default function DesignerDashBoard() {
                           "& .MuiDataGrid-row:hover": {
                             backgroundColor: "#fafafa",
                           },
+                        }}
+                        processRowUpdate={async (newRow, oldRow) => {
+                          if (newRow.quantity !== oldRow.quantity) {
+                            await handleUpdateVariant(newRow.variantId, {
+                              colorCode: oldRow.colorCode,
+                              quantity: newRow.quantity,
+                            });
+                          }
+                          return newRow;
+                        }}
+                        onProcessRowUpdateError={(error) => {
+                          toast.error("Cập nhật thất bại: " + error.message);
                         }}
                       />
                     </Box>
@@ -2353,6 +2612,310 @@ export default function DesignerDashBoard() {
               {/* <Button variant="contained" color="primary">
                 Lưu
               </Button> */}
+            </DialogActions>
+          </Dialog>
+          <Dialog
+            open={openDesignDraftDetailDialog}
+            onClose={() => setOpenDesignDraftDetailDialog(false)}
+            maxWidth="xl"
+            fullWidth
+          >
+            <DialogTitle>Thông Tin Rập</DialogTitle>
+            <DialogContent dividers>
+              {designDraftDetail && (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  {/* Thông tin chung */}
+                  <Grid>
+                    <Card>
+                      <CardContent>
+                        <Grid container spacing={2}>
+                          {/* Cột trái: hình ảnh */}
+                          <Grid>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                height: "100%",
+                              }}
+                              onClick={() =>
+                                handleClickOpen(
+                                  designDraftDetail.sketchImageUrls &&
+                                    designDraftDetail.sketchImageUrls.length > 0
+                                    ? designDraftDetail.sketchImageUrls[0]
+                                    : DesignDefaultImage
+                                )
+                              }
+                            >
+                              <img
+                                src={
+                                  designDraftDetail.sketchImageUrls &&
+                                  designDraftDetail.sketchImageUrls.length > 0
+                                    ? designDraftDetail.sketchImageUrls[0]
+                                    : DesignDefaultImage
+                                }
+                                alt="Sản Phẩm"
+                                style={{
+                                  width: "100%",
+                                  maxHeight: 150,
+                                  objectFit: "cover",
+                                  borderRadius: 8,
+                                }}
+                              />
+                            </Box>
+                          </Grid>
+
+                          {/* Cột phải: thông tin */}
+                          <Grid flex={1}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Box
+                                display={"flex"}
+                                flexDirection={"column"}
+                                mb={2}
+                              >
+                                <Typography variant="h5">
+                                  {designDraftDetail.name}
+                                </Typography>
+                                <Typography color="text.secondary">
+                                  Mô tả: {designDraftDetail.description}
+                                </Typography>
+                              </Box>
+                              <Chip
+                                icon={<EcoIcon />}
+                                label={`${designDraftDetail.recycledPercentage}% Bền Vững`}
+                                size="small"
+                                sx={{
+                                  backgroundColor: "rgba(200, 248, 217, 1)",
+                                  color: "rgba(22, 103, 86, 1)",
+                                  fontSize: "15px",
+                                }}
+                              />
+                            </Box>
+                            <Box
+                              sx={{ display: "flex", width: "100%", gap: 2 }}
+                            >
+                              {/* Giảm Khí CO₂ */}
+                              <Grid size={6}>
+                                <Box
+                                  sx={{
+                                    backgroundColor: "rgba(239, 246, 255, 1)", // Light blue background
+                                    borderRadius: 2,
+                                    padding: 2,
+                                    textAlign: "center",
+                                    width: "100%",
+                                  }}
+                                >
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      justifyContent: "center",
+                                      alignItems: "center",
+                                      gap: 0.5,
+                                    }}
+                                  >
+                                    <FlashOnIcon
+                                      fontSize="small"
+                                      sx={{ color: "#1E88E5" }}
+                                    />
+                                    <Typography variant="body2" color="primary">
+                                      Giảm Khí CO₂
+                                    </Typography>
+                                  </Box>
+                                  <Typography
+                                    variant="h6"
+                                    fontWeight="bold"
+                                    color="primary"
+                                  >
+                                    {designDraftDetail.totalCarbon} Kg
+                                  </Typography>
+                                </Box>
+                              </Grid>
+                              {/* Tiết Kiệm Nước */}
+                              <Grid size={6}>
+                                <Box
+                                  sx={{
+                                    backgroundColor:
+                                      "rgb(236 254 255/var(--tw-bg-opacity,1))", // Light blue background
+                                    borderRadius: 2,
+                                    padding: 2,
+                                    textAlign: "center",
+                                    width: "100%",
+                                  }}
+                                >
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      justifyContent: "center",
+                                      alignItems: "center",
+                                      gap: 0.5,
+                                    }}
+                                  >
+                                    <WaterDropIcon
+                                      fontSize="small"
+                                      sx={{ color: "#00ACC1" }}
+                                    />
+                                    <Typography
+                                      variant="body2"
+                                      sx={{ color: "#00ACC1" }}
+                                    >
+                                      Tiết Kiệm Nước
+                                    </Typography>
+                                  </Box>
+                                  <Typography
+                                    variant="h6"
+                                    fontWeight="bold"
+                                    sx={{ color: "#00ACC1" }}
+                                  >
+                                    {designDraftDetail.totalWater} L
+                                  </Typography>
+                                </Box>
+                              </Grid>
+                              {/* Giảm Rác Thải */}
+                              <Grid size={6}>
+                                <Box
+                                  sx={{
+                                    backgroundColor: "#FFF3E0", // Light blue background
+                                    borderRadius: 2,
+                                    padding: 2,
+                                    textAlign: "center",
+                                    width: "100%",
+                                  }}
+                                >
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      justifyContent: "center",
+                                      alignItems: "center",
+                                      gap: 0.5,
+                                    }}
+                                  >
+                                    <DeleteSweepIcon
+                                      fontSize="small"
+                                      sx={{ color: "#F57C00" }}
+                                    />
+                                    <Typography
+                                      variant="body2"
+                                      sx={{ color: "#F57C00" }}
+                                    >
+                                      Giảm Rác Thải
+                                    </Typography>
+                                  </Box>
+                                  <Typography
+                                    variant="h6"
+                                    fontWeight="bold"
+                                    sx={{ color: "#F57C00" }}
+                                  >
+                                    {designDraftDetail.totalWaste}%
+                                  </Typography>
+                                </Box>
+                              </Grid>
+                            </Box>
+                          </Grid>
+                        </Grid>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* Draft Parts */}
+                  <Grid>
+                    <Card>
+                      <CardContent>
+                        <Typography variant="h6">Mảnh Rập</Typography>
+
+                        {designDraftDetail.draftParts &&
+                        designDraftDetail.draftParts.length > 0 ? (
+                          <Table>
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Tên</TableCell>
+                                <TableCell>Chiều Dài</TableCell>
+                                <TableCell>Chiều Rộng</TableCell>
+                                <TableCell>Số Mảnh Rập</TableCell>
+                                <TableCell>Nguyên Liệu</TableCell>
+                                <TableCell>Loại Vải</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {designDraftDetail.draftParts.map(
+                                (part, index) => (
+                                  <TableRow key={index}>
+                                    <TableCell>{part.name}</TableCell>
+                                    <TableCell>{part.length} cm</TableCell>
+                                    <TableCell>{part.width} cm</TableCell>
+                                    <TableCell>{part.quantity}</TableCell>
+                                    <TableCell>{part.materialName}</TableCell>
+                                    <TableCell>
+                                      {(() => {
+                                        switch (
+                                          part.materialStatus.toLowerCase()
+                                        ) {
+                                          case "main":
+                                            return "Vải Chính";
+                                          case "lining":
+                                            return "Vải Phụ";
+                                          case "trims":
+                                            return "Vải Lót";
+                                          case "other":
+                                            return "Vải Khác";
+                                          default:
+                                            return part.materialStatus;
+                                        }
+                                      })()}
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              )}
+                            </TableBody>
+                          </Table>
+                        ) : (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mt: 1 }}
+                          >
+                            Không có mảnh rập
+                          </Typography>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  {/* Materials */}
+                  <Grid>
+                    <Card>
+                      <CardContent>
+                        <Typography variant="h6">Materials</Typography>
+                        <Table>
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Nguyên Liệu</TableCell>
+                              <TableCell>Mét Vải Sử Dụng</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {designDraftDetail.materials.map((m) => (
+                              <TableRow key={m.materialId}>
+                                <TableCell>{m.materialName}</TableCell>
+                                <TableCell>{m.meterUsed} m</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenDesignDraftDetailDialog(false)}>
+                Đóng
+              </Button>
             </DialogActions>
           </Dialog>
           <BootstrapDialog
@@ -2448,76 +3011,6 @@ export default function DesignerDashBoard() {
 
       {/* Bottom Part */}
       <Box sx={{ width: "100%", display: "flex", gap: 3, margin: "30px 0" }}>
-        {/* Card Liên Lạc */}
-        <Card
-          sx={{
-            width: 300,
-            textAlign: "center",
-            p: 2,
-            flex: 1,
-            border: "1px solid rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <Box sx={{ display: "flex", margin: "10px 0", gap: 1 }}>
-            <ChatBubbleOutlineIcon color="success" sx={{ margin: "auto 0" }} />
-            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-              Liên Lạc
-            </Typography>
-          </Box>
-          <Stack spacing={2} marginBottom={3}>
-            {messages.map((item, index) => (
-              <Button
-                key={index}
-                variant="outlined"
-                sx={{
-                  borderColor: "rgba(0,0,0,0.1)",
-                  textTransform: "none",
-                }}
-              >
-                <Box sx={{ width: "100%", display: "flex" }}>
-                  <Box
-                    sx={{
-                      textAlign: "left",
-                      padding: "10px",
-                      display: "flex",
-                      flexDirection: "column",
-                      marginRight: "auto",
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        width: "100%",
-                        marginRight: "auto",
-                        fontWeight: "bold",
-                        color: "black",
-                      }}
-                    >
-                      {item.sender}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        width: "100%",
-                        color: "black",
-                        opacity: "40%",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {item.content}
-                    </Typography>
-                  </Box>
-                  <Typography color="black">{item.timeSend}</Typography>
-                </Box>
-              </Button>
-            ))}
-          </Stack>
-
-          <Button variant="contained" color="success">
-            Xem toàn bộ tin nhắn
-          </Button>
-        </Card>
-
         {/* Card Quản Lí Giao Hàng */}
         <Card
           sx={{

@@ -179,6 +179,7 @@ namespace EcoFashionBackEnd.Services
             var designs = await _dbContext.Designs
                 .AsNoTracking()
                 .OrderByDescending(d => d.CreatedAt)
+                .Where(d => d.Products.Any())
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .Select(d => new DesignWithProductInfoDto
@@ -218,7 +219,7 @@ namespace EcoFashionBackEnd.Services
         {
             var designs = await _dbContext.Designs
                 .AsNoTracking()
-                .Where(d => d.DesignerId == designerId)
+                .Where(d => d.DesignerId == designerId && d.Products.Any())
                 .OrderByDescending(d => d.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -289,6 +290,7 @@ namespace EcoFashionBackEnd.Services
                         {
                             Id = dv.Id,
                             DesignId = dv.DesignId,
+                            Quantity = dv.Quantity,
                         }).ToList(),
                          // Only select URLs, not entire image entity
                     DrafSketches = d.DraftSketches

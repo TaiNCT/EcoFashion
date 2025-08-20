@@ -82,7 +82,6 @@ namespace EcoFashionBackEnd.Services
                 UnitPrice = request.UnitPrice,
                 SalePrice = request.SalePrice,
                 ItemTypeId = request.DesignTypeId,
-                CareInstruction = request.CareInstruction
             };
 
             await _designRepository.AddAsync(design);
@@ -223,6 +222,7 @@ namespace EcoFashionBackEnd.Services
                 .AsNoTracking()
                 .Where(d => d.DesignId == designId && d.DesignerId == designerId)
                 .Include(d => d.DraftParts)
+                    .ThenInclude(dm => dm.Material)
                 .Include(d =>d.DesignFeatures)
                 .Include(d => d.DesignsMaterials)
                     .ThenInclude(dm => dm.Materials)
@@ -250,6 +250,8 @@ namespace EcoFashionBackEnd.Services
                     Width = (float)p.Width,
                     Quantity = p.Quantity,
                     MaterialId = p.MaterialId,
+                    MaterialName = p.Material.Name,
+                    MaterialStatus = p.MaterialStatus.ToString(),
                 }).ToList(),
                 DesignFeature = new DesignFeatureModel
                 {

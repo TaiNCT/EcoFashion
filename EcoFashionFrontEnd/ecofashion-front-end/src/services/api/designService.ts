@@ -126,6 +126,7 @@ export interface Feature {
 export interface DesignsVariants {
   id: number;
   designId: number;
+  quantity:number;
 }
 
 export interface Design {
@@ -135,7 +136,7 @@ export interface Design {
   itemTypeName: string;
   salePrice: number;
   designImageUrls: string[];
-  drafSketches: string[];
+  drafSketches: string;
   materials: Material[];
   productCount: number;
   designer: Designer;
@@ -227,6 +228,50 @@ export const designDraftFieldMapping = {
 
   sketchImages: "SketchImages", // multi-file upload
 };
+
+export interface DesignFeature {
+  reduceWaste: boolean;
+  lowImpactDyes: boolean;
+  durable: boolean;
+  ethicallyManufactured: boolean;
+}
+
+export interface DraftParts {
+  name: string;
+  length: number;
+  width: number;
+  quantity: number;
+  materialId: number;
+  materialName: string;
+  materialStatus: string;
+}
+
+export interface DraftMaterial {
+  materialId: number;
+  materialName: string;
+  meterUsed: number;
+}
+
+export interface DesignDraftDetails {
+  designId: number;
+  name: string;
+  description: string;
+  recycledPercentage: number;
+  designTypeId: number;
+  createdAt: string;
+  unitPrice: number;
+  salePrice: number;
+  laborHours: number;
+  laborCostPerHour: number;
+  totalCarbon: number;
+  totalWater: number;
+  totalWaste: number;
+  designFeature: DesignFeature;
+  draftParts: DraftParts[];
+  materials: DraftMaterial[];
+  sketchImageUrls: string;
+}
+
 /**
  * Design Service
  * Handles all designer-related API calls
@@ -615,6 +660,34 @@ export class DesignService {
       const response = await apiClient.get<
         BaseApiResponse<FullProductDetail[]>
       >(`/${this.API_BASE}/designProductDetails/${id}/${desingerId}`);
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Delete design without product
+   */
+  static async deleteDesign(designId: number) {
+    try {
+      const response = await apiClient.delete(`/DesignDraft/${designId}`);
+
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Get Design Draft Detai
+   */
+  static async getDesignDraftDetailAsync(
+    designId: number
+  ): Promise<DesignDraftDetails> {
+    try {
+      const response = await apiClient.get(`/DesignDraft/drafts/${designId}`);
+
       return handleApiResponse(response);
     } catch (error) {
       return handleApiError(error);
