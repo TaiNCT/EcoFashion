@@ -25,11 +25,10 @@ public class OrderPayoutService : IOrderPayoutService
         if (!orders.Any()) return;
 
         var systemWallet = await _context.Wallets
-            .FirstOrDefaultAsync(w => w.WalletId == 1); // ví admin (system)
+            .FirstOrDefaultAsync(w => w.WalletId == 1); 
 
         foreach (var order in orders)
         {
-            // 1. Resolve seller
             var sellerUser = await GetSellerUserAsync(order.SellerType, order.SellerId);
             if (sellerUser == null) continue;
 
@@ -37,12 +36,10 @@ public class OrderPayoutService : IOrderPayoutService
                 .FirstOrDefaultAsync(w => w.UserId == sellerUser.UserId);
             if (sellerWallet == null) continue;
 
-            // 2. Tính toán số tiền
             var orderAmount = order.TotalPrice;
-            var systemFee = orderAmount * 0.1m; // ví dụ 10%
+            var systemFee = orderAmount * 0.1m; 
             var sellerAmount = orderAmount - systemFee;
 
-            // 3. Ghi transaction cho System Wallet (-)
             _context.WalletTransactions.Add(new WalletTransaction
             {
                 WalletId = systemWallet.WalletId,
@@ -54,7 +51,6 @@ public class OrderPayoutService : IOrderPayoutService
                 CreatedAt = DateTime.UtcNow
             });
 
-            // 4. Ghi transaction cho Seller Wallet (+)
             _context.WalletTransactions.Add(new WalletTransaction
             {
                 WalletId = sellerWallet.WalletId,
@@ -66,11 +62,10 @@ public class OrderPayoutService : IOrderPayoutService
                 CreatedAt = DateTime.UtcNow
             });
 
-            // 5. Update số dư ví
             systemWallet.Balance -= (double)sellerAmount;
             sellerWallet.Balance += (double)sellerAmount;
 
-            // 6. Mark order đã payout
+            // 6. Mark order payout
             //order.IsPaidOut = true;
         }
 
