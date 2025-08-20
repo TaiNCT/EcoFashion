@@ -71,7 +71,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function AddDesignDraft() {
   const [laborCost, setLaborCost] = useState(16000);
-  const [laborHour, setLaborHour] = useState(0);
+  const [laborHour, setLaborHour] = useState(1);
   const [tabIndex, setTabIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -395,7 +395,6 @@ export default function AddDesignDraft() {
         totalArea: area,
         needMaterial: needMaterialForThis,
         price: needMaterialForThis * item.material.pricePerUnit * 1000,
-
         totalCarbon: carbonForThis,
         totalWater: waterForThis,
         totalWaste: wasteForThis,
@@ -407,6 +406,16 @@ export default function AddDesignDraft() {
       acc[key].needMaterial = calcNeedMaterial(acc[key].totalArea);
       acc[key].price =
         acc[key].needMaterial * acc[key].material.pricePerUnit * 1000;
+      acc[key].allDraftNames.push(item.draftName);
+
+      const percentMaterialUsed = 1 / uniqueMaterialCount;
+      acc[key].totalCarbon +=
+        item.material.carbonFootprint * percentMaterialUsed;
+      acc[key].totalWater += item.material.waterUsage * percentMaterialUsed;
+      acc[key].totalWaste += item.material.wasteDiverted * percentMaterialUsed;
+      acc[key].sustainabilityScore +=
+        item.material.sustainabilityScore * percentMaterialUsed;
+
       acc[key].allDraftNames.push(item.draftName);
     }
 
@@ -567,6 +576,8 @@ export default function AddDesignDraft() {
       setLoading(false);
     }
   };
+
+  const roundUp1Decimal = (value: number) => Math.ceil((value ?? 0) * 10) / 10;
 
   return (
     <Box>
@@ -781,108 +792,8 @@ export default function AddDesignDraft() {
                   Thông Tin Rập
                 </Typography>
               </Box>
-              <Grid container spacing={2} sx={{ marginBottom: 5 }}>
-                {/* Design Type */}
-                <Grid flex={1}>
-                  <Box sx={{ width: "100%" }}>
-                    <TextField
-                      fullWidth
-                      label="Tên rập"
-                      {...register("name")}
-                      error={!!errors.name}
-                      helperText={errors.name?.message}
-                    />
-                  </Box>
-                </Grid>
-                <Grid flex={1}>
-                  <Box sx={{ width: "100%" }}>
-                    <FormControl fullWidth>
-                      <InputLabel id="design-type-label">
-                        Loại Thời Trang
-                      </InputLabel>
-                      <Select
-                        labelId="design-type-label"
-                        id="designType-select"
-                        value={designTypeData}
-                        label="Loại Thời Trang"
-                        onChange={handleChangeDesign}
-                      >
-                        {designType.map((dt) => (
-                          <MenuItem value={dt.itemTypeId}>
-                            {dt.typeName}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                </Grid>
-                {/* Labor Hour */}
-                <Grid flex={1}>
-                  <Box sx={{ width: "100%" }}>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Tiền Công Một Giờ"
-                      value={laborCost}
-                      defaultValue={1}
-                      onChange={(e) => {
-                        const value = e.target.value;
-
-                        // Chỉ cho phép số nguyên dương hoặc rỗng
-                        if (value === "") {
-                          setLaborCost(0);
-                          return;
-                        }
-
-                        const intValue = parseInt(value, 10);
-                        if (!isNaN(intValue) && intValue >= 0) {
-                          setLaborCost(intValue);
-                        }
-                      }}
-                      inputProps={{ min: 0, step: 1 }}
-                    />
-                  </Box>
-                </Grid>
-                {/* Quantity */}
-                <Grid flex={1}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Giờ Làm"
-                    value={laborHour}
-                    defaultValue={1}
-                    onChange={(e) => {
-                      const value = e.target.value;
-
-                      // Chỉ cho phép số nguyên dương hoặc rỗng
-                      if (value === "") {
-                        setLaborHour(0);
-                        return;
-                      }
-
-                      const intValue = parseInt(value, 10);
-                      if (!isNaN(intValue) && intValue >= 0) {
-                        setLaborHour(intValue);
-                      }
-                    }}
-                    inputProps={{ min: 0, step: 1 }}
-                  />
-                </Grid>
-              </Grid>
-              <Grid container spacing={2}>
-                <Grid flex={1}>
-                  <TextField
-                    name="description"
-                    label="Mô tả"
-                    multiline
-                    rows={5}
-                    placeholder="Nhập vào"
-                    sx={{ width: "100%", height: "100%" }}
-                    {...register("description")}
-                    error={!!errors.name}
-                    helperText={errors.name?.message}
-                  />
-                </Grid>
+              <Grid container spacing={3}>
+                {/* Ảnh Rập */}
                 <Grid flex={1}>
                   <Typography
                     variant="caption"
@@ -898,7 +809,6 @@ export default function AddDesignDraft() {
                     render={({ field, fieldState }) => (
                       <FileUpload
                         label=""
-                        multiple
                         files={
                           field.value
                             ? Array.isArray(field.value)
@@ -915,11 +825,120 @@ export default function AddDesignDraft() {
                     )}
                   />
                   <Typography variant="caption" sx={{ mt: 2 }}>
-                    Thêm tối thiểu 3 hình ảnh bổ sung hiển thị các góc hoặc chi
-                    tiết khác nhau{" "}
+                    Thêm tối đa 1 hình ảnh bổ sung để dễ phân biệt rập
                   </Typography>
                 </Grid>
+                <Box display={"flex"} flexDirection={"column"} gap={1}>
+                  <Box display={"flex"} gap={2}>
+                    {/* Design Type */}
+                    <Grid flex={1}>
+                      <Box sx={{ width: "100%" }}>
+                        <TextField
+                          fullWidth
+                          label="Tên rập"
+                          {...register("name")}
+                          error={!!errors.name}
+                          helperText={errors.name?.message}
+                        />
+                      </Box>
+                    </Grid>
+                    {/* Loại Thời Trang */}
+                    <Grid flex={1}>
+                      <Box sx={{ width: "100%" }}>
+                        <FormControl fullWidth>
+                          <InputLabel id="design-type-label">
+                            Loại Thời Trang
+                          </InputLabel>
+                          <Select
+                            labelId="design-type-label"
+                            id="designType-select"
+                            value={designTypeData}
+                            label="Loại Thời Trang"
+                            onChange={handleChangeDesign}
+                          >
+                            {designType.map((dt) => (
+                              <MenuItem value={dt.itemTypeId}>
+                                {dt.typeName}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </Grid>
+                    {/* Labor Hour */}
+                    <Grid flex={1}>
+                      <Box sx={{ width: "100%" }}>
+                        <TextField
+                          fullWidth
+                          type="number"
+                          label="Tiền Công Một Giờ"
+                          value={laborCost}
+                          onChange={(e) => {
+                            const value = e.target.value;
+
+                            if (value === "") {
+                              setLaborCost(16000); // nếu để trống thì reset về 16000
+                              return;
+                            }
+
+                            const intValue = parseInt(value, 10);
+
+                            if (!isNaN(intValue)) {
+                              if (intValue < 16000) {
+                                setLaborCost(16000); // nếu nhỏ hơn 16000 thì reset về 16000
+                              } else {
+                                setLaborCost(intValue);
+                              }
+                            }
+                          }}
+                          inputProps={{ min: 16000, step: 1 }}
+                        />
+                      </Box>
+                    </Grid>
+                    {/* Giờ Làm */}
+                    <Grid flex={1}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Giờ Làm"
+                        value={laborHour}
+                        defaultValue={1}
+                        onChange={(e) => {
+                          const value = e.target.value;
+
+                          // Chỉ cho phép số nguyên dương hoặc rỗng
+                          if (value === "") {
+                            setLaborHour(1);
+                            return;
+                          }
+
+                          const intValue = parseInt(value, 10);
+                          if (!isNaN(intValue) && intValue >= 0) {
+                            setLaborHour(intValue);
+                          }
+                        }}
+                        inputProps={{ min: 1, step: 1 }}
+                      />
+                    </Grid>
+                  </Box>
+                  <Grid container spacing={2}>
+                    <Grid flex={1}>
+                      <TextField
+                        name="description"
+                        label="Mô tả"
+                        multiline
+                        rows={5}
+                        placeholder="Nhập vào"
+                        sx={{ width: "100%", height: "100%" }}
+                        {...register("description")}
+                        error={!!errors.name}
+                        helperText={errors.name?.message}
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
               </Grid>
+              {/* Description */}
             </CardContent>
           </Card>
           {/* Thêm Mảnh Rập */}
@@ -1455,9 +1474,9 @@ export default function AddDesignDraft() {
                             <Box
                               sx={{
                                 display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                width: "90%",
+                                alignItems: "flex-start",
+                                justifyContent: "space-between", // đẩy 2 bên
+                                width: "100%", // full width để đẩy sát phải
                               }}
                             >
                               <Box>
@@ -1508,17 +1527,23 @@ export default function AddDesignDraft() {
                                   </Typography>
                                 </Box>
                               </Box>
-                              <Box sx={{ mt: 1 }}>
-                                <Typography variant="body1">
-                                  Mét Vải Cần thiết:
-                                </Typography>
-                                <Typography
-                                  variant="body1"
-                                  color="primary"
-                                  sx={{ fontWeight: "bold" }}
-                                >
-                                  {m.needMaterial} mét
-                                </Typography>
+                              <Box
+                                display={"flex"}
+                                flexDirection={"column"}
+                                alignItems="flex-end"
+                              >
+                                <Box sx={{ mt: 1 }} alignItems="flex-start">
+                                  <Typography variant="body1">
+                                    Mét Vải Cần thiết:
+                                  </Typography>
+                                  <Typography
+                                    variant="body1"
+                                    color="primary"
+                                    sx={{ fontWeight: "bold" }}
+                                  >
+                                    {m.needMaterial} mét
+                                  </Typography>
+                                </Box>
                               </Box>
                             </Box>
                             {m.material.certificationDetails && (
@@ -1540,9 +1565,23 @@ export default function AddDesignDraft() {
                               </Box>
                             )}
                             {/* Trung bình vải sẽ có 20% phế liệu */}
-                            <Typography variant="caption" color="error">
+                            <Typography
+                              variant="caption"
+                              color="error"
+                              flex={1}
+                            >
                               Phế liệu ước tính: {m.totalArea * 0.2} cm²
                             </Typography>
+                            <Box flex={1} sx={{ mt: 1, width: "100%" }}>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ fontStyle: "italic" }}
+                              >
+                                Mét Vải Cần Thiết = (Diện tích + Phế liệu ước
+                                tính) / 150 (khổ vải cm) / 100 (đổi sang mét)
+                              </Typography>
+                            </Box>
                           </Box>
                         ))
                       ) : (
@@ -1870,29 +1909,69 @@ export default function AddDesignDraft() {
                               margin: "10px 0",
                             }}
                           >
+                            <Typography variant="body2" component="ul" mb={2}>
+                              <li>Chi Tiết Bền Vững</li>
+                            </Typography>
                             <Box
                               sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                mb: 1,
+                                maxHeight: 300, // chiều cao tối đa (px) bạn muốn
+                                overflowY: "auto", // bật scroll dọc
+                                pr: 1, // thêm padding để tránh chữ sát scrollbar
                               }}
                             >
-                              <TrendingUpIcon
-                                fontSize="small"
-                                sx={{ color: "black" }}
-                              />
-                              <Typography variant="body2" fontWeight="medium">
-                                Gợi ý cải thiện:
-                              </Typography>
+                              {groupedMaterial.map((m) => (
+                                <Box
+                                  key={m.id}
+                                  sx={{
+                                    mb: 2,
+                                    p: 2,
+                                    border: "1px solid #ccc",
+                                    borderRadius: 2,
+                                  }}
+                                >
+                                  <Typography fontWeight="bold" mb={1}>
+                                    {m.material.name}
+                                  </Typography>
+
+                                  <Box display="flex" alignItems="center">
+                                    <Typography>
+                                      Tính Bền Vững:{" "}
+                                      {Math.round(m.sustainabilityScore)}%
+                                    </Typography>
+                                  </Box>
+                                  <Box display="flex" alignItems="center">
+                                    <FlashOnIcon
+                                      fontSize="small"
+                                      sx={{ color: "#1E88E5" }}
+                                    />
+                                    <Typography>
+                                      Giảm Khí CO2:{" "}
+                                      {roundUp1Decimal(m.totalCarbon)}Kg
+                                    </Typography>
+                                  </Box>
+                                  <Box display="flex" alignItems="center">
+                                    <WaterDropIcon
+                                      fontSize="small"
+                                      sx={{ color: "#00ACC1" }}
+                                    />
+                                    <Typography>
+                                      Tiết Kiệm Nước:{" "}
+                                      {roundUp1Decimal(m.totalWater)}L
+                                    </Typography>
+                                  </Box>
+                                  <Box display="flex" alignItems="center">
+                                    <DeleteSweepIcon
+                                      fontSize="small"
+                                      sx={{ color: "#F57C00" }}
+                                    />
+                                    <Typography>
+                                      Giảm Rác Thải:{" "}
+                                      {roundUp1Decimal(m.totalWaste)}%
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              ))}
                             </Box>
-                            <Typography
-                              variant="body2"
-                              component="ul"
-                              sx={{ pl: 2 }}
-                            >
-                              <li>Thiết kế đã đạt tiêu chuẩn bền vững tốt!</li>
-                            </Typography>
                           </Box>
                         </Box>
                       )}

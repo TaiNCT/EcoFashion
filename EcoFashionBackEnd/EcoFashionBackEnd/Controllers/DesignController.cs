@@ -8,6 +8,7 @@ using EcoFashionBackEnd.Dtos.Design;
 using EcoFashionBackEnd.Dtos.DesignShow;
 using EcoFashionBackEnd.Services;
 using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;

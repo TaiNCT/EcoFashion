@@ -82,6 +82,7 @@ namespace EcoFashionBackEnd.Services
                 UnitPrice = request.UnitPrice,
                 SalePrice = request.SalePrice,
                 ItemTypeId = request.DesignTypeId,
+                CareInstruction = request.CareInstruction
             };
 
             await _designRepository.AddAsync(design);

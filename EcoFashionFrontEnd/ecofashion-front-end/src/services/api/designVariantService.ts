@@ -12,6 +12,7 @@ export interface FullDesignVariant {
   quantity: number;
   ratio: number;
   sizeId: number;
+  meterUsed?: number;
 }
 
 export interface AddVariant {

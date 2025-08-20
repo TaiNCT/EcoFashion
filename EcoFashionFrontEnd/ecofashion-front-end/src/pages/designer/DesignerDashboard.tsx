@@ -18,7 +18,6 @@ import {
   Grid,
   IconButton,
   InputLabel,
-  Link,
   MenuItem,
   Paper,
   Rating,
@@ -99,6 +98,7 @@ import {
 } from "../../schemas/createProductSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ProductService from "../../services/api/productService";
+import { Link } from "react-router-dom";
 
 // Register chart components
 ChartJS.register(
@@ -360,8 +360,16 @@ export default function DesignerDashBoard() {
     {
       field: "material",
       headerName: "Chất Liệu",
-      width: 110,
       flex: 1,
+      renderCell: (params) => (
+        <Link
+          to={`/material/${params.row.id}`} // hoặc params.row.MaterialId
+          target="_blank"
+          style={{ color: "#1976d2", textDecoration: "underline" }}
+        >
+          {params.value}
+        </Link>
+      ),
     },
     {
       field: "quantity",
@@ -534,7 +542,7 @@ export default function DesignerDashBoard() {
         currency: "VND",
       }).format(design.salePrice),
       recycledPercentage: design.recycledPercentage,
-      material: design.materials?.map((mat) => mat.materialName) || [],
+      material: design.materials,
       typeName: design.itemTypeName,
       designVariants: design.designsVariants,
     }));
@@ -1174,17 +1182,37 @@ export default function DesignerDashBoard() {
   };
 
   //Datagrid variant
-  const variant_columns = [
-    { field: "sizeName", headerName: "Kích Thước", flex: 1 },
+  const getTotalMeterUsed = (materials: { meterUsed: number }[]) => {
+    return materials.reduce((sum, mat) => sum + (mat.meterUsed ?? 0), 0);
+  };
+  const generateMockVariant = (variant: FullDesignVariant[]) => {
+    return variant.map((variant) => ({
+      variantId: variant.variantId,
+      designName: variant.designName,
+      sizeName: variant.sizeName,
+      colorCode: variant.colorCode,
+      quantity: variant.quantity,
+      ratio: variant.ratio,
+      sizeId: variant.sizeId,
+      meterUsed: variant.quantity * getTotalMeterUsed(selectedItem.material),
+    }));
+  };
+
+  type VariantColumn = ReturnType<typeof generateMockVariant>[number];
+
+  const variant_columns: GridColDef<VariantColumn>[] = [
+    { field: "variantId", headerName: "ID", width: 90 },
+    { field: "sizeName", headerName: "Kích Thước", flex: 1, type: "string" },
     {
       field: "colorCode",
       headerName: "Màu sắc",
       flex: 1,
+      type: "string",
       renderCell: (params) => (
         <Box
           sx={{
             display: "flex",
-            alignItems: "center", // vertical center
+            alignItems: "center",
             gap: 1,
             width: "100%",
             height: "100%",
@@ -1203,7 +1231,46 @@ export default function DesignerDashBoard() {
         </Box>
       ),
     },
-    { field: "quantity", headerName: "Số lượng", flex: 1 },
+    {
+      field: "quantity",
+      headerName: "Số lượng",
+      flex: 1,
+      type: "number",
+      editable: true,
+    },
+    {
+      field: "meterUsed",
+      headerName: "Mét Vải Sử Dụng(m)",
+      flex: 1,
+      type: "number",
+    },
+    {
+      field: "actions",
+      headerName: "Hành Động",
+      width: 120,
+      sortable: false,
+      filterable: false,
+      headerAlign: "right",
+      disableColumnMenu: true,
+      type: "actions",
+      renderCell: (params) => {
+        return (
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
+          >
+            <Stack direction="row" spacing={1}>
+              <IconButton size="small" color="primary">
+                <EditIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="small" color="error">
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Stack>
+          </Box>
+        );
+      },
+      flex: 1,
+    },
   ];
 
   //Datagrid Product
@@ -1964,68 +2031,99 @@ export default function DesignerDashBoard() {
           <Dialog
             open={openEditDialog}
             onClose={() => setOpenEditDialog(false)}
-            maxWidth="sm"
+            maxWidth="xl"
             fullWidth
           >
             <DialogTitle>Chi Tiết Rập</DialogTitle>
             <DialogContent dividers>
               {selectedItem && (
                 <Box>
-                  <Box sx={{ display: "flex" }}>
+                  <Box sx={{ display: "flex", flexDirection: "column" }}>
                     <Box flex={1}>
-                      <Typography variant="subtitle1">
-                        Tên: {selectedItem.title}
-                      </Typography>
-                      <Typography variant="subtitle1">
-                        Giá: {selectedItem.price}
-                      </Typography>
-                    </Box>
-                    {/* Thêm các trường chi tiết khác */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row", // 2 chip nằm ngang
-                        gap: 1, // khoảng cách giữa chip
-                        justifyContent: "flex-end", // căn sang bên phải
-                        alignItems: "center", // căn giữa theo chiều dọc
-                      }}
-                    >
-                      <Chip
-                        icon={<EcoIcon />}
-                        label={`${selectedItem.recycledPercentage}% Bền Vững`}
-                        size="small"
-                        sx={{
-                          backgroundColor: "rgba(200, 248, 217, 1)",
-                          color: "rgba(22, 103, 86, 1)",
-                          fontSize: "15px",
-                        }}
-                      />
-                      <Chip
-                        icon={
-                          <Box
+                      <Box
+                        display={"flex"}
+                        width={"100%"}
+                        justifyContent={"space-between"}
+                      >
+                        <Box display={"flex"} flexDirection={"column"}>
+                          <Typography variant="subtitle1">
+                            Tên: {selectedItem.title}
+                          </Typography>
+                          <Typography variant="subtitle1">
+                            Giá: {selectedItem.price}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "row", // 2 chip nằm ngang
+                            gap: 1, // khoảng cách giữa chip
+                            justifyContent: "flex-end", // căn sang bên phải
+                            alignItems: "center", // căn giữa theo chiều dọc
+                          }}
+                        >
+                          <Chip
+                            icon={<EcoIcon />}
+                            label={`${selectedItem.recycledPercentage}% Bền Vững`}
+                            size="small"
                             sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              height: "100%",
+                              backgroundColor: "rgba(200, 248, 217, 1)",
+                              color: "rgba(22, 103, 86, 1)",
+                              fontSize: "15px",
                             }}
-                          >
-                            {getCategoryIcon(selectedItem.typeName)}
-                          </Box>
-                        }
-                        label={selectedItem.typeName}
-                        size="small"
-                        sx={{
-                          bgcolor: getCategoryColor(selectedItem.typeName),
-                          color: "white",
-                          fontWeight: "bold",
-                          fontSize: "1rem",
-                          paddingTop: 2,
-                          paddingBottom: 2,
-                          width: "50%",
-                        }}
-                      />
+                          />
+                          <Chip
+                            icon={
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  height: "100%",
+                                }}
+                              >
+                                {getCategoryIcon(selectedItem.typeName)}
+                              </Box>
+                            }
+                            label={selectedItem.typeName}
+                            size="small"
+                            sx={{
+                              bgcolor: getCategoryColor(selectedItem.typeName),
+                              color: "white",
+                              fontWeight: "bold",
+                              fontSize: "1rem",
+                              paddingTop: 2,
+                              paddingBottom: 2,
+                              width: "50%",
+                            }}
+                          />
+                        </Box>
+                      </Box>
                     </Box>
+                    <Box display="flex" justifyContent="space-between">
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        Tên Vải:
+                      </Typography>
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        Mét Vải:
+                      </Typography>
+                    </Box>
+                    {selectedItem.material.map((mat, index) => (
+                      <Box
+                        key={index}
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        mb={0.5}
+                      >
+                        <Typography variant="body1">
+                          {mat.materialName}
+                        </Typography>
+                        <Typography variant="body1">
+                          {mat.meterUsed}m
+                        </Typography>
+                      </Box>
+                    ))}
                   </Box>
                   <Box mb={2}>
                     <Button
@@ -2194,7 +2292,7 @@ export default function DesignerDashBoard() {
                       }}
                     >
                       <DataGrid
-                        rows={variant}
+                        rows={generateMockVariant(variant)}
                         columns={variant_columns}
                         getRowId={(row) => row.variantId}
                         initialState={{

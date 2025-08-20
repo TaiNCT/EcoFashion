@@ -7,6 +7,7 @@ namespace EcoFashionBackEnd.Common.Payloads.Requests.DessignDraft
     {
         public string Name { get; set; }
         public string Description { get; set; }
+        public string CareInstruction { get; set; }
         public float RecycledPercentage { get; set; }
         public int DesignTypeId { get; set; }
 
@@ -23,6 +24,7 @@ namespace EcoFashionBackEnd.Common.Payloads.Requests.DessignDraft
         public float TotalWaste { get; set; }
 
         public List<IFormFile> SketchImages { get; set; } = new();
+
 
     }
 }

@@ -34,7 +34,6 @@ import ExploreDesigners from "./pages/explore/ExploreDesigners";
 import ExploreSuppliers from "./pages/explore/ExploreSuppliers";
 import DesignerLandingPage from "./pages/explore/DesignerLandingPage";
 import SupplierLandingPage from "./pages/explore/SupplierLandingPage";
-import AddDesign from "./pages/design/AddDesign";
 import DashboardHome from "./pages/admin/DashboardHome";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ApplicationManagement from "./pages/admin/ApplicationManagement";
@@ -183,14 +182,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/designer/dashboard/add"
-          element={
-            <ProtectedRoute requiredRole={"designer"}>
-              <AddDesign />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/designer/dashboard/create"
           element={
@@ -301,16 +293,6 @@ function App() {
           element={
             <ProtectedRoute requiredRole="customer">
               <CustomerProfile />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* ===== DESIGN ROUTES ===== */}
-        <Route
-          path="/design/add"
-          element={
-            <ProtectedRoute requiredRole="designer">
-              <AddDesign />
             </ProtectedRoute>
           }
         />
