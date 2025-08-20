@@ -1147,6 +1147,9 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("OrderId1")
+                        .HasColumnType("int");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
@@ -1174,6 +1177,8 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasIndex("MaterialId");
 
                     b.HasIndex("OrderId");
+
+                    b.HasIndex("OrderId1");
 
                     b.HasIndex("SupplierId");
 
@@ -2210,6 +2215,10 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("EcoFashionBackEnd.Entities.Order", null)
+                        .WithMany("OrderDetails")
+                        .HasForeignKey("OrderId1");
+
                     b.HasOne("EcoFashionBackEnd.Entities.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
@@ -2468,6 +2477,8 @@ namespace EcoFashionBackEnd.Migrations
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Order", b =>
                 {
+                    b.Navigation("OrderDetails");
+
                     b.Navigation("PaymentTransactions");
                 });
 

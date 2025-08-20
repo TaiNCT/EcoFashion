@@ -116,6 +116,14 @@ public static class ServicesExtensions
 
 
 
+        //background service 
+
+        services.AddScoped<IOrderPayoutService, OrderPayoutService>();
+        services.AddHostedService<OrderPayoutBackgroundService>();
+
+
+
+
         return services;
     }
 }

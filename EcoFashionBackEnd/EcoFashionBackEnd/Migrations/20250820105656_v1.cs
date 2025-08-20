@@ -1053,7 +1053,8 @@ namespace EcoFashionBackEnd.Migrations
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OrderId1 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1082,6 +1083,11 @@ namespace EcoFashionBackEnd.Migrations
                         principalTable: "Orders",
                         principalColumn: "OrderId",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_OrderDetails_Orders_OrderId1",
+                        column: x => x.OrderId1,
+                        principalTable: "Orders",
+                        principalColumn: "OrderId");
                     table.ForeignKey(
                         name: "FK_OrderDetails_Supplier_SupplierId",
                         column: x => x.SupplierId,
@@ -1466,6 +1472,11 @@ namespace EcoFashionBackEnd.Migrations
                 name: "IX_OrderDetails_OrderId",
                 table: "OrderDetails",
                 column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderDetails_OrderId1",
+                table: "OrderDetails",
+                column: "OrderId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderDetails_SupplierId",
