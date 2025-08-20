@@ -1,5 +1,6 @@
 ﻿using EcoFashionBackEnd.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography.Xml;
 
 public interface IOrderPayoutService
 {
@@ -45,6 +46,9 @@ public class OrderPayoutService : IOrderPayoutService
             _context.WalletTransactions.Add(new WalletTransaction
             {
                 WalletId = systemWallet.WalletId,
+                BalanceBefore = systemWallet.Balance,
+                BalanceAfter = systemWallet.Balance - (double)sellerAmount,
+                Type =TransactionType.Transfer,
                 Amount = (double)-sellerAmount,
                 Description = $"Payout order {order.OrderId} to {order.SellerType} {order.SellerId}",
                 CreatedAt = DateTime.UtcNow
@@ -54,7 +58,10 @@ public class OrderPayoutService : IOrderPayoutService
             _context.WalletTransactions.Add(new WalletTransaction
             {
                 WalletId = sellerWallet.WalletId,
+                Type = TransactionType.Transfer,
                 Amount = (double)sellerAmount,
+                BalanceBefore = systemWallet.Balance,
+                BalanceAfter = systemWallet.Balance - (double)sellerAmount,
                 Description = $"Received payout for order {order.OrderId}, fee {systemFee}",
                 CreatedAt = DateTime.UtcNow
             });
