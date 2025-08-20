@@ -1,16 +1,11 @@
 ﻿namespace EcoFashionBackEnd.Controllers
 {
-    using EcoFashionBackEnd.Common;
     using EcoFashionBackEnd.Common.Payloads.Requests.Wallet;
     using EcoFashionBackEnd.Dtos.Wallet;
-    using EcoFashionBackEnd.Entities;
-    using EcoFashionBackEnd.Extensions.NewFolder;
     using EcoFashionBackEnd.Services;
-    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System.Security.Claims;
     using System.Threading.Tasks;
-    using System.Transactions;
 
     [ApiController]
     [Route("api/[controller]")]
@@ -147,11 +142,5 @@
                 WalletTransaction = result.OrderId
             });
         }
-
-
     }
-
-
-
-
 }
