@@ -291,6 +291,10 @@ namespace EcoFashionBackEnd.Services
                             Id = dv.Id,
                             DesignId = dv.DesignId,
                             Quantity = dv.Quantity,
+                            Ratio = d.ItemTypes.TypeSizeRatios
+                                .Where(r => r.SizeId == dv.SizeId)
+                                .Select(r => r.Ratio)
+                                .FirstOrDefault()
                         }).ToList(),
                          // Only select URLs, not entire image entity
                     DrafSketches = d.DraftSketches

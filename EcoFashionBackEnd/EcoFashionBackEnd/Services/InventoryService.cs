@@ -85,6 +85,8 @@ namespace EcoFashionBackEnd.Services
                     {
                         InventoryId = inventory.InventoryId,
                         QuantityChanged = change.quantity,
+                        BeforeQty = inventory.QuantityAvailable,
+                        AfterQty = inventory.QuantityAvailable+ change.quantity,
                         TransactionType = "Restock", // Có thể là Restock, Return, etc.
                         Notes = $"Nhập kho sản phẩm. Số lượng cũ: {oldQuantity}",
                         PerformedByUserId = userId,
@@ -144,6 +146,7 @@ namespace EcoFashionBackEnd.Services
 
             var inventories = await _designerMaterialInventory.GetAll()
                 .Where(i => i.WarehouseId == warehouse.WarehouseId && materialIds.Contains(i.MaterialId))
+                .Include(i => i.Material)
                 .ToDictionaryAsync(i => i.MaterialId);
 
             // Bước 2: Xử lý từng vật liệu cần trừ
@@ -160,8 +163,11 @@ namespace EcoFashionBackEnd.Services
 
                 if (inventory.Quantity < requiredQty)
                 {
-                    throw new Exception($"Kho vật liệu không đủ cho MaterialId={materialId}. Yêu cầu: {requiredQty}, Tồn: {inventory.Quantity}");
-                }
+                    throw new Exception(
+                                        $"Kho vật liệu không đủ cho '{inventory.Material.Name}' (MaterialId={materialId}). " +
+                                        $"Yêu cầu: {requiredQty}m, Tồn kho: {inventory.Quantity}m"+
+                                        $"Cần {requiredQty- inventory.Quantity}");
+                                        }
 
                 var originalQuantity = inventory.Quantity;
                 inventory.Quantity -= requiredQty;
@@ -171,6 +177,8 @@ namespace EcoFashionBackEnd.Services
                 {
                     InventoryId = inventory.InventoryId,
                     QuantityChanged = -requiredQty,
+                    BeforeQty = originalQuantity,
+                    AfterQty = originalQuantity-requiredQty,
                     PerformedByUserId = userId,
                     TransactionType = "Usage",
                     Notes = $"Trừ vật liệu cho sản phẩm",
