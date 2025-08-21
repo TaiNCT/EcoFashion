@@ -44,7 +44,7 @@ public class OrderPayoutService : IOrderPayoutService
             {
                 WalletId = systemWallet.WalletId,
                 BalanceBefore = systemWallet.Balance,
-                BalanceAfter = systemWallet.Balance + (double)sellerAmount,
+                BalanceAfter = systemWallet.Balance - (double)sellerAmount,
                 Type =TransactionType.Transfer,
                 Status =TransactionStatus.Success,
                 Amount = (double)-sellerAmount,
@@ -57,9 +57,9 @@ public class OrderPayoutService : IOrderPayoutService
                 WalletId = sellerWallet.WalletId,
                 Type = TransactionType.Transfer,
                 Amount = (double)sellerAmount,
-                BalanceBefore = systemWallet.Balance,
+                BalanceBefore = sellerWallet.Balance,
                 Status = TransactionStatus.Success,
-                BalanceAfter = systemWallet.Balance - (double)sellerAmount,
+                BalanceAfter = sellerWallet.Balance + (double)sellerAmount,
                 Description = $"Received payout for order {order.OrderId}, fee {systemFee}",
                 CreatedAt = DateTime.UtcNow
             });
