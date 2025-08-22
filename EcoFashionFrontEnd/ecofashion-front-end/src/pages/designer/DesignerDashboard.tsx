@@ -68,6 +68,8 @@ import { CircularProgress } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
+import SellIcon from "@mui/icons-material/Sell";
+
 //Chart
 import { Line } from "react-chartjs-2";
 import {
@@ -103,6 +105,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import ProductService from "../../services/api/productService";
 import { Link } from "react-router-dom";
 import { useConfirm } from "material-ui-confirm";
+import InventoryTransactionsService, {
+  ProductInventoryTransactions,
+} from "../../services/api/inventoryTransactionsService";
 // Register chart components
 ChartJS.register(
   LineElement,
@@ -192,24 +197,6 @@ export default function DesignerDashBoard() {
     },
   ];
 
-  const messages = [
-    {
-      sender: "EcoTextiles",
-      timeSend: "2 giờ trước",
-      content: "Báo giá cho denim tái chế",
-    },
-    {
-      sender: "GreenFabrics",
-      timeSend: "5 giờ trước",
-      content: "Có vải cotton hữu cơ mới",
-    },
-    {
-      sender: "ReThread",
-      timeSend: "6 giờ trước",
-      content: "Xác nhận đơn hàng #RT-7842",
-    },
-  ];
-
   const orders = [
     {
       orderId: "ORD-01",
@@ -244,6 +231,10 @@ export default function DesignerDashBoard() {
   const confirm = useConfirm();
   //Hiện thông tin product
   const [selectedDesign, setSelectedDesign] = useState(null);
+  //Lấy thông tin trong inventory
+  const [inventoryTransactions, setInventoryTransactions] = useState<
+    ProductInventoryTransactions[]
+  >([]);
 
   useEffect(() => {
     loadDesigners();
@@ -268,6 +259,10 @@ export default function DesignerDashBoard() {
         getDesignerId()
       );
       setDesignProduct(designProductData);
+
+      const inventoryTransactionsData =
+        await InventoryTransactionsService.getAllMaterialInventoryByDesigner();
+      setInventoryTransactions(inventoryTransactionsData);
     } catch (error: any) {
       const errorMessage =
         error.message || "Không thể tải danh sách nhà thiết kế";
@@ -286,8 +281,6 @@ export default function DesignerDashBoard() {
   //Get Material Used In Stored
   const getMatchingStoredMaterials = () => {
     if (!currentDesign || !storedMaterial) return [];
-
-    console.log(currentDesign);
 
     // Lọc các storedMaterial có id trùng với material trong currentDesign
     return storedMaterial.filter((storedMat) =>
@@ -490,9 +483,6 @@ export default function DesignerDashBoard() {
               <IconButton size="small" onClick={handleEdit} color="primary">
                 <EditIcon fontSize="small" />
               </IconButton>
-              <IconButton size="small" onClick={handleDelete} color="error">
-                <DeleteIcon fontSize="small" />
-              </IconButton>
             </Stack>
           </Box>
         );
@@ -537,7 +527,7 @@ export default function DesignerDashBoard() {
       title: "Tổng Mét Vải Hiện Có",
       value: totalMeters.toLocaleString("vi-VN"),
       subtitle: "Mét Vải Hiện Có Trong Kho",
-      icon: <GroupIcon />,
+      icon: <SellIcon />,
       color: "warning.main",
     },
   ];
@@ -786,7 +776,7 @@ export default function DesignerDashBoard() {
     },
     {
       field: "designVariants",
-      headerName: "Biến Thể",
+      headerName: "Kế Hoạch Thiết Kế",
       width: 110,
       flex: 1,
       renderCell: (params) => {
@@ -796,7 +786,7 @@ export default function DesignerDashBoard() {
 
         return (
           <Chip
-            label={hasVariants ? "Có Biến Thể" : "Chưa Có"}
+            label={hasVariants ? "Có Kế Hoạch" : "Chưa Có"}
             size="medium"
             sx={{
               bgcolor: hasVariants ? "success.main" : "grey.500",
@@ -1195,7 +1185,6 @@ export default function DesignerDashBoard() {
 
   //Open CreateProduct Dialog
   const [openCreateDialog, setOpenCreateDialog] = React.useState(false);
-  const [pattern, setPattern] = useState();
 
   const handleOpenCreate = () => {
     setOpenCreateDialog(true);
@@ -1258,6 +1247,10 @@ export default function DesignerDashBoard() {
         getDesignerId()
       );
       setDesignProduct(designProductData);
+
+      const inventoryTransactionsData =
+        await InventoryTransactionsService.getAllMaterialInventoryByDesigner();
+      setInventoryTransactions(inventoryTransactionsData);
     } catch (error) {
       console.error("Lỗi khi load lại tab 2:", error);
     }
@@ -1356,9 +1349,14 @@ export default function DesignerDashBoard() {
       ),
     },
     { field: "ratio", headerName: "Tỉ Lệ", flex: 1, type: "number" },
+
     {
       field: "quantity",
-      headerName: "Số lượng",
+      headerName: (
+        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          Số lượng <EditIcon fontSize="small" />
+        </span>
+      ) as any, // DataGrid yêu cầu string, nên cast sang any
       flex: 1,
       type: "number",
       editable: true,
@@ -1457,66 +1455,10 @@ export default function DesignerDashBoard() {
           }}
         >
           <Typography sx={{ fontWeight: "bold", fontSize: "30px" }}>
-            Designer Dashboard
+            Trung Tâm Nhà Thiết Kế
           </Typography>
           <Typography>Chào mừng trở lại, {user?.fullName}</Typography>
         </Box>
-        {/* Button */}
-        {/* <Box sx={{ display: "flex", marginLeft: "auto", gap: 2, padding: 2 }}>
-          <Button
-            variant="outlined"
-            sx={{
-              borderColor: "black",
-              marginRight: "20px",
-              height: "60%",
-              margin: "auto",
-            }}
-          >
-            <Typography
-              sx={{
-                fontWeight: "bold",
-                color: "black",
-              }}
-            >
-              Tìm Kiếm Vật Liệu
-            </Typography>
-          </Button>
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              backgroundColor: "rgba(22, 163, 74)",
-              "&:hover": { bgcolor: "white", color: "rgba(22, 163, 74)" },
-              px: 4,
-              py: 1.5,
-              height: "60%",
-              margin: "auto",
-            }}
-            href="/designer/dashboard/add"
-          >
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <AddIcon />
-              <Typography
-                sx={{
-                  fontWeight: "bold",
-                  color: "white",
-                  "&:hover": {
-                    color: "rgba(22, 163, 74, 0.55)",
-                  },
-                }}
-              >
-                Thêm Sản Phẩm
-              </Typography>
-            </Box>
-          </Button>
-        </Box> */}
       </Box>
       {/* Tab Part */}
       <Box
@@ -1909,7 +1851,7 @@ export default function DesignerDashBoard() {
                     opacity: "40%",
                   }}
                 >
-                  Tạo ra sản phẩm từ thiết kế
+                  Tạo ra sản phẩm theo kế hoạch
                 </Typography>
               </Box>
             </Button>
@@ -1924,7 +1866,7 @@ export default function DesignerDashBoard() {
               onSubmit: handleSubmit(onSubmit),
             }}
           >
-            <DialogTitle>Sản xuất từ rập</DialogTitle>
+            <DialogTitle>Sản xuất Theo Kế Hoạch</DialogTitle>
             <DialogContent>
               <Box
                 sx={{
@@ -2005,6 +1947,77 @@ export default function DesignerDashBoard() {
                     </FormControl>
                   )}
                 />
+                {/* Danh sách Variant */}
+                <Typography variant="subtitle1">
+                  Danh sách Kế Hoạch Thiết kế:
+                </Typography>
+                {currentDesign && (
+                  <Box>
+                    {currentDesign.designsVariants.map((variant, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          p: 1,
+                          borderBottom: "1px solid #eee",
+                        }}
+                      >
+                        <Typography variant="body2" flex={1}>
+                          Kế Hoạch #{variant.id}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          flex={1}
+                        >
+                          Kích Thước: {variant.sizeName}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          flex={1}
+                        >
+                          Tỷ lệ KT: {variant.ratio}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          flex={1}
+                        >
+                          Màu Sắc: {variant.colorCode}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          flex={1}
+                        >
+                          Số lượng: {variant.quantity}
+                        </Typography>
+                      </Box>
+                    ))}
+
+                    {/* Tổng quantity */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        p: 1,
+                        borderTop: "2px solid #ccc",
+                        mt: 1,
+                      }}
+                    >
+                      <Typography variant="subtitle2" color="primary">
+                        Tổng số lượng:{" "}
+                        {currentDesign.designsVariants.reduce(
+                          (sum, v) => sum + v.quantity,
+                          0
+                        )}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
                 <Box
                   sx={{
                     display: "flex",
@@ -2021,7 +2034,8 @@ export default function DesignerDashBoard() {
                         // Tổng quantity của tất cả variant
                         const totalQuantity =
                           currentDesign.designsVariants.reduce(
-                            (sum, variant) => sum + variant.quantity,
+                            (sum, variant) =>
+                              sum + variant.quantity * variant.ratio,
                             0
                           );
 
@@ -2038,13 +2052,14 @@ export default function DesignerDashBoard() {
                           >
                             <Box>
                               <Typography variant="body2">
-                                {mat.materialName}
+                                {mat.materialName}({mat.meterUsed}m)
                               </Typography>
                               <Typography
                                 variant="caption"
                                 color="text.secondary"
                               >
-                                Sử dụng: {mat.meterUsed * totalQuantity} m
+                                Sử dụng:{" "}
+                                {(mat.meterUsed * totalQuantity).toFixed(3)} m
                               </Typography>
                             </Box>
                           </Box>
@@ -2059,31 +2074,62 @@ export default function DesignerDashBoard() {
                       <Typography variant="subtitle1">
                         Vật Liệu Trong Kho:
                       </Typography>
-                      {matchingMaterials.map((mat, index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            p: 1,
-                            borderBottom: "1px solid #eee",
-                          }}
-                        >
-                          {/* <Avatar src={mat.image || "/default-material.png"} alt={mat.name} sx={{ width: 32, height: 32 }} /> */}
-                          <Box>
-                            <Typography variant="body2">
-                              {mat.material.name}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              Số lượng có sẵn: {mat.quantity} m
-                            </Typography>
+                      {matchingMaterials.map((mat, index) => {
+                        // Tính tổng quantity của tất cả variant trong currentDesign
+                        const totalQuantity =
+                          currentDesign?.designsVariants?.reduce(
+                            (sum, variant) =>
+                              sum + variant.quantity * variant.ratio,
+                            0
+                          ) || 0;
+
+                        // Tìm material trong currentDesign để lấy meterUsed
+                        const designMat = currentDesign?.materials.find(
+                          (m) => m.materialId === mat.materialId
+                        );
+
+                        const required = designMat
+                          ? designMat.meterUsed * totalQuantity
+                          : 0;
+                        const available = mat.quantity;
+                        const isNotEnough = available < required;
+
+                        return (
+                          <Box
+                            key={index}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              p: 1,
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <Box>
+                              <Typography variant="body2">
+                                {mat.material.name}
+                              </Typography>
+                              {isNotEnough ? (
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: "error.main" }}
+                                >
+                                  Có: {available} m / Cần:{" "}
+                                  {(required - available).toFixed(3)} m
+                                </Typography>
+                              ) : (
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: "success.main" }}
+                                >
+                                  Có: {available} m / Dư:{" "}
+                                  {(available - required).toFixed(3)} m
+                                </Typography>
+                              )}
+                            </Box>
                           </Box>
-                        </Box>
-                      ))}
+                        );
+                      })}
                     </Box>
                   )}
                 </Box>
@@ -2281,7 +2327,7 @@ export default function DesignerDashBoard() {
             maxWidth="xl"
             fullWidth
           >
-            <DialogTitle>Chi Tiết Rập</DialogTitle>
+            <DialogTitle>Chi Tiết Kế Hoạch</DialogTitle>
             <DialogContent dividers>
               {selectedItem && (
                 <Box>
@@ -2377,7 +2423,7 @@ export default function DesignerDashBoard() {
                       variant="outlined"
                       onClick={() => setAddingNew(true)}
                     >
-                      Thêm Biến Thể
+                      Thêm Kế Hoạch
                     </Button>
                   </Box>
                   <Divider />
@@ -2889,7 +2935,9 @@ export default function DesignerDashBoard() {
                   <Grid>
                     <Card>
                       <CardContent>
-                        <Typography variant="h6">Materials</Typography>
+                        <Typography variant="h6">
+                          Nguyên Liệu Sử Dụng
+                        </Typography>
                         <Table>
                           <TableHead>
                             <TableRow>
@@ -3006,6 +3054,90 @@ export default function DesignerDashBoard() {
               width: "100%", // or set a fixed px width like "800px"
             }}
           />
+        </Box>
+      )}
+
+      {tabIndex !== 0 && tabIndex !== 2 && (
+        <Box mt={3}>
+          {/* Header */}
+          <Box
+            sx={{
+              pb: 1,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">
+              Lịch Sử Tạo Sản Phẩm
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Các thay đổi gần đây
+            </Typography>
+          </Box>
+
+          {/* Table */}
+          <TableContainer
+            component={Paper}
+            sx={{ borderRadius: 2, boxShadow: 2 }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f9f9f9" }}>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Tên</TableCell>
+                  <TableCell>Mét vải thay đổi</TableCell>
+                  <TableCell>Trước → Sau</TableCell>
+                  <TableCell>Thời gian</TableCell>
+                  <TableCell>Loại</TableCell>
+                  <TableCell>Cách thức</TableCell>
+                  <TableCell>Ghi chú</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {inventoryTransactions.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      align="center"
+                      sx={{ py: 3, color: "text.secondary" }}
+                    >
+                      Không có giao dịch
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  inventoryTransactions.map((tx) => (
+                    <TableRow key={tx.transactionId} hover>
+                      <TableCell>{tx.transactionId}</TableCell>
+                      <TableCell>{tx.name}</TableCell>
+                      <TableCell
+                        sx={{
+                          color: tx.quantityChanged < 0 ? "red" : "green",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {tx.quantityChanged}
+                      </TableCell>
+                      <TableCell>
+                        {tx.beforeQty} → {tx.afterQty}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(tx.transactionDate).toLocaleString("vi-VN")}
+                      </TableCell>
+                      <TableCell>
+                        {tx.inventoryType === "Material"
+                          ? "Nguyên Liệu"
+                          : tx.inventoryType === "Product"
+                          ? "Sản phẩm"
+                          : tx.inventoryType}
+                      </TableCell>
+                      <TableCell>{tx.transactionType}</TableCell>
+                      <TableCell>{tx.notes}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
       )}
 

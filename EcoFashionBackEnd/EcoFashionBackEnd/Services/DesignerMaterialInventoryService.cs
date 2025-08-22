@@ -101,6 +101,7 @@ namespace EcoFashionBackEnd.Services
             {
                 var inventories = await _dbContext.DesignerMaterialInventories
                     .Include(dmi => dmi.Material).ThenInclude(m => m.Supplier)
+                    .Where(dmi => dmi.Warehouse.DesignerId == designerId)
                     .ToListAsync();
                 var inventoriesDtos = new List<DesignerMaterialInventoryDto>();
                 var materialIds = inventories.Select(m => m.MaterialId).ToList();
@@ -112,7 +113,7 @@ namespace EcoFashionBackEnd.Services
                     {
                         InventoryId = inventorie.InventoryId,
                         MaterialId = inventorie.MaterialId,
-                        Quantity = (int?)inventorie.Quantity,
+                        Quantity = (decimal?)inventorie.Quantity,
                         LastBuyDate = inventorie.LastBuyDate,
                         Cost = (decimal)inventorie.Cost,
                         Material = new DesginerStoredMaterialsDto

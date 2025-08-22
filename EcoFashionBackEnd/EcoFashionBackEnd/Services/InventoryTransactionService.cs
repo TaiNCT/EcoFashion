@@ -96,6 +96,9 @@ namespace EcoFashionBackEnd.Services
                 {
                     TransactionId = t.TransactionId,
                     InventoryType = "Product",
+                    Name = (t.ProductInventory.Warehouse.DesignerId == designerId)
+                            ? t.ProductInventory.Product.Design.Name
+                            : default,
                     InventoryId = t.InventoryId,
                     PerformedByUserId = t.PerformedByUserId,
                     QuantityChanged = t.QuantityChanged,
@@ -113,6 +116,9 @@ namespace EcoFashionBackEnd.Services
                 {
                     TransactionId = t.TransactionId,
                     InventoryType = "Material",
+                    Name = (t.MaterialInventory.Warehouse.DesignerId == designerId)
+                            ? t.MaterialInventory.Material.Name
+                            : default,
                     InventoryId = t.InventoryId,
                     PerformedByUserId = t.PerformedByUserId,
                     QuantityChanged = t.QuantityChanged,

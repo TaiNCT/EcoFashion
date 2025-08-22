@@ -108,7 +108,7 @@ namespace EcoFashionBackEnd.Services
             foreach (var variant in variants)
             {
                 var basicColorName = ColorExchange.ClassifyColorAdvanced(variant.ColorCode);
-                var sku = $"{design.DesignId}-S{variant.SizeId}-C{basicColorName.Replace(" ", "").ToUpper()}";
+                var sku = $"D{design.DesignId}-S{variant.SizeId}-C{basicColorName.Replace(" ", "").ToUpper()}";
 
                 // Check Product đã tồn tại chưa
                 var product = await _productRepository.GetAll().FirstOrDefaultAsync(p => p.SKU == sku);
@@ -213,7 +213,7 @@ namespace EcoFashionBackEnd.Services
             foreach (var variant in variants)
             {
                 var basicColorName = ColorExchange.ClassifyColorAdvanced(variant.ColorCode);
-                var sku = $"{design.DesignId}-S{variant.SizeId}-C{basicColorName.Replace(" ", "").ToUpper()}";
+                var sku = $"D{design.DesignId}-S{variant.SizeId}-C{basicColorName.Replace(" ", "").ToUpper()}";
 
                 var existingProduct = await _productRepository
                     .GetAll()

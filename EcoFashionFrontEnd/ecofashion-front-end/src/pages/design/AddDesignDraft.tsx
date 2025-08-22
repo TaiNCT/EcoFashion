@@ -10,6 +10,7 @@ import {
   colors,
   Divider,
   FormControl,
+  FormHelperText,
   Grid,
   IconButton,
   InputLabel,
@@ -23,6 +24,7 @@ import {
   Tab,
   Tabs,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -517,34 +519,72 @@ export default function AddDesignDraft() {
 
   const navigate = useNavigate();
 
+  const validateCards = (cards: any[]) => {
+    const errors: string[] = [];
+
+    if (!cards || cards.length === 0) {
+      errors.push("Bạn phải thêm ít nhất 1 mảnh rập.");
+      return errors;
+    }
+
+    cards.forEach((card, index) => {
+      if (!card.draftName)
+        errors.push(`Thiếu tên bản nháp cho thẻ #${index + 1}`);
+      if (!card.height) errors.push(`Thiếu chiều dài cho thẻ #${index + 1}`);
+      if (!card.width) errors.push(`Thiếu chiều rộng cho thẻ #${index + 1}`);
+      if (!card.draftQuantity)
+        errors.push(`Thiếu số lượng cho thẻ #${index + 1}`);
+      if (!card.material?.materialId)
+        errors.push(`Thiếu chất liệu cho thẻ #${index + 1}`);
+    });
+
+    return errors;
+  };
+
+  const onError = (errors: any) => {
+    // lấy tất cả lỗi và show toast
+    Object.values(errors).forEach((err: any) => {
+      if (err?.message) toast.error(err.message);
+    });
+  };
+
   const onSubmit = async (formData: any) => {
-    // Ví dụ: tính toán materialsJson để gửi API
-    const materials = (() => {
-      const uniqueCount = groupedMaterial.length; // số loại material khác nhau
+    if (!designTypeData) {
+      toast.error("Chọn loại thời trang");
+      return;
+    }
 
-      return groupedMaterial.map((item) => {
-        const meterUsed = Math.round(item.needMaterial * 10) / 10; // đã là mét, làm tròn 1 chữ số thập phân
-        const percentageUsed =
-          uniqueCount === 1 ? 100 : Math.round((100 / uniqueCount) * 10) / 10;
+    // Validate cards
+    const cardErrors = validateCards(cards);
+    if (cardErrors.length > 0) {
+      cardErrors.forEach((msg) => toast.error(msg));
+      return;
+    }
 
-        return {
-          materialId: item.material.materialId,
-          meterUsed,
-          percentageUsed,
-        };
-      });
-    })();
+    // Build materials
+    const materials = groupedMaterial.map((item) => {
+      const meterUsed = Math.round(item.needMaterial * 10) / 10;
+      const percentageUsed =
+        groupedMaterial.length === 1
+          ? 100
+          : Math.round((100 / groupedMaterial.length) * 10) / 10;
 
-    //Tính DraftPartJson
-    const cardsJson = cards.map((card) => {
       return {
-        name: card.draftName,
-        length: card.height,
-        width: card.width,
-        quantity: card.draftQuantity,
-        materialId: card.material.materialId,
+        materialId: item.material.materialId,
+        meterUsed,
+        percentageUsed,
       };
     });
+
+    // Build cardsJson
+    const cardsJson = cards.map((card) => ({
+      name: card.draftName,
+      length: card.height,
+      width: card.width,
+      quantity: card.draftQuantity,
+      materialId: card.material.materialId,
+    }));
+
     const payload = {
       ...formData,
       designTypeId: designTypeData,
@@ -560,17 +600,13 @@ export default function AddDesignDraft() {
       draftPartsJson: JSON.stringify(cardsJson),
     };
 
-    console.log("📦 Payload gửi API:", payload);
     try {
       setLoading(true);
-      console.log("Submitted:", payload);
-
       const result = await DesignService.createDesignDraft(payload);
       toast.success("Gửi đơn thành công!");
       navigate("/designer/dashboard?tab=design");
-    } catch (err) {
+    } catch (err: any) {
       console.error("❌ Error submitting application:", err);
-      console.error("❌ Error message:", err.message);
       toast.error("Có lỗi xảy ra khi gửi đơn.");
     } finally {
       setLoading(false);
@@ -599,11 +635,7 @@ export default function AddDesignDraft() {
           <Typography color="text.primary">Thiết Kế Rập</Typography>
         </Breadcrumbs>
       </AppBar>
-      <form
-        onSubmit={handleSubmit(onSubmit, (errors) =>
-          console.log("Validation lỗi:", errors)
-        )}
-      >
+      <form onSubmit={handleSubmit(onSubmit, onError)}>
         {/* Top Part */}
         <Box sx={{ width: "100%", display: "flex", padding: 2 }}>
           {/* Title */}
@@ -648,17 +680,19 @@ export default function AddDesignDraft() {
                 paddingBottom: 2,
               }}
             >
-              <Button
-                variant="outlined"
-                startIcon={<SaveAltIcon />}
-                sx={{
-                  color: "black",
-                  borderColor: "black",
-                  textTransform: "none",
-                }}
-              >
-                Mẫu
-              </Button>
+              <Tooltip title="Coming soon">
+                <Button
+                  variant="outlined"
+                  startIcon={<SaveAltIcon />}
+                  sx={{
+                    color: "black",
+                    borderColor: "black",
+                    textTransform: "none",
+                  }}
+                >
+                  Mẫu
+                </Button>
+              </Tooltip>
               <Button
                 type="submit"
                 variant="outlined"
@@ -671,18 +705,20 @@ export default function AddDesignDraft() {
               >
                 Lưu
               </Button>
-              <Button
-                variant="contained"
-                startIcon={<ShareOutlinedIcon sx={{ color: "white" }} />}
-                sx={{
-                  backgroundColor: "rgba(22, 163, 74, 1)",
-                  color: "white",
-                  borderColor: "rgba(22, 163, 74, 1)",
-                  textTransform: "none",
-                }}
-              >
-                Chia Sẻ
-              </Button>
+              <Tooltip title="Coming soon">
+                <Button
+                  variant="contained"
+                  startIcon={<ShareOutlinedIcon sx={{ color: "white" }} />}
+                  sx={{
+                    backgroundColor: "rgba(22, 163, 74, 1)",
+                    color: "white",
+                    borderColor: "rgba(22, 163, 74, 1)",
+                    textTransform: "none",
+                  }}
+                >
+                  Chia Sẻ
+                </Button>
+              </Tooltip>
             </Box>
           </Box>
         </Box>
@@ -825,7 +861,8 @@ export default function AddDesignDraft() {
                     )}
                   />
                   <Typography variant="caption" sx={{ mt: 2 }}>
-                    Thêm tối đa 1 hình ảnh bổ sung để dễ phân biệt rập
+                    Thêm tối đa 1 hình ảnh bổ sung để dễ phân biệt rập (Định
+                    dạng PNG/JPEG)
                   </Typography>
                 </Grid>
                 <Box display={"flex"} flexDirection={"column"} gap={1}>
@@ -838,7 +875,6 @@ export default function AddDesignDraft() {
                           label="Tên rập"
                           {...register("name")}
                           error={!!errors.name}
-                          helperText={errors.name?.message}
                         />
                       </Box>
                     </Grid>
@@ -855,9 +891,13 @@ export default function AddDesignDraft() {
                             value={designTypeData}
                             label="Loại Thời Trang"
                             onChange={handleChangeDesign}
+                            error={!!errors.designTypeId}
                           >
                             {designType.map((dt) => (
-                              <MenuItem value={dt.itemTypeId}>
+                              <MenuItem
+                                key={dt.itemTypeId}
+                                value={dt.itemTypeId}
+                              >
                                 {dt.typeName}
                               </MenuItem>
                             ))}
@@ -931,8 +971,7 @@ export default function AddDesignDraft() {
                         placeholder="Nhập vào"
                         sx={{ width: "100%", height: "100%" }}
                         {...register("description")}
-                        error={!!errors.name}
-                        helperText={errors.name?.message}
+                        error={!!errors.description}
                       />
                     </Grid>
                   </Grid>
@@ -1184,7 +1223,7 @@ export default function AddDesignDraft() {
                                       />
                                       <TextField
                                         id="height"
-                                        label="Cao (cm)"
+                                        label="Dài (cm)"
                                         type="number"
                                         defaultValue="0"
                                         InputLabelProps={{
@@ -1282,7 +1321,9 @@ export default function AddDesignDraft() {
                                           <Select
                                             labelId="material-type-label"
                                             id="materialType-select"
-                                            value={card.materialType.typeId}
+                                            value={
+                                              card.materialType.typeId || ""
+                                            }
                                             label="Loại Vật Liệu"
                                             onChange={async (e) => {
                                               const selected =
@@ -1311,7 +1352,7 @@ export default function AddDesignDraft() {
                                         </FormControl>
                                       </Box>
                                       {/* Vải Sử Dụng */}
-                                      {card.materialType.typeId && (
+                                      {Boolean(card.materialType?.typeId) && (
                                         <Box sx={{ width: 200 }}>
                                           <FormControl fullWidth>
                                             <Autocomplete
@@ -1361,24 +1402,34 @@ export default function AddDesignDraft() {
                                       )}
                                     </Box>
                                   </Box>
-                                  <Chip
-                                    icon={
-                                      <SquareFootIcon
-                                        sx={{ colors: "black" }}
-                                      />
-                                    }
-                                    label={`${card.width} x ${card.height} cm (Size M)`}
-                                    size="medium"
+                                  <Box
                                     sx={{
-                                      backgroundColor: "white",
-                                      border: "1px solid rgba(0, 0, 0, 0.3)",
-                                      color: "black",
-                                      fontSize: "15px",
-                                      fontWeight: "bold",
-                                      margin: "auto",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
                                       mt: 2,
                                     }}
-                                  />
+                                  >
+                                    <Chip
+                                      icon={
+                                        <SquareFootIcon
+                                          sx={{ color: "black" }}
+                                        />
+                                      }
+                                      label={`${card.width} x ${card.height} cm (Size M)`}
+                                      size="medium"
+                                      sx={{
+                                        backgroundColor: "white",
+                                        border: "1px solid rgba(0, 0, 0, 0.3)",
+                                        color: "black",
+                                        fontSize: "15px",
+                                        fontWeight: "bold",
+                                      }}
+                                    />
+                                    <Typography sx={{ fontWeight: "bold" }}>
+                                      #{index + 1}
+                                    </Typography>
+                                  </Box>
                                 </CardContent>
                               </Card>
                             </Grid>

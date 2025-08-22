@@ -4,6 +4,7 @@
     {
         public int TransactionId { get; set; }
         public int InventoryId { get; set; }
+        public string Name { get; set; }
         public int? PerformedByUserId { get; set; }
         public decimal? QuantityChanged { get; set; }
         public decimal? BeforeQty { get; set; }

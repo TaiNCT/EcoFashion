@@ -156,7 +156,7 @@ public class DesignController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ApiResult<List<DesignSummaryDto>>.Fail("Có lỗi xảy ra trong quá trình xử lý."));
+            return StatusCode(500, ex.Message);
         }
     }
 

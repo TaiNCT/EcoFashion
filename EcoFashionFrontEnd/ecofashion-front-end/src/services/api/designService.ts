@@ -126,7 +126,10 @@ export interface Feature {
 export interface DesignsVariants {
   id: number;
   designId: number;
-  quantity:number;
+  quantity: number;
+  ratio: number;
+  sizeName: string;
+  colorCode: string;
 }
 
 export interface Design {

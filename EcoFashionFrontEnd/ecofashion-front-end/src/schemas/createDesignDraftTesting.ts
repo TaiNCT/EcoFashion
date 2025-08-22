@@ -15,20 +15,17 @@ export const draftPartSchema = z.object({
 });
 
 export const createDesignDraftSchema = z.object({
-  name: z
-    .string()
-    //   .min(1, { message: "Cần Thêm Tên Của Sản Phẩm" })
-    .nullable(),
-  description: z
-    .string()
-    // .min(1, { message: "Cần Thêm Mô Tả Sản Phẩm" })
-    .nullable(),
+  name: z.string().min(1, { message: "Cần Thêm Tên Của Rập" }).nullable(),
+  description: z.string().min(1, { message: "Cần Thêm Mô Tả Rập" }).nullable(),
   recycledPercentage: z
     .number()
     .min(0, { message: "Phần Trăm Bền Vững Ít Nhất Là 0" })
     .max(100, { message: "Phần Trăm Bền Vững Nhiều Nhất Là 100" }),
 
-  designTypeId: z.number(),
+  designTypeId: z
+    .number()
+    .min(1, { message: "Cần Thêm Loại Của Sản Phẩm" })
+    .nullable(),
 
   unitPrice: z.number().optional().nullable(), // decimal? tương đương số có thể null hoặc undefined
   salePrice: z.number().optional().nullable(),
