@@ -36,6 +36,7 @@ export const CardDataSchema = z.object({
   draftQuantity: z.number(),
   materialType: MaterialTypeSchema,
   material: MaterialSchema,
+  materialStatus: z.number(),
 });
 
 export const CardsFormSchema = z.object({

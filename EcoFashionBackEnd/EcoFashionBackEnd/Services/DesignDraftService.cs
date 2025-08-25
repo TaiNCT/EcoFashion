@@ -101,6 +101,7 @@ namespace EcoFashionBackEnd.Services
                         Width = (decimal)part.Width,
                         Quantity = part.Quantity,
                         MaterialId = part.MaterialId,
+                        MaterialStatus = Enum.Parse<MaterialStatus>(part.MaterialStatus),
                     }).ToList();
 
                     await _draftPartRepository.AddRangeAsync(draftPartEntities);

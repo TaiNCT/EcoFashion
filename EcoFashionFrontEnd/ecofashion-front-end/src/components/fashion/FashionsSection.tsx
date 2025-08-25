@@ -121,7 +121,18 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
         <Grid container spacing={2}>
           {visibleProducts.map((product) => (
             <Grid key={product.designId} size={3}>
-              <div className="design-card">
+              {type ? (
+                <div className="design-card">
+                  <FashionCard
+                    product={product}
+                    type={type}
+                    onSelect={onProductSelect}
+                    onAddToCart={onAddToCart}
+                    onToggleFavorite={onToggleFavorite}
+                    onProductClick={onProductClick}
+                  />
+                </div>
+              ) : (
                 <FashionCard
                   product={product}
                   type={type}
@@ -130,7 +141,7 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
                   onToggleFavorite={onToggleFavorite}
                   onProductClick={onProductClick}
                 />
-              </div>
+              )}
             </Grid>
           ))}
         </Grid>

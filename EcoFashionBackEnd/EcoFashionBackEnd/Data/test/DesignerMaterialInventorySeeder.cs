@@ -27,7 +27,7 @@ namespace EcoFashionBackEnd.Data.test
                     WarehouseId = materialWarehouse.WarehouseId, // Assign the correct WarehouseId
                     MaterialId = material.MaterialId,
                     Quantity = quantity,
-                    Cost = (decimal)material.PricePerUnit * 1000 * quantity,
+                    Cost = (decimal)material.PricePerUnit * quantity,
                     LastBuyDate = DateTime.UtcNow.AddDays(-random.Next(600, 900)),
                     Status = "In Stock"
                 });

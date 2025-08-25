@@ -1446,36 +1446,162 @@ export default function DesignerDashBoard() {
     },
   ];
 
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const tableRef = useRef(null);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-    // Giữ nguyên vị trí scroll (block: "nearest" không kéo về đầu)
-    if (tableRef.current) {
-      tableRef.current.scrollIntoView({ block: "nearest" });
-    }
+  const generateMockInventoryTransaction = (
+    transaction: ProductInventoryTransactions[]
+  ) => {
+    return transaction.map((transaction) => ({
+      transactionId: transaction.transactionId,
+      inventoryId: transaction.inventoryId,
+      name: transaction.name,
+      performedByUserId: transaction.performedByUserId,
+      quantityChanged: transaction.quantityChanged,
+      beforeQty: transaction.beforeQty,
+      afterQty: transaction.afterQty,
+      transactionDate: transaction.transactionDate,
+      transactionType: transaction.transactionType,
+      notes: transaction.notes,
+      inventoryType: transaction.inventoryType,
+    }));
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  type InventoryTransactionColumn = ReturnType<
+    typeof generateMockInventoryTransaction
+  >[number];
 
-  // Slice data for pagination
-  const paginatedRows = inventoryTransactions.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  const [inventoryTransactionRows, setInventoryTransactionRows] = useState<
+    InventoryTransactionColumn[]
+  >([]);
 
-  const materialRows = paginatedRows.filter(
-    (tx) => tx.inventoryType === "Material"
-  );
-  const productRows = paginatedRows.filter(
-    (tx) => tx.inventoryType === "Product"
-  );
+  const productTransaction_columns: GridColDef<InventoryTransactionColumn>[] = [
+    { field: "transactionId", headerName: "ID", width: 90 },
+    { field: "name", headerName: "Tên", flex: 1 },
+    { field: "transactionType", headerName: "Loại GD", width: 120 },
+    {
+      field: "quantityChanged",
+      headerName: "Số lượng",
+      width: 120,
+      renderCell: (params) => {
+        const value = params.value as number;
+        return (
+          <span
+            style={{
+              color: value < 0 ? "red" : "green",
+              fontWeight: "bold",
+            }}
+          >
+            {value > 0 && "+"}
+            {value}
+          </span>
+        );
+      },
+    },
+    { field: "beforeQty", headerName: "Trước", width: 120 },
+    { field: "afterQty", headerName: "Sau", width: 120 },
+    {
+      field: "transactionDate",
+      headerName: "Ngày",
+      width: 220,
+      renderCell: (params) => {
+        const txDate = new Date(params.value as string);
+        const today = new Date();
+
+        const isToday =
+          txDate.getDate() === today.getDate() &&
+          txDate.getMonth() === today.getMonth() &&
+          txDate.getFullYear() === today.getFullYear();
+
+        return (
+          <>
+            {txDate.toLocaleString("vi-VN")}
+            {isToday && (
+              <Box
+                component="span"
+                sx={{
+                  ml: 1,
+                  px: 1,
+                  py: 0.2,
+                  borderRadius: "6px",
+                  fontSize: "0.75rem",
+                  fontWeight: "bold",
+                  color: "white",
+                  backgroundColor: "red",
+                }}
+              >
+                Mới
+              </Box>
+            )}
+          </>
+        );
+      },
+    },
+    { field: "notes", headerName: "Ghi chú", flex: 1 },
+  ];
+
+  const materialTransaction_columns: GridColDef<InventoryTransactionColumn>[] =
+    [
+      { field: "transactionId", headerName: "ID", width: 90 },
+      { field: "name", headerName: "Tên", flex: 1 },
+      { field: "transactionType", headerName: "Loại GD", width: 120 },
+      {
+        field: "quantityChanged",
+        headerName: "Số lượng (m)",
+        width: 120,
+        renderCell: (params) => {
+          const value = params.value as number;
+          return (
+            <span
+              style={{
+                color: value < 0 ? "red" : "green",
+                fontWeight: "bold",
+              }}
+            >
+              {value > 0 && "+"}
+              {value}
+            </span>
+          );
+        },
+      },
+      { field: "beforeQty", headerName: "Trước", width: 120 },
+      { field: "afterQty", headerName: "Sau", width: 120 },
+      {
+        field: "transactionDate",
+        headerName: "Ngày",
+        width: 220,
+        renderCell: (params) => {
+          const txDate = new Date(params.value as string);
+          const today = new Date();
+
+          const isToday =
+            txDate.getDate() === today.getDate() &&
+            txDate.getMonth() === today.getMonth() &&
+            txDate.getFullYear() === today.getFullYear();
+
+          return (
+            <>
+              {txDate.toLocaleString("vi-VN")}
+              {isToday && (
+                <Box
+                  component="span"
+                  sx={{
+                    ml: 1,
+                    px: 1,
+                    py: 0.2,
+                    borderRadius: "6px",
+                    fontSize: "0.75rem",
+                    fontWeight: "bold",
+                    color: "white",
+                    backgroundColor: "red",
+                  }}
+                >
+                  Mới
+                </Box>
+              )}
+            </>
+          );
+        },
+      },
+      { field: "notes", headerName: "Ghi chú", flex: 1 },
+    ];
 
   return !pageLoading ? (
     <Box sx={{ width: "95%", margin: "auto" }}>
@@ -1499,7 +1625,7 @@ export default function DesignerDashBoard() {
       {/* Tab Part */}
       <Box
         sx={{
-          width: "30%",
+          width: "50%",
           background: "rgba(241, 245, 249, 1)",
           display: "flex",
         }}
@@ -1539,7 +1665,7 @@ export default function DesignerDashBoard() {
             }}
           />
           <Tab
-            label="Thời Trang"
+            label="Kế Hoạch Thiết Kế"
             sx={{
               flex: 1,
               "&.Mui-selected": {
@@ -2940,11 +3066,11 @@ export default function DesignerDashBoard() {
                                           case "main":
                                             return "Vải Chính";
                                           case "lining":
-                                            return "Vải Phụ";
-                                          case "trims":
                                             return "Vải Lót";
+                                          case "trims":
+                                            return "Phụ Liệu";
                                           case "other":
-                                            return "Vải Khác";
+                                            return "Khác";
                                           default:
                                             return part.materialStatus;
                                         }
@@ -3093,7 +3219,7 @@ export default function DesignerDashBoard() {
         </Box>
       )}
 
-      {tabIndex !== 0 && tabIndex !== 2 && (
+      {tabIndex === 1 && (
         <Box mt={3}>
           {/* Header */}
           <Box
@@ -3104,145 +3230,69 @@ export default function DesignerDashBoard() {
             }}
           >
             <Typography variant="h6" fontWeight="bold">
-              Lịch Sử Tạo Sản Phẩm
+              Lịch Sử Sản Phẩm
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Các thay đổi gần đây
             </Typography>
           </Box>
+          <DataGrid
+            rows={generateMockInventoryTransaction(
+              inventoryTransactions
+            ).filter((tx) => tx.inventoryType?.toLowerCase() === "product")}
+            columns={productTransaction_columns}
+            initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 5,
+                },
+              },
+            }}
+            getRowId={(row) => row.transactionId}
+            pageSizeOptions={[5]}
+            disableRowSelectionOnClick
+            sx={{
+              width: "100%", // or set a fixed px width like "800px"
+            }}
+          />
+        </Box>
+      )}
 
-          {/* Table */}
-          <TableContainer ref={tableRef}>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: "#f9f9f9" }}>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Tên</TableCell>
-                  <TableCell>Mét vải thay đổi</TableCell>
-                  <TableCell>Trước → Sau</TableCell>
-                  <TableCell>Thời gian</TableCell>
-                  <TableCell>Loại</TableCell>
-                  <TableCell>Cách thức</TableCell>
-                  <TableCell>Ghi chú</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {inventoryTransactions.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      align="center"
-                      sx={{ py: 3, color: "text.secondary" }}
-                    >
-                      Chưa Có Thay Đổi
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  // Lấy danh sách loại transactionType duy nhất trong paginatedRows
-                  [...new Set(paginatedRows.map((tx) => tx.inventoryType))].map(
-                    (type) => (
-                      <React.Fragment key={type}>
-                        {/* Sub-header để phân nhóm */}
-                        <TableRow>
-                          <TableCell
-                            colSpan={8}
-                            sx={{
-                              backgroundColor: "#f1f1f1",
-                              fontWeight: "bold",
-                              textTransform: "uppercase",
-                            }}
-                          >
-                            {type}
-                          </TableCell>
-                        </TableRow>
-
-                        {paginatedRows
-                          .filter((tx) => tx.inventoryType === type)
-                          .map((tx) => (
-                            <TableRow key={tx.transactionId} hover>
-                              <TableCell>{tx.transactionId}</TableCell>
-                              <TableCell>{tx.name}</TableCell>
-                              <TableCell
-                                sx={{
-                                  color:
-                                    tx.quantityChanged < 0 ? "red" : "green",
-                                  fontWeight: "bold",
-                                }}
-                              >
-                                {tx.quantityChanged}
-                              </TableCell>
-                              <TableCell>
-                                {tx.beforeQty} → {tx.afterQty}
-                              </TableCell>
-                              <TableCell>
-                                {(() => {
-                                  const txDate = new Date(tx.transactionDate);
-                                  const today = new Date();
-                                  const isToday =
-                                    txDate.getDate() === today.getDate() &&
-                                    txDate.getMonth() === today.getMonth() &&
-                                    txDate.getFullYear() ===
-                                      today.getFullYear();
-
-                                  return (
-                                    <>
-                                      {txDate.toLocaleString("vi-VN")}
-                                      {isToday && (
-                                        <Box
-                                          component="span"
-                                          sx={{
-                                            ml: 1,
-                                            px: 1,
-                                            py: 0.2,
-                                            borderRadius: "6px",
-                                            fontSize: "0.75rem",
-                                            fontWeight: "bold",
-                                            color: "white",
-                                            backgroundColor: "red",
-                                          }}
-                                        >
-                                          NEW
-                                        </Box>
-                                      )}
-                                    </>
-                                  );
-                                })()}
-                              </TableCell>
-                              <TableCell>
-                                {tx.inventoryType === "Material"
-                                  ? "Nguyên Liệu"
-                                  : tx.inventoryType === "Product"
-                                  ? "Sản phẩm"
-                                  : tx.inventoryType}
-                              </TableCell>
-                              <TableCell>
-                                {tx.transactionType === "Restock"
-                                  ? "Nhập Thêm"
-                                  : tx.transactionType === "Usage"
-                                  ? "Sử Dụng"
-                                  : tx.transactionType}
-                              </TableCell>
-                              <TableCell>{tx.notes}</TableCell>
-                            </TableRow>
-                          ))}
-                      </React.Fragment>
-                    )
-                  )
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {/* Pagination */}
-          <TablePagination
-            component="div"
-            count={inventoryTransactions.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25]}
-            labelRowsPerPage="Số dòng mỗi trang:"
+      {tabIndex === 3 && (
+        <Box mt={3}>
+          {/* Header */}
+          <Box
+            sx={{
+              pb: 1,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">
+              Lịch Sử Vật Liệu
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Các thay đổi gần đây
+            </Typography>
+          </Box>
+          <DataGrid
+            rows={generateMockInventoryTransaction(
+              inventoryTransactions
+            ).filter((tx) => tx.inventoryType?.toLowerCase() === "material")}
+            columns={materialTransaction_columns}
+            initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 5,
+                },
+              },
+            }}
+            getRowId={(row) => row.transactionId}
+            pageSizeOptions={[5]}
+            disableRowSelectionOnClick
+            sx={{
+              width: "100%", // or set a fixed px width like "800px"
+            }}
           />
         </Box>
       )}

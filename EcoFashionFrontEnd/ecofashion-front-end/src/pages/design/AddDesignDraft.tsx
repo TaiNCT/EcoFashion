@@ -153,6 +153,7 @@ export default function AddDesignDraft() {
     width: number;
     height: number;
     draftQuantity: number;
+    materialStatus: number;
     materialType: {
       typeId: number;
       typeName: string;
@@ -192,6 +193,7 @@ export default function AddDesignDraft() {
       width: 0,
       height: 0,
       draftQuantity: 1,
+      materialStatus: 0,
       materialType: {
         typeId: 0,
         typeName: "",
@@ -225,12 +227,13 @@ export default function AddDesignDraft() {
   };
 
   //Change Label
-  const handleChangeLabel = (id: string, newLabel: string) => {
+  const handleChangeLabel = (id: string, newValue: number) => {
     setCards((prev) =>
-      prev.map((card) => (card.id === id ? { ...card, label: newLabel } : card))
+      prev.map((card) =>
+        card.id === id ? { ...card, materialStatus: newValue } : card
+      )
     );
   };
-
   //Change Width
   const handleChangeWidth = (id: string, newWidth: number) => {
     setCards((prev) =>
@@ -467,6 +470,18 @@ export default function AddDesignDraft() {
     )
   );
 
+  enum MaterialStatus {
+    Main = 0,
+    Lining = 1,
+    Accessory = 2,
+  }
+
+  const materialStatusMap: Record<MaterialStatus, string> = {
+    [MaterialStatus.Main]: "Vải Chính",
+    [MaterialStatus.Lining]: "Vải Lót",
+    [MaterialStatus.Accessory]: "Phụ Liệu",
+  };
+
   const {
     register,
     handleSubmit,
@@ -583,6 +598,7 @@ export default function AddDesignDraft() {
       width: card.width,
       quantity: card.draftQuantity,
       materialId: card.material.materialId,
+      materialStatus: card.materialStatus,
     }));
 
     const payload = {
@@ -1292,21 +1308,22 @@ export default function AddDesignDraft() {
                                         <FormControl fullWidth>
                                           <Select
                                             id="lining-select"
-                                            value={card.label}
-                                            onChange={(e) =>
-                                              handleChangeLabel(
-                                                card.id,
-                                                e.target.value
-                                              )
+                                            value={card.materialStatus}
+                                            onChange={
+                                              (e) =>
+                                                handleChangeLabel(
+                                                  card.id,
+                                                  e.target.value
+                                                ) // ép thành int
                                             }
                                           >
-                                            <MenuItem value={"Chính"}>
+                                            <MenuItem value={0}>
                                               Vải Chính
                                             </MenuItem>
-                                            <MenuItem value={"Lót"}>
+                                            <MenuItem value={1}>
                                               Vải Lót
                                             </MenuItem>
-                                            <MenuItem value={"Phụ Liệu"}>
+                                            <MenuItem value={2}>
                                               Phụ Liệu
                                             </MenuItem>
                                           </Select>
@@ -1353,10 +1370,16 @@ export default function AddDesignDraft() {
                                       </Box>
                                       {/* Vải Sử Dụng */}
                                       {Boolean(card.materialType?.typeId) && (
-                                        <Box sx={{ width: 200 }}>
+                                        <Box
+                                          sx={{
+                                            display: "inline-block",
+                                            width: "auto",
+                                          }}
+                                        >
                                           <FormControl fullWidth>
                                             <Autocomplete
                                               id="materialUsed-autocomplete"
+                                              sx={{ minWidth: 300 }}
                                               options={
                                                 materialMap[card.id] || []
                                               }
@@ -1394,6 +1417,48 @@ export default function AddDesignDraft() {
                                                   {...params}
                                                   label="Vải Sử Dụng"
                                                 />
+                                              )}
+                                              // 👇 hiển thị thêm thông tin trong dropdown
+                                              renderOption={(props, option) => (
+                                                <li
+                                                  {...props}
+                                                  key={option.materialId}
+                                                >
+                                                  <Box
+                                                    sx={{
+                                                      display: "flex",
+                                                      flexDirection: "column",
+                                                    }}
+                                                  >
+                                                    <Typography
+                                                      variant="body1"
+                                                      fontWeight="bold"
+                                                    >
+                                                      {option.name}
+                                                    </Typography>
+                                                    <Typography
+                                                      variant="body2"
+                                                      color="text.secondary"
+                                                    >
+                                                      Nhà cung cấp:{" "}
+                                                      {option.supplierName ||
+                                                        "N/A"}
+                                                    </Typography>
+                                                    <Typography
+                                                      variant="body2"
+                                                      sx={{
+                                                        color:
+                                                          option.sustainabilityColor ||
+                                                          "green",
+                                                      }}
+                                                    >
+                                                      Điểm bền vững:{" "}
+                                                      {option.sustainabilityScore ??
+                                                        "-"}
+                                                      %
+                                                    </Typography>
+                                                  </Box>
+                                                </li>
                                               )}
                                               fullWidth
                                             />
@@ -1507,7 +1572,11 @@ export default function AddDesignDraft() {
                               </Typography>
                               <Chip
                                 variant="outlined"
-                                label={m.label}
+                                label={
+                                  materialStatusMap[
+                                    m.materialStatus as MaterialStatus
+                                  ] || "Khác"
+                                }
                                 size="small"
                                 sx={{ ml: 1, fontWeight: "bold" }}
                               />

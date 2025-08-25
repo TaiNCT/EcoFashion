@@ -204,15 +204,6 @@ export default function DesignDetail() {
     setCurrentIndex(0);
   }, [designDetail]);
 
-  // if (!designDetail) {
-  //   return (
-  //     <Box sx={{ p: 4 }}>
-  //       <Typography color="error">Không tìm thấy sản phẩm.</Typography>
-  //     </Box>
-  //   );
-  // }
-  //Open popup
-
   if (loading) return <div className="designer-loading">Đang tải...</div>;
   if (error || !designDetail)
     return (
@@ -356,12 +347,17 @@ export default function DesignDetail() {
     }
 
     if (quantity > selectedProduct.quantityAvailable) {
-      toast.error(`Chỉ còn ${selectedProduct.quantityAvailable} sản phẩm có sẵn!`);
+      toast.error(
+        `Chỉ còn ${selectedProduct.quantityAvailable} sản phẩm có sẵn!`
+      );
       return;
     }
 
     try {
-      await addProductToCart({ productId: selectedProduct.productId, quantity });
+      await addProductToCart({
+        productId: selectedProduct.productId,
+        quantity,
+      });
       toast.success(
         `Đã thêm ${quantity} sản phẩm ${designDetail.name} vào giỏ hàng! 🛒`
       );
@@ -1521,11 +1517,17 @@ export default function DesignDetail() {
         </Box>
 
         {/* Related Products */}
-        <FashionsSection
-          products={relatedDesign}
-          title="SẢN PHẨM LIÊN QUAN"
-          onViewMore={() => `/brand/${designerId}`}
-        />
+        <Box
+          sx={{
+            width: "100%",
+          }}
+        >
+          <FashionsSection
+            products={relatedDesign}
+            title="SẢN PHẨM LIÊN QUAN"
+            onViewMore={() => `/brand/${designerId}`}
+          />
+        </Box>
       </Box>
     </Box>
   );
