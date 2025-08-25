@@ -82,6 +82,37 @@ namespace EcoFashionBackEnd.Extensions.NewFolder
 
             return paymentUrl;
         }
+        public async Task<string> CreateWithdrawalPaymentUrlAsync(HttpContext context, VnPaymentRequestModel model)
+        {
+            Console.WriteLine($"Creating withdrawal payment URL for OrderId: {model.OrderId}, Amount: {model.Amount}");
+
+            var txnRef = string.IsNullOrWhiteSpace(model.TxnRef)
+                ? $"{model.OrderId}_{DateTime.Now:yyyyMMddHHmmss}"
+                : model.TxnRef; // ưu tiên TxnRef từ service để đồng bộ DB
+
+            var vnpay = new VnPayLibrary();
+            vnpay.AddRequestData("vnp_Version", _config["VnPay:Version"]);
+            vnpay.AddRequestData("vnp_Command", _config["VnPay:Command"]);
+            vnpay.AddRequestData("vnp_TmnCode", _config["VnPay:TmnCode"]);
+            vnpay.AddRequestData("vnp_Amount", (model.Amount * 100).ToString());
+            vnpay.AddRequestData("vnp_CreateDate", model.CreatedDate.ToString("yyyyMMddHHmmss"));
+            vnpay.AddRequestData("vnp_CurrCode", _config["VnPay:CurrCode"]);
+            vnpay.AddRequestData("vnp_IpAddr", Utils.GetIpAddress(context));
+            vnpay.AddRequestData("vnp_Locale", _config["VnPay:Locale"]);
+            vnpay.AddRequestData("vnp_OrderInfo", $"Rút tiền từ ví: {model.OrderId}");
+            vnpay.AddRequestData("vnp_OrderType", "other");
+
+            // ⚡ Khác chỗ này: callback URL cho withdrawal
+            vnpay.AddRequestData("vnp_ReturnUrl", "http://localhost:5148/api/wallet/withdrawal/callback");
+
+            vnpay.AddRequestData("vnp_TxnRef", txnRef);
+
+            var paymentUrl = vnpay.CreateRequestUrl(_config["VnPay:BaseUrl"], _config["VnPay:HashSecret"]);
+
+            Console.WriteLine($"Generated withdrawal payment URL: {paymentUrl}");
+
+            return paymentUrl;
+        }
 
 
 
@@ -106,6 +137,15 @@ namespace EcoFashionBackEnd.Extensions.NewFolder
             var vnp_BankCode = vnpay.GetResponseData("vnp_BankCode");
             var vnp_SecureHash = collections.FirstOrDefault(p => p.Key == "vnp_SecureHash").Value;
             var vnp_TransactionId = Convert.ToInt64(vnpay.GetResponseData("vnp_TransactionNo"));
+            
+            // Lấy số tiền từ VNPay response (vnp_Amount được gửi với đơn vị là VNĐ x 100)
+            var vnp_Amount = vnpay.GetResponseData("vnp_Amount");
+            double amount = 0;
+            if (!string.IsNullOrEmpty(vnp_Amount) && double.TryParse(vnp_Amount, out double parsedAmount))
+            {
+                // VNPay trả về amount đã nhân 100, cần chia lại để có giá trị thực
+                amount = parsedAmount / 100;
+            }
 
             // Try parse OrderId from TxnRef formats: ORD-{orderId}-... or {orderId}_timestamp
             int vnp_orderId = 0;
@@ -145,7 +185,9 @@ namespace EcoFashionBackEnd.Extensions.NewFolder
                 TransactionId = vnp_TransactionId.ToString(),
                 Token = vnp_SecureHash,
                 BankCode = vnp_BankCode,
-                VnPayResponseCode = vnp_ResponseCode
+                VnPayResponseCode = vnp_ResponseCode,
+                // Gán số tiền thực tế đã chia 100 từ VNPay response
+                Amount = amount
             };
         }
     }

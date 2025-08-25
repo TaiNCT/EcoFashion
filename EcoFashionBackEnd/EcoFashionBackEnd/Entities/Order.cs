@@ -17,6 +17,22 @@ namespace EcoFashionBackEnd.Entities
         public Guid? OrderGroupId { get; set; }
         [ForeignKey("OrderGroupId")]
         public virtual OrderGroup? OrderGroup { get; set; }
+        
+        // Link to checkout session for flexible checkout
+        public Guid? CheckoutSessionId { get; set; }
+        [ForeignKey("CheckoutSessionId")]
+        public virtual CheckoutSession? CheckoutSession { get; set; }
+        
+        // Provider info for this order (single provider per order)
+        public Guid? SupplierId { get; set; }
+        public Guid? DesignerId { get; set; }
+        public string? ProviderName { get; set; }
+        public string? ProviderType { get; set; } // "Supplier" or "Designer"
+        
+        [ForeignKey("SupplierId")]
+        public virtual Supplier? Supplier { get; set; }
+        [ForeignKey("DesignerId")]
+        public virtual Designer? Designer { get; set; }
         [Required]
         public required string ShippingAddress { get; set; }
         // Monetary breakdown
@@ -38,9 +54,8 @@ namespace EcoFashionBackEnd.Entities
         public decimal? CommissionRate { get; set; }
         public decimal? CommissionAmount { get; set; }
         public decimal? NetAmount { get; set; }
-        // Per-seller routing
-        public string? SellerType { get; set; } // "Supplier" or "Designer"
-        public Guid? SellerId { get; set; }
+        // Note: Seller info is determined dynamically from OrderDetails
+        // since orders can contain mixed items from different suppliers/designers
         // Expiry to release reserved stock
         public DateTime? ExpiresAt { get; set; }
         public DateTime OrderDate { get; set; }
@@ -58,16 +73,18 @@ namespace EcoFashionBackEnd.Entities
     public enum PaymentStatus
     {
         Pending,
-        Paid,
+        Paid,// check out trừ tiền trong ví customer + ở ví admin (ví hệ thống)+ hết có walletTransaction 
         Failed,
         Expired
     }
     public enum FulfillmentStatus
     {
         None,
-        Processing,
-        Shipped,
-        Delivered,
+        PartiallyConfirmed,  // Một phần đã được xác nhận bởi sellers
+        Processing,          // Tất cả sellers đã xác nhận
+        PartiallyShipped,    // Một phần đã được vận chuyển
+        Shipped,            // Tất cả đã được vận chuyển
+        Delivered,          // Hoàn thành - chia tiền admin trả tiền lại người bán 90% 
         Canceled
     }
 }

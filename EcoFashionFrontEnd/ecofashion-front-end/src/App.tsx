@@ -24,6 +24,10 @@ import SupplierDashboard from "./pages/supplier/SupplierDashboard";
 import SupplierDashboardHome from "./pages/supplier/SupplierDashboardHome";
 import SupplierMaterials from "./pages/supplier/SupplierMaterials";
 import SupplierInventory from "./pages/supplier/SupplierInventory";
+import SupplierOrders from "./pages/supplier/SupplierOrders";
+import SupplierOrdersPartial from "./pages/supplier/SupplierOrdersPartial";
+import SupplierOrdersPending from "./pages/supplier/SupplierOrdersPending";
+import SupplierOrdersCompleted from "./pages/supplier/SupplierOrdersCompleted";
 import MaterialDetailPage from "./pages/material/MaterialDetailPage";
 import AddMaterial from "./pages/supplier/AddMaterial";
 import CustomerProfile from "./pages/customer/CustomerProfile";
@@ -46,15 +50,21 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastContainer } from "react-toastify";
 import BusinessInfor from "./pages/BusinessInfor";
 import Cart from "./pages/shop/cart";
-import CheckoutPage from "./pages/checkout";
-import CheckoutResultPage from "./pages/checkout/result";
+import CheckoutTailwind from "./pages/checkout/CheckoutTailwind";
+import CheckoutConfirmTailwind from "./pages/checkout/CheckoutConfirmTailwind";
+import CheckoutResultPageTailwind from "./pages/checkout/CheckoutResultTailwind";
+import FlexibleCheckoutPage from "./pages/checkout/FlexibleCheckoutPage";
 import OrdersPage from "./pages/shop/OrdersPage";
 import OrdersDetails from "./components/orders/OrdersDetails";
 import OrdersList from "./components/orders/OrdersList";
+import ShipmentDashboardTailwind from "./pages/shipment/ShipmentDashboardTailwind";
+import WalletPageTailwind from "./pages/wallet/WalletPageTailwind";
+import VNPaySuccess from "./pages/payment/VNPaySuccess";
 import { useAuthStore } from "./store/authStore";
 import { useCartStore } from "./store/cartStore";
 import { ConfirmProvider } from "material-ui-confirm";
 
+import CountryCitySelect from "./pages/design/tesitng";
 //import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -100,10 +110,26 @@ function App() {
 
         {/* ===== CHECKOUT and ORDERS ROUTES ===== */}
         <Route
+          path="/checkout/confirm"
+          element={
+            <ProtectedRoute allowedRoles={["customer", "supplier", "designer"]}>
+              <CheckoutConfirmTailwind />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/checkout"
           element={
             <ProtectedRoute allowedRoles={["customer", "supplier", "designer"]}>
-              <CheckoutPage />
+              <CheckoutTailwind />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/flexible-checkout"
+          element={
+            <ProtectedRoute allowedRoles={["customer", "supplier", "designer"]}>
+              <FlexibleCheckoutPage />
             </ProtectedRoute>
           }
         />
@@ -111,14 +137,16 @@ function App() {
           path="/checkout/result"
           element={
             <ProtectedRoute allowedRoles={["customer", "supplier", "designer"]}>
-              <CheckoutResultPage />
+              <CheckoutResultPageTailwind />
             </ProtectedRoute>
           }
         />
         <Route
           path="/orders"
           element={
-            <ProtectedRoute allowedRoles={["customer", "supplier", "designer"]}>
+            <ProtectedRoute
+              allowedRoles={["customer", "supplier", "designer", "admin"]}
+            >
               <OrdersPage />
             </ProtectedRoute>
           }
@@ -126,6 +154,40 @@ function App() {
           <Route index element={<OrdersList />} />
           <Route path=":orderId" element={<OrdersDetails />} />
         </Route>
+
+        {/* ===== SHIPMENT ROUTES ===== */}
+        <Route
+          path="/shipment"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "supplier", "designer"]}>
+              <ShipmentDashboardTailwind />
+            </ProtectedRoute>
+          }
+        />
+        {/* Removed standalone tracking page; tracking handled within Tailwind dashboard */}
+
+        {/* ===== WALLET ROUTES ===== */}
+        <Route
+          path="/wallet"
+          element={
+            <ProtectedRoute
+              allowedRoles={["customer", "supplier", "designer", "admin"]}
+            >
+              <WalletPageTailwind />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/vnpay-success"
+          element={
+            <ProtectedRoute
+              allowedRoles={["customer", "supplier", "designer", "admin"]}
+            >
+              <VNPaySuccess />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
@@ -245,6 +307,13 @@ function App() {
           <Route path="materials" element={<SupplierMaterials />} />
           <Route path="materials/add" element={<AddMaterial />} />
           <Route path="materials/inventory" element={<SupplierInventory />} />
+          <Route path="orders" element={<SupplierOrdersPartial />} />
+          <Route path="orders/legacy" element={<SupplierOrders />} />
+          <Route path="orders/pending" element={<SupplierOrdersPending />} />
+          <Route
+            path="orders/completed"
+            element={<SupplierOrdersCompleted />}
+          />
         </Route>
 
         {/* ===== EXPLORE ROUTES ===== */}

@@ -13,6 +13,7 @@ namespace EcoFashionBackEnd.Services
         private readonly IRepository<PaymentTransaction, int> _paymentTransactionRepository;
         private readonly MaterialInventoryService _materialInventoryService;
         private readonly AppDbContext _dbContext;
+        private readonly SettlementService _settlementService;
 
         public PaymentService(
             IRepository<User, int> userRepository,
@@ -20,7 +21,8 @@ namespace EcoFashionBackEnd.Services
             IRepository<Order, int> orderRepository,
             IRepository<PaymentTransaction, int> paymentTransactionRepository,
             MaterialInventoryService materialInventoryService,
-            AppDbContext dbContext
+            AppDbContext dbContext,
+            SettlementService settlementService
            )
         {
             _userRepository= userRepository;
@@ -29,6 +31,7 @@ namespace EcoFashionBackEnd.Services
             _paymentTransactionRepository = paymentTransactionRepository;
             _materialInventoryService = materialInventoryService;
             _dbContext = dbContext;
+            _settlementService = settlementService;
         }
 
         public async Task<string> CreateVNPayUrlAsync(HttpContext context, VnPaymentRequestModel model, int userId)
@@ -48,7 +51,7 @@ namespace EcoFashionBackEnd.Services
                 UserId = userId,
                 Amount = (long)model.Amount,
                 Status = "Pending",
-                OrderType = order.SellerType,
+                OrderType = "EcoFashion",
                 PaymentType = "VNPay",
                 Provider = "VNPAY",
                 CreatedAt = DateTime.UtcNow
@@ -157,6 +160,10 @@ namespace EcoFashionBackEnd.Services
                 if (response.VnPayResponseCode == "00")
                 {
                     await DeductInventoryForOrderAsync(orderId);
+                    
+                    await _settlementService.CreateSettlementsForOrderAsync(orderId);
+                    
+                    await _settlementService.ReleasePayoutsForOrderAsync(orderId);
                 }
             }
             return response;
@@ -234,6 +241,10 @@ namespace EcoFashionBackEnd.Services
                     if (isSuccess)
                     {
                         await DeductInventoryForOrderAsync(orderId);
+                        
+                        await _settlementService.CreateSettlementsForOrderAsync(orderId);
+                        
+                        await _settlementService.ReleasePayoutsForOrderAsync(orderId);
                     }
                 }
             }
@@ -243,6 +254,7 @@ namespace EcoFashionBackEnd.Services
 
         /// <summary>
         /// Trừ inventory cho tất cả materials trong order khi payment thành công
+        /// Trừ inventory cho tất cả products trong order khi payment thành công
         /// </summary>
         /// <param name="orderId">ID của order đã thanh toán thành công</param>
         private async Task DeductInventoryForOrderAsync(int orderId)

@@ -1,323 +1,661 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { formatViDateTime, formatViDate } from '../../utils/date';
-import inventoryAnalyticsService, { InventorySummaryDto, LowStockItemDto, SupplierReceiptPointDto } from '../../services/api/inventoryAnalyticsService';
+import inventoryAnalyticsService from '../../services/api/inventoryAnalyticsService';
 import materialInventoryService from '../../services/api/materialInventoryService';
-import type { MaterialStockTransactionDto } from '../../schemas/inventorySchema';
-import { BsArrowUpRight, BsArrowDownRight } from 'react-icons/bs';
+import designerMaterialInventoryService from '../../services/api/designerMaterialInventoryService';
+import productInventoryAnalyticsService from '../../services/api/productInventoryAnalyticsService';
 
-const formatCurrency = (n: number) => (n * 1000).toLocaleString('vi-VN') + 'đ';
+// Simple interfaces for the demo
+interface DateRange {
+  from: string;
+  to: string;
+}
+
+type WarehouseType = 'all' | 'material' | 'designer-material' | 'product';
 
 const InventoryReport: React.FC = () => {
-  const [from, setFrom] = React.useState<string>(() => new Date(Date.now() - 7 * 86400000).toISOString());
-  const [to, setTo] = React.useState<string>(() => new Date().toISOString());
+  // State for filters
+  const [warehouseType, setWarehouseType] = useState<WarehouseType>('all');
+  const [dateRange, setDateRange] = useState<DateRange>(() => ({
+    from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    to: new Date().toISOString().split('T')[0]
+  }));
 
-  const { data: summary } = useQuery<InventorySummaryDto>({
-    queryKey: ['invSummary', from, to],
-    queryFn: () => inventoryAnalyticsService.getSummary({ from, to }),
+  // Fetch material inventory summary
+  const { data: materialSummary, isLoading: materialLoading, error: materialError } = useQuery({
+    queryKey: ['material-summary', dateRange.from, dateRange.to],
+    queryFn: () => inventoryAnalyticsService.getSummary({
+      from: dateRange.from,
+      to: dateRange.to
+    }),
+    enabled: warehouseType === 'material' || warehouseType === 'all',
+    retry: 3,
+    staleTime: 5 * 60 * 1000
   });
 
-  const { data: receiptsBySupplier = [] } = useQuery<SupplierReceiptPointDto[]>({
-    queryKey: ['invReceiptsBySupplier', from, to],
-    queryFn: () => inventoryAnalyticsService.getReceiptsBySupplier({ from, to }),
+  // Fetch material transactions  
+  const { data: materialTransactions, isLoading: transactionsLoading } = useQuery({
+    queryKey: ['material-transactions', dateRange.from, dateRange.to],
+    queryFn: () => materialInventoryService.getTransactions({
+      from: dateRange.from,
+      to: dateRange.to
+    }),
+    enabled: warehouseType === 'material' || warehouseType === 'all',
+    retry: 3,
+    staleTime: 5 * 60 * 1000
   });
 
-  const { data: lowStock = [] } = useQuery<LowStockItemDto[]>({
-    queryKey: ['invLowStock'],
-    queryFn: () => inventoryAnalyticsService.getLowStock({ limit: 20 }),
+  // Fetch low stock items
+  const { data: lowStockItems, isLoading: lowStockLoading } = useQuery({
+    queryKey: ['low-stock'],
+    queryFn: () => inventoryAnalyticsService.getLowStock({ limit: 10 }),
+    enabled: warehouseType === 'material' || warehouseType === 'all',
+    retry: 3,
+    staleTime: 5 * 60 * 1000
   });
 
-  const { data: supplierReceipts = [] } = useQuery<MaterialStockTransactionDto[]>({
-    queryKey: ['invSupplierReceipts', from, to],
-    queryFn: () => materialInventoryService.getTransactions({ type: 'SupplierReceipt', from, to } as any),
+  // Fetch chart data
+  const { data: chartData, isLoading: chartLoading } = useQuery({
+    queryKey: ['chart-data', dateRange.from, dateRange.to],
+    queryFn: () => inventoryAnalyticsService.getReceiptsBySupplier({
+      from: dateRange.from,
+      to: dateRange.to
+    }),
+    enabled: warehouseType === 'material' || warehouseType === 'all',
+    retry: 3,
+    staleTime: 5 * 60 * 1000
   });
 
-  const [detailTx, setDetailTx] = React.useState<MaterialStockTransactionDto | null>(null);
+  // Fetch designer material summary
+  const { data: designerSummary, isLoading: designerLoading } = useQuery({
+    queryKey: ['designer-summary'],
+    queryFn: () => designerMaterialInventoryService.getSummary(),
+    enabled: warehouseType === 'designer-material' || warehouseType === 'all',
+    retry: 3,
+    staleTime: 5 * 60 * 1000
+  });
 
-  const DeltaCell: React.FC<{ delta: number }> = ({ delta }) => {
-    if (delta > 0) {
-      return (
-        <span className="inline-flex items-center gap-1 text-green-600 text-[13px]">
-          <BsArrowUpRight className="w-3 h-3" /> +{delta}
-        </span>
-      );
-    }
-    if (delta < 0) {
-      return (
-        <span className="inline-flex items-center gap-1 text-red-600 text-[13px]">
-          <BsArrowDownRight className="w-3 h-3" /> {delta}
-        </span>
-      );
-    }
-    return <span className="text-gray-500 text-[13px]">0</span>;
+  // Fetch designer transactions
+  const { data: designerTransactions, isLoading: designerTransactionsLoading } = useQuery({
+    queryKey: ['designer-transactions'],
+    queryFn: () => designerMaterialInventoryService.getTransactions(),
+    enabled: warehouseType === 'designer-material' || warehouseType === 'all',
+    retry: 3,
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Fetch product inventory summary
+  const { data: productSummary, isLoading: productLoading, error: productError } = useQuery({
+    queryKey: ['product-summary', dateRange.from, dateRange.to],
+    queryFn: () => productInventoryAnalyticsService.getSummary({
+      from: dateRange.from,
+      to: dateRange.to
+    }),
+    enabled: warehouseType === 'product' || warehouseType === 'all',
+    retry: 3,
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Fetch product transactions
+  const { data: productTransactions, isLoading: productTransactionsLoading } = useQuery({
+    queryKey: ['product-transactions', dateRange.from, dateRange.to],
+    queryFn: () => productInventoryAnalyticsService.getTransactions({
+      from: dateRange.from,
+      to: dateRange.to
+    }),
+    enabled: warehouseType === 'product' || warehouseType === 'all',
+    retry: 3,
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Fetch product low stock items
+  const { data: productLowStock, isLoading: productLowStockLoading } = useQuery({
+    queryKey: ['product-low-stock'],
+    queryFn: () => productInventoryAnalyticsService.getLowStock({ limit: 10 }),
+    enabled: warehouseType === 'product' || warehouseType === 'all',
+    retry: 3,
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Fetch product activity data
+  const { data: productActivity, isLoading: productActivityLoading } = useQuery({
+    queryKey: ['product-activity', dateRange.from, dateRange.to],
+    queryFn: () => productInventoryAnalyticsService.getProductionActivity({
+      from: dateRange.from,
+      to: dateRange.to
+    }),
+    enabled: warehouseType === 'product' || warehouseType === 'all',
+    retry: 3,
+    staleTime: 5 * 60 * 1000
+  });
+
+  const isLoading = materialLoading || transactionsLoading || lowStockLoading || chartLoading || designerLoading || designerTransactionsLoading || productLoading || productTransactionsLoading || productLowStockLoading || productActivityLoading;
+  const hasError = materialError || productError;
+
+  // Handler functions
+  const handleTypeChange = (type: WarehouseType) => {
+    setWarehouseType(type);
   };
 
-  const downloadReceiptsCsv = () => {
-    const rows = receiptsBySupplier.map(r => [
-      formatViDate(r.date),
-      r.supplierName || '',
-      r.quantity,
-    ]);
-    const header = ['Ngày', 'Nhà cung cấp', 'Nhập'];
-    const csv = [header, ...rows]
-      .map(cols => cols.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `receipts_${new Date(from).toISOString().slice(0,10)}_${new Date(to).toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setDateRange(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
+
+  if (hasError) {
+    return (
+      <div className="dashboard-main">
+        <div className="dashboard-container">
+          <div className="dashboard-content">
+            <div className="text-center py-12">
+              <div className="text-red-600 mb-4">Lỗi khi tải dữ liệu kho hàng</div>
+              <button 
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Thử lại
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-main">
       <div className="dashboard-container">
         <div className="dashboard-content">
-          <div className="dashboard-header">
-            <h1 className="dashboard-title">Báo Cáo Kho Hàng</h1>
-            <p className="dashboard-subtitle">Tổng quan tồn kho và biến động gần đây</p>
-            <div className="mt-3 flex gap-3 items-center">
+          {/* Header */}
+          <div className="dashboard-header mb-6">
+            <h1 className="dashboard-title">Báo Cáo Kho Hàng Tổng Hợp</h1>
+            <p className="dashboard-subtitle">
+              Quản lý và theo dõi tất cả các loại kho: Nguyên liệu, Nguyên liệu Designer, và Sản phẩm
+            </p>
+          </div>
+
+          {/* Filters */}
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Warehouse Type Filter */}
               <div>
-                <label className="text-xs text-gray-500">Từ ngày</label>
-                <input type="datetime-local" className="form-input" value={from.slice(0,16)} onChange={(e)=>setFrom(new Date(e.target.value).toISOString())} />
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Loại Kho
+                </label>
+                <select
+                  value={warehouseType}
+                  onChange={(e) => handleTypeChange(e.target.value as WarehouseType)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Tất cả kho</option>
+                  <option value="material">Kho nguyên liệu</option>
+                  <option value="designer-material">Kho nguyên liệu Designer</option>
+                  <option value="product">Kho sản phẩm</option>
+                </select>
               </div>
+
+              {/* Date Range */}
               <div>
-                <label className="text-xs text-gray-500">Đến ngày</label>
-                <input type="datetime-local" className="form-input" value={to.slice(0,16)} onChange={(e)=>setTo(new Date(e.target.value).toISOString())} />
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Từ ngày
+                </label>
+                <input
+                  type="date"
+                  name="from"
+                  value={dateRange.from}
+                  onChange={handleDateChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Đến ngày
+                </label>
+                <input
+                  type="date"
+                  name="to"
+                  value={dateRange.to}
+                  onChange={handleDateChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Làm mới
+                </button>
               </div>
             </div>
           </div>
 
-          {/* KPI */}
-          <div className="grid-stats mb-8">
-            <div className="stats-card">
-              <p className="stats-label">Số vật liệu</p>
-              <p className="stats-value">{summary?.totalDistinctMaterials ?? '—'}</p>
-            </div>
-            <div className="stats-card">
-              <p className="stats-label">Tồn kho hiện tại (tổng theo mét vải) </p>
-              <p className="stats-value">{summary?.totalOnHand ?? '—'}</p>
-            </div>
-            <div className="stats-card">
-              <p className="stats-label">Giá trị tồn (ước tính theo VNĐ)</p>
-              <p className="stats-value">{summary ? formatCurrency(summary.totalInventoryValue) : '—'}</p>
-            </div>
-            <div className="stats-card">
-              <p className="stats-label">Dưới ngưỡng</p>
-              <p className="stats-value">{summary?.lowStockCount ?? '—'}</p>
-            </div>
-            <div className="stats-card">
-              <p className="stats-label">Hết hàng</p>
-              <p className="stats-value">{summary?.stockoutCount ?? '—'}</p>
-            </div>
-          </div>
-
-          {/* Receipts by supplier */}
-          <div className="chart-container mb-8">
-            <div className="flex items-center justify-between">
-              <h3 className="chart-title">Nhập kho theo ngày (theo nhà cung cấp)</h3>
-              <button className="btn-secondary" onClick={downloadReceiptsCsv}>Xuất CSV</button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-500">
-                    <th className="p-2">Ngày</th>
-                    <th className="p-2">Nhà cung cấp</th>
-                    <th className="p-2">Nhập</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {receiptsBySupplier.map(r => (
-                    <tr key={`${r.date}-${r.supplierName || 'NA'}`} className="border-t">
-                      <td className="p-2">{formatViDate(r.date)}</td>
-                      <td className="p-2">{r.supplierName || '—'}</td>
-                      <td className="p-2 text-green-700">+{r.quantity}</td>
-                    </tr>
-                  ))}
-                  {receiptsBySupplier.length === 0 && (
-                    <tr><td className="p-2 text-gray-500" colSpan={3}>Không có dữ liệu</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Lịch sử giao dịch - dùng ngay với SupplierReceipt - NCC nhập kho */}
-          <div className="dashboard-card mb-8">
-            <div className="card-header">
-              <h3 className="card-title">Lịch Sử Giao Dịch</h3>
-              <p className="card-subtitle">Các thay đổi gần đây (NCC nhập kho)</p>
-            </div>
-            <div className="card-body overflow-x-auto">
-              {supplierReceipts.length === 0 ? (
-                <div className="text-gray-500">Không có giao dịch</div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-gray-500">
-                      <th className="p-2">Thời gian</th>
-                      <th className="p-2">Người Nhập</th>
-                      <th className="p-2">Loại</th>
-                      <th className="p-2">Chênh lệch</th>
-                      <th className="p-2">Trước → Sau</th>
-                      <th className="p-2">Tham chiếu</th>
-                      <th className="p-2">Chi tiết</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {supplierReceipts.map(t => (
-                      <tr key={t.transactionId} className="border-t">
-                        <td className="p-2">{formatViDateTime(t.createdAt as any)}</td>
-                        <td className="p-2">{t.supplierName || '—'}</td>
-                        <td className="p-2">NCC nhập kho</td>
-                        <td className="p-2"><DeltaCell delta={t.quantityChange as number} /></td>
-                        <td className="p-2">{t.beforeQty} → {t.afterQty}</td>
-                        <td className="p-2">{t.referenceType && t.referenceId ? `${t.referenceType} #${t.referenceId}` : '—'}</td>
-                        <td className="p-2">
-                          <button
-                            className="p-1 text-gray-600 hover:text-gray-900"
-                            onClick={() => setDetailTx(t)}
-                            aria-label="Xem chi tiết"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                              <path d="M12 4.5c-4.79 0-8.88 2.96-10.5 7.5 1.62 4.54 5.71 7.5 10.5 7.5s8.88-2.96 10.5-7.5C20.88 7.46 16.79 4.5 12 4.5Zm0 12a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Zm0-7.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
-                            </svg>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
-
-          {detailTx && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-black/40" onClick={() => setDetailTx(null)} />
-              <div className="relative bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-lg mx-4">
-                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-                  <h3 className="text-lg font-semibold">Chi tiết giao dịch #{detailTx.transactionId}</h3>
-                  <button className="p-2 text-gray-500 hover:text-gray-700" onClick={() => setDetailTx(null)} aria-label="Đóng">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
-                </div>
-
-                <div className="p-4 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-gray-500">Thời gian</p>
-                      <p className="text-sm">{formatViDateTime(detailTx.createdAt as any)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Kho</p>
-                      <p className="text-sm">{(detailTx as any).warehouseName || detailTx.warehouseId}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Loại kho</p>
-                      <p className="text-sm">{(detailTx as any).warehouseType || '—'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Loại hàng</p>
-                      <p className="text-sm">Nguyên liệu</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Tên mặt hàng</p>
-                      <p className="text-sm">{(detailTx as any).materialName || detailTx.materialId}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Loại giao dịch</p>
-                      <p className="text-sm">NCC nhập kho</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Thay đổi</p>
-                      <p className="text-sm"><DeltaCell delta={detailTx.quantityChange as number} /></p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-md border border-gray-200 dark:border-gray-800 p-4">
-                    <p className="text-sm font-medium mb-2">Thay đổi tồn kho</p>
-                    <div className="flex items-center gap-4">
-                      <div className="text-center">
-                        <div className="text-xl font-semibold">{detailTx.beforeQty}</div>
-                        <div className="text-xs text-gray-500">Trước</div>
-                      </div>
-                      <div className="text-gray-400">→</div>
-                      <div className="text-center">
-                        <div className="text-xl font-semibold text-green-600">{detailTx.afterQty}</div>
-                        <div className="text-xs text-gray-500">Sau</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-md border border-gray-200 dark:border-gray-800 p-4">
-                    <p className="text-sm font-medium mb-2">Ảnh minh họa</p>
-                    {((detailTx as any).imageUrl) ? (
-                      <img
-                        src={(detailTx as any).imageUrl}
-                        alt={(detailTx as any).materialName || ''}
-                        className="w-36 h-36 object-cover rounded-md border border-gray-200 dark:border-gray-800"
-                      />
-                    ) : (
-                      <p className="text-sm text-gray-500">Không có ảnh</p>
-                    )}
-                  </div>
-
-                  <div className="rounded-md border border-gray-200 dark:border-gray-800 p-4">
-                    <p className="text-sm font-medium mb-1">Tham chiếu</p>
-                    <p className="text-sm text-gray-700">{detailTx.referenceType && detailTx.referenceId ? `${detailTx.referenceType} #${detailTx.referenceId}` : 'NCC nhập kho'}</p>
-                  </div>
-
-                  <div className="rounded-md border border-gray-200 dark:border-gray-800 p-4">
-                    <p className="text-sm font-medium mb-1">Ghi chú</p>
-                    <p className="text-sm text-gray-700">{detailTx.note || '—'}</p>
-                  </div>
-                </div>
-              </div>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
             </div>
           )}
 
-          {/* Low stock */}
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h3 className="card-title">Vật liệu dưới ngưỡng</h3>
-              <p className="card-subtitle">Top 20 mục cần chú ý</p>
+          {/* Stats Cards */}
+          {(materialSummary || designerSummary || productSummary) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              {warehouseType !== 'designer-material' && materialSummary && (
+                <>
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Tổng Nguyên Liệu</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {materialSummary.totalDistinctMaterials}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-blue-100">
+                        <div className="w-6 h-6 bg-blue-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Tồn Kho</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {materialSummary.totalOnHand?.toFixed(1)} m
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-green-100">
+                        <div className="w-6 h-6 bg-green-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Giá Trị Tồn Kho</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          ${materialSummary.totalInventoryValue?.toFixed(0)}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-purple-100">
+                        <div className="w-6 h-6 bg-purple-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Cảnh Báo Tồn Kho</p>
+                        <p className="text-2xl font-bold text-red-600">
+                          {materialSummary.lowStockCount}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-red-100">
+                        <div className="w-6 h-6 bg-red-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {warehouseType !== 'material' && designerSummary && (
+                <>
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Đã Mua</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {designerSummary.totalPurchased}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-indigo-100">
+                        <div className="w-6 h-6 bg-indigo-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Đang Sử Dụng</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {designerSummary.totalUsing}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-orange-100">
+                        <div className="w-6 h-6 bg-orange-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Tổng Chi Phí</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          ${designerSummary.totalCost?.toFixed(0)}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-pink-100">
+                        <div className="w-6 h-6 bg-pink-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Hiệu Suất</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {designerSummary.efficiency?.toFixed(1)}%
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-teal-100">
+                        <div className="w-6 h-6 bg-teal-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {warehouseType !== 'material' && warehouseType !== 'designer-material' && productSummary && (
+                <>
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Tổng Sản Phẩm</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {productSummary.totalProducts}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-blue-100">
+                        <div className="w-6 h-6 bg-blue-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Đã Hoàn Thành</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {productSummary.totalCompleted}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-green-100">
+                        <div className="w-6 h-6 bg-green-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Đang Sản Xuất</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {productSummary.totalInProduction}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-yellow-100">
+                        <div className="w-6 h-6 bg-yellow-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-600">Cảnh Báo Tồn Kho</p>
+                        <p className="text-2xl font-bold text-red-600">
+                          {productSummary.lowStockCount}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-full bg-red-100">
+                        <div className="w-6 h-6 bg-red-600 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-            <div className="card-body overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-500">
-                    <th className="p-2">Vật liệu</th>
-                    <th className="p-2">Kho</th>
-                    <th className="p-2">Tồn</th>
-                    <th className="p-2">Ngưỡng</th>
-                    <th className="p-2">Chênh lệch</th>
-                    <th className="p-2">Giá trị ước tính</th>
-                    <th className="p-2">Cập nhật</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lowStock.map(item => (
-                    <tr key={`${item.materialId}-${item.warehouseId}`} className="border-t">
-                      <td className="p-2">{item.materialName || `#${item.materialId}`}</td>
-                      <td className="p-2">{item.warehouseName || item.warehouseId}</td>
-                      <td className="p-2">{item.quantityOnHand}</td>
-                      <td className="p-2">{item.minThreshold}</td>
-                      <td className="p-2">{item.difference}</td>
-                      <td className="p-2">{formatCurrency(item.estimatedValue)}</td>
-                      <td className="p-2">{new Date(item.lastUpdated).toLocaleString('vi-VN')}</td>
-                    </tr>
-                  ))}
-                  {lowStock.length === 0 && (
-                    <tr><td className="p-2 text-gray-500" colSpan={7}>Không có dữ liệu</td></tr>
+          )}
+
+          {/* Chart Section */}
+          {((chartData && chartData.length > 0) || (productActivity && productActivity.length > 0)) && (
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              {warehouseType === 'material' || warehouseType === 'all' ? (
+                <>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Nhập Kho Theo Nhà Cung Cấp
+                  </h3>
+                  {chartData && chartData.length > 0 && (
+                    <div className="space-y-4">
+                      {chartData.slice(0, 5).map((item, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">{item.supplierName || 'Không xác định'}</span>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-32 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full"
+                                style={{ 
+                                  width: `${Math.min(100, (item.quantity / Math.max(...chartData.map(d => d.quantity))) * 100)}%` 
+                                }}
+                              ></div>
+                            </div>
+                            <span className="text-sm font-medium text-gray-900 w-16 text-right">
+                              {item.quantity} m
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
-                </tbody>
-              </table>
+                </>
+              ) : null}
+              
+              {warehouseType === 'product' && productActivity && productActivity.length > 0 && (
+                <>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Hoạt Động Sản Xuất Theo Design
+                  </h3>
+                  <div className="space-y-4">
+                    {productActivity.slice(0, 5).map((item, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">{item.designName || 'Không xác định'}</span>
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-green-600">Sản xuất:</span>
+                            <span className="text-sm font-medium text-green-900">{item.produced}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-blue-600">Bán:</span>
+                            <span className="text-sm font-medium text-blue-900">{item.sold}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
-          </div>
+          )}
+
+          {/* Recent Transactions */}
+          {(materialTransactions && materialTransactions.length > 0) || (designerTransactions && designerTransactions.length > 0) || (productTransactions && productTransactions.length > 0) ? (
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Giao Dịch Gần Đây
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ngày
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Loại
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Nguyên Liệu
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Số Lượng
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ghi Chú
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {warehouseType !== 'designer-material' && materialTransactions && 
+                      materialTransactions.slice(0, 10).map((transaction, index) => (
+                        <tr key={index}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(transaction.createdAt).toLocaleDateString('vi-VN')}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              transaction.transactionType === 'SupplierReceipt' 
+                                ? 'bg-green-100 text-green-800'
+                                : transaction.transactionType === 'CustomerSale'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {transaction.transactionType}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {transaction.materialName || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <span className={transaction.quantityChange > 0 ? 'text-green-600' : 'text-red-600'}>
+                              {transaction.quantityChange > 0 ? '+' : ''}{transaction.quantityChange} {transaction.unit || 'm'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {transaction.note || '-'}
+                          </td>
+                        </tr>
+                      ))
+                    }
+                    {warehouseType !== 'material' && designerTransactions &&
+                      designerTransactions.slice(0, 10).map((transaction, index) => (
+                        <tr key={`designer-${index}`}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(transaction.purchaseDate).toLocaleDateString('vi-VN')}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                              Designer Purchase
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {transaction.materialName || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
+                            +{transaction.quantity} pcs
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            Cost: ${transaction.totalCost}
+                          </td>
+                        </tr>
+                      ))
+                    }
+                    {warehouseType !== 'material' && warehouseType !== 'designer-material' && productTransactions &&
+                      productTransactions.slice(0, 10).map((transaction, index) => (
+                        <tr key={`product-${index}`}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(transaction.transactionDate).toLocaleDateString('vi-VN')}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              transaction.transactionType === 'Production' 
+                                ? 'bg-green-100 text-green-800'
+                                : transaction.transactionType === 'Sale'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {transaction.transactionType}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {transaction.productName || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <span className={transaction.quantityChanged > 0 ? 'text-green-600' : 'text-red-600'}>
+                              {transaction.quantityChanged > 0 ? '+' : ''}{transaction.quantityChanged} cái
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {transaction.notes || '-'}
+                          </td>
+                        </tr>
+                      ))
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Giao Dịch Gần Đây
+              </h3>
+              <p className="text-gray-500 text-center py-8">Không có giao dịch nào</p>
+            </div>
+          )}
+
+          {/* Low Stock Alert */}
+          {((lowStockItems && lowStockItems.length > 0) || (productLowStock && productLowStock.length > 0)) && (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Cảnh Báo Tồn Kho Thấp
+              </h3>
+              <div className="space-y-3">
+                {lowStockItems && lowStockItems.map((item, index) => (
+                  <div key={`material-${index}`} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div>
+                      <p className="font-medium text-gray-900">{item.materialName}</p>
+                      <p className="text-sm text-gray-600">{item.warehouseName}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-red-600 font-medium">
+                        Còn lại: {item.quantityOnHand} / Tối thiểu: {item.minThreshold}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Thiếu: {Math.abs(item.difference)} units
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {productLowStock && productLowStock.map((item, index) => (
+                  <div key={`product-${index}`} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div>
+                      <p className="font-medium text-gray-900">{item.productName}</p>
+                      <p className="text-sm text-gray-600">{item.warehouseName} - SKU: {item.sku}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-red-600 font-medium">
+                        Còn lại: {item.quantityAvailable} / Tối thiểu: {item.minThreshold}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Thiếu: {Math.abs(item.difference)} cái
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -325,5 +663,3 @@ const InventoryReport: React.FC = () => {
 };
 
 export default InventoryReport;
-
-

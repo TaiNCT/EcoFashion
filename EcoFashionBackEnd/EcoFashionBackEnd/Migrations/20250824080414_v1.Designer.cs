@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250817114940_v1")]
+    [Migration("20250824080414_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -238,7 +238,15 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<int>("CartId")
                         .HasColumnType("int");
 
-                    b.Property<int>("MaterialId")
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("MaterialId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
@@ -253,10 +261,114 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasKey("CartItemId");
 
+                    b.HasIndex("MaterialId");
+
+                    b.HasIndex("ProductId");
+
                     b.HasIndex("CartId", "MaterialId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[MaterialId] IS NOT NULL");
 
                     b.ToTable("CartItems");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.CheckoutSession", b =>
+                {
+                    b.Property<Guid>("CheckoutSessionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("AddressId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ShippingAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TotalItems")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalProviders")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CheckoutSessionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CheckoutSessions");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.CheckoutSessionItem", b =>
+                {
+                    b.Property<int>("CheckoutSessionItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CheckoutSessionItemId"));
+
+                    b.Property<Guid>("CheckoutSessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DesignerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsSelected")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("MaterialId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProviderName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProviderType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("CheckoutSessionItemId");
+
+                    b.HasIndex("CheckoutSessionId");
+
+                    b.HasIndex("DesignerId");
+
+                    b.HasIndex("MaterialId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.ToTable("CheckoutSessionItems");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>
@@ -1052,6 +1164,9 @@ namespace EcoFashionBackEnd.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
 
+                    b.Property<Guid?>("CheckoutSessionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<decimal?>("CommissionAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -1062,6 +1177,9 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DesignerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Discount")
                         .HasPrecision(18, 2)
@@ -1088,10 +1206,10 @@ namespace EcoFashionBackEnd.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("SellerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ProviderName")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SellerType")
+                    b.Property<string>("ProviderType")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ShippingAddress")
@@ -1110,6 +1228,9 @@ namespace EcoFashionBackEnd.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<decimal>("TotalPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -1119,7 +1240,13 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasKey("OrderId");
 
+                    b.HasIndex("CheckoutSessionId");
+
+                    b.HasIndex("DesignerId");
+
                     b.HasIndex("OrderGroupId");
+
+                    b.HasIndex("SupplierId");
 
                     b.HasIndex("UserId");
 
@@ -1144,6 +1271,9 @@ namespace EcoFashionBackEnd.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
@@ -1173,6 +1303,8 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasIndex("MaterialId");
 
                     b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
 
                     b.HasIndex("SupplierId");
 
@@ -1208,6 +1340,55 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("OrderGroups");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.OrderSellerSettlement", b =>
+                {
+                    b.Property<Guid>("SettlementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("CommissionAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CommissionRate")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("decimal(5,4)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("GrossAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("NetAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReleasedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SellerType")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("SellerUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("SettlementId");
+
+                    b.HasIndex("OrderId", "SellerUserId")
+                        .IsUnique();
+
+                    b.ToTable("OrderSellerSettlements");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.PaymentTransaction", b =>
@@ -1626,6 +1807,49 @@ namespace EcoFashionBackEnd.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.UserAddress", b =>
+                {
+                    b.Property<int>("AddressId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AddressId"));
+
+                    b.Property<string>("AddressLine")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("District")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PersonalPhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AddressId");
+
+                    b.HasIndex("UserId", "IsDefault")
+                        .IsUnique()
+                        .HasFilter("[IsDefault] = 1");
+
+                    b.ToTable("UserAddresses");
+                });
+
             modelBuilder.Entity("EcoFashionBackEnd.Entities.UserRole", b =>
                 {
                     b.Property<int>("RoleId")
@@ -1701,7 +1925,13 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
                     b.Property<Guid?>("PaymentTransactionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SettlementId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("Status")
@@ -1718,6 +1948,8 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasIndex("PaymentTransactionId");
 
                     b.HasIndex("WalletId");
+
+                    b.HasIndex("OrderId", "SettlementId");
 
                     b.ToTable("WalletTransactions");
                 });
@@ -1868,7 +2100,65 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("EcoFashionBackEnd.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId");
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+
                     b.Navigation("Cart");
+
+                    b.Navigation("Material");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.CheckoutSession", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.CheckoutSessionItem", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.CheckoutSession", "CheckoutSession")
+                        .WithMany("Items")
+                        .HasForeignKey("CheckoutSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Designer", "Designer")
+                        .WithMany()
+                        .HasForeignKey("DesignerId");
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId");
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId");
+
+                    b.Navigation("CheckoutSession");
+
+                    b.Navigation("Designer");
+
+                    b.Navigation("Material");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>
@@ -2163,10 +2453,22 @@ namespace EcoFashionBackEnd.Migrations
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Order", b =>
                 {
+                    b.HasOne("EcoFashionBackEnd.Entities.CheckoutSession", "CheckoutSession")
+                        .WithMany("Orders")
+                        .HasForeignKey("CheckoutSessionId");
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Designer", "Designer")
+                        .WithMany()
+                        .HasForeignKey("DesignerId");
+
                     b.HasOne("EcoFashionBackEnd.Entities.OrderGroup", "OrderGroup")
                         .WithMany("Orders")
                         .HasForeignKey("OrderGroupId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("EcoFashionBackEnd.Entities.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId");
 
                     b.HasOne("EcoFashionBackEnd.Entities.User", "User")
                         .WithMany("Orders")
@@ -2174,7 +2476,13 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("CheckoutSession");
+
+                    b.Navigation("Designer");
+
                     b.Navigation("OrderGroup");
+
+                    b.Navigation("Supplier");
 
                     b.Navigation("User");
                 });
@@ -2202,6 +2510,10 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("EcoFashionBackEnd.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+
                     b.HasOne("EcoFashionBackEnd.Entities.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
@@ -2215,6 +2527,8 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.Navigation("Order");
 
+                    b.Navigation("Product");
+
                     b.Navigation("Supplier");
                 });
 
@@ -2227,6 +2541,17 @@ namespace EcoFashionBackEnd.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.OrderSellerSettlement", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.PaymentTransaction", b =>
@@ -2351,6 +2676,17 @@ namespace EcoFashionBackEnd.Migrations
                     b.Navigation("UserRole");
                 });
 
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.UserAddress", b =>
+                {
+                    b.HasOne("EcoFashionBackEnd.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Wallet", b =>
                 {
                     b.HasOne("EcoFashionBackEnd.Entities.User", "User")
@@ -2414,6 +2750,13 @@ namespace EcoFashionBackEnd.Migrations
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Cart", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("EcoFashionBackEnd.Entities.CheckoutSession", b =>
+                {
+                    b.Navigation("Items");
+
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Design", b =>

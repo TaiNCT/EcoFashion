@@ -368,7 +368,7 @@ export default function DesignerDashBoard() {
       costPerUnit: new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",
-      }).format(inventory.material.pricePerUnit * 1000),
+      }).format(inventory.material.pricePerUnit),
       totalValue: new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",
@@ -498,7 +498,7 @@ export default function DesignerDashBoard() {
 
   const totalMaterials = storedMaterial.length;
   const totalCost = storedMaterial.reduce(
-    (sum, m) => sum + m.material.pricePerUnit * 1000 * m.quantity,
+    (sum, m) => sum + m.material.pricePerUnit * m.quantity,
     0
   );
   const lowStockCount = storedMaterial.filter(

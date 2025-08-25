@@ -284,6 +284,32 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CheckoutSessions",
+                columns: table => new
+                {
+                    CheckoutSessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    ShippingAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AddressId = table.Column<int>(type: "int", nullable: true),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalItems = table.Column<int>(type: "int", nullable: false),
+                    TotalProviders = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CheckoutSessions", x => x.CheckoutSessionId);
+                    table.ForeignKey(
+                        name: "FK_CheckoutSessions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Designer",
                 columns: table => new
                 {
@@ -410,6 +436,31 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserAddresses",
+                columns: table => new
+                {
+                    AddressId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    AddressLine = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    District = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    PersonalPhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Country = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    IsDefault = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserAddresses", x => x.AddressId);
+                    table.ForeignKey(
+                        name: "FK_UserAddresses_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Wallets",
                 columns: table => new
                 {
@@ -455,30 +506,6 @@ namespace EcoFashionBackEnd.Migrations
                         column: x => x.ImageId,
                         principalTable: "Image",
                         principalColumn: "ImageId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CartItems",
-                columns: table => new
-                {
-                    CartItemId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CartId = table.Column<int>(type: "int", nullable: false),
-                    MaterialId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    UnitPriceSnapshot = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    AddedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CartItems", x => x.CartItemId);
-                    table.ForeignKey(
-                        name: "FK_CartItems_Carts_CartId",
-                        column: x => x.CartId,
-                        principalTable: "Carts",
-                        principalColumn: "CartId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -546,48 +573,6 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Orders",
-                columns: table => new
-                {
-                    OrderId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    OrderGroupId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    ShippingAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    ShippingFee = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Discount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PaymentStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FulfillmentStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CommissionRate = table.Column<decimal>(type: "decimal(5,4)", precision: 5, scale: 4, nullable: true),
-                    CommissionAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
-                    NetAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
-                    SellerType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SellerId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Orders", x => x.OrderId);
-                    table.ForeignKey(
-                        name: "FK_Orders_OrderGroups_OrderGroupId",
-                        column: x => x.OrderGroupId,
-                        principalTable: "OrderGroups",
-                        principalColumn: "OrderGroupId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Orders_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Materials",
                 columns: table => new
                 {
@@ -634,6 +619,66 @@ namespace EcoFashionBackEnd.Migrations
                         column: x => x.SupplierId,
                         principalTable: "Supplier",
                         principalColumn: "SupplierId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    OrderId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    OrderGroupId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    CheckoutSessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    SupplierId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    DesignerId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ProviderName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProviderType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ShippingAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    ShippingFee = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Discount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PaymentStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FulfillmentStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CommissionRate = table.Column<decimal>(type: "decimal(5,4)", precision: 5, scale: 4, nullable: true),
+                    CommissionAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    NetAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.OrderId);
+                    table.ForeignKey(
+                        name: "FK_Orders_CheckoutSessions_CheckoutSessionId",
+                        column: x => x.CheckoutSessionId,
+                        principalTable: "CheckoutSessions",
+                        principalColumn: "CheckoutSessionId");
+                    table.ForeignKey(
+                        name: "FK_Orders_Designer_DesignerId",
+                        column: x => x.DesignerId,
+                        principalTable: "Designer",
+                        principalColumn: "DesignerId");
+                    table.ForeignKey(
+                        name: "FK_Orders_OrderGroups_OrderGroupId",
+                        column: x => x.OrderGroupId,
+                        principalTable: "OrderGroups",
+                        principalColumn: "OrderGroupId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Supplier_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "Supplier",
+                        principalColumn: "SupplierId");
+                    table.ForeignKey(
+                        name: "FK_Orders_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -791,48 +836,6 @@ namespace EcoFashionBackEnd.Migrations
                         column: x => x.SizeId,
                         principalTable: "Sizes",
                         principalColumn: "SizeId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PaymentTransactions",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OrderId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    VnPayTransactionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    VnPayResponseCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Amount = table.Column<long>(type: "bigint", nullable: false),
-                    BankCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CardType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Message = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    OrderType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PaymentType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    TxnRef = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
-                    PayUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Provider = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    MerchantCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ReturnPayload = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IpnPayload = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaymentTransactions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PaymentTransactions_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "OrderId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PaymentTransactions_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -1040,6 +1043,161 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OrderSellerSettlements",
+                columns: table => new
+                {
+                    SettlementId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    SellerUserId = table.Column<int>(type: "int", nullable: false),
+                    SellerType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    GrossAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    CommissionRate = table.Column<decimal>(type: "decimal(5,4)", precision: 5, scale: 4, nullable: false),
+                    CommissionAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    NetAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReleasedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderSellerSettlements", x => x.SettlementId);
+                    table.ForeignKey(
+                        name: "FK_OrderSellerSettlements_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "OrderId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentTransactions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    VnPayTransactionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    VnPayResponseCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Amount = table.Column<long>(type: "bigint", nullable: false),
+                    BankCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CardType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OrderType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    TxnRef = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
+                    PayUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Provider = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MerchantCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReturnPayload = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IpnPayload = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentTransactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PaymentTransactions_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "OrderId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PaymentTransactions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CartItems",
+                columns: table => new
+                {
+                    CartItemId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CartId = table.Column<int>(type: "int", nullable: false),
+                    ItemType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    MaterialId = table.Column<int>(type: "int", nullable: true),
+                    ProductId = table.Column<int>(type: "int", nullable: true),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    UnitPriceSnapshot = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    AddedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CartItems", x => x.CartItemId);
+                    table.ForeignKey(
+                        name: "FK_CartItems_Carts_CartId",
+                        column: x => x.CartId,
+                        principalTable: "Carts",
+                        principalColumn: "CartId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CartItems_Materials_MaterialId",
+                        column: x => x.MaterialId,
+                        principalTable: "Materials",
+                        principalColumn: "MaterialId");
+                    table.ForeignKey(
+                        name: "FK_CartItems_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "ProductId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CheckoutSessionItems",
+                columns: table => new
+                {
+                    CheckoutSessionItemId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CheckoutSessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MaterialId = table.Column<int>(type: "int", nullable: true),
+                    ProductId = table.Column<int>(type: "int", nullable: true),
+                    SupplierId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    DesignerId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ProviderName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProviderType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    IsSelected = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CheckoutSessionItems", x => x.CheckoutSessionItemId);
+                    table.ForeignKey(
+                        name: "FK_CheckoutSessionItems_CheckoutSessions_CheckoutSessionId",
+                        column: x => x.CheckoutSessionId,
+                        principalTable: "CheckoutSessions",
+                        principalColumn: "CheckoutSessionId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CheckoutSessionItems_Designer_DesignerId",
+                        column: x => x.DesignerId,
+                        principalTable: "Designer",
+                        principalColumn: "DesignerId");
+                    table.ForeignKey(
+                        name: "FK_CheckoutSessionItems_Materials_MaterialId",
+                        column: x => x.MaterialId,
+                        principalTable: "Materials",
+                        principalColumn: "MaterialId");
+                    table.ForeignKey(
+                        name: "FK_CheckoutSessionItems_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "ProductId");
+                    table.ForeignKey(
+                        name: "FK_CheckoutSessionItems_Supplier_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "Supplier",
+                        principalColumn: "SupplierId");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OrderDetails",
                 columns: table => new
                 {
@@ -1049,6 +1207,7 @@ namespace EcoFashionBackEnd.Migrations
                     DesignId = table.Column<int>(type: "int", nullable: true),
                     DesignerId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     MaterialId = table.Column<int>(type: "int", nullable: true),
+                    ProductId = table.Column<int>(type: "int", nullable: true),
                     SupplierId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
@@ -1082,6 +1241,11 @@ namespace EcoFashionBackEnd.Migrations
                         principalTable: "Orders",
                         principalColumn: "OrderId",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_OrderDetails_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "ProductId");
                     table.ForeignKey(
                         name: "FK_OrderDetails_Supplier_SupplierId",
                         column: x => x.SupplierId,
@@ -1154,38 +1318,6 @@ namespace EcoFashionBackEnd.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WalletTransactions",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    WalletId = table.Column<int>(type: "int", nullable: false),
-                    Amount = table.Column<double>(type: "float", nullable: false),
-                    BalanceBefore = table.Column<double>(type: "float", nullable: false),
-                    BalanceAfter = table.Column<double>(type: "float", nullable: false),
-                    Type = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    PaymentTransactionId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WalletTransactions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_WalletTransactions_PaymentTransactions_PaymentTransactionId",
-                        column: x => x.PaymentTransactionId,
-                        principalTable: "PaymentTransactions",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_WalletTransactions_Wallets_WalletId",
-                        column: x => x.WalletId,
-                        principalTable: "Wallets",
-                        principalColumn: "WalletId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "MaterialInventoryTransactions",
                 columns: table => new
                 {
@@ -1208,6 +1340,40 @@ namespace EcoFashionBackEnd.Migrations
                         column: x => x.InventoryId,
                         principalTable: "DesignerMaterialInventories",
                         principalColumn: "InventoryId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WalletTransactions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    WalletId = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<double>(type: "float", nullable: false),
+                    BalanceBefore = table.Column<double>(type: "float", nullable: false),
+                    BalanceAfter = table.Column<double>(type: "float", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    OrderId = table.Column<int>(type: "int", nullable: true),
+                    SettlementId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PaymentTransactionId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WalletTransactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WalletTransactions_PaymentTransactions_PaymentTransactionId",
+                        column: x => x.PaymentTransactionId,
+                        principalTable: "PaymentTransactions",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_WalletTransactions_Wallets_WalletId",
+                        column: x => x.WalletId,
+                        principalTable: "Wallets",
+                        principalColumn: "WalletId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -1273,7 +1439,18 @@ namespace EcoFashionBackEnd.Migrations
                 name: "IX_CartItems_CartId_MaterialId",
                 table: "CartItems",
                 columns: new[] { "CartId", "MaterialId" },
-                unique: true);
+                unique: true,
+                filter: "[MaterialId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartItems_MaterialId",
+                table: "CartItems",
+                column: "MaterialId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartItems_ProductId",
+                table: "CartItems",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Carts_UserId_IsActive",
@@ -1281,6 +1458,36 @@ namespace EcoFashionBackEnd.Migrations
                 columns: new[] { "UserId", "IsActive" },
                 unique: true,
                 filter: "[UserId] IS NOT NULL AND [IsActive] = 1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CheckoutSessionItems_CheckoutSessionId",
+                table: "CheckoutSessionItems",
+                column: "CheckoutSessionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CheckoutSessionItems_DesignerId",
+                table: "CheckoutSessionItems",
+                column: "DesignerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CheckoutSessionItems_MaterialId",
+                table: "CheckoutSessionItems",
+                column: "MaterialId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CheckoutSessionItems_ProductId",
+                table: "CheckoutSessionItems",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CheckoutSessionItems_SupplierId",
+                table: "CheckoutSessionItems",
+                column: "SupplierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CheckoutSessions_UserId",
+                table: "CheckoutSessions",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Designer_UserId",
@@ -1457,6 +1664,11 @@ namespace EcoFashionBackEnd.Migrations
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderDetails_ProductId",
+                table: "OrderDetails",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderDetails_SupplierId",
                 table: "OrderDetails",
                 column: "SupplierId");
@@ -1467,14 +1679,35 @@ namespace EcoFashionBackEnd.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_CheckoutSessionId",
+                table: "Orders",
+                column: "CheckoutSessionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_DesignerId",
+                table: "Orders",
+                column: "DesignerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_OrderGroupId",
                 table: "Orders",
                 column: "OrderGroupId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_SupplierId",
+                table: "Orders",
+                column: "SupplierId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_UserId",
                 table: "Orders",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderSellerSettlements_OrderId_SellerUserId",
+                table: "OrderSellerSettlements",
+                columns: new[] { "OrderId", "SellerUserId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PaymentTransactions_OrderId",
@@ -1560,6 +1793,13 @@ namespace EcoFashionBackEnd.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserAddresses_UserId_IsDefault",
+                table: "UserAddresses",
+                columns: new[] { "UserId", "IsDefault" },
+                unique: true,
+                filter: "[IsDefault] = 1");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_RoleId",
                 table: "Users",
                 column: "RoleId");
@@ -1569,6 +1809,11 @@ namespace EcoFashionBackEnd.Migrations
                 table: "Wallets",
                 column: "UserId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WalletTransactions_OrderId_SettlementId",
+                table: "WalletTransactions",
+                columns: new[] { "OrderId", "SettlementId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_WalletTransactions_PaymentTransactionId",
@@ -1597,6 +1842,9 @@ namespace EcoFashionBackEnd.Migrations
 
             migrationBuilder.DropTable(
                 name: "CartItems");
+
+            migrationBuilder.DropTable(
+                name: "CheckoutSessionItems");
 
             migrationBuilder.DropTable(
                 name: "DesignFeatures");
@@ -1644,6 +1892,9 @@ namespace EcoFashionBackEnd.Migrations
                 name: "OrderDetails");
 
             migrationBuilder.DropTable(
+                name: "OrderSellerSettlements");
+
+            migrationBuilder.DropTable(
                 name: "ProductInventoryTransactions");
 
             migrationBuilder.DropTable(
@@ -1651,6 +1902,9 @@ namespace EcoFashionBackEnd.Migrations
 
             migrationBuilder.DropTable(
                 name: "Saved_Supplier");
+
+            migrationBuilder.DropTable(
+                name: "UserAddresses");
 
             migrationBuilder.DropTable(
                 name: "WalletTransactions");
@@ -1695,16 +1949,19 @@ namespace EcoFashionBackEnd.Migrations
                 name: "MaterialTypes");
 
             migrationBuilder.DropTable(
-                name: "Supplier");
-
-            migrationBuilder.DropTable(
                 name: "Designs");
 
             migrationBuilder.DropTable(
                 name: "Sizes");
 
             migrationBuilder.DropTable(
+                name: "CheckoutSessions");
+
+            migrationBuilder.DropTable(
                 name: "OrderGroups");
+
+            migrationBuilder.DropTable(
+                name: "Supplier");
 
             migrationBuilder.DropTable(
                 name: "Designer");

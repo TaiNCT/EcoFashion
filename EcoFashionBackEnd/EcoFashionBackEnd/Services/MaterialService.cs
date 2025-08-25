@@ -53,13 +53,13 @@ namespace EcoFashionBackEnd.Services
             }
         }
 
-        // REMOVED: GetMaterialsByTypeAsync() - Replaced by GetAllMaterialsWithFiltersAsync(typeId: typeId)
-        // REMOVED: GetAllMaterialsAsync() - Replaced by GetAllMaterialsWithFiltersAsync(publicOnly: true)
+
         
         /// <summary>
         /// Get all materials with comprehensive filtering and sorting by sustainability score
         /// </summary>
         public async Task<ApiResult<List<MaterialDetailDto>>> GetAllMaterialsWithFiltersAsync(
+            
             int? typeId = null,
             Guid? supplierId = null,
             string? supplierName = null,
