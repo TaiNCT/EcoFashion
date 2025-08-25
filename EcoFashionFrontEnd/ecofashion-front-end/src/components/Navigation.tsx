@@ -10,6 +10,8 @@ import { HeartIcon as HeartOutlineIcon } from "@heroicons/react/24/outline";
 import Avatar from "./common/Avatar";
 
 // Icons
+import logo from "../assets/img/svg/logo-light.svg";
+import logoLight from "../assets/img/svg/logo-light.svg";
 const MenuIcon = () => (
   <svg
     className="h-6 w-6"
@@ -426,16 +428,24 @@ const Navigation: React.FC = () => {
           : "bg-white/5 text-white"
       }`}
     >
-      <div className="w-full px-4 sm:px-8 lg:px-16">
+      <div className="w-full px-2">
+        {/* bỏ padding ngang */}
         <div className="w-full flex justify-between items-center h-16 gap-2">
           {/* Logo */}
           <div className="flex items-center mr-2">
-            <Link to="/" className="flex items-center space-x-1">
-              <img
-                src="/src/assets/pictures/homepage/logo2.png"
-                alt="EcoFashion Logo"
-                className="h-16 w-auto transition-transform duration-300 hover:scale-105"
-              />
+            <Link
+              className="cursor-pointer block font-extrabold text-3xl sm:text-4xl"
+              to="/"
+              aria-label="EcoFashion"
+            >
+              <span className="dark:hidden">
+                <span className="text-black">Eco</span>
+                <span className="text-green-600">Fashion</span>
+              </span>
+              <span className="hidden dark:block">
+                <span className="text-white">Eco</span>
+                <span className="text-green-400">Fashion</span>
+              </span>
             </Link>
           </div>
 

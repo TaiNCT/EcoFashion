@@ -85,8 +85,8 @@ namespace EcoFashionBackEnd.Services
                     {
                         InventoryId = inventory.InventoryId,
                         QuantityChanged = change.quantity,
-                        BeforeQty = inventory.QuantityAvailable,
-                        AfterQty = inventory.QuantityAvailable+ change.quantity,
+                        BeforeQty = oldQuantity,
+                        AfterQty = inventory.QuantityAvailable,
                         TransactionType = "Restock", // Có thể là Restock, Return, etc.
                         Notes = $"Nhập kho sản phẩm. Số lượng cũ: {oldQuantity}",
                         PerformedByUserId = userId,

@@ -30,13 +30,14 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   Tabs,
   TextField,
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import LocalMallOutlinedIcon from "@mui/icons-material/LocalMallOutlined";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import StarIcon from "@mui/icons-material/Star";
@@ -223,6 +224,8 @@ export default function DesignerDashBoard() {
   const [designProduct, setDesignProduct] = useState<Design[]>([]);
   //Loading
   const [loading, setLoading] = useState(true);
+  //PageLoading
+  const [pageLoading, setPageLoading] = useState(true);
   //Error
   const [error, setError] = useState<string | null>(null);
   // Zustand stores
@@ -243,6 +246,7 @@ export default function DesignerDashBoard() {
   const loadDesigners = async () => {
     try {
       setLoading(true);
+      setPageLoading(true);
       setError(null);
       const designData = await DesignService.getAllDesignByDesigner(
         getDesignerId()
@@ -270,6 +274,7 @@ export default function DesignerDashBoard() {
       toast.error(errorMessage, { position: "bottom-center" });
     } finally {
       setLoading(false);
+      setPageLoading(false);
     }
   };
 
@@ -1441,7 +1446,38 @@ export default function DesignerDashBoard() {
     },
   ];
 
-  return (
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const tableRef = useRef(null);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+    // Giữ nguyên vị trí scroll (block: "nearest" không kéo về đầu)
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ block: "nearest" });
+    }
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Slice data for pagination
+  const paginatedRows = inventoryTransactions.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
+  const materialRows = paginatedRows.filter(
+    (tx) => tx.inventoryType === "Material"
+  );
+  const productRows = paginatedRows.filter(
+    (tx) => tx.inventoryType === "Product"
+  );
+
+  return !pageLoading ? (
     <Box sx={{ width: "95%", margin: "auto" }}>
       {/* Top Part */}
       <Box sx={{ width: "100%", display: "flex" }}>
@@ -3076,10 +3112,7 @@ export default function DesignerDashBoard() {
           </Box>
 
           {/* Table */}
-          <TableContainer
-            component={Paper}
-            sx={{ borderRadius: 2, boxShadow: 2 }}
-          >
+          <TableContainer ref={tableRef}>
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f9f9f9" }}>
@@ -3101,43 +3134,116 @@ export default function DesignerDashBoard() {
                       align="center"
                       sx={{ py: 3, color: "text.secondary" }}
                     >
-                      Không có giao dịch
+                      Chưa Có Thay Đổi
                     </TableCell>
                   </TableRow>
                 ) : (
-                  inventoryTransactions.map((tx) => (
-                    <TableRow key={tx.transactionId} hover>
-                      <TableCell>{tx.transactionId}</TableCell>
-                      <TableCell>{tx.name}</TableCell>
-                      <TableCell
-                        sx={{
-                          color: tx.quantityChanged < 0 ? "red" : "green",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {tx.quantityChanged}
-                      </TableCell>
-                      <TableCell>
-                        {tx.beforeQty} → {tx.afterQty}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(tx.transactionDate).toLocaleString("vi-VN")}
-                      </TableCell>
-                      <TableCell>
-                        {tx.inventoryType === "Material"
-                          ? "Nguyên Liệu"
-                          : tx.inventoryType === "Product"
-                          ? "Sản phẩm"
-                          : tx.inventoryType}
-                      </TableCell>
-                      <TableCell>{tx.transactionType}</TableCell>
-                      <TableCell>{tx.notes}</TableCell>
-                    </TableRow>
-                  ))
+                  // Lấy danh sách loại transactionType duy nhất trong paginatedRows
+                  [...new Set(paginatedRows.map((tx) => tx.inventoryType))].map(
+                    (type) => (
+                      <React.Fragment key={type}>
+                        {/* Sub-header để phân nhóm */}
+                        <TableRow>
+                          <TableCell
+                            colSpan={8}
+                            sx={{
+                              backgroundColor: "#f1f1f1",
+                              fontWeight: "bold",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            {type}
+                          </TableCell>
+                        </TableRow>
+
+                        {paginatedRows
+                          .filter((tx) => tx.inventoryType === type)
+                          .map((tx) => (
+                            <TableRow key={tx.transactionId} hover>
+                              <TableCell>{tx.transactionId}</TableCell>
+                              <TableCell>{tx.name}</TableCell>
+                              <TableCell
+                                sx={{
+                                  color:
+                                    tx.quantityChanged < 0 ? "red" : "green",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                {tx.quantityChanged}
+                              </TableCell>
+                              <TableCell>
+                                {tx.beforeQty} → {tx.afterQty}
+                              </TableCell>
+                              <TableCell>
+                                {(() => {
+                                  const txDate = new Date(tx.transactionDate);
+                                  const today = new Date();
+                                  const isToday =
+                                    txDate.getDate() === today.getDate() &&
+                                    txDate.getMonth() === today.getMonth() &&
+                                    txDate.getFullYear() ===
+                                      today.getFullYear();
+
+                                  return (
+                                    <>
+                                      {txDate.toLocaleString("vi-VN")}
+                                      {isToday && (
+                                        <Box
+                                          component="span"
+                                          sx={{
+                                            ml: 1,
+                                            px: 1,
+                                            py: 0.2,
+                                            borderRadius: "6px",
+                                            fontSize: "0.75rem",
+                                            fontWeight: "bold",
+                                            color: "white",
+                                            backgroundColor: "red",
+                                          }}
+                                        >
+                                          NEW
+                                        </Box>
+                                      )}
+                                    </>
+                                  );
+                                })()}
+                              </TableCell>
+                              <TableCell>
+                                {tx.inventoryType === "Material"
+                                  ? "Nguyên Liệu"
+                                  : tx.inventoryType === "Product"
+                                  ? "Sản phẩm"
+                                  : tx.inventoryType}
+                              </TableCell>
+                              <TableCell>
+                                {tx.transactionType === "Restock"
+                                  ? "Nhập Thêm"
+                                  : tx.transactionType === "Usage"
+                                  ? "Sử Dụng"
+                                  : tx.transactionType}
+                              </TableCell>
+                              <TableCell>{tx.notes}</TableCell>
+                            </TableRow>
+                          ))}
+                      </React.Fragment>
+                    )
+                  )
                 )}
               </TableBody>
             </Table>
           </TableContainer>
+
+          {/* Pagination */}
+          <TablePagination
+            component="div"
+            count={inventoryTransactions.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+            labelRowsPerPage="Số dòng mỗi trang:"
+          />
         </Box>
       )}
 
@@ -3242,6 +3348,17 @@ export default function DesignerDashBoard() {
           </Button>
         </Card>
       </Box>
+    </Box>
+  ) : (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: 200,
+      }}
+    >
+      <CircularProgress />
     </Box>
   );
 }
