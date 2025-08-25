@@ -1,6 +1,5 @@
 ﻿using EcoFashionBackEnd.Common;
 using EcoFashionBackEnd.Dtos;
-using EcoFashionBackEnd.Dtos.TransactionInventory;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -27,18 +26,16 @@ namespace EcoFashionBackEnd.Controllers
         public async Task<IActionResult> GetProductTransactions()
         {
             var result = await _inventoryTransactionService.GetAllProductTransactionsAsync();
-            return Ok(ApiResult<List<ProductInventoryTransactionDto>>.Succeed(result));
+            return Ok(ApiResult<List<ProductInventoryTransaction>>.Succeed(result));
         }
 
-
-        /// Lấy tất cả transaction của MaterialInventory(designer) 
+        /// Lấy tất cả transaction của Material
         [HttpGet("materials")]
         public async Task<IActionResult> GetMaterialTransactions()
         {
             var result = await _inventoryTransactionService.GetAllMaterialTransactionsAsync();
-            return Ok(ApiResult<List<MaterialInventoryTransactionDto>>.Succeed(result));
+            return Ok(ApiResult<List<MaterialInventoryTransaction>>.Succeed(result));
         }
-
 
         /// Lấy tất cả transaction (gom cả Product + Material)
         [HttpGet("all")]

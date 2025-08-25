@@ -13,6 +13,7 @@ namespace EcoFashionBackEnd.Entities
 
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<UserAddress> UserAddresses { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
 
@@ -41,6 +42,9 @@ namespace EcoFashionBackEnd.Entities
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<OrderGroup> OrderGroups { get; set; }
+        public DbSet<OrderSellerSettlement> OrderSellerSettlements { get; set; }
+        public DbSet<CheckoutSession> CheckoutSessions { get; set; }
+        public DbSet<CheckoutSessionItem> CheckoutSessionItems { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<Cart> Carts { get; set; }
@@ -124,6 +128,19 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<Application>()
                 .Property(a => a.Status)
                 .HasConversion<string>();
+
+            // UserAddress relationships
+            modelBuilder.Entity<UserAddress>()
+                .HasOne(ua => ua.User)
+                .WithMany()
+                .HasForeignKey(ua => ua.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Ensure only one default address per user
+            modelBuilder.Entity<UserAddress>()
+                .HasIndex(ua => new { ua.UserId, ua.IsDefault })
+                .HasFilter("[IsDefault] = 1")
+                .IsUnique();
             #endregion
             #region wallet
             modelBuilder.Entity<User>()
@@ -134,6 +151,9 @@ namespace EcoFashionBackEnd.Entities
                 .HasMany(w => w.WalletTransactions)
                 .WithOne(wt => wt.Wallet)
                 .HasForeignKey(wt => wt.WalletId);
+            // WalletTransaction optional references
+            modelBuilder.Entity<WalletTransaction>()
+                .HasIndex(wt => new { wt.OrderId, wt.SettlementId });
             #endregion
             #region DESIGN
             // ------------------ SIZE & VARIANT ------------------
@@ -397,45 +417,6 @@ namespace EcoFashionBackEnd.Entities
                     .HasMaxLength(500);
             });
             #endregion
-
-            #region MaterialInventoryTransaction
-            modelBuilder.Entity<MaterialInventoryTransaction>(entity =>
-            {
-                entity.HasKey(t => t.TransactionId);
-
-                // Transaction ↔ ProductInventory (N-1)
-                entity.HasOne(t => t.MaterialInventory)
-                      .WithMany(pi => pi.MaterialInventoryTransactions)
-                      .HasForeignKey(t => t.InventoryId)
-                      .OnDelete(DeleteBehavior.Cascade);
-
-
-                // ProductInventoryTransaction ↔ User: Nhiều giao dịch do 1 User thực hiện
-                // Transaction ↔ User (N-1)
-                entity.HasOne(t => t.User)
-                      .WithMany() // Nếu muốn tracking User → Transactions thì tạo ICollection<Transaction> bên User
-                      .HasForeignKey(t => t.PerformedByUserId)
-                      .OnDelete(DeleteBehavior.Restrict);
-                // Restrict: Giữ lịch sử, không cho xóa User nếu còn transaction
-
-                entity.Property(t => t.QuantityChanged)
-                    .IsRequired();
-
-                entity.Property(t => t.TransactionDate)
-                    .IsRequired();
-
-                entity.Property(t => t.TransactionType)
-                    .HasMaxLength(50);
-
-                entity.Property(t => t.Notes)
-                    .HasMaxLength(500);
-            });
-            #endregion
-
-
-
-
-
             #region Material 
             // -------- INVENTORY (MATERIAL) --------
             modelBuilder.Entity<Warehouse>(entity =>
@@ -625,6 +606,28 @@ namespace EcoFashionBackEnd.Entities
             modelBuilder.Entity<OrderDetail>()
                 .Property(od => od.Status)
                 .HasConversion<string>();
+
+            // OrderSellerSettlement
+            modelBuilder.Entity<OrderSellerSettlement>()
+                .HasOne(oss => oss.Order)
+                .WithMany()
+                .HasForeignKey(oss => oss.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<OrderSellerSettlement>()
+                .Property(oss => oss.GrossAmount)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<OrderSellerSettlement>()
+                .Property(oss => oss.CommissionRate)
+                .HasPrecision(5, 4);
+            modelBuilder.Entity<OrderSellerSettlement>()
+                .Property(oss => oss.CommissionAmount)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<OrderSellerSettlement>()
+                .Property(oss => oss.NetAmount)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<OrderSellerSettlement>()
+                .HasIndex(oss => new { oss.OrderId, oss.SellerUserId })
+                .IsUnique();
             #endregion Order
 
             // ------------------ CART ------------------
@@ -659,9 +662,6 @@ namespace EcoFashionBackEnd.Entities
 
             #region PaymentTransaction
             // Order ↔ User
-            modelBuilder.Entity<Order>()
-               .Property(o => o.IsPaidOut)
-               .HasDefaultValue(false);
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.User)
                 .WithMany(u => u.Orders)

@@ -1,9 +1,10 @@
-﻿using AutoMapper;
+using AutoMapper;
 using EcoFashionBackEnd.Common.Payloads.Requests;
 using EcoFashionBackEnd.Dtos;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -12,210 +13,146 @@ namespace EcoFashionBackEnd.Services
         private readonly IRepository<Order, int> _orderRepository;
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
-        public OrderService(IRepository<Order, int> repository, AppDbContext dbContext, IMapper mapper)
+        private readonly WalletService _walletService;
+        private readonly IConfiguration _configuration;
+
+        public OrderService(
+            IRepository<Order, int> repository, 
+            AppDbContext dbContext, 
+            IMapper mapper,
+            WalletService walletService,
+            IConfiguration configuration)
         {
             _orderRepository = repository;
             _dbContext = dbContext;
             _mapper = mapper;
+            _walletService = walletService;
+            _configuration = configuration;
         }
+
+        private OrderModel MapOrderToModel(Order order)
+        {
+            // Get seller info from OrderDetails since orders can have mixed items
+            var orderDetailsInfo = _dbContext.OrderDetails
+                .Where(od => od.OrderId == order.OrderId)
+                .Select(od => new { od.SupplierId, od.DesignerId })
+                .ToList();
+
+            // Determine primary seller - if mixed, show appropriate info
+            var suppliers = orderDetailsInfo.Where(od => od.SupplierId.HasValue).Select(od => od.SupplierId!.Value).Distinct().ToList();
+            var designers = orderDetailsInfo.Where(od => od.DesignerId.HasValue).Select(od => od.DesignerId!.Value).Distinct().ToList();
+
+            string sellerName = "Multiple Sellers";
+            string sellerType = "Mixed";
+            string? sellerAvatarUrl = null;
+
+            if (suppliers.Count == 1 && designers.Count == 0)
+            {
+                // Single supplier order
+                var supplier = _dbContext.Suppliers
+                    .Where(s => s.SupplierId == suppliers.First())
+                    .Select(s => new { s.SupplierName, s.AvatarUrl })
+                    .FirstOrDefault();
+                if (supplier != null)
+                {
+                    sellerName = supplier.SupplierName;
+                    sellerType = "Supplier";
+                    sellerAvatarUrl = supplier.AvatarUrl;
+                }
+            }
+            else if (designers.Count == 1 && suppliers.Count == 0)
+            {
+                // Single designer order
+                var designer = _dbContext.Designers
+                    .Where(d => d.DesignerId == designers.First())
+                    .Select(d => new { d.DesignerName, d.AvatarUrl })
+                    .FirstOrDefault();
+                if (designer != null)
+                {
+                    sellerName = designer.DesignerName;
+                    sellerType = "Designer";
+                    sellerAvatarUrl = designer.AvatarUrl;
+                }
+            }
+            else if (suppliers.Count > 0 && designers.Count > 0)
+            {
+                sellerName = "Mixed Sellers";
+                sellerType = "Mixed";
+            }
+            else if (suppliers.Count > 1)
+            {
+                sellerName = "Multiple Suppliers";
+                sellerType = "Supplier";
+            }
+            else if (designers.Count > 1)
+            {
+                sellerName = "Multiple Designers";
+                sellerType = "Designer";
+            }
+
+            // Lấy SĐT từ địa chỉ mặc định của user nếu có
+            string? personalPhone = null;
+            try
+            {
+                var defaultAddr = _dbContext.UserAddresses
+                    .AsNoTracking()
+                    .FirstOrDefault(ua => ua.UserId == order.UserId && ua.IsDefault);
+                if (defaultAddr != null)
+                {
+                    personalPhone = defaultAddr.PersonalPhoneNumber;
+                }
+            }
+            catch { }
+
+            return new OrderModel
+            {
+                OrderId = order.OrderId,
+                UserId = order.UserId,
+                UserName = order.User?.FullName ?? "Unknown User",
+                ShippingAddress = order.ShippingAddress,
+                PersonalPhoneNumber = personalPhone,
+                TotalPrice = order.TotalPrice,
+                OrderDate = order.OrderDate,
+                Status = order.Status.ToString(),
+                PaymentStatus = order.PaymentStatus.ToString(),
+                FulfillmentStatus = order.FulfillmentStatus.ToString(),
+                SellerType = sellerType,
+                SellerName = sellerName,
+                SellerAvatarUrl = sellerAvatarUrl,
+            };
+        }
+
         public async Task<IEnumerable<OrderModel>> GetAllOrdersAsync()
         {
             var orders = await _dbContext.Orders
                 .Include(o => o.User)
                 .ToListAsync();
-            return orders.Select(order =>
-            {
-                var supplier = order.SellerId.HasValue ? _dbContext.Suppliers
-                    .Where(s => s.SupplierId == order.SellerId)
-                    .Select(s => new { s.SupplierName, s.AvatarUrl })
-                    .FirstOrDefault() : null;
-                var designer = order.SellerId.HasValue ? _dbContext.Designers
-                    .Where(d => d.DesignerId == order.SellerId)
-                    .Select(d => new { d.DesignerName, d.AvatarUrl })
-                    .FirstOrDefault() : null;
-
-                if (supplier == null && designer == null)
-                {
-                    // Fallback: suy ra từ dòng hàng đầu tiên
-                    var od = _dbContext.OrderDetails
-                        .Where(od => od.OrderId == order.OrderId)
-                        .Select(od => new { od.SupplierId, od.DesignerId })
-                        .FirstOrDefault();
-                    if (od != null)
-                    {
-                        if (od.SupplierId.HasValue)
-                        {
-                            supplier = _dbContext.Suppliers
-                                .Where(s => s.SupplierId == od.SupplierId)
-                                .Select(s => new { s.SupplierName, s.AvatarUrl })
-                                .FirstOrDefault();
-                        }
-                        else if (od.DesignerId.HasValue)
-                        {
-                            designer = _dbContext.Designers
-                                .Where(d => d.DesignerId == od.DesignerId)
-                                .Select(d => new { d.DesignerName, d.AvatarUrl })
-                                .FirstOrDefault();
-                        }
-                    }
-                }
-
-                // Auto-fix legacy orders: nếu đã paid nhưng fulfillment = None, tự động set thành Delivered
-                var fulfillmentStatus = order.FulfillmentStatus;
-                if (order.PaymentStatus == PaymentStatus.Paid && order.FulfillmentStatus == FulfillmentStatus.None)
-                {
-                    fulfillmentStatus = FulfillmentStatus.Delivered;
-                    // Cập nhật luôn trong database
-                    order.FulfillmentStatus = FulfillmentStatus.Delivered;
-                    order.Status = OrderStatus.delivered;
-                    _dbContext.Orders.Update(order);
-                    _dbContext.SaveChanges();
-                }
-
-                return new OrderModel
-                {
-                    OrderId = order.OrderId,
-                    UserId = order.UserId,
-                    UserName = order.User.FullName,
-                    ShippingAddress = order.ShippingAddress,
-                    TotalPrice = order.TotalPrice,
-                    OrderDate = order.OrderDate,
-                    Status = order.Status.ToString(),
-                    PaymentStatus = order.PaymentStatus.ToString(),
-                    FulfillmentStatus = fulfillmentStatus.ToString(),
-                    SellerType = order.SellerType,
-                    SellerName = supplier?.SupplierName ?? designer?.DesignerName,
-                    SellerAvatarUrl = supplier?.AvatarUrl ?? designer?.AvatarUrl,
-                };
-            });
+            
+            return orders.Select(MapOrderToModel);
         }
+
         public async Task<IEnumerable<OrderModel>> GetOrdersByUserIdAsync(int userId)
         {
             var orders = await _dbContext.Orders
                 .Where(o => o.UserId == userId)
                 .Include(o => o.User)
                 .ToListAsync();
-            return orders.Select(order =>
-            {
-                var supplier = order.SellerId.HasValue ? _dbContext.Suppliers
-                    .Where(s => s.SupplierId == order.SellerId)
-                    .Select(s => new { s.SupplierName, s.AvatarUrl })
-                    .FirstOrDefault() : null;
-                var designer = order.SellerId.HasValue ? _dbContext.Designers
-                    .Where(d => d.DesignerId == order.SellerId)
-                    .Select(d => new { d.DesignerName, d.AvatarUrl })
-                    .FirstOrDefault() : null;
-
-                if (supplier == null && designer == null)
-                {
-                    // Fallback: suy ra từ dòng hàng đầu tiên
-                    var od = _dbContext.OrderDetails
-                        .Where(od => od.OrderId == order.OrderId)
-                        .Select(od => new { od.SupplierId, od.DesignerId })
-                        .FirstOrDefault();
-                    if (od != null)
-                    {
-                        if (od.SupplierId.HasValue)
-                        {
-                            supplier = _dbContext.Suppliers
-                                .Where(s => s.SupplierId == od.SupplierId)
-                                .Select(s => new { s.SupplierName, s.AvatarUrl })
-                                .FirstOrDefault();
-                        }
-                        else if (od.DesignerId.HasValue)
-                        {
-                            designer = _dbContext.Designers
-                                .Where(d => d.DesignerId == od.DesignerId)
-                                .Select(d => new { d.DesignerName, d.AvatarUrl })
-                                .FirstOrDefault();
-                        }
-                    }
-                }
-
-                // Auto-fix legacy orders: nếu đã paid nhưng fulfillment = None, tự động set thành Delivered
-                var fulfillmentStatus = order.FulfillmentStatus;
-                if (order.PaymentStatus == PaymentStatus.Paid && order.FulfillmentStatus == FulfillmentStatus.None)
-                {
-                    fulfillmentStatus = FulfillmentStatus.Delivered;
-                    // Cập nhật luôn trong database
-                    order.FulfillmentStatus = FulfillmentStatus.Delivered;
-                    order.Status = OrderStatus.delivered;
-                    _dbContext.Orders.Update(order);
-                    _dbContext.SaveChanges();
-                }
-
-                return new OrderModel
-                {
-                    OrderId = order.OrderId,
-                    UserId = order.UserId,
-                    UserName = order.User.FullName,
-                    ShippingAddress = order.ShippingAddress,
-                    TotalPrice = order.TotalPrice,
-                    OrderDate = order.OrderDate,
-                    Status = order.Status.ToString(),
-                    PaymentStatus = order.PaymentStatus.ToString(),
-                    FulfillmentStatus = fulfillmentStatus.ToString(),
-                    SellerType = order.SellerType,
-                    SellerName = supplier?.SupplierName ?? designer?.DesignerName,
-                    SellerAvatarUrl = supplier?.AvatarUrl ?? designer?.AvatarUrl,
-                };
-            });
+            
+            return orders.Select(MapOrderToModel);
         }
+
         public async Task<OrderModel?> GetOrderByIdAsync(int id)
         {
             var order = await _dbContext.Orders
                 .Include(o => o.User)
                 .FirstOrDefaultAsync(o => o.OrderId == id);
+                
             if (order == null) return null;
-            var supplier = order.SellerId.HasValue ? _dbContext.Suppliers
-                .Where(s => s.SupplierId == order.SellerId)
-                .Select(s => new { s.SupplierName, s.AvatarUrl })
-                .FirstOrDefault() : null;
-            var designer = order.SellerId.HasValue ? _dbContext.Designers
-                .Where(d => d.DesignerId == order.SellerId)
-                .Select(d => new { d.DesignerName, d.AvatarUrl })
-                .FirstOrDefault() : null;
-
-            if (supplier == null && designer == null)
-            {
-                var od = _dbContext.OrderDetails
-                    .Where(od => od.OrderId == order.OrderId)
-                    .Select(od => new { od.SupplierId, od.DesignerId })
-                    .FirstOrDefault();
-                if (od != null)
-                {
-                    if (od.SupplierId.HasValue)
-                    {
-                        supplier = _dbContext.Suppliers
-                            .Where(s => s.SupplierId == od.SupplierId)
-                            .Select(s => new { s.SupplierName, s.AvatarUrl })
-                            .FirstOrDefault();
-                    }
-                    else if (od.DesignerId.HasValue)
-                    {
-                        designer = _dbContext.Designers
-                            .Where(d => d.DesignerId == od.DesignerId)
-                            .Select(d => new { d.DesignerName, d.AvatarUrl })
-                            .FirstOrDefault();
-                    }
-                }
-            }
-
-            return new OrderModel
-            {
-                OrderId = order.OrderId,
-                UserId = order.UserId,
-                UserName = order.User.FullName,
-                ShippingAddress = order.ShippingAddress,
-                TotalPrice = order.TotalPrice,
-                OrderDate = order.OrderDate,
-                Status = order.Status.ToString(),
-                PaymentStatus = order.PaymentStatus.ToString(),
-                SellerType = order.SellerType,
-                SellerName = supplier?.SupplierName ?? designer?.DesignerName,
-                SellerAvatarUrl = supplier?.AvatarUrl ?? designer?.AvatarUrl,
-            };
+            
+            return MapOrderToModel(order);
         }
+
+        // Copy all other methods from original OrderService with minimal changes
         public async Task<int> CreateOrderAsync(int userId, CreateOrderRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.ShippingAddress))
@@ -230,6 +167,7 @@ namespace EcoFashionBackEnd.Services
             await _dbContext.SaveChangesAsync();
             return order.OrderId;
         }
+
         public async Task<bool> UpdateOrderAsync(int orderId, UpdateOrderRequest request)
         {
             var order = await _dbContext.Orders.FindAsync(orderId);
@@ -247,96 +185,291 @@ namespace EcoFashionBackEnd.Services
             await _dbContext.SaveChangesAsync();
             return true;
         }
+
         public async Task<bool> DeleteOrderAsync(int id)
         {
             var result = _orderRepository.Remove(id);
             await _dbContext.SaveChangesAsync();
             return result != null;
         }
-        #region test 
-        public async Task<OrderGroup> CreateSampleOrderGroupAsync()
+
+        public async Task<bool> UpdateFulfillmentStatusAsync(int orderId, FulfillmentStatus fulfillmentStatus)
         {
-            var customer = await _dbContext.Users.FirstAsync(u => u.UserId == 4);
-            var designer = await _dbContext.Designers.FirstAsync();
-            var supplier = await _dbContext.Suppliers.FirstAsync();
+            var order = await _dbContext.Orders.FindAsync(orderId);
+            if (order == null) return false;
 
-            var designs = await _dbContext.Designs.Take(3).ToListAsync();
-            var materials = await _dbContext.Materials.Take(3).ToListAsync();
-
+            order.FulfillmentStatus = fulfillmentStatus;
             
-            var orderGroup = new OrderGroup
+            // Update main status based on fulfillment status
+            switch (fulfillmentStatus)
             {
-                UserId = customer.UserId,
-                CreatedAt = DateTime.UtcNow,
-            };
-            await _dbContext.OrderGroups.AddAsync(orderGroup);
-            await _dbContext.SaveChangesAsync(); 
-
-            // --- Designer Order ---
-            var designerOrder = new Order
-            {
-                OrderGroupId = orderGroup.OrderGroupId,
-                UserId = customer.UserId,
-                ShippingAddress = "Demo Address",
-                SellerId = designer.DesignerId,
-                SellerType = "Designer",
-                FulfillmentStatus = FulfillmentStatus.Delivered,
-                PaymentStatus = PaymentStatus.Paid,
-                OrderDate = DateTime.UtcNow,
-                TotalPrice = designs.Sum(d => (decimal)d.SalePrice)
-            };
-            await _dbContext.Orders.AddAsync(designerOrder);
-            await _dbContext.SaveChangesAsync(); 
-
-            foreach (var d in designs)
-            {
-                var detail = new OrderDetail
-                {
-                    OrderId = designerOrder.OrderId,
-                    DesignId = d.DesignId,
-                    Type = OrderDetailType.design,
-                    Quantity = 5,
-                    UnitPrice = (decimal)d.SalePrice
-                };
-                await _dbContext.OrderDetails.AddAsync(detail);
+                case FulfillmentStatus.PartiallyConfirmed:
+                    order.Status = OrderStatus.processing;
+                    break;
+                case FulfillmentStatus.Processing:
+                    order.Status = OrderStatus.processing;
+                    break;
+                case FulfillmentStatus.PartiallyShipped:
+                    order.Status = OrderStatus.processing; // Still processing until all shipped
+                    break;
+                case FulfillmentStatus.Shipped:
+                    order.Status = OrderStatus.shipped;
+                    break;
+                case FulfillmentStatus.Delivered:
+                    order.Status = OrderStatus.delivered;
+                    // Trigger settlement when delivered
+                    await ProcessSettlementAsync(order);
+                    break;
+                case FulfillmentStatus.Canceled:
+                    order.Status = OrderStatus.returned;
+                    break;
             }
+
             await _dbContext.SaveChangesAsync();
-
-            
-            var supplierOrder = new Order
-            {
-                OrderGroupId = orderGroup.OrderGroupId,
-                UserId = customer.UserId,
-                ShippingAddress = "Demo Address",
-                SellerId = supplier.SupplierId,
-                SellerType = "Supplier",
-                FulfillmentStatus = FulfillmentStatus.Delivered,
-                PaymentStatus = PaymentStatus.Paid,
-                OrderDate = DateTime.UtcNow,
-                TotalPrice = materials.Sum(m => m.PricePerUnit)
-            };
-            await _dbContext.Orders.AddAsync(supplierOrder);
-            await _dbContext.SaveChangesAsync(); 
-
-            foreach (var m in materials)
-            {
-                var detail = new OrderDetail
-                {
-                    OrderId = supplierOrder.OrderId,
-                    MaterialId = m.MaterialId,
-                    Type = OrderDetailType.material,
-                    Quantity = 2,
-                    UnitPrice = m.PricePerUnit
-                };
-                await _dbContext.OrderDetails.AddAsync(detail);
-            }
-            await _dbContext.SaveChangesAsync();
-
-            return orderGroup;
+            return true;
         }
 
-        #endregion
+        // Auto-calculate and update order fulfillment status based on OrderDetails
+        public async Task RecalculateOrderFulfillmentStatusAsync(int orderId)
+        {
+            var order = await _dbContext.Orders.FindAsync(orderId);
+            if (order == null) return;
 
+            var orderDetails = await _dbContext.OrderDetails
+                .Where(od => od.OrderId == orderId)
+                .ToListAsync();
 
+            if (orderDetails.Count == 0) return;
+
+            var confirmedCount = orderDetails.Count(od => od.Status == OrderDetailStatus.confirmed || od.Status == OrderDetailStatus.shipping);
+            var shippingCount = orderDetails.Count(od => od.Status == OrderDetailStatus.shipping);
+            var totalCount = orderDetails.Count;
+
+            FulfillmentStatus newStatus;
+
+            if (confirmedCount == 0)
+            {
+                newStatus = FulfillmentStatus.None;
+            }
+            else if (confirmedCount == totalCount)
+            {
+                if (shippingCount == totalCount)
+                {
+                    newStatus = FulfillmentStatus.Shipped;
+                }
+                else if (shippingCount > 0)
+                {
+                    newStatus = FulfillmentStatus.PartiallyShipped;
+                }
+                else
+                {
+                    newStatus = FulfillmentStatus.Processing;
+                }
+            }
+            else
+            {
+                newStatus = FulfillmentStatus.PartiallyConfirmed;
+            }
+
+            if (order.FulfillmentStatus != newStatus)
+            {
+                await UpdateFulfillmentStatusAsync(orderId, newStatus);
+            }
+        }
+
+        // Get orders by seller ID for shipment management
+        public async Task<IEnumerable<OrderModel>> GetOrdersBySellerIdAsync(Guid sellerId)
+        {
+            // Since we removed sellerId, we need to find orders through OrderDetails
+            var orderIds = await _dbContext.OrderDetails
+                .Where(od => od.SupplierId == sellerId || od.DesignerId == sellerId)
+                .Select(od => od.OrderId)
+                .Distinct()
+                .ToListAsync();
+
+            var orders = await _dbContext.Orders
+                .Where(o => orderIds.Contains(o.OrderId) && o.PaymentStatus == PaymentStatus.Paid)
+                .Include(o => o.User)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            return orders.Select(MapOrderToModel);
+        }
+
+        // Mark order as shipped
+        public async Task<bool> MarkOrderShippedAsync(int orderId, ShipOrderRequest request)
+        {
+            var order = await _dbContext.Orders.FindAsync(orderId);
+            if (order == null || order.PaymentStatus != PaymentStatus.Paid) return false;
+
+            order.FulfillmentStatus = FulfillmentStatus.Shipped;
+            order.Status = OrderStatus.shipped;
+            
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+        // Mark order as delivered and trigger settlement
+        public async Task<bool> MarkOrderDeliveredAsync(int orderId)
+        {
+            var order = await _dbContext.Orders.FindAsync(orderId);
+            if (order == null || order.PaymentStatus != PaymentStatus.Paid) return false;
+
+            order.FulfillmentStatus = FulfillmentStatus.Delivered;
+            order.Status = OrderStatus.delivered;
+            
+            // Process settlement (90% to seller, 10% platform commission)
+            await ProcessSettlementAsync(order);
+            
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+        // Process settlement when order is delivered
+        private async Task ProcessSettlementAsync(Order order)
+        {
+            try
+            {
+                // Calculate commission (10%) and net amount (90%)
+                var commissionRate = 0.10m;
+                var commissionAmount = order.TotalPrice * commissionRate;
+                var netAmount = order.TotalPrice - commissionAmount;
+
+                // Update order with settlement info
+                order.CommissionRate = commissionRate;
+                order.CommissionAmount = commissionAmount;
+                order.NetAmount = netAmount;
+
+                // Get admin wallet using configuration
+                var adminUserId = _configuration.GetValue<int>("AdminUserId", 1);
+                var adminWallet = await _walletService.GetWalletByUserIdAsync(adminUserId);
+
+                if (adminWallet == null)
+                {
+                    // Create admin wallet if it doesn't exist
+                    adminWallet = new Wallet
+                    {
+                        UserId = adminUserId,
+                        Balance = 0,
+                        CreatedAt = DateTime.UtcNow,
+                        LastUpdatedAt = DateTime.UtcNow,
+                        Status = WalletStatus.Active
+                    };
+                    _dbContext.Wallets.Add(adminWallet);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                // Process settlements for each seller in the order
+                var orderDetails = await _dbContext.OrderDetails
+                    .Where(od => od.OrderId == order.OrderId)
+                    .ToListAsync();
+
+                var sellerSettlements = new Dictionary<int, decimal>();
+
+                foreach (var detail in orderDetails)
+                {
+                    var itemTotal = detail.Quantity * detail.UnitPrice;
+                    var itemNetAmount = itemTotal * 0.9m; // 90% to seller
+
+                    int? sellerUserId = null;
+                    if (detail.SupplierId.HasValue)
+                    {
+                        var supplier = await _dbContext.Suppliers
+                            .FirstOrDefaultAsync(s => s.SupplierId == detail.SupplierId);
+                        sellerUserId = supplier?.UserId;
+                    }
+                    else if (detail.DesignerId.HasValue)
+                    {
+                        var designer = await _dbContext.Designers
+                            .FirstOrDefaultAsync(d => d.DesignerId == detail.DesignerId);
+                        sellerUserId = designer?.UserId;
+                    }
+
+                    if (sellerUserId.HasValue)
+                    {
+                        if (sellerSettlements.ContainsKey(sellerUserId.Value))
+                            sellerSettlements[sellerUserId.Value] += itemNetAmount;
+                        else
+                            sellerSettlements[sellerUserId.Value] = itemNetAmount;
+                    }
+                }
+
+                // Transfer money to each seller
+                foreach (var settlement in sellerSettlements)
+                {
+                    var sellerUserId = settlement.Key;
+                    var amount = settlement.Value;
+
+                    var sellerWallet = await _walletService.GetWalletByUserIdAsync(sellerUserId);
+
+                    // Create seller wallet if it doesn't exist
+                    if (sellerWallet == null)
+                    {
+                        sellerWallet = new Wallet
+                        {
+                            UserId = sellerUserId,
+                            Balance = 0,
+                            CreatedAt = DateTime.UtcNow,
+                            LastUpdatedAt = DateTime.UtcNow,
+                            Status = WalletStatus.Active
+                        };
+                        _dbContext.Wallets.Add(sellerWallet);
+                        await _dbContext.SaveChangesAsync();
+                    }
+
+                    var amountDouble = (double)amount;
+
+                    // Check if admin wallet has sufficient balance
+                    if (adminWallet.Balance >= amountDouble)
+                    {
+                        var adminBalanceBefore = adminWallet.Balance;
+                        var sellerBalanceBefore = sellerWallet.Balance;
+
+                        // Deduct from admin wallet
+                        adminWallet.Balance -= amountDouble;
+                        adminWallet.LastUpdatedAt = DateTime.UtcNow;
+                        
+                        // Add to seller wallet
+                        sellerWallet.Balance += amountDouble;
+                        sellerWallet.LastUpdatedAt = DateTime.UtcNow;
+
+                        // Create wallet transactions
+                        var adminTransaction = new WalletTransaction
+                        {
+                            WalletId = adminWallet.WalletId,
+                            Amount = -amountDouble,
+                            BalanceBefore = adminBalanceBefore,
+                            BalanceAfter = adminWallet.Balance,
+                            Type = TransactionType.Transfer,
+                            Description = $"Settlement for order #{order.OrderId}",
+                            Status = TransactionStatus.Success,
+                            OrderId = order.OrderId,
+                            CreatedAt = DateTime.UtcNow
+                        };
+
+                        var sellerTransaction = new WalletTransaction
+                        {
+                            WalletId = sellerWallet.WalletId,
+                            Amount = amountDouble,
+                            BalanceBefore = sellerBalanceBefore,
+                            BalanceAfter = sellerWallet.Balance,
+                            Type = TransactionType.Transfer,
+                            Description = $"Payment received for order #{order.OrderId}",
+                            Status = TransactionStatus.Success,
+                            OrderId = order.OrderId,
+                            CreatedAt = DateTime.UtcNow
+                        };
+
+                        _dbContext.WalletTransactions.Add(adminTransaction);
+                        _dbContext.WalletTransactions.Add(sellerTransaction);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't throw to avoid breaking the order completion
+                Console.WriteLine($"Settlement error for order {order.OrderId}: {ex.Message}");
+            }
+        }
     }
 }

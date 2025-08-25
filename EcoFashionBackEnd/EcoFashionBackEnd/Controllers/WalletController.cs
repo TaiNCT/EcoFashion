@@ -1,21 +1,43 @@
 ﻿namespace EcoFashionBackEnd.Controllers
 {
+    using EcoFashionBackEnd.Common;
     using EcoFashionBackEnd.Common.Payloads.Requests.Wallet;
     using EcoFashionBackEnd.Dtos.Wallet;
+    using EcoFashionBackEnd.Entities;
+    using EcoFashionBackEnd.Extensions.NewFolder;
     using EcoFashionBackEnd.Services;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System.Security.Claims;
     using System.Threading.Tasks;
+    using System.Transactions;
 
     [ApiController]
     [Route("api/[controller]")]
     public class WalletController : ControllerBase
     {
         private readonly WalletService _walletService;
+        private readonly IConfiguration _configuration;
 
-        public WalletController(WalletService walletService)
+        public WalletController(WalletService walletService, IConfiguration configuration)
         {
             _walletService = walletService;
+            _configuration = configuration;
+        }
+
+        // Get user's wallet information
+        [HttpGet]
+        public async Task<IActionResult> GetWallet()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                return Unauthorized("Không thể xác định người dùng.");
+
+            var wallet = await _walletService.GetWalletByUserIdAsync(userId);
+            if (wallet == null)
+                return NotFound("Không tìm thấy ví của người dùng.");
+
+            return Ok(wallet);
         }
 
         //  Lấy số dư ví
@@ -27,21 +49,48 @@
                 return Unauthorized("Không thể xác định người dùng.");
 
             var balance = await _walletService.GetBalanceAsync(userId);
-            return Ok(new { UserId = userId, Balance = balance });
+            return Ok(new { balance = balance });
+        }
+
+        // Get wallet summary with recent transactions and stats
+        [HttpGet("summary")]
+        public async Task<IActionResult> GetWalletSummary()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                return Unauthorized("Không thể xác định người dùng.");
+
+            var summary = await _walletService.GetWalletSummaryAsync(userId);
+            return Ok(summary);
         }
 
         
         //  Lấy lịch sử giao dịch ví
        
         [HttpGet("transactions")]
-        public async Task<IActionResult> GetTransactions()
+        public async Task<IActionResult> GetTransactions([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
                 return Unauthorized("Không thể xác định người dùng.");
 
-            var transactions = await _walletService.GetTransactionsAsync(userId);
+            var transactions = await _walletService.GetTransactionsPaginatedAsync(userId, page, pageSize);
             return Ok(transactions);
+        }
+
+        // Get specific transaction by ID
+        [HttpGet("transaction/{transactionId}")]
+        public async Task<IActionResult> GetTransaction(int transactionId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                return Unauthorized("Không thể xác định người dùng.");
+
+            var transaction = await _walletService.GetTransactionByIdAsync(transactionId, userId);
+            if (transaction == null)
+                return NotFound("Không tìm thấy giao dịch.");
+
+            return Ok(transaction);
         }
 
 
@@ -62,6 +111,7 @@
             return Ok(result);
         }
 
+        // Callback từ VNPay sau khi nạp tiền - redirect về frontend thay vì trả JSON
         [HttpGet("deposit/callback")]
         public async Task<IActionResult> DepositCallback()
         {
@@ -69,15 +119,32 @@
 
             var result = await _walletService.HandleVNPayDepositReturnAsync(query);
 
-            if (result == null)
-                return BadRequest("Xử lý nạp tiền thất bại.");
+            // Tạo URL redirect về frontend với thông tin kết quả
+            string frontendUrl = _configuration["Frontend:WalletUrl"] ?? "http://localhost:5173";
+            string redirectUrl;
 
-            return Ok(new
+            if (result == null)
             {
-                Status = result.VnPayResponseCode == "00" ? "Success" : "Fail",
-                TransactionId = result.TransactionId,
-                WalletTransaction = result.OrderId
-            });
+                // Nạp tiền thất bại - redirect về error page
+                redirectUrl = $"{frontendUrl}/wallet?error=deposit_failed";
+            }
+            else if (result.VnPayResponseCode == "00")
+            {
+                // Lấy orderId để xác định giao dịch, nhưng sử dụng amount từ VNPay response
+                var orderId = int.Parse(result.OrderId);
+                var amount = result.Amount;
+                
+                // Nạp tiền thành công - redirect về success page với thông tin
+                redirectUrl = $"{frontendUrl}/wallet?success=deposit&transactionId={result.TransactionId}&amount={amount}";
+            }
+            else
+            {
+                // Nạp tiền thất bại với mã lỗi VNPay - redirect về error page  
+                redirectUrl = $"{frontendUrl}/wallet?error=deposit_failed&code={result.VnPayResponseCode}";
+            }
+
+            // Redirect về frontend thay vì trả JSON
+            return Redirect(redirectUrl);
         }
         // taọ RequestWithdrawal
         [HttpPost("withdrawal/request")]
@@ -122,6 +189,7 @@
             return Ok(result);
         }
 
+        // Callback từ VNPay sau khi rút tiền - redirect về frontend thay vì trả JSON  
         [HttpGet("withdrawal/callback")]
         public async Task<IActionResult> WithdrawalCallback()
         {
@@ -131,16 +199,38 @@
             // 2️⃣ Gọi service để handle transaction
             var result = await _walletService.HandleVNPayWithdrawalReturnAsync(query);
 
-            // 3️⃣ FE có thể đọc DB hoặc redirect
-            if (result == null)
-                return BadRequest("Xử lý rút tiền thất bại.");
+            // 3️⃣ Tạo URL redirect về frontend với thông tin kết quả
+            string frontendUrl = _configuration["Frontend:WalletUrl"] ?? "http://localhost:5173";
+            string redirectUrl;
 
-            return Ok(new
+            if (result == null)
             {
-                Status = result.VnPayResponseCode == "00" ? "Success" : "Fail",
-                TransactionId = result.TransactionId,
-                WalletTransaction = result.OrderId
-            });
+                // Rút tiền thất bại - redirect về error page
+                redirectUrl = $"{frontendUrl}/wallet?error=withdrawal_failed";
+            }
+            else if (result.VnPayResponseCode == "00")
+            {
+                // Lấy orderId để xác định giao dịch, nhưng sử dụng amount từ VNPay response
+                var orderId = int.Parse(result.OrderId);
+                var amount = result.Amount;
+                
+                // Rút tiền thành công - redirect về success page với thông tin
+                redirectUrl = $"{frontendUrl}/wallet?success=withdrawal&transactionId={result.TransactionId}&amount={amount}";
+            }
+            else
+            {
+                // Rút tiền thất bại với mã lỗi VNPay - redirect về error page
+                redirectUrl = $"{frontendUrl}/wallet?error=withdrawal_failed&code={result.VnPayResponseCode}";
+            }
+
+            // Redirect về frontend thay vì trả JSON
+            return Redirect(redirectUrl);
         }
+
+
     }
+
+
+
+
 }

@@ -5,15 +5,16 @@ namespace EcoFashionBackEnd.Dtos
         public List<CartItemDto> Items { get; set; } = new();
         public string ShippingAddress { get; set; } = string.Empty;
         public int HoldMinutes { get; set; } = 30; // thời gian giữ hàng
+        // Idempotency key để reuse order khi người dùng bấm thanh toán nhiều lần
+        public string? IdempotencyKey { get; set; }
     }
 
     public class CartItemDto
     {
-        public string ItemType { get; set; } = string.Empty; // material/design
+        public string ItemType { get; set; } = string.Empty; // material/design/product
         public int? MaterialId { get; set; }
         public int? DesignId { get; set; }
-        public Guid? SellerId { get; set; }
-        public string SellerType { get; set; } = string.Empty; // Supplier/Designer
+        public int? ProductId { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
     }
@@ -28,8 +29,6 @@ namespace EcoFashionBackEnd.Dtos
     public class CheckoutOrderDto
     {
         public int OrderId { get; set; }
-        public string SellerType { get; set; } = string.Empty;
-        public Guid? SellerId { get; set; }
         public decimal Subtotal { get; set; }
         public decimal ShippingFee { get; set; }
         public decimal Discount { get; set; }
