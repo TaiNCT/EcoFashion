@@ -383,28 +383,25 @@ export default function AddDesignDraft() {
     const area = item.width * item.height * item.draftQuantity;
 
     const calcNeedMaterial = (totalArea: number) =>
-      Math.ceil(((totalArea * 1.2) / 150 / 100) * 10) / 10; //(totalArea * (1 + 20 / 100)) là tính diện tích + phế liệu, /150 là 1 khổ vải là 150 cm, /100 đổi thành mét
+      Math.ceil(((totalArea * 1.2) / 150 / 100) * 10) / 10;
+    // (area * 1.2) thêm 20% hao phí
+    // /150: khổ vải 150 cm
+    // /100: đổi sang mét
+
     const needMaterialForThis = calcNeedMaterial(area);
 
     if (!acc[key]) {
-      const percentMaterialUsed = 1 / uniqueMaterialCount; // Ví dụ: 2 nguyên liệu => 0.5
-
-      // footprint của nguyên liệu này = footprint gốc * phần trăm chia đều
-      const carbonForThis = item.material.carbonFootprint * percentMaterialUsed;
-      const waterForThis = item.material.waterUsage * percentMaterialUsed;
-      const wasteForThis = item.material.wasteDiverted * percentMaterialUsed;
-      const sustainabilityScoreForThis =
-        item.material.sustainabilityScore * percentMaterialUsed;
       acc[key] = {
         ...item,
         totalArea: area,
         needMaterial: needMaterialForThis,
         price: needMaterialForThis * item.material.pricePerUnit,
 
-        totalCarbon: carbonForThis,
-        totalWater: waterForThis,
-        totalWaste: wasteForThis,
-        sustainabilityScore: sustainabilityScoreForThis,
+        // tạm thời gán, sẽ update sau khi tính tổng
+        totalCarbon: 0,
+        totalWater: 0,
+        totalWaste: 0,
+        sustainabilityScore: 0,
         allDraftNames: [item.draftName],
       };
     } else {
@@ -412,20 +409,27 @@ export default function AddDesignDraft() {
       acc[key].needMaterial = calcNeedMaterial(acc[key].totalArea);
       acc[key].price = acc[key].needMaterial * acc[key].material.pricePerUnit;
       acc[key].allDraftNames.push(item.draftName);
-
-      const percentMaterialUsed = 1 / uniqueMaterialCount;
-      acc[key].totalCarbon +=
-        item.material.carbonFootprint * percentMaterialUsed;
-      acc[key].totalWater += item.material.waterUsage * percentMaterialUsed;
-      acc[key].totalWaste += item.material.wasteDiverted * percentMaterialUsed;
-      acc[key].sustainabilityScore +=
-        item.material.sustainabilityScore * percentMaterialUsed;
-
-      acc[key].allDraftNames.push(item.draftName);
     }
 
     return acc;
   }, {} as Record<number, any>);
+
+  // 🔑 Sau khi reduce xong, ta tính tổng tất cả needMaterial
+  const totalNeedMaterial = Object.values(groupedByMaterial).reduce(
+    (sum, mat: any) => sum + mat.needMaterial,
+    0
+  );
+
+  // 🔑 Rồi gán lại footprint dựa trên tỉ lệ thực tế
+  Object.values(groupedByMaterial).forEach((mat: any) => {
+    const percentMaterialUsed = mat.needMaterial / totalNeedMaterial;
+
+    mat.totalCarbon = mat.material.carbonFootprint * percentMaterialUsed;
+    mat.totalWater = mat.material.waterUsage * percentMaterialUsed;
+    mat.totalWaste = mat.material.wasteDiverted * percentMaterialUsed;
+    mat.sustainabilityScore =
+      mat.material.sustainabilityScore * percentMaterialUsed;
+  });
 
   // Step 2: Convert to array
   const groupedMaterial = Object.values(groupedByMaterial);

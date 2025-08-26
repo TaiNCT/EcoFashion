@@ -1002,7 +1002,7 @@ export default function DesignDetail() {
                             designDetail.designer.createAt
                           ).getFullYear();
                         return yearsAgo === 0
-                          ? "Mới năm nay"
+                          ? "Năm nay"
                           : `${yearsAgo} năm trước`;
                       })()}
                     </Typography>
