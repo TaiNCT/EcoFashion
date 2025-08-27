@@ -269,7 +269,8 @@ namespace EcoFashionBackEnd.Services
                     RecycledPercentage = d.RecycledPercentage,
                     ItemTypeName = d.ItemTypes.TypeName,
                     SalePrice = d.SalePrice,
-
+                    Description = d.Description,
+                    CareInstruction = d.CareInstruction,
                     // Only select URLs, not entire image entity
                     DesignImageUrls = d.DesignImages
                         .Select(di => di.Image.ImageUrl)
@@ -302,6 +303,13 @@ namespace EcoFashionBackEnd.Services
                     DrafSketches = d.DraftSketches
                         .Select(di => di.Image.ImageUrl)
                         .ToList(),
+                    DesignFeatures = d.DesignFeatures == null ? null : new DesignFeatureDto
+                    {
+                         Durable = d.DesignFeatures.Durable,
+                         EthicallyManufactured = d.DesignFeatures.EthicallyManufactured,
+                         LowImpactDyes = d.DesignFeatures.LowImpactDyes,
+                         ReduceWaste = d.DesignFeatures.ReduceWaste,
+                    }
                 })
                 .ToListAsync();
         }
@@ -332,6 +340,15 @@ namespace EcoFashionBackEnd.Services
                         })
                         .ToList(),
                     ProductCount = d.Products.Count,
+                    Description = d.Description,
+                    CareInstruction = d.CareInstruction,
+                    DesignFeatures = d.DesignFeatures == null ? null : new DesignFeatureDto
+                    {
+                        Durable = d.DesignFeatures.Durable,
+                        EthicallyManufactured = d.DesignFeatures.EthicallyManufactured,
+                        LowImpactDyes = d.DesignFeatures.LowImpactDyes,
+                        ReduceWaste = d.DesignFeatures.ReduceWaste,
+                    }
                 })
                 .ToListAsync();
         }

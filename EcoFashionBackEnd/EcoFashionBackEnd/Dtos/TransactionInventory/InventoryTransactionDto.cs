@@ -10,6 +10,7 @@
         public int InventoryId { get; set; }
 
         // Chỉ cần 1 trường tên, map dựa vào InventoryType
+        public string? DesignName { get; set; } = string.Empty;
         public string? ItemName { get; set; } = string.Empty;
 
         public int? PerformedByUserId { get; set; }

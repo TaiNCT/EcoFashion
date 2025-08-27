@@ -58,16 +58,12 @@ import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import { v4 as uuidv4 } from "uuid";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  CardsFormSchema,
-  CardsFormType,
-} from "../../schemas/createDesignDraftSchema";
-import { CreateDesignFormValues } from "../../schemas";
-import { createDesignSchema } from "../../schemas/createDesignSchema";
+
 import {
   CreateDesignDraftFormValues,
   createDesignDraftSchema,
-} from "../../schemas/createDesignDraftTesting";
+  CardsFormType,
+} from "../../schemas/createDesignDraftSchema";
 import FileUpload from "../../components/FileUpload";
 import { useNavigate } from "react-router-dom";
 
@@ -568,6 +564,14 @@ export default function AddDesignDraft() {
   };
 
   const onSubmit = async (formData: any) => {
+    const files: File[] = formData.sketchImages || [];
+    for (const file of files) {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (ext !== "jpg" && ext !== "jpeg") {
+        toast.error("Chỉ chấp nhận file JPG/JPEG");
+        return;
+      }
+    }
     if (!designTypeData) {
       toast.error("Chọn loại thời trang");
       return;
@@ -861,22 +865,35 @@ export default function AddDesignDraft() {
                   <Controller
                     name="sketchImages"
                     control={control}
-                    rules={{ required: "Cần thêm hình ảnh" }}
+                    rules={{
+                      required: "Cần thêm hình ảnh",
+                      validate: (files: File[]) => {
+                        if (!files || files.length === 0)
+                          return "Cần thêm hình ảnh";
+                        for (const file of files) {
+                          const ext = file.name.split(".").pop()?.toLowerCase();
+                          if (ext !== "jpg" && ext !== "jpeg") {
+                            return "Chỉ chấp nhận file JPG/JPEG";
+                          }
+                        }
+                        return true;
+                      },
+                    }}
                     render={({ field, fieldState }) => (
                       <FileUpload
                         label=""
                         files={
-                          field.value
-                            ? Array.isArray(field.value)
-                              ? field.value
-                              : [field.value]
+                          Array.isArray(field.value)
+                            ? field.value
+                            : field.value
+                            ? [field.value]
                             : []
                         }
                         onFilesChange={(files) => field.onChange(files)}
                         accept="image/*"
                         maxSize={5}
-                        required={!!fieldState.error} // shows red border or error state
-                        helperText={fieldState.error?.message} // show the message
+                        required={!!fieldState.error}
+                        helperText={fieldState.error?.message}
                       />
                     )}
                   />

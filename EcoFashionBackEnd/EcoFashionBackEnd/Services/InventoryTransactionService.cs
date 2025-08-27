@@ -141,13 +141,16 @@ namespace EcoFashionBackEnd.Services
             var productTx = await _productTransactionRepository.GetAll().AsNoTracking()
                 .Where(t => t.ProductInventory.Warehouse.DesignerId == designerId)
                 .Include(t => t.ProductInventory)
-                    .ThenInclude(p => p.Product)
+                    .ThenInclude(p => p.Product).ThenInclude(p => p.Design)
                 .Include(t => t.User)
                 .Select(t => new InventoryTransactionDto
                 {
                     TransactionId = t.TransactionId,
                     InventoryType = "Product",
                     InventoryId = t.InventoryId,
+                    DesignName = t.ProductInventory.Product.Design != null
+                        ? t.ProductInventory.Product.Design.Name
+                        : string.Empty,
                     ItemName = t.ProductInventory.Product.SKU ?? string.Empty,
                     PerformedByUserId = t.PerformedByUserId,
                     PerformedByUserName = t.User.FullName,

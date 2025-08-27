@@ -64,7 +64,6 @@ import { useAuthStore } from "./store/authStore";
 import { useCartStore } from "./store/cartStore";
 import { ConfirmProvider } from "material-ui-confirm";
 
-import CountryCitySelect from "./pages/design/tesitng";
 //import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {

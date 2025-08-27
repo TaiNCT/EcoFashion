@@ -7,7 +7,8 @@ import apiClient, {
 export interface ProductInventoryTransactions {
   transactionId: number;
   inventoryId: number;
-  name: string;
+  designName: string;
+  itemName: string;
   performedByUserId: number;
   quantityChanged: number;
   beforeQty: number;

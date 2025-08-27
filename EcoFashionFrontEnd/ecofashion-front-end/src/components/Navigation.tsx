@@ -645,7 +645,7 @@ const Navigation: React.FC = () => {
             {/* Icons */}
             <CartWithPopup />
             <button
-              onClick={() => navigate('/wallet')}
+              onClick={() => navigate("/wallet")}
               className={`p-2 rounded-lg hover:bg-gray-100 transition-colors ${
                 scrolled || !isHome ? "text-gray-700" : "text-white"
               }`}
@@ -676,7 +676,13 @@ const Navigation: React.FC = () => {
                         scrolled || !isHome ? "text-gray-600" : "text-gray-200"
                       }`}
                     >
-                      {user.role}
+                      {user.role.toLowerCase() === "supplier"
+                        ? "Nhà cung cấp"
+                        : user.role.toLowerCase() === "designer"
+                        ? "Nhà thiết kế"
+                        : user.role.toLowerCase() === "customer"
+                        ? "Khách Hàng"
+                        : user.role}
                     </p>
                   </div>
                 </div>

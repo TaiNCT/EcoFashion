@@ -265,7 +265,8 @@ namespace EcoFashionBackEnd.Services
                 {
                     MaterialId = m.MaterialId,
                     MaterialName = m.Materials.Name,
-                    MeterUsed = m.MeterUsed
+                    MeterUsed = m.MeterUsed,
+                    Price = m.Materials.PricePerUnit
                 }).ToList(),
 
                 SketchImageUrls = design.DraftSketches
