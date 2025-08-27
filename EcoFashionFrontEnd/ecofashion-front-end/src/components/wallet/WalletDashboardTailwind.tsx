@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  CreditCardIcon, 
-  BanknotesIcon, 
-  ArrowUpIcon, 
+import {
+  CreditCardIcon,
+  BanknotesIcon,
+  ArrowUpIcon,
   ArrowDownIcon,
   PlusIcon,
   MinusIcon,
@@ -15,6 +15,26 @@ import { useWalletSummary } from '../../hooks/useWalletQueries';
 import { useInitiateDeposit, useRequestWithdraw } from '../../hooks/useWalletMutations';
 import { WALLET_CFG } from '../../config/wallet';
 import { toast } from 'react-toastify';
+import walletService, { WalletTransaction } from '../../services/api/walletService';
+
+// Helper component để hiển thị transaction status
+const TransactionStatusBadge: React.FC<{ status: string }> = ({ status }) => {
+  const statusConfig = {
+    'Success': { color: 'bg-green-100 text-green-800', icon: '✅', label: 'Thành công' },
+    'Pending': { color: 'bg-yellow-100 text-yellow-800', icon: '⏳', label: 'Đang xử lý' },
+    'Fail': { color: 'bg-red-100 text-red-800', icon: '❌', label: 'Thất bại' }
+  } as const;
+
+  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Pending;
+  
+  return (
+    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+      <span className="mr-1">{config.icon}</span>
+      {config.label}
+    </span>
+  );
+};
+
 
 // Modal Components
 const DepositModal: React.FC<{
@@ -26,11 +46,14 @@ const DepositModal: React.FC<{
   const [amount, setAmount] = useState<number>(0);
   const [description, setDescription] = useState('');
 
+
   if (!isOpen) return null;
+
 
   const handleQuickAmount = (quickAmount: number) => {
     setAmount(quickAmount);
   };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +63,7 @@ const DepositModal: React.FC<{
     }
     onDeposit(amount, description);
   };
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -53,6 +77,7 @@ const DepositModal: React.FC<{
             ✕
           </button>
         </div>
+
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -74,6 +99,7 @@ const DepositModal: React.FC<{
             </p>
           </div>
 
+
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Số tiền nhanh
@@ -92,6 +118,7 @@ const DepositModal: React.FC<{
             </div>
           </div>
 
+
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Ghi chú (không bắt buộc)
@@ -104,6 +131,7 @@ const DepositModal: React.FC<{
               rows={3}
             />
           </div>
+
 
           <div className="flex gap-3">
             <button
@@ -128,48 +156,144 @@ const DepositModal: React.FC<{
   );
 };
 
-// Helper function để extract orderId từ description
-const extractOrderIdFromDescription = (description: string): string | null => {
-  if (!description) return null;
-  
-  console.log('Trying to extract from description:', description);
-  
-  // Pattern đặc biệt cho format DH + số
-  // "Thanh toán đơn hàng #DH16" hoặc "Nhận thanh toán từ đơn hàng #DH16"
-  const dhPattern = /#?DH(\d+)/i;
-  const dhMatch = description.match(dhPattern);
-  
-  if (dhMatch) {
-    console.log('DH pattern matched, orderId:', dhMatch[1]);
-    return dhMatch[1]; // Trả về "16" từ "DH16"
+
+// Transaction Group Component
+const TransactionGroup: React.FC<{
+  group: {
+    orderGroupId?: string;
+    orderId?: number;
+    transactions: WalletTransaction[];
+    totalAmount: number;
+    isMultiOrder: boolean;
+    orderCount: number;
+    orderIds: number[];
+  };
+  onOrderClick: (orderId: number) => void;
+}> = ({ group, onOrderClick }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const mainTransaction = group.transactions[0];
+  const displayInfo = walletService.getOrderTransactionDisplay(mainTransaction);
+
+
+  if (group.isMultiOrder) {
+    return (
+      <div className="border border-blue-200 rounded-lg p-3 bg-blue-50">
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
+              <span className="text-lg">{displayInfo.icon}</span>
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-gray-900">{displayInfo.title}</p>
+              <p className="text-sm text-gray-500">
+                {displayInfo.subtitle} • {group.orderCount} đơn hàng
+              </p>
+              <div className="mt-1">
+                <TransactionStatusBadge status={mainTransaction.status} />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <p className={`font-semibold ${group.totalAmount >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+              {group.totalAmount >= 0 ? '+' : ''}{group.totalAmount.toLocaleString('vi-VN')} VND
+            </p>
+            <span className="text-blue-600">{isExpanded ? '▲' : '▼'}</span>
+          </div>
+        </div>
+
+
+        {isExpanded && (
+          <div className="mt-3 pl-13 space-y-2 border-t border-blue-200 pt-3">
+            {/* Hiển thị description chi tiết nếu có */}
+            {displayInfo.detailedDescription && (
+              <div className="p-3 bg-blue-50 rounded text-sm text-gray-700 border-l-4 border-blue-200">
+                <strong className="text-blue-800">Chi tiết giao dịch:</strong>
+                <p className="mt-1 text-gray-600">{displayInfo.detailedDescription}</p>
+              </div>
+            )}
+            
+            {/* Danh sách các OrderIds */}
+            {group.orderIds.map(orderId => (
+              <div
+                key={orderId}
+                className="flex items-center justify-between p-2 bg-white rounded cursor-pointer hover:bg-blue-50"
+                onClick={() => onOrderClick(orderId)}
+              >
+                <span className="text-sm text-gray-600">📦 Đơn hàng #ĐH{orderId}</span>
+                <span className="text-sm text-blue-600">Xem chi tiết →</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   }
-  
-  // Fallback: tìm số cuối cùng trong chuỗi
-  const numberPattern = /(\d+)(?!.*\d)/;
-  const numberMatch = description.match(numberPattern);
-  
-  if (numberMatch) {
-    console.log('Number pattern matched, orderId:', numberMatch[1]);
-    return numberMatch[1];
-  }
-  
-  console.log('No pattern matched');
-  return null;
+
+
+  // Single order
+  return (
+    <div
+      className={`flex items-center justify-between p-3 rounded-lg transition-colors ${displayInfo.isOrderRelated
+        ? 'hover:bg-blue-50 cursor-pointer border border-transparent hover:border-blue-200'
+        : 'hover:bg-gray-50'
+        }`}
+      onClick={() => {
+        if (displayInfo.isOrderRelated && group.orderId) {
+          onOrderClick(group.orderId);
+        }
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${group.totalAmount >= 0 ? 'bg-green-100' : 'bg-red-100'
+          }`}>
+          {group.totalAmount >= 0 ?
+            <ArrowUpIcon className="w-5 h-5 text-green-600" /> :
+            <ArrowDownIcon className="w-5 h-5 text-red-600" />
+          }
+        </div>
+        <div className="flex-1">
+          <p className="font-medium text-gray-900">{displayInfo.title}</p>
+          <p className="text-sm text-gray-500">{displayInfo.subtitle}</p>
+          <div className="flex items-center gap-2 mt-1">
+            <TransactionStatusBadge status={mainTransaction.status} />
+            {/* Hiển thị description chi tiết cho single transaction */}
+            {displayInfo.detailedDescription && (
+              <p className="text-xs text-gray-400 truncate flex-1">
+                {displayInfo.detailedDescription}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+      <p className={`font-semibold ${group.totalAmount >= 0 ? 'text-green-600' : 'text-red-600'
+        }`}>
+        {group.totalAmount >= 0 ? '+' : ''}{group.totalAmount.toLocaleString('vi-VN')} VND
+      </p>
+    </div>
+  );
 };
+
 
 const WalletDashboardTailwind: React.FC = () => {
   const navigate = useNavigate();
   const [showBalance, setShowBalance] = useState(true);
   const [showDepositModal, setShowDepositModal] = useState(false);
-  
+
+
   const { data: walletData, isLoading, error, refetch } = useWalletSummary();
   const { mutateAsync: deposit, isPending: isDepositLoading } = useInitiateDeposit();
+
 
   const handleDeposit = async (amount: number, description?: string) => {
     try {
       const result = await deposit({ amount, description });
       const paymentUrl = (result as any)?.paymentUrl || (result as any)?.PaymentUrl;
-      
+
+
       if (paymentUrl) {
         window.location.href = paymentUrl;
       } else {
@@ -182,17 +306,17 @@ const WalletDashboardTailwind: React.FC = () => {
     }
   };
 
-  const handleTransactionClick = (orderId: string) => {
+
+  const handleOrderClick = (orderId: number) => {
     try {
       console.log('Navigating to order ID:', orderId);
-      
-      // orderId đã là số thuần từ extractOrderIdFromDescription
       navigate(`/orders/${orderId}`);
     } catch (error) {
       console.error('Navigation error:', error);
       toast.error('Không thể xem chi tiết đơn hàng');
     }
   };
+
 
   if (isLoading) {
     return (
@@ -208,6 +332,7 @@ const WalletDashboardTailwind: React.FC = () => {
       </div>
     );
   }
+
 
   if (error) {
     return (
@@ -225,11 +350,14 @@ const WalletDashboardTailwind: React.FC = () => {
     );
   }
 
+
   const balance = (walletData as any)?.balance ?? (walletData as any)?.wallet?.balance ?? 0;
   const monthlyRaw = (walletData as any)?.monthlyStats ?? {};
   const income = (monthlyRaw as any)?.totalIncome ?? (monthlyRaw as any)?.deposited ?? 0;
   const expense = (monthlyRaw as any)?.totalExpense ?? (monthlyRaw as any)?.spent ?? 0;
   const recentTransactions = (walletData as any)?.recentTransactions ?? [];
+
+
 
 
   return (
@@ -245,13 +373,15 @@ const WalletDashboardTailwind: React.FC = () => {
             {showBalance ? <EyeIcon className="w-6 h-6" /> : <EyeSlashIcon className="w-6 h-6" />}
           </button>
         </div>
-        
+
+
         <div className="mb-6">
           <p className="text-white/80 mb-2">Số dư hiện tại</p>
           <p className="text-4xl font-bold">
             {showBalance ? `${balance.toLocaleString('vi-VN')} VND` : '••••••••'}
           </p>
         </div>
+
 
         <div className="flex gap-4">
           <button
@@ -271,6 +401,7 @@ const WalletDashboardTailwind: React.FC = () => {
         </div>
       </div>
 
+
       {/* Monthly Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -285,6 +416,7 @@ const WalletDashboardTailwind: React.FC = () => {
           </div>
         </div>
 
+
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center gap-3">
             <ArrowDownIcon className="w-8 h-8 text-red-600" />
@@ -296,6 +428,7 @@ const WalletDashboardTailwind: React.FC = () => {
             </div>
           </div>
         </div>
+
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center gap-3">
@@ -310,6 +443,7 @@ const WalletDashboardTailwind: React.FC = () => {
         </div>
       </div>
 
+
       {/* Recent Transactions */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
@@ -319,6 +453,7 @@ const WalletDashboardTailwind: React.FC = () => {
           </button>
         </div>
 
+
         {recentTransactions.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <CreditCardIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
@@ -326,66 +461,78 @@ const WalletDashboardTailwind: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {recentTransactions.map((transaction: any, index: number) => {
-              // Extract orderId từ description hoặc trực tiếp từ transaction
-              const orderId = transaction.orderId || transaction.orderNumber || extractOrderIdFromDescription(transaction.description);
-              const isOrderTransaction = !!orderId;
-              
-              // Debug: Log toàn bộ transaction để xem cấu trúc
-              if (transaction.description?.includes('đơn hàng') || transaction.description?.includes('order') || transaction.description?.includes('Thanh toán') || transaction.description?.includes('Nhận thanh toán')) {
-                console.log('Full transaction object:', transaction);
-                console.log('Available keys:', Object.keys(transaction));
-                console.log('Transaction description:', transaction.description);
-                console.log('Transaction orderId field:', transaction.orderId);
-                console.log('Transaction orderNumber field:', transaction.orderNumber);
-                console.log('Extracted orderId:', orderId);
-                console.log('Is order transaction:', isOrderTransaction);
-              }
-              
-              return (
-                <div 
-                  key={index} 
-                  className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
-                    isOrderTransaction 
-                      ? 'hover:bg-blue-50 cursor-pointer border border-transparent hover:border-blue-200' 
-                      : 'hover:bg-gray-50'
-                  }`}
-                  style={isOrderTransaction ? { cursor: 'pointer' } : {}}
-                  onClick={() => {
-                    console.log('Clicked transaction, orderId:', orderId, 'isOrderTransaction:', isOrderTransaction);
-                    if (isOrderTransaction) {
-                      handleTransactionClick(orderId);
-                    }
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      transaction.amount >= 0 ? 'bg-green-100' : 'bg-red-100'
-                    }`}>
-                      {transaction.amount >= 0 ? 
-                        <ArrowUpIcon className="w-5 h-5 text-green-600" /> : 
-                        <ArrowDownIcon className="w-5 h-5 text-red-600" />
-                      }
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{transaction.description}</p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(transaction.createdAt).toLocaleDateString('vi-VN')}
-                        {isOrderTransaction && <span className="ml-2 text-blue-600">• Click để xem chi tiết</span>}
-                      </p>
-                    </div>
-                  </div>
-                  <p className={`font-semibold ${
-                    transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {transaction.amount >= 0 ? '+' : ''}{transaction.amount.toLocaleString('vi-VN')} VND
-                  </p>
-                </div>
+            {/* Tách transactions thành order-related và non-order */}
+            {(() => {
+              // Cải thiện logic phân loại transactions
+              const orderTransactions = recentTransactions.filter((t: any) =>
+                // Giao dịch có orderId hoặc orderGroupId trực tiếp
+                t.orderId || t.orderGroupId ||
+                // Hoặc có type liên quan đến order và description chứa thông tin đơn hàng
+                (['Payment', 'PaymentReceived', 'Transfer'].includes(t.type) && 
+                 (t.description?.includes('ĐH') || t.description?.includes('đơn')))
               );
-            })}
+              const nonOrderTransactions = recentTransactions.filter((t: any) =>
+                // Loại trừ các giao dịch đã được phân vào orderTransactions
+                !orderTransactions.includes(t)
+              );
+              // Group order transactions
+              const groupedOrders = walletService.groupTransactionsByOrder(
+                orderTransactions as WalletTransaction[]
+              );
+              return (
+                <>
+                  {/* Order-related transactions (grouped) */}
+                  {groupedOrders.map((group, index) => (
+                    <TransactionGroup
+                      key={`group-${index}`}
+                      group={group}
+                      onOrderClick={handleOrderClick}
+                    />
+                  ))}
+                  {/* Non-order transactions (individual) */}
+                  {nonOrderTransactions.map((transaction: any, index: number) => {
+                    const displayInfo = walletService.getOrderTransactionDisplay(transaction);
+                    return (
+                      <div
+                        key={`non-order-${index}`}
+                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.amount >= 0 ? 'bg-green-100' : 'bg-red-100'
+                            }`}>
+                            {transaction.amount >= 0 ?
+                              <ArrowUpIcon className="w-5 h-5 text-green-600" /> :
+                              <ArrowDownIcon className="w-5 h-5 text-red-600" />
+                            }
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{displayInfo.title}</p>
+                            <p className="text-sm text-gray-500">{displayInfo.subtitle}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <TransactionStatusBadge status={transaction.status} />
+                              {/* Hiển thị description chi tiết cho non-order transaction */}
+                              {displayInfo.detailedDescription && (
+                                <p className="text-xs text-gray-400 truncate flex-1">
+                                  {displayInfo.detailedDescription}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <p className={`font-semibold ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                          {transaction.amount >= 0 ? '+' : ''}{transaction.amount.toLocaleString('vi-VN')} VND
+                        </p>
+                      </div>
+                    );
+                  })}
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
+
 
       {/* Deposit Modal */}
       <DepositModal
@@ -398,4 +545,6 @@ const WalletDashboardTailwind: React.FC = () => {
   );
 };
 
+
 export default WalletDashboardTailwind;
+

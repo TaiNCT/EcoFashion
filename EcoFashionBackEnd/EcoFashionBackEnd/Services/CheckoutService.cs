@@ -37,7 +37,7 @@ namespace EcoFashionBackEnd.Services
         {
             var expiresAt = DateTime.UtcNow.AddMinutes(request.HoldMinutes <= 0 ? 30 : request.HoldMinutes);
 
-            // Idempotency: nếu FE gửi IdempotencyKey, tìm Order pending hiện có để reuse
+            // Idempotency: nếu FE gửi IdempotencyKey, tìm các Order pending hiện có để reuse
             Guid sessionKey;
             if (!string.IsNullOrWhiteSpace(request.IdempotencyKey) && Guid.TryParse(request.IdempotencyKey, out sessionKey))
             {
@@ -58,52 +58,54 @@ namespace EcoFashionBackEnd.Services
                     await _dbContext.SaveChangesAsync();
                 }
 
-                var existingOrder = await _dbContext.Orders
+                var existingOrders = await _dbContext.Orders
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(o => o.UserId == userId
+                    .Where(o => o.UserId == userId
                         && o.PaymentStatus == PaymentStatus.Pending
                         && o.CheckoutSessionId == sessionKey
-                        && (o.ExpiresAt == null || o.ExpiresAt > DateTime.UtcNow));
+                        && (o.ExpiresAt == null || o.ExpiresAt > DateTime.UtcNow))
+                    .OrderBy(o => o.OrderId)
+                    .ToListAsync();
 
-                if (existingOrder != null)
+                if (existingOrders.Any())
                 {
-                    // Trả về response dựa trên order có sẵn (reuse)
-                    var existingGroupId = existingOrder.OrderGroupId ?? Guid.Empty;
+                    var existingGroupId = existingOrders.First().OrderGroupId ?? Guid.Empty;
                     var existingResponse = new CreateSessionResponse
                     {
                         OrderGroupId = existingGroupId,
-                        ExpiresAt = existingOrder.ExpiresAt ?? DateTime.UtcNow.AddMinutes(30),
-                        Orders = new List<CheckoutOrderDto>
+                        ExpiresAt = existingOrders.Max(o => o.ExpiresAt) ?? DateTime.UtcNow.AddMinutes(30),
+                        Orders = existingOrders.Select(o => new CheckoutOrderDto
                         {
-                            new CheckoutOrderDto
-                            {
-                                OrderId = existingOrder.OrderId,
-                                Subtotal = existingOrder.Subtotal,
-                                ShippingFee = existingOrder.ShippingFee,
-                                Discount = existingOrder.Discount,
-                                TotalAmount = existingOrder.TotalPrice,
-                                PaymentStatus = existingOrder.PaymentStatus.ToString()
-                            }
-                        }
+                            OrderId = o.OrderId,
+                            Subtotal = o.Subtotal,
+                            ShippingFee = o.ShippingFee,
+                            Discount = o.Discount,
+                            TotalAmount = o.TotalPrice,
+                            PaymentStatus = o.PaymentStatus.ToString()
+                        }).ToList(),
+                        // Populate các field mới
+                        OrderIds = existingOrders.Select(o => o.OrderId).ToList(),
+                        TotalOrderCount = existingOrders.Count,
+                        TotalAmount = existingOrders.Sum(o => o.TotalPrice)
                     };
                     return existingResponse;
                 }
             }
 
-            // Simplified approach: Create one order per cart session since we removed sellerId
-            // All items from the cart go into a single order
-            var normalizedItems = new List<(string ItemType, int? MaterialId, int? DesignId, int? ProductId, int Quantity, decimal UnitPrice)>();
+            // Chuẩn hoá items và xác định seller cho từng item để pre-split
+            var normalizedItems = new List<(string ItemType, int? MaterialId, int? DesignId, int? ProductId, int Quantity, decimal UnitPrice, Guid? SupplierId, Guid? DesignerId)>();
             foreach (var i in request.Items)
             {
                 if (i.ItemType.Equals("material", StringComparison.OrdinalIgnoreCase) && i.MaterialId.HasValue)
                 {
                     var material = await _dbContext.Materials.AsNoTracking().FirstOrDefaultAsync(m => m.MaterialId == i.MaterialId.Value);
                     if (material == null) throw new ArgumentException($"Material không tồn tại: {i.MaterialId}");
-                    normalizedItems.Add(("material", i.MaterialId, null, null, i.Quantity, material.PricePerUnit));
+                    normalizedItems.Add(("material", i.MaterialId, null, null, i.Quantity, material.PricePerUnit, material.SupplierId, null));
                 }
                 else if (i.ItemType.Equals("design", StringComparison.OrdinalIgnoreCase) && i.DesignId.HasValue)
                 {
-                    normalizedItems.Add(("design", null, i.DesignId, null, i.Quantity, i.UnitPrice));
+                    var design = await _dbContext.Designs.AsNoTracking().FirstOrDefaultAsync(d => d.DesignId == i.DesignId.Value);
+                    normalizedItems.Add(("design", null, i.DesignId, null, i.Quantity, i.UnitPrice, null, design?.DesignerId));
                 }
                 else if (i.ItemType.Equals("product", StringComparison.OrdinalIgnoreCase) && i.ProductId.HasValue)
                 {
@@ -112,11 +114,20 @@ namespace EcoFashionBackEnd.Services
                         .AsNoTracking()
                         .FirstOrDefaultAsync(p => p.ProductId == i.ProductId.Value);
                     if (product == null) throw new ArgumentException($"Product không tồn tại: {i.ProductId}");
-                    normalizedItems.Add(("product", null, null, i.ProductId, i.Quantity, product.Price));
+                    normalizedItems.Add(("product", null, null, i.ProductId, i.Quantity, product.Price, null, product.Design?.DesignerId));
                 }
             }
 
-            // Create a single order for all items (no more grouping by seller)
+            // Group theo seller (ưu tiên SupplierId nếu có, ngược lại dùng DesignerId)
+            var sellerGroups = normalizedItems
+                .GroupBy(x => new
+                {
+                    SellerId = x.SupplierId ?? x.DesignerId,
+                    SellerType = x.SupplierId.HasValue ? "Supplier" : "Designer",
+                    SupplierId = x.SupplierId,
+                    DesignerId = x.DesignerId
+                })
+                .ToList();
 
             var orderGroup = new OrderGroup
             {
@@ -132,34 +143,20 @@ namespace EcoFashionBackEnd.Services
             var response = new CreateSessionResponse
             {
                 OrderGroupId = orderGroup.OrderGroupId,
-                ExpiresAt = expiresAt
-            };
-
-            // Create a single order for all items
-            var subtotal = normalizedItems.Sum(i => i.UnitPrice * i.Quantity);
-            var shipping = 0m;
-            var discount = 0m;
-            var total = subtotal + shipping - discount;
-
-            var order = new Order
-            {
-                UserId = userId,
-                OrderGroupId = orderGroup.OrderGroupId,
-                // ShippingAddress chỉ gồm địa chỉ, KHÔNG append số điện thoại
-                ShippingAddress = request.ShippingAddress,
-                Subtotal = subtotal,
-                ShippingFee = shipping,
-                Discount = discount,
-                TotalPrice = total,
-                Status = OrderStatus.pending,
-                PaymentStatus = PaymentStatus.Pending,
-                FulfillmentStatus = FulfillmentStatus.None,
                 ExpiresAt = expiresAt,
-                OrderDate = DateTime.UtcNow,
-                CreateAt = DateTime.UtcNow,
-                // Lưu idempotency key vào CheckoutSessionId để lần sau reuse
-                CheckoutSessionId = (!string.IsNullOrWhiteSpace(request.IdempotencyKey) && Guid.TryParse(request.IdempotencyKey, out sessionKey)) ? sessionKey : null
+                OrderIds = new List<int>(), // Sẽ được populate sau khi tạo orders
+                TotalOrderCount = 0, // Sẽ được update sau
+                TotalAmount = 0 // Sẽ được tính toán sau
             };
+
+            int totalOrders = 0;
+            foreach (var grp in sellerGroups)
+            {
+                // Tính tổng theo nhóm seller
+                var groupSubtotal = grp.Sum(i => i.UnitPrice * i.Quantity);
+                var groupShipping = 0m; // có thể tính tuỳ logic
+                var groupDiscount = 0m;
+                var groupTotal = groupSubtotal + groupShipping - groupDiscount;
 
             await _orderRepository.AddAsync(order);
             await _orderRepository.Commit();
@@ -173,9 +170,47 @@ namespace EcoFashionBackEnd.Services
 
                 if (item.ItemType == "material" && item.MaterialId.HasValue)
                 {
-                    var material = await _dbContext.Materials.AsNoTracking()
-                        .FirstOrDefaultAsync(m => m.MaterialId == item.MaterialId.Value);
-                    supplierId = material?.SupplierId;
+                    UserId = userId,
+                    OrderGroupId = orderGroup.OrderGroupId,
+                    ShippingAddress = request.ShippingAddress,
+                    Subtotal = groupSubtotal,
+                    ShippingFee = groupShipping,
+                    Discount = groupDiscount,
+                    TotalPrice = groupTotal,
+                    Status = OrderStatus.pending,
+                    PaymentStatus = PaymentStatus.Pending,
+                    FulfillmentStatus = FulfillmentStatus.None,
+                    ExpiresAt = expiresAt,
+                    OrderDate = DateTime.UtcNow,
+                    CreateAt = DateTime.UtcNow,
+                    SupplierId = grp.Key.SupplierId,
+                    DesignerId = grp.Key.DesignerId,
+                    ProviderType = grp.Key.SellerType,
+                    // Lưu idempotency key vào CheckoutSessionId để lần sau reuse
+                    CheckoutSessionId = (!string.IsNullOrWhiteSpace(request.IdempotencyKey) && Guid.TryParse(request.IdempotencyKey, out sessionKey)) ? sessionKey : null
+                };
+
+                await _orderRepository.AddAsync(order);
+                await _orderRepository.Commit();
+                totalOrders++;
+
+                foreach (var item in grp)
+                {
+                    var detail = new OrderDetail
+                    {
+                        OrderId = order.OrderId,
+                        MaterialId = item.ItemType == "material" ? item.MaterialId : null,
+                        DesignId = item.ItemType == "design" ? item.DesignId : null,
+                        ProductId = item.ItemType == "product" ? item.ProductId : null,
+                        SupplierId = item.SupplierId,
+                        DesignerId = item.DesignerId,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice,
+                        Type = item.ItemType == "material" ? OrderDetailType.material :
+                               item.ItemType == "product" ? OrderDetailType.product : OrderDetailType.design,
+                        Status = OrderDetailStatus.pending
+                    };
+                    await _orderDetailRepository.AddAsync(detail);
                 }
                 else if (item.ItemType == "product" && item.ProductId.HasValue)
                 {
@@ -190,18 +225,15 @@ namespace EcoFashionBackEnd.Services
                 var detail = new OrderDetail
                 {
                     OrderId = order.OrderId,
-                    MaterialId = item.ItemType == "material" ? item.MaterialId : null,
-                    DesignId = item.ItemType == "design" ? item.DesignId : null,
-                    ProductId = item.ItemType == "product" ? item.ProductId : null,
-                    SupplierId = supplierId,
-                    DesignerId = designerId,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice,
-                    Type = item.ItemType == "material" ? OrderDetailType.material : 
-                           item.ItemType == "product" ? OrderDetailType.product : OrderDetailType.design,
-                    Status = OrderDetailStatus.pending
-                };
-                await _orderDetailRepository.AddAsync(detail);
+                    Subtotal = order.Subtotal,
+                    ShippingFee = order.ShippingFee,
+                    Discount = order.Discount,
+                    TotalAmount = order.TotalPrice,
+                    PaymentStatus = order.PaymentStatus.ToString()
+                });
+                
+                // Thêm OrderId vào danh sách
+                response.OrderIds.Add(order.OrderId);
             }
             await _orderDetailRepository.Commit();
 
@@ -216,10 +248,14 @@ namespace EcoFashionBackEnd.Services
             });
 
             // Update counts on group
-            orderGroup.TotalOrders = 1;
+            orderGroup.TotalOrders = totalOrders;
             orderGroup.CompletedOrders = 0;
             _orderGroupRepository.Update(orderGroup);
             await _orderGroupRepository.Commit();
+
+            // Cập nhật thông tin tổng hợp trong response
+            response.TotalOrderCount = totalOrders;
+            response.TotalAmount = response.Orders.Sum(o => o.TotalAmount);
 
             return response;
         }

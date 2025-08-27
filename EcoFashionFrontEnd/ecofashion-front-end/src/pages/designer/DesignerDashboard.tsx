@@ -58,6 +58,7 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import DesignServicesOutlinedIcon from "@mui/icons-material/DesignServicesOutlined";
 import AddIcon from "@mui/icons-material/Add";
+import DesignerOrders from "./DesignerOrders";
 import {
   DressIcon,
   EcoIcon,
@@ -118,7 +119,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import ProductService from "../../services/api/productService";
 import { Link } from "react-router-dom";
-import { useConfirm } from "material-ui-confirm";
+// import { useConfirm } from "material-ui-confirm";
 import InventoryTransactionsService, {
   ProductInventoryTransactions,
 } from "../../services/api/inventoryTransactionsService";
@@ -200,7 +201,7 @@ export default function DesignerDashBoard() {
   // Zustand stores
   const { getDesignerId } = useAuthStore();
   //Confirm delete
-  const confirm = useConfirm();
+  // const confirm = useConfirm();
   //Hiện thông tin product
   const [selectedDesign, setSelectedDesign] = useState(null);
   //Lấy thông tin trong inventory
@@ -1941,6 +1942,16 @@ export default function DesignerDashBoard() {
           />
           <Tab
             label="Kho Vật Liệu"
+            sx={{
+              flex: 1,
+              "&.Mui-selected": {
+                color: "rgba(22, 163, 74)", // Màu khi được chọn
+                fontWeight: "bold", // Tuỳ chọn: in đậm
+              },
+            }}
+          />
+          <Tab
+            label="Quản Lý Đơn Hàng"
             sx={{
               flex: 1,
               "&.Mui-selected": {
@@ -3917,6 +3928,13 @@ export default function DesignerDashBoard() {
               width: "100%", // or set a fixed px width like "800px"
             }}
           />
+        </Box>
+      )}
+
+      {/* Tab Quản Lý Đơn Hàng */}
+      {tabIndex === 4 && (
+        <Box sx={{ width: "100%" }}>
+          <DesignerOrders />
         </Box>
       )}
 

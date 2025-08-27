@@ -916,8 +916,6 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasIndex("InventoryId");
 
-                    b.HasIndex("PerformedByUserId");
-
                     b.ToTable("MaterialInventoryTransactions");
                 });
 
@@ -1924,6 +1922,9 @@ namespace EcoFashionBackEnd.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("OrderGroupId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int?>("OrderId")
                         .HasColumnType("int");
 
@@ -2360,13 +2361,7 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EcoFashionBackEnd.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("PerformedByUserId");
-
                     b.Navigation("MaterialInventory");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialStock", b =>
@@ -2510,7 +2505,7 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("EcoFashionBackEnd.Entities.Order", "Order")
-                        .WithMany()
+                        .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -2808,6 +2803,8 @@ namespace EcoFashionBackEnd.Migrations
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.Order", b =>
                 {
+                    b.Navigation("OrderDetails");
+
                     b.Navigation("PaymentTransactions");
                 });
 

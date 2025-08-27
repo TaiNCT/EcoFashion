@@ -594,7 +594,7 @@ namespace EcoFashionBackEnd.Entities
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<OrderDetail>()
-                .HasOne(od => od.Order).WithMany()
+                .HasOne(od => od.Order).WithMany(o => o.OrderDetails)
                 .HasForeignKey(od => od.OrderId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<OrderDetail>()

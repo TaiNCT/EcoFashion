@@ -16,8 +16,10 @@ export interface WalletTransaction {
   balanceAfter: number;
   description?: string;
   createdAt: string;
-  type: 'Deposit' | 'Withdrawal' | 'Payment' | 'Refund' | 'Transfer';
+  type: 'Deposit' | 'Withdrawal' | 'Payment' | 'PaymentReceived' | 'Refund' | 'Transfer';
   status: 'Pending' | 'Success' | 'Fail';
+  orderId?: number;
+  orderGroupId?: string;
 }
 
 export interface DepositRequest {
@@ -117,7 +119,8 @@ export const walletService = {
     switch (type) {
       case 'Deposit': return 'Nạp tiền';
       case 'Withdrawal': return 'Rút tiền';
-      case 'Payment': return 'Thanh toán';
+      case 'Payment': return 'Thanh toán đơn hàng';
+      case 'PaymentReceived': return 'Nhận tiền từ đơn hàng';
       case 'Refund': return 'Hoàn tiền';
       case 'Transfer': return 'Chuyển tiền';
       default: return type;
@@ -176,6 +179,128 @@ export const walletService = {
     }
     
     return errors;
+  },
+
+  // Transaction grouping helpers - Cải thiện để hỗ trợ orderGroupId tốt hơn
+  groupTransactionsByOrder: (transactions: WalletTransaction[]) => {
+    const grouped = new Map<string, {
+      orderGroupId?: string;
+      orderId?: number;
+      transactions: WalletTransaction[];
+      totalAmount: number;
+      isMultiOrder: boolean;
+      orderCount: number;
+      orderIds: number[];
+    }>();
+
+    transactions.forEach(transaction => {
+      // Ưu tiên orderGroupId trước, sau đó mới đến orderId
+      const key = transaction.orderGroupId 
+        ? `group_${transaction.orderGroupId}` 
+        : transaction.orderId 
+          ? `order_${transaction.orderId}` 
+          : `misc_${transaction.id}`;
+      
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          orderGroupId: transaction.orderGroupId,
+          orderId: transaction.orderGroupId ? undefined : transaction.orderId, // Chỉ set orderId nếu không có orderGroupId
+          transactions: [],
+          totalAmount: 0,
+          isMultiOrder: !!transaction.orderGroupId,
+          orderCount: 0,
+          orderIds: []
+        });
+      }
+
+      const group = grouped.get(key)!;
+      group.transactions.push(transaction);
+      group.totalAmount += transaction.amount;
+      
+      // Thu thập tất cả orderIds từ các transactions trong group
+      if (transaction.orderId && !group.orderIds.includes(transaction.orderId)) {
+        group.orderIds.push(transaction.orderId);
+      }
+      
+      // Cập nhật orderCount
+      group.orderCount = group.orderIds.length || (group.isMultiOrder ? 1 : 0);
+    });
+
+    // Sort theo thời gian mới nhất
+    return Array.from(grouped.values()).sort((a, b) => 
+      new Date(b.transactions[0].createdAt).getTime() - new Date(a.transactions[0].createdAt).getTime()
+    );
+  },
+
+  getOrderTransactionDisplay: (transaction: WalletTransaction): {
+    title: string;
+    subtitle: string;
+    icon: string;
+    isOrderRelated: boolean;
+    detailedDescription?: string;
+  } => {
+    const isOrderRelated = !!(transaction.orderId || transaction.orderGroupId);
+    
+    if (!isOrderRelated) {
+      // Giao dịch không liên quan đến đơn hàng - có thể là nạp tiền, rút tiền, chuyển tiền seller
+      const typeIcon = transaction.type === 'Deposit' ? '💰' :
+                      transaction.type === 'Withdrawal' ? '🏧' :
+                      transaction.type === 'Transfer' ? '🔄' :
+                      transaction.amount >= 0 ? '📈' : '📉';
+      
+      const title = transaction.type === 'Transfer' && transaction.description?.includes('Shop') 
+        ? `${typeIcon} Chia tiền cho seller`
+        : `${typeIcon} ${walletService.getTransactionTypeLabel(transaction.type)}`;
+      
+      return {
+        title,
+        subtitle: `${new Date(transaction.createdAt).toLocaleDateString('vi-VN')} • ${transaction.status}`,
+        icon: typeIcon,
+        isOrderRelated: false,
+        detailedDescription: transaction.description
+      };
+    }
+
+    if (transaction.orderGroupId) {
+      // Multi-order transaction - trích xuất thông tin từ description
+      const orderCount = transaction.description?.match(/(\d+)\s*đơn/)?.[1] || '?';
+      
+      // Phân biệt các loại giao dịch nhóm đơn hàng
+      const transactionTypeIcon = transaction.type === 'Payment' ? '💳' : 
+                                  transaction.type === 'PaymentReceived' ? '💰' :
+                                  transaction.type === 'Refund' ? '↩️' : '🛍️';
+      
+      const title = transaction.type === 'Payment' ? `${transactionTypeIcon} Thanh toán nhóm (${orderCount} đơn)` :
+                    transaction.type === 'PaymentReceived' ? `${transactionTypeIcon} Nhận tiền nhóm (${orderCount} đơn)` :
+                    transaction.type === 'Refund' ? `${transactionTypeIcon} Hoàn tiền nhóm (${orderCount} đơn)` :
+                    `${transactionTypeIcon} Nhóm đơn hàng (${orderCount} đơn)`;
+      
+      return {
+        title,
+        subtitle: `${new Date(transaction.createdAt).toLocaleDateString('vi-VN')} • ${transaction.status} • Click xem chi tiết`,
+        icon: transactionTypeIcon,
+        isOrderRelated: true,
+        detailedDescription: transaction.description
+      };
+    } else {
+      // Single order transaction
+      const transactionTypeIcon = transaction.type === 'Payment' ? '💳' : 
+                                  transaction.type === 'PaymentReceived' ? '💰' :
+                                  transaction.type === 'Refund' ? '↩️' : '📦';
+      
+      const title = transaction.type === 'Payment' ? `${transactionTypeIcon} Thanh toán #ĐH${transaction.orderId}` :
+                    transaction.type === 'PaymentReceived' ? `${transactionTypeIcon} Nhận tiền #ĐH${transaction.orderId}` :
+                    transaction.type === 'Refund' ? `${transactionTypeIcon} Hoàn tiền #ĐH${transaction.orderId}` :
+                    `${transactionTypeIcon} Đơn hàng #ĐH${transaction.orderId}`;
+      
+      return {
+        title,
+        subtitle: `${new Date(transaction.createdAt).toLocaleDateString('vi-VN')} • ${transaction.status} • Click xem chi tiết`,
+        icon: transactionTypeIcon,
+        isOrderRelated: true,
+        detailedDescription: transaction.description
+      };
+    }
   }
 };
 
