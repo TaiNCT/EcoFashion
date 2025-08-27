@@ -38,6 +38,7 @@ namespace EcoFashionBackEnd.Services
             var transactions = await _productTransactionRepository
                 .GetAll().AsNoTracking()
                 .Include(t => t.ProductInventory)
+                .ThenInclude(pi => pi.Product)
                 .Include(t => t.User)
                 .OrderByDescending(t => t.TransactionDate)
                 .ToListAsync();
@@ -64,6 +65,7 @@ namespace EcoFashionBackEnd.Services
             var transactions = await _materialTransactionRepository
                 .GetAll().AsNoTracking()
                 .Include(t => t.MaterialInventory)
+                .ThenInclude (t=> t.Material)
                 .Include(t => t.User)
                 .OrderByDescending(t => t.TransactionDate)
                 .ToListAsync();
