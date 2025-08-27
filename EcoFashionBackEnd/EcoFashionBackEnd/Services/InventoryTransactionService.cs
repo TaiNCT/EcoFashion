@@ -32,7 +32,7 @@ namespace EcoFashionBackEnd.Services
 
         //get all ProductInventoryTransaction   
         //get all ProductInventoryTransaction   
-        public async Task<List<ProductInventoryTransactionDto>> GetAllProductTransactionsAsync()
+        public async Task<List<ProductInventoryTransaction>> GetAllProductTransactionsAsync()
         {
             return await _productTransactionRepository
                 .GetAll()
@@ -49,7 +49,7 @@ namespace EcoFashionBackEnd.Services
                 .GetAll()
                 .Include(t => t.MaterialInventory)
                 .ThenInclude (t=> t.Material)
-                .Include(t => t.User)
+                //.Include(t => t.User)
                 .OrderByDescending(t => t.TransactionDate)
                 .ToListAsync();
         }

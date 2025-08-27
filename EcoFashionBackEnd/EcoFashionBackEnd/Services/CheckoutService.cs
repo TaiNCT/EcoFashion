@@ -158,17 +158,7 @@ namespace EcoFashionBackEnd.Services
                 var groupDiscount = 0m;
                 var groupTotal = groupSubtotal + groupShipping - groupDiscount;
 
-            await _orderRepository.AddAsync(order);
-            await _orderRepository.Commit();
-
-            // Add order details for all items
-            foreach (var item in normalizedItems)
-            {
-                // Determine supplier/designer IDs from the actual items
-                Guid? supplierId = null;
-                Guid? designerId = null;
-
-                if (item.ItemType == "material" && item.MaterialId.HasValue)
+                var order = new Order
                 {
                     UserId = userId,
                     OrderGroupId = orderGroup.OrderGroupId,
@@ -212,17 +202,9 @@ namespace EcoFashionBackEnd.Services
                     };
                     await _orderDetailRepository.AddAsync(detail);
                 }
-                else if (item.ItemType == "product" && item.ProductId.HasValue)
-                {
-                    var product = await _dbContext.Products
-                        .Include(p => p.Design)
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(p => p.ProductId == item.ProductId.Value);
-                    designerId = product?.Design?.DesignerId;
-                }
-                // For designs, we'll leave both null since designs might not have associated designers yet
+                await _orderDetailRepository.Commit();
 
-                var detail = new OrderDetail
+                response.Orders.Add(new CheckoutOrderDto
                 {
                     OrderId = order.OrderId,
                     Subtotal = order.Subtotal,
@@ -231,21 +213,10 @@ namespace EcoFashionBackEnd.Services
                     TotalAmount = order.TotalPrice,
                     PaymentStatus = order.PaymentStatus.ToString()
                 });
-                
+
                 // Thêm OrderId vào danh sách
                 response.OrderIds.Add(order.OrderId);
             }
-            await _orderDetailRepository.Commit();
-
-            response.Orders.Add(new CheckoutOrderDto
-            {
-                OrderId = order.OrderId,
-                Subtotal = order.Subtotal,
-                ShippingFee = order.ShippingFee,
-                Discount = order.Discount,
-                TotalAmount = order.TotalPrice,
-                PaymentStatus = order.PaymentStatus.ToString()
-            });
 
             // Update counts on group
             orderGroup.TotalOrders = totalOrders;
@@ -327,7 +298,7 @@ namespace EcoFashionBackEnd.Services
             {
                 var order = await _dbContext.Orders
                     .FirstOrDefaultAsync(o => o.OrderId == orderId && o.UserId == userId && o.PaymentStatus == PaymentStatus.Pending);
-                
+
                 if (order == null) return false;
 
                 var formattedAddress = await _userAddressService.GetFormattedAddressAsync(addressId, userId);
@@ -379,7 +350,7 @@ namespace EcoFashionBackEnd.Services
             {
                 var order = await _dbContext.Orders
                     .FirstOrDefaultAsync(o => o.OrderId == orderId && o.UserId == userId && o.PaymentStatus == PaymentStatus.Pending);
-                
+
                 if (order == null) return false;
 
                 order.ShippingAddress = shippingAddress;
@@ -395,5 +366,3 @@ namespace EcoFashionBackEnd.Services
         }
     }
 }
-
-

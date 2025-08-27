@@ -141,7 +141,7 @@ const FashionsSection: React.FC<ProductsSectionProps> = ({
                   onToggleFavorite={onToggleFavorite}
                   onProductClick={onProductClick}
                 />
-              </div>
+              )}
             </Grid>
           ))}
         </Grid>

@@ -17,18 +17,18 @@ namespace EcoFashionBackEnd.Entities
         public Guid? OrderGroupId { get; set; }
         [ForeignKey("OrderGroupId")]
         public virtual OrderGroup? OrderGroup { get; set; }
-        
+
         // Link to checkout session for flexible checkout
         public Guid? CheckoutSessionId { get; set; }
         [ForeignKey("CheckoutSessionId")]
         public virtual CheckoutSession? CheckoutSession { get; set; }
-        
+
         // Provider info for this order (single provider per order)
         public Guid? SupplierId { get; set; }
         public Guid? DesignerId { get; set; }
         public string? ProviderName { get; set; }
         public string? ProviderType { get; set; } // "Supplier" or "Designer"
-        
+
         [ForeignKey("SupplierId")]
         public virtual Supplier? Supplier { get; set; }
         [ForeignKey("DesignerId")]
@@ -61,6 +61,7 @@ namespace EcoFashionBackEnd.Entities
         public DateTime OrderDate { get; set; }
         public DateTime CreateAt { get; set; } = DateTime.Now;
         public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
+        public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
     }
     public enum OrderStatus
     {
@@ -80,11 +81,9 @@ namespace EcoFashionBackEnd.Entities
     public enum FulfillmentStatus
     {
         None,
-        PartiallyConfirmed,  // Một phần đã được xác nhận bởi sellers
-        Processing,          // Tất cả sellers đã xác nhận
-        PartiallyShipped,    // Một phần đã được vận chuyển
-        Shipped,            // Tất cả đã được vận chuyển
-        Delivered,          // Hoàn thành - chia tiền admin trả tiền lại người bán 90% 
+        Processing,
+        Shipped,
+        Delivered,// chia tiền admin trả tiền lại người bán 90% 
         Canceled
     }
 }
