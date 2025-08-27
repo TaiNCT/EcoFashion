@@ -47,6 +47,7 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import DesignServicesOutlinedIcon from "@mui/icons-material/DesignServicesOutlined";
 import AddIcon from "@mui/icons-material/Add";
+import DesignerOrders from "./DesignerOrders";
 import {
   DressIcon,
   EcoIcon,
@@ -338,7 +339,7 @@ export default function DesignerDashBoard() {
       costPerUnit: new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",
-      }).format(inventory.material.pricePerUnit * 1000),
+      }).format(inventory.material.pricePerUnit),
       totalValue: new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",
@@ -463,7 +464,7 @@ export default function DesignerDashBoard() {
 
   const totalMaterials = storedMaterial.length;
   const totalCost = storedMaterial.reduce(
-    (sum, m) => sum + m.material.pricePerUnit * 1000 * m.quantity,
+    (sum, m) => sum + m.material.pricePerUnit * m.quantity,
     0
   );
   const lowStockCount = storedMaterial.filter(
@@ -1302,6 +1303,16 @@ export default function DesignerDashBoard() {
           />
           <Tab
             label="Kho Vật Liệu"
+            sx={{
+              flex: 1,
+              "&.Mui-selected": {
+                color: "rgba(22, 163, 74)", // Màu khi được chọn
+                fontWeight: "bold", // Tuỳ chọn: in đậm
+              },
+            }}
+          />
+          <Tab
+            label="Quản Lý Đơn Hàng"
             sx={{
               flex: 1,
               "&.Mui-selected": {
@@ -2321,6 +2332,13 @@ export default function DesignerDashBoard() {
               width: "100%", // or set a fixed px width like "800px"
             }}
           />
+        </Box>
+      )}
+
+      {/* Tab Quản Lý Đơn Hàng */}
+      {tabIndex === 4 && (
+        <Box sx={{ width: "100%" }}>
+          <DesignerOrders />
         </Box>
       )}
 

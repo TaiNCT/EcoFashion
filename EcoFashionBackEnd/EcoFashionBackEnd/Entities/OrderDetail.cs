@@ -12,6 +12,7 @@ namespace EcoFashionBackEnd.Entities
         [ForeignKey("Order")]
         public int OrderId { get; set; }
         public virtual Order Order { get; set; } = null!;
+
         [ForeignKey("Design")]
         public int? DesignId { get; set; }
         public virtual Design? Design { get; set; }
@@ -21,6 +22,9 @@ namespace EcoFashionBackEnd.Entities
         [ForeignKey("Material")]
         public int? MaterialId { get; set; }
         public virtual Material? Material { get; set; }
+        [ForeignKey("Product")]
+        public int? ProductId { get; set; }
+        public virtual Product? Product { get; set; }
         [ForeignKey("Supplier")]
         public Guid? SupplierId { get; set; }
         public virtual Supplier? Supplier { get; set; }
@@ -34,7 +38,8 @@ namespace EcoFashionBackEnd.Entities
     public enum OrderDetailType
     {
         design,
-        material
+        material,
+        product
     }
     public enum OrderDetailStatus
     {

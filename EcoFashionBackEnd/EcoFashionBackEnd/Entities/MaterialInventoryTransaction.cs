@@ -13,10 +13,8 @@ namespace EcoFashionBackEnd.Entities
         public int InventoryId { get; set; }
         [ForeignKey(nameof(InventoryId))]
         public virtual DesignerMaterialInventory MaterialInventory { get; set; }
-
         public int? PerformedByUserId { get; set; }
         [ForeignKey(nameof(PerformedByUserId))]
-        public virtual User User { get; set; }
         public decimal QuantityChanged { get; set; }
         public decimal? BeforeQty { get; set; }
         public decimal? AfterQty { get; set; }

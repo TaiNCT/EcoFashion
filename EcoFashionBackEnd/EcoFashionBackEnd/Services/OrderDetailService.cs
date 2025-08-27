@@ -25,6 +25,8 @@ public class OrderDetailService
             .Include(od => od.Designer)
             .Include(od => od.Material).ThenInclude(m => m.MaterialImages)
                 .ThenInclude(mi => mi.Image)
+            .Include(od => od.Product).ThenInclude(p => p.Design).ThenInclude(d => d.DesignerProfile)
+            .Include(od => od.Product).ThenInclude(p => p.Design).ThenInclude(d => d.DesignImages).ThenInclude(di => di.Image)
             .Include(od => od.Supplier)
             .ToListAsync();
         var result = orderDetails.Select(od =>
@@ -33,16 +35,17 @@ public class OrderDetailService
             string providerName;
             string? imageUrl = null;
 
-            if (od.Type == OrderDetailType.design && od.Design != null)
-            {
-                itemName = od.Design.Name ?? "Không có tên thiết kế";
-                providerName = od.Designer?.DesignerName ?? "Nhà thiết kế không tồn tại";
-            }
-            else if (od.Type == OrderDetailType.material && od.Material != null)
+            if (od.Type == OrderDetailType.material && od.Material != null)
             {
                 itemName = od.Material.Name ?? "Không có tên chất liệu";
                 providerName = od.Supplier?.SupplierName ?? "Nhà cung cấp không tồn tại";
                 imageUrl = od.Material.MaterialImages.FirstOrDefault()?.Image?.ImageUrl;
+            }
+            else if (od.Type == OrderDetailType.product && od.Product != null)
+            {
+                itemName = od.Product.Design?.Name ?? "Không có tên sản phẩm";
+                providerName = od.Product.Design?.DesignerProfile?.DesignerName ?? "Nhà thiết kế không tồn tại";
+                imageUrl = od.Product.Design?.DesignImages?.FirstOrDefault()?.Image?.ImageUrl;
             }
             else
             {
@@ -60,9 +63,8 @@ public class OrderDetailService
                 Type = od.Type.ToString(),
                 Status = od.Status.ToString(),
 
-                DesignId = od.Type == OrderDetailType.design ? od.DesignId : null,
-                DesignerId = od.Type == OrderDetailType.design ? od.DesignerId : null,
                 MaterialId = od.Type == OrderDetailType.material ? od.MaterialId : 0,
+                ProductId = od.Type == OrderDetailType.product ? od.ProductId : null,
                 SupplierId = od.Type == OrderDetailType.material ? od.SupplierId : null,
 
                 ItemName = itemName,
@@ -79,6 +81,8 @@ public class OrderDetailService
             .Include(o => o.Order)
             .Include(o => o.Designer)
             .Include(o => o.Material).ThenInclude(m => m.MaterialImages).ThenInclude(mi => mi.Image)
+            .Include(o => o.Product).ThenInclude(p => p.Design).ThenInclude(d => d.DesignerProfile)
+            .Include(o => o.Product).ThenInclude(p => p.Design).ThenInclude(d => d.DesignImages).ThenInclude(di => di.Image)
             .Include(o => o.Supplier)
             .FirstOrDefaultAsync(o => o.OrderDetailId == id);
 
@@ -89,16 +93,17 @@ public class OrderDetailService
         string providerName = "Không xác định";
         string? imageUrl = null;
 
-        if (od.Type == OrderDetailType.design && od.Design != null)
-        {
-            itemName = od.Design?.Name ?? "Không có tên thiết kế";
-            providerName = od.Designer?.DesignerName ?? "Nhà thiết kế không tồn tại";
-        }
-        else if (od.Type == OrderDetailType.material && od.Material != null)
+        if (od.Type == OrderDetailType.material && od.Material != null)
         {
             itemName = od.Material?.Name ?? "Không có tên chất liệu";
             providerName = od.Supplier?.SupplierName ?? "Nhà cung cấp không tồn tại";
             imageUrl = od.Material?.MaterialImages.FirstOrDefault()?.Image?.ImageUrl;
+        }
+        else if (od.Type == OrderDetailType.product && od.Product != null)
+        {
+            itemName = od.Product?.Design?.Name ?? "Không có tên sản phẩm";
+            providerName = od.Product?.Design?.DesignerProfile?.DesignerName ?? "Nhà thiết kế không tồn tại";
+            imageUrl = od.Product?.Design?.DesignImages?.FirstOrDefault()?.Image?.ImageUrl;
         }
 
         return new OrderDetailModel
@@ -110,9 +115,8 @@ public class OrderDetailService
             Type = od.Type.ToString(),
             Status = od.Status.ToString(),
 
-            DesignId = od.Type == OrderDetailType.design ? od.DesignId : null,
-            DesignerId = od.Type == OrderDetailType.design ? od.DesignerId : null,
             MaterialId = od.Type == OrderDetailType.material ? od.MaterialId : null,
+            ProductId = od.Type == OrderDetailType.product ? od.ProductId : null,
             SupplierId = od.Type == OrderDetailType.material ? od.SupplierId : null,
 
             ItemName = itemName,
@@ -122,15 +126,11 @@ public class OrderDetailService
     }
     public async Task<int> CreateOrderDetailAsync(int userId, CreateOrderDetailRequest request)
     {
-        // Kiểm tra chỉ được chọn một trong hai: Design hoặc Material
-        if (request.Type == OrderDetailType.design && request.DesignId == null)
-            throw new ArgumentException("Thiết kế không được để trống khi loại là 'design'.");
+        // Kiểm tra loại đơn hàng hợp lệ: Material hoặc Product
         if (request.Type == OrderDetailType.material && request.MaterialId == null)
             throw new ArgumentException("Chất liệu không được để trống khi loại là 'material'.");
-        if (request.Type == OrderDetailType.design && request.MaterialId != null)
-            throw new ArgumentException("Không được chọn chất liệu khi đơn hàng là 'design'.");
-        if (request.Type == OrderDetailType.material && request.DesignId != null)
-            throw new ArgumentException("Không được chọn thiết kế khi đơn hàng là 'material'.");
+        if (request.Type == OrderDetailType.product && request.DesignId == null)
+            throw new ArgumentException("Sản phẩm không được để trống khi loại là 'product'.");
         var orderDetail = _mapper.Map<OrderDetail>(request);
         _dbContext.OrderDetails.Add(orderDetail);
         await _dbContext.SaveChangesAsync();
@@ -161,4 +161,50 @@ public class OrderDetailService
         var result = await _dbContext.SaveChangesAsync();
         return result > 0;
     }
+
+
+    // Helper method to map OrderDetail to OrderDetailModel
+    private OrderDetailModel MapOrderDetailToModel(OrderDetail od)
+    {
+        string itemName;
+        string providerName;
+        string? imageUrl = null;
+
+        if (od.Type == OrderDetailType.material && od.Material != null)
+        {
+            itemName = od.Material.Name ?? "Không có tên chất liệu";
+            providerName = od.Supplier?.SupplierName ?? "Nhà cung cấp không tồn tại";
+            imageUrl = od.Material.MaterialImages.FirstOrDefault()?.Image?.ImageUrl;
+        }
+        else if (od.Type == OrderDetailType.product && od.Product != null)
+        {
+            itemName = od.Product.Design?.Name ?? "Không có tên sản phẩm";
+            providerName = od.Product.Design?.DesignerProfile?.DesignerName ?? "Nhà thiết kế không tồn tại";
+            imageUrl = od.Product.Design?.DesignImages?.FirstOrDefault()?.Image?.ImageUrl;
+        }
+        else
+        {
+            itemName = "Không xác định";
+            providerName = "Không xác định";
+        }
+
+        return new OrderDetailModel
+        {
+            OrderDetailId = od.OrderDetailId,
+            OrderId = od.OrderId,
+            Quantity = od.Quantity,
+            UnitPrice = od.UnitPrice,
+            Type = od.Type.ToString(),
+            Status = od.Status.ToString(),
+
+            MaterialId = od.Type == OrderDetailType.material ? od.MaterialId : 0,
+            ProductId = od.Type == OrderDetailType.product ? od.ProductId : null,
+            SupplierId = od.Type == OrderDetailType.material ? od.SupplierId : null,
+
+            ItemName = itemName,
+            ProviderName = providerName,
+            ImageUrl = imageUrl
+        };
+    }
+
 }

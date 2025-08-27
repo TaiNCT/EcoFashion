@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
 using EcoFashionBackEnd.Dtos;
-using EcoFashionBackEnd.Dtos.TransactionInventory;
 using EcoFashionBackEnd.Entities;
 using EcoFashionBackEnd.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Cms;
 
 namespace EcoFashionBackEnd.Services
 {
@@ -31,73 +29,35 @@ namespace EcoFashionBackEnd.Services
         }
         #endregion
 
-        //get all ProductInventoryTransaction   
-        public async Task<List<ProductInventoryTransactionDto>> GetAllProductTransactionsAsync()
+        
+        public async Task<List<ProductInventoryTransaction>> GetAllProductTransactionsAsync()
         {
-            var transactions = await _productTransactionRepository
-                .GetAll().AsNoTracking()
+            return await _productTransactionRepository
+                .GetAll()
                 .Include(t => t.ProductInventory)
                 .Include(t => t.User)
                 .OrderByDescending(t => t.TransactionDate)
                 .ToListAsync();
-
-            return transactions.Select(t => new ProductInventoryTransactionDto
-            {
-                TransactionId = t.TransactionId,
-                InventoryId = t.InventoryId,
-                ProductName = t.ProductInventory?.Product.SKU ?? string.Empty,
-                PerformedByUserId = t.PerformedByUserId,
-                PerformedByUserName = t.User?.FullName,
-                QuantityChanged = t.QuantityChanged,
-                BeforeQty = t.BeforeQty,
-                AfterQty = t.AfterQty,
-                TransactionDate = t.TransactionDate,
-                TransactionType = t.TransactionType,
-                Notes = t.Notes
-            }).ToList();
         }
 
-
-        public async Task<List<MaterialInventoryTransactionDto>> GetAllMaterialTransactionsAsync()
+        public async Task<List<MaterialInventoryTransaction>> GetAllMaterialTransactionsAsync()
         {
-            var transactions = await _materialTransactionRepository
-                .GetAll().AsNoTracking()
+            return await _materialTransactionRepository
+                .GetAll()
                 .Include(t => t.MaterialInventory)
-                .Include(t => t.User)
                 .OrderByDescending(t => t.TransactionDate)
                 .ToListAsync();
-
-            return transactions.Select(t => new MaterialInventoryTransactionDto
-            {
-                TransactionId = t.TransactionId,
-                InventoryId = t.InventoryId,
-                MaterialName = t.MaterialInventory?.Material.Name ?? string.Empty,
-                PerformedByUserId = t.PerformedByUserId,
-                PerformedByUserName = t.User?.FullName,
-                QuantityChanged = t.QuantityChanged,
-                BeforeQty = t.BeforeQty,
-                AfterQty = t.AfterQty,
-                TransactionType = t.TransactionType,
-                Notes = t.Notes,
-                TransactionDate = t.TransactionDate
-            }).ToList();
         }
-
 
         public async Task<List<InventoryTransactionDto>> GetAllTransactionsAsync()
         {
-            var productTx = await _productTransactionRepository.GetAll().AsNoTracking()
-                .Include(t => t.ProductInventory)
-                    .ThenInclude(p => p.Product)
-                .Include(t => t.User)
+            var productTx = await _productTransactionRepository.GetAll()
                 .Select(t => new InventoryTransactionDto
                 {
                     TransactionId = t.TransactionId,
                     InventoryType = "Product",
                     InventoryId = t.InventoryId,
-                    ItemName = t.ProductInventory.Product.SKU ?? string.Empty,
                     PerformedByUserId = t.PerformedByUserId,
-                    PerformedByUserName = t.User.FullName,
                     QuantityChanged = t.QuantityChanged,
                     BeforeQty = t.BeforeQty,
                     AfterQty = t.AfterQty,
@@ -107,18 +67,13 @@ namespace EcoFashionBackEnd.Services
                 })
                 .ToListAsync();
 
-            var materialTx = await _materialTransactionRepository.GetAll().AsNoTracking()
-                .Include(t => t.MaterialInventory)
-                    .ThenInclude(p => p.Material)
-                .Include(t => t.User)
+            var materialTx = await _materialTransactionRepository.GetAll()
                 .Select(t => new InventoryTransactionDto
                 {
                     TransactionId = t.TransactionId,
                     InventoryType = "Material",
                     InventoryId = t.InventoryId,
-                    ItemName = t.MaterialInventory.Material.Name,
                     PerformedByUserId = t.PerformedByUserId,
-                    PerformedByUserName = t.User.FullName,
                     QuantityChanged = t.QuantityChanged,
                     BeforeQty = t.BeforeQty,
                     AfterQty = t.AfterQty,
@@ -135,19 +90,14 @@ namespace EcoFashionBackEnd.Services
 
         public async Task<List<InventoryTransactionDto>> GetTransactionsByDesignerAsync(Guid designerId)
         {
-            var productTx = await _productTransactionRepository.GetAll().AsNoTracking()
+            var productTx = await _productTransactionRepository.GetAll()
                 .Where(t => t.ProductInventory.Warehouse.DesignerId == designerId)
-                .Include(t => t.ProductInventory)
-                    .ThenInclude(p => p.Product)
-                .Include(t => t.User)
                 .Select(t => new InventoryTransactionDto
                 {
                     TransactionId = t.TransactionId,
                     InventoryType = "Product",
                     InventoryId = t.InventoryId,
-                    ItemName = t.ProductInventory.Product.SKU ?? string.Empty,
                     PerformedByUserId = t.PerformedByUserId,
-                    PerformedByUserName = t.User.FullName,
                     QuantityChanged = t.QuantityChanged,
                     BeforeQty = t.BeforeQty,
                     AfterQty = t.AfterQty,
@@ -157,19 +107,14 @@ namespace EcoFashionBackEnd.Services
                 })
                 .ToListAsync();
 
-            var materialTx = await _materialTransactionRepository.GetAll().AsNoTracking()
+            var materialTx = await _materialTransactionRepository.GetAll()
                 .Where(t => t.MaterialInventory.Warehouse.DesignerId == designerId)
-                .Include(t => t.MaterialInventory)
-                    .ThenInclude(m => m.Material)
-                .Include(t => t.User)
                 .Select(t => new InventoryTransactionDto
                 {
                     TransactionId = t.TransactionId,
                     InventoryType = "Material",
                     InventoryId = t.InventoryId,
-                    ItemName = t.MaterialInventory.Material.Name ,
                     PerformedByUserId = t.PerformedByUserId,
-                    PerformedByUserName = t.User.FullName,
                     QuantityChanged = t.QuantityChanged,
                     BeforeQty = t.BeforeQty,
                     AfterQty = t.AfterQty,

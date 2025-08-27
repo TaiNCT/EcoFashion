@@ -538,7 +538,7 @@ namespace EcoFashionBackEnd.Services
         }
 
         /// <summary>
-        /// Kiểm tra xem material có chứng chỉ bền vững được công nhận không (10 chứng chỉ chính + 6 mới)
+        /// Kiểm tra xem material có chứng chỉ bền vững được công nhận không
         /// </summary>
         private static bool HasRecognizedSustainabilityCertification(string certificationDetails)
         {

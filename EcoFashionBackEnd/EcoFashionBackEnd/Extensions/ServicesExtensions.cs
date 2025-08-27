@@ -78,6 +78,7 @@ public static class ServicesExtensions
 
         services.AddScoped<UserService>();
         services.AddScoped<UserRoleService>();
+        services.AddScoped<UserAddressService>();
         services.AddScoped<DesignerService>();
         services.AddScoped<SupplierService>();
         services.AddScoped<ApplicationService>();
@@ -98,28 +99,24 @@ public static class ServicesExtensions
         services.AddScoped<BlogService>();
         services.AddScoped<OrderService>();
         services.AddScoped<CheckoutService>();
+        services.AddScoped<FlexibleCheckoutService>();
         services.AddScoped<OrderDetailService>();
         services.AddScoped<CartService>();
         services.AddScoped<NotificationService>();
         services.AddScoped<MaterialInventoryService>();
         services.AddScoped<InventoryAnalyticsService>();
+        services.AddScoped<ProductInventoryAnalyticsService>();
         //services.AddScoped<IVnPayService, VnPayService>();
         services.AddScoped<PaymentService>();
         services.AddScoped<IVnPayService, VnPayService>();
+        services.AddScoped<OrderPaymentService>();
+        services.AddScoped<SettlementService>();
         services.AddScoped<ProductService>();
         services.AddScoped<InventoryService>();
         services.AddScoped<DesignsVariantService>();
         services.AddScoped<ReviewService>();
         services.AddScoped<InventoryTransactionService>();
         services.AddScoped<WalletService>();
-
-
-
-
-        //background service 
-
-        services.AddScoped<IOrderPayoutService, OrderPayoutService>();
-        services.AddHostedService<OrderPayoutBackgroundService>();
 
 
 

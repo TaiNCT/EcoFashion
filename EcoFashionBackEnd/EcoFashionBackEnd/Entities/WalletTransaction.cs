@@ -36,6 +36,13 @@ namespace EcoFashionBackEnd.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        // Optional references for auditability
+        public int? OrderId { get; set; }
+
+        public Guid? OrderGroupId { get; set; }
+
+        public Guid? SettlementId { get; set; }
+
         // Optional: Liên kết với PaymentTransaction nếu có
         public Guid? PaymentTransactionId { get; set; }
 
@@ -46,11 +53,12 @@ namespace EcoFashionBackEnd.Entities
 
     public enum TransactionType
     {
-        Deposit,      // Nạp tiền
-        Withdrawal,   // Rút tiền
-        Payment,      // Thanh toán Order
-        Refund,       // Hoàn tiền
-        Transfer      // Chuyển khoản nội bộ
+        Deposit,           // Nạp tiền từ bên ngoài (VNPay, etc.)
+        Withdrawal,        // Rút tiền ra bên ngoài
+        Payment,           // Thanh toán đơn hàng (khách hàng trả tiền)
+        PaymentReceived,   // Nhận tiền từ đơn hàng (admin/seller nhận tiền)
+        Refund,            // Hoàn tiền
+        Transfer           // Chuyển khoản nội bộ
     }
     public enum TransactionStatus
     {

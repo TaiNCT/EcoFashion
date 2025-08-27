@@ -17,6 +17,22 @@ namespace EcoFashionBackEnd.Entities
         public Guid? OrderGroupId { get; set; }
         [ForeignKey("OrderGroupId")]
         public virtual OrderGroup? OrderGroup { get; set; }
+        
+        // Link to checkout session for flexible checkout
+        public Guid? CheckoutSessionId { get; set; }
+        [ForeignKey("CheckoutSessionId")]
+        public virtual CheckoutSession? CheckoutSession { get; set; }
+        
+        // Provider info for this order (single provider per order)
+        public Guid? SupplierId { get; set; }
+        public Guid? DesignerId { get; set; }
+        public string? ProviderName { get; set; }
+        public string? ProviderType { get; set; } // "Supplier" or "Designer"
+        
+        [ForeignKey("SupplierId")]
+        public virtual Supplier? Supplier { get; set; }
+        [ForeignKey("DesignerId")]
+        public virtual Designer? Designer { get; set; }
         [Required]
         public required string ShippingAddress { get; set; }
         // Monetary breakdown
@@ -38,11 +54,8 @@ namespace EcoFashionBackEnd.Entities
         public decimal? CommissionRate { get; set; }
         public decimal? CommissionAmount { get; set; }
         public decimal? NetAmount { get; set; }
-        // Per-seller routing
-        public string? SellerType { get; set; } // "Supplier" or "Designer"
-        public Guid? SellerId { get; set; }
-        public bool IsPaidOut { get; set; } = false;
-
+        // Note: Seller info is determined dynamically from OrderDetails
+        // since orders can contain mixed items from different suppliers/designers
         // Expiry to release reserved stock
         public DateTime? ExpiresAt { get; set; }
         public DateTime OrderDate { get; set; }
