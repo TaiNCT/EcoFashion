@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EcoFashionBackEnd.Migrations
 {
     /// <inheritdoc />
-    public partial class v1 : Migration
+    public partial class v : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -1341,6 +1341,11 @@ namespace EcoFashionBackEnd.Migrations
                         principalTable: "DesignerMaterialInventories",
                         principalColumn: "InventoryId",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MaterialInventoryTransactions_Users_PerformedByUserId",
+                        column: x => x.PerformedByUserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -1591,6 +1596,11 @@ namespace EcoFashionBackEnd.Migrations
                 name: "IX_MaterialInventoryTransactions_InventoryId",
                 table: "MaterialInventoryTransactions",
                 column: "InventoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MaterialInventoryTransactions_PerformedByUserId",
+                table: "MaterialInventoryTransactions",
+                column: "PerformedByUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Materials_SupplierId",

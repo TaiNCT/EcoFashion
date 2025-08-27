@@ -36,8 +36,90 @@ namespace EcoFashionBackEnd.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        //public async Task AddProductInventoriesAsync(List<(int productId, int warehouseId, int quantity)> changes)
+        //{
+        //    var now = DateTime.UtcNow;
+        //    // Lấy User ID từ HttpContext
+        //    var userIdString = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //    if (string.IsNullOrEmpty(userIdString))
+        //    {
+        //        // Xử lý trường hợp không tìm thấy UserId (ví dụ: yêu cầu không xác thực)
+        //        throw new UnauthorizedAccessException("Người dùng không được xác thực.");
+        //    }
+
+        //    if (!int.TryParse(userIdString, out int userId))
+        //    {
+        //        // Xử lý trường hợp UserId không hợp lệ (ví dụ: không phải số nguyên)
+        //        throw new InvalidOperationException("ID người dùng không hợp lệ.");
+        //    }
+
+        //    // Bước 1: Chuẩn bị dữ liệu và tối ưu hóa truy vấn
+        //    // Lấy tất cả các ProductId và WarehouseId duy nhất từ danh sách thay đổi.
+        //    var productIds = changes.Select(c => c.productId).Distinct().ToList();
+        //    var warehouseIds = changes.Select(c => c.warehouseId).Distinct().ToList();
+
+        //    // Sử dụng ToDictionaryAsync để tối ưu hóa việc tìm kiếm sau này.
+        //    var existingInventories = await _productInventoryRepository.GetAll()
+        //        .Where(pi => productIds.Contains(pi.ProductId) && warehouseIds.Contains(pi.WarehouseId))
+        //        .ToDictionaryAsync(pi => (pi.ProductId, pi.WarehouseId)); // Khóa là một Tuple để duy nhất
+
+        //    var newInventories = new List<ProductInventory>();
+        //    var newTransactions = new List<ProductInventoryTransaction>();
+
+        //    // Bước 2: Xử lý từng thay đổi trong bộ nhớ
+        //    // Duyệt qua từng thay đổi để cập nhật hoặc thêm mới tồn kho.
+        //    foreach (var change in changes)
+        //    {
+        //        var key = (change.productId, change.warehouseId);
+
+        //        if (existingInventories.TryGetValue(key, out var inventory))
+        //        {
+        //            // Nếu tồn kho đã có, cập nhật số lượng và thời gian.
+        //            var oldQuantity = inventory.QuantityAvailable;
+        //            inventory.QuantityAvailable += change.quantity;
+        //            inventory.LastUpdated = now;
+
+        //            // Bổ sung: Tạo bản ghi lịch sử giao dịch.
+        //            var transaction = new ProductInventoryTransaction
+        //            {
+        //                InventoryId = inventory.InventoryId,
+        //                QuantityChanged = change.quantity,
+        //                BeforeQty = oldQuantity,
+        //                AfterQty = inventory.QuantityAvailable,
+        //                TransactionType = "Restock", // Có thể là Restock, Return, etc.
+        //                Notes = $"Nhập kho sản phẩm. Số lượng cũ: {oldQuantity}",
+        //                PerformedByUserId = userId,
+        //                TransactionDate = now,
+        //            };
+        //            newTransactions.Add(transaction);
+        //        }
+        //        else
+        //        {
+        //            // Nếu không tìm thấy, tạo bản ghi tồn kho mới và bản ghi lịch sử.
+        //            var newInventory = new ProductInventory
+        //            {
+        //                ProductId = change.productId,
+        //                WarehouseId = change.warehouseId,
+        //                QuantityAvailable = change.quantity,
+        //                LastUpdated = now,
+        //            };
+        //            newInventories.Add(newInventory);
+        //        }
+        //    }
+
+        //    // Thêm các bản ghi tồn kho mới vào repository.
+        //    await _productInventoryRepository.AddRangeAsync(newInventories);
+
+        //    // Thêm các bản ghi giao dịch mới vào repository.
+        //    await _productInventoryTransactionRepository.AddRangeAsync(newTransactions);
+
+        //    // Bước 3: Lưu tất cả thay đổi vào database trong một giao dịch duy nhất
+        //    await _productInventoryRepository.Commit();
+        //}
         public async Task AddProductInventoriesAsync(List<(int productId, int warehouseId, int quantity)> changes)
         {
+            
             var now = DateTime.UtcNow;
             // Lấy User ID từ HttpContext
             var userIdString = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -54,69 +136,79 @@ namespace EcoFashionBackEnd.Services
                 throw new InvalidOperationException("ID người dùng không hợp lệ.");
             }
 
-            // Bước 1: Chuẩn bị dữ liệu và tối ưu hóa truy vấn
-            // Lấy tất cả các ProductId và WarehouseId duy nhất từ danh sách thay đổi.
-            var productIds = changes.Select(c => c.productId).Distinct().ToList();
-            var warehouseIds = changes.Select(c => c.warehouseId).Distinct().ToList();
+            if (changes == null || !changes.Any())
+                return;
 
-            // Sử dụng ToDictionaryAsync để tối ưu hóa việc tìm kiếm sau này.
-            var existingInventories = await _productInventoryRepository.GetAll()
-                .Where(pi => productIds.Contains(pi.ProductId) && warehouseIds.Contains(pi.WarehouseId))
-                .ToDictionaryAsync(pi => (pi.ProductId, pi.WarehouseId)); // Khóa là một Tuple để duy nhất
-
-            var newInventories = new List<ProductInventory>();
-            var newTransactions = new List<ProductInventoryTransaction>();
-
-            // Bước 2: Xử lý từng thay đổi trong bộ nhớ
-            // Duyệt qua từng thay đổi để cập nhật hoặc thêm mới tồn kho.
-            foreach (var change in changes)
-            {
-                var key = (change.productId, change.warehouseId);
-
-                if (existingInventories.TryGetValue(key, out var inventory))
+            var groupedChanges = changes
+                .GroupBy(c => new { c.productId, c.warehouseId })
+                .Select(g => new
                 {
-                    // Nếu tồn kho đã có, cập nhật số lượng và thời gian.
-                    var oldQuantity = inventory.QuantityAvailable;
-                    inventory.QuantityAvailable += change.quantity;
-                    inventory.LastUpdated = now;
+                    ProductId = g.Key.productId,
+                    WarehouseId = g.Key.warehouseId,
+                    TotalQuantity = g.Sum(x => x.quantity)
+                })
+                .ToList();
 
-                    // Bổ sung: Tạo bản ghi lịch sử giao dịch.
-                    var transaction = new ProductInventoryTransaction
+            foreach (var change in groupedChanges)
+            {
+                // 🔎 Tìm inventory
+                var inventory = await _productInventoryRepository
+                      .FindByCondition(pi =>
+                          pi.ProductId == change.ProductId &&
+                          pi.WarehouseId == change.WarehouseId)
+                      .FirstOrDefaultAsync();
+
+
+                decimal beforeQty = inventory?.QuantityAvailable ?? 0;
+
+                bool isNewInventory = inventory == null;
+
+                if (isNewInventory)
+                {
+                    // ➕ Tạo mới
+                    inventory = new ProductInventory
                     {
-                        InventoryId = inventory.InventoryId,
-                        QuantityChanged = change.quantity,
-                        BeforeQty = oldQuantity,
-                        AfterQty = inventory.QuantityAvailable,
-                        TransactionType = "Restock", // Có thể là Restock, Return, etc.
-                        Notes = $"Nhập kho sản phẩm. Số lượng cũ: {oldQuantity}",
-                        PerformedByUserId = userId,
-                        TransactionDate = now,
+                        ProductId = change.ProductId,
+                        WarehouseId = change.WarehouseId,
+                        QuantityAvailable = change.TotalQuantity
                     };
-                    newTransactions.Add(transaction);
+
+                    await _productInventoryRepository.AddAsync(inventory);
+                    await _productInventoryRepository.Commit(); // 💡 để có InventoryId
                 }
                 else
                 {
-                    // Nếu không tìm thấy, tạo bản ghi tồn kho mới và bản ghi lịch sử.
-                    var newInventory = new ProductInventory
-                    {
-                        ProductId = change.productId,
-                        WarehouseId = change.warehouseId,
-                        QuantityAvailable = change.quantity,
-                        LastUpdated = now,
-                    };
-                    newInventories.Add(newInventory);
+                    // 🔄 Cập nhật
+                    inventory.QuantityAvailable += change.TotalQuantity;
+                    _productInventoryRepository.Update(inventory);
+                    await _productInventoryRepository.Commit(); // 💡 commit để transaction chắc chắn thấy AfterQty
                 }
+
+                decimal afterQty = inventory.QuantityAvailable;
+
+                // 📝 Log transaction
+                var transaction = new ProductInventoryTransaction
+                {
+                    InventoryId = inventory.InventoryId,
+                    QuantityChanged = change.TotalQuantity,
+                    PerformedByUserId = userId,
+                    BeforeQty = beforeQty,
+                    AfterQty = afterQty,
+                    TransactionType = change.TotalQuantity >= 0 ? "Import" : "Export",
+                    TransactionDate = DateTime.UtcNow,
+                    Notes = isNewInventory
+        ? "Tạo mới sản phẩm trong kho."
+        : (change.TotalQuantity >= 0 ? "Nhập kho sản phẩm." : "Xuất kho sản phẩm.")
+                };
+
+                await _productInventoryTransactionRepository.AddAsync(transaction);
+                await _productInventoryTransactionRepository.Commit();
             }
-
-            // Thêm các bản ghi tồn kho mới vào repository.
-            await _productInventoryRepository.AddRangeAsync(newInventories);
-
-            // Thêm các bản ghi giao dịch mới vào repository.
-            await _productInventoryTransactionRepository.AddRangeAsync(newTransactions);
-
-            // Bước 3: Lưu tất cả thay đổi vào database trong một giao dịch duy nhất
-            await _productInventoryRepository.Commit();
         }
+
+
+
+
 
         public async Task DeductMaterialsAsync(Guid designerId, Dictionary<int, decimal> usageMap)
         {
@@ -165,7 +257,7 @@ namespace EcoFashionBackEnd.Services
                 {
                     throw new Exception(
                                         $"Kho vật liệu không đủ cho '{inventory.Material.Name}' (MaterialId={materialId}). " +
-                                        $"Yêu cầu: {requiredQty}m, Tồn kho: {inventory.Quantity}m"+
+                                        $"Yêu cầu: {requiredQty}m, Tồn kho: {inventory.Quantity}m" +
                                         $"Cần {requiredQty- inventory.Quantity}");
                                         }
 
