@@ -1358,6 +1358,7 @@ namespace EcoFashionBackEnd.Migrations
                     Status = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     OrderId = table.Column<int>(type: "int", nullable: true),
+                    OrderGroupId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     SettlementId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     PaymentTransactionId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },

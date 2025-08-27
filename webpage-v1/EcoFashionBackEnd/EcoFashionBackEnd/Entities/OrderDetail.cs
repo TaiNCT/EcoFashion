@@ -12,6 +12,7 @@ namespace EcoFashionBackEnd.Entities
         [ForeignKey("Order")]
         public int OrderId { get; set; }
         public virtual Order Order { get; set; } = null!;
+
         [ForeignKey("Design")]
         public int? DesignId { get; set; }
         public virtual Design? Design { get; set; }
