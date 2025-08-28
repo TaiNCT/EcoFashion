@@ -368,10 +368,12 @@ namespace EcoFashionBackEnd.Services
                     ColorCode = p.ColorCode,
                     SizeId = p.SizeId,
                     SizeName = p.Size.SizeName,
+                    DesignId = p.DesignId,
                     QuantityAvailable = p.Inventories
                         .Where(pi => pi.WarehouseId == productWarehouseId)
                         .Select(pi => pi.QuantityAvailable)
                         .FirstOrDefault()
+                       
                 }))
                 .ToListAsync();
 

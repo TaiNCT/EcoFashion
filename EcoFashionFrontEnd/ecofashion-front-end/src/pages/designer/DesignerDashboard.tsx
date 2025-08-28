@@ -118,13 +118,14 @@ import {
 } from "../../schemas/createProductSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ProductService from "../../services/api/productService";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 // import { useConfirm } from "material-ui-confirm";
 import InventoryTransactionsService, {
   ProductInventoryTransactions,
 } from "../../services/api/inventoryTransactionsService";
 import { useCartStore } from "../../store/cartStore";
 import { Description } from "@mui/icons-material";
+import { OrderModel, ordersService } from "../../services/api/ordersService";
 // Register chart components
 ChartJS.register(
   LineElement,
@@ -168,7 +169,7 @@ export default function DesignerDashBoard() {
     },
   ];
 
-  const orders = [
+  const orders1 = [
     {
       orderId: "ORD-01",
       product: "Áo Khoác Denim Tái Chế",
@@ -186,10 +187,14 @@ export default function DesignerDashBoard() {
     },
   ];
 
+  //Get Designer Id
+  const { designerProfile } = useAuthStore();
+  //Order data
+  const [orders, setOrders] = useState<OrderModel[]>([]);
   //Design Data
   const [designs, setDesigns] = useState<Design[]>([]);
   //Material Data
-  const [storedMaterial, setStoredMaterial] = useState<StoredMaterial[]>([]);
+  const [storedMaterial, setStoredMaterial] = useState<MaterialInStored[]>([]);
   //Design Have Product Data
   const [designProduct, setDesignProduct] = useState<Design[]>([]);
   //Loading
@@ -218,16 +223,20 @@ export default function DesignerDashBoard() {
       setLoading(true);
       setPageLoading(true);
       setError(null);
+
+      //Get Order
+      const fetchedOrders = await ordersService.getOrdersBySeller(
+        designerProfile.designerId
+      );
+      setOrders(fetchedOrders || []);
+
       const designData = await DesignService.getAllDesignByDesigner(
         getDesignerId()
       );
       setDesigns(designData);
 
-      const materialData = await DesignService.getStoredMaterial(
-        getDesignerId()
-      );
+      const materialData = await DesignService.getStoredMaterial();
       setStoredMaterial(materialData);
-      console.log("Stored Material: ", materialData);
 
       const designProductData = await DesignService.getAllDesignProuct(
         getDesignerId()
@@ -246,6 +255,13 @@ export default function DesignerDashBoard() {
       setLoading(false);
       setPageLoading(false);
     }
+  };
+
+  const reloadOrders = async () => {
+    const fetchedOrders = await ordersService.getOrdersBySeller(
+      designerProfile.designerId
+    );
+    setOrders(fetchedOrders || []);
   };
 
   //Get Material Used In Design
@@ -351,7 +367,7 @@ export default function DesignerDashBoard() {
   ];
 
   const [range, setRange] = useState("year");
-
+  const navigate = useNavigate();
   const getCurrentData = () => {
     if (range === "week") return weekData;
     if (range === "month") return monthData;
@@ -367,34 +383,35 @@ export default function DesignerDashBoard() {
     const tab = params.get("tab");
 
     if (tab === "design") setTabIndex(2);
+    navigate(location.pathname, { replace: true });
   }, [location.search]);
+
+  // run reloadOrders whenever tabIndex changes
+  useEffect(() => {
+    reloadOrders();
+  }, [tabIndex]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
 
-  const generateMockMaterial = (inventory: StoredMaterial[]) => {
+  const generateMockMaterial = (inventory: MaterialInStored[]) => {
     return inventory.map((inventory) => ({
       id: inventory.materialId,
-      material: inventory.material.name,
+      material: inventory.name,
       quantity: inventory.quantity,
-      quantityAvailable: inventory.material.quantityAvailable,
-      status:
-        inventory.quantity <= 0
-          ? "Hết Hàng"
-          : inventory.quantity < 30
-          ? "Sắp Hết Hàng"
-          : "Còn Hàng",
-      supplier: inventory.material.supplierName,
+      quantityAvailable: inventory.quantityAvailable,
+      status: inventory.status,
+      supplier: inventory.supplierName,
       costPerUnit: new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",
-      }).format(inventory.material.pricePerUnit),
+      }).format(inventory.pricePerUnit),
       totalValue: new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",
-      }).format(inventory.cost),
-      creatAt: new Date(inventory.lastBuyDate).toLocaleString("vi-VN", {
+      }).format(inventory.pricePerUnit * inventory.quantity),
+      creatAt: new Date(inventory.lastUpdated).toLocaleString("vi-VN", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -405,8 +422,6 @@ export default function DesignerDashBoard() {
     }));
   };
   type MaterialRow = ReturnType<typeof generateMockMaterial>[number];
-
-  const [openMaterial, setOpenMaterial] = useState(false);
 
   const material_columns: GridColDef<MaterialRow>[] = [
     { field: "id", headerName: "ID", width: 90 },
@@ -444,10 +459,10 @@ export default function DesignerDashBoard() {
           | "success"
           | "primary" = "default";
         switch (params.value) {
-          case "Còn Hàng":
+          case "Còn Hàng":
             color = "success";
             break;
-          case "Sắp Hết Hàng":
+          case "Còn Ít":
             color = "warning";
             break;
           case "Hết Hàng":
@@ -628,7 +643,7 @@ export default function DesignerDashBoard() {
 
   const totalMaterials = storedMaterial.length;
   const totalCost = storedMaterial.reduce(
-    (sum, m) => sum + m.material.pricePerUnit * m.quantity,
+    (sum, m) => sum + m.pricePerUnit * m.quantity,
     0
   );
   const lowStockCount = storedMaterial.filter(
@@ -993,7 +1008,7 @@ export default function DesignerDashBoard() {
     try {
       const result = await DesignService.deleteDesign(designId);
       if (result) {
-        // 🔄 Reload lại danh sách từ server
+        //Reload lại danh sách từ server
         const designData = await DesignService.getAllDesignByDesigner(
           getDesignerId()
         );
@@ -1590,21 +1605,23 @@ export default function DesignerDashBoard() {
             sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
           >
             <Stack direction="row" spacing={1}>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Bạn có chắc chắn muốn xoá variant này không?"
-                    )
-                  ) {
-                    handleDeleteVariant(params.row.variantId);
-                  }
-                }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
+              <Tooltip title="Xóa kế hoạch" arrow>
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Bạn có chắc chắn muốn xoá variant này không?"
+                      )
+                    ) {
+                      handleDeleteVariant(params.row.variantId);
+                    }
+                  }}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Stack>
           </Box>
         );
@@ -1613,7 +1630,8 @@ export default function DesignerDashBoard() {
   ];
 
   //Datagrid Product
-  const product_columns = [
+
+  const product_columns: GridColDef<FullProductDetail>[] = [
     { field: "sku", headerName: "SKU", flex: 1 },
     { field: "sizeName", headerName: "Kích Thước", width: 120 },
     {
@@ -1646,6 +1664,129 @@ export default function DesignerDashBoard() {
           size="small"
         />
       ),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      width: 50,
+      sortable: false,
+      filterable: false,
+      headerAlign: "right",
+      disableColumnMenu: true,
+      renderCell: (params) => {
+        const [open, setOpen] = React.useState(false);
+        const [quantity, setQuantity] = React.useState(0);
+
+        // tìm design theo designId của row
+        const design = designs.find((d) => d.designId === params.row.designId);
+
+        const reloadTab = async () => {
+          const response = await DesignService.getDesignProductDetailsAsync(
+            params.row.designId,
+            getDesignerId()
+          );
+          setDesignProductDetail(response);
+        };
+
+        const handleSave = async () => {
+          const payload = {
+            designId: params.row.designId,
+            variants: JSON.stringify([
+              {
+                SizeId: params.row.sizeId, // nếu không có sizeId thì cần map từ sizeName
+                ColorCode: params.row.colorCode,
+                Quantity: quantity,
+              },
+            ]),
+          };
+          try {
+            const res = await ProductService.updateProductDetailAsync(payload);
+
+            toast.success("Update Thành Công");
+            reloadTab();
+            reloadTabProduct();
+            setOpen(false);
+          } catch (err) {
+            console.error(err);
+            alert("Không thể tạo sản phẩm");
+          }
+        };
+
+        return (
+          <>
+            <Tooltip title="Thêm Sản Phẩm" arrow>
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => setOpen(true)}
+              >
+                <DesignServicesOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+
+            <Dialog
+              open={open}
+              onClose={() => setOpen(false)}
+              maxWidth="sm"
+              fullWidth
+            >
+              <DialogTitle>Chi tiết sản phẩm</DialogTitle>
+              <DialogContent>
+                <p>
+                  <b>DesignId:</b> {params.row.designId}
+                </p>
+                <p>
+                  <b>SKU:</b> {params.row.sku}
+                </p>
+                <p>
+                  <b>Kích Thước:</b> {params.row.sizeName}
+                </p>
+                <p>
+                  <b>Màu Sắc:</b> {params.row.colorCode}
+                </p>
+                <p>
+                  <b>Còn Lại:</b> {params.row.quantityAvailable}
+                </p>
+
+                <Box mt={2}>
+                  <b>Nguyên liệu:</b>
+                  {design?.materials?.length ? (
+                    <ul>
+                      {design.materials.map((m) => (
+                        <li key={m.materialId}>
+                          {m.materialName} ({m.meterUsed * quantity} m)
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>Không có nguyên liệu</p>
+                  )}
+                </Box>
+
+                <Box mt={2}>
+                  <TextField
+                    label="Số lượng"
+                    type="number"
+                    fullWidth
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    inputProps={{
+                      min: 1,
+                      max: params.row.quantityAvailable || 9999,
+                    }}
+                  />
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setOpen(false)}>Đóng</Button>
+                <Button variant="contained" onClick={() => handleSave()}>
+                  Lưu
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </>
+        );
+      },
     },
   ];
 
@@ -1891,7 +2032,7 @@ export default function DesignerDashBoard() {
       {/* Tab Part */}
       <Box
         sx={{
-          width: "50%",
+          width: "70%",
           background: "rgba(241, 245, 249, 1)",
           display: "flex",
         }}
@@ -2496,7 +2637,7 @@ export default function DesignerDashBoard() {
                             >
                               <Box>
                                 <Typography variant="body2">
-                                  {mat.material.name}
+                                  {mat.name}
                                 </Typography>
                                 {isNotEnough ? (
                                   <Typography
@@ -2523,10 +2664,7 @@ export default function DesignerDashBoard() {
                                   size="small"
                                   color="primary"
                                   onClick={() =>
-                                    handleAddToCart(
-                                      mat.material,
-                                      available - required
-                                    )
+                                    handleAddToCart(mat, available - required)
                                   }
                                 >
                                   Đặt hàng
@@ -3931,13 +4069,6 @@ export default function DesignerDashBoard() {
         </Box>
       )}
 
-      {/* Tab Quản Lý Đơn Hàng */}
-      {tabIndex === 4 && (
-        <Box sx={{ width: "100%" }}>
-          <DesignerOrders />
-        </Box>
-      )}
-
       {tabIndex === 3 && (
         <Box mt={3}>
           {/* Header */}
@@ -3977,107 +4108,130 @@ export default function DesignerDashBoard() {
         </Box>
       )}
 
-      {/* Bottom Part */}
-      <Box sx={{ width: "100%", display: "flex", gap: 3, margin: "30px 0" }}>
-        {/* Card Quản Lí Giao Hàng */}
-        <Card
-          sx={{
-            width: 300,
-            textAlign: "center",
-            p: 2,
-            flex: 1,
-            border: "1px solid rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <Box sx={{ display: "flex", margin: "10px 0", gap: 1 }}>
-            <LocalShippingOutlinedIcon
-              color="success"
-              sx={{ margin: "auto 0" }}
-            />
-            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-              Quản Lý Đơn Hàng
-            </Typography>
-          </Box>
-          <Stack spacing={2} marginBottom={3}>
-            {orders.map((item, index) => (
-              <Button
-                key={index}
-                variant="outlined"
-                sx={{
-                  borderColor: "rgba(0,0,0,0.1)",
-                  textTransform: "none",
-                }}
-              >
-                <Box sx={{ width: "100%", display: "flex" }}>
-                  <Box
-                    sx={{
-                      textAlign: "left",
-                      padding: "10px",
-                      display: "flex",
-                      flexDirection: "column",
-                      marginRight: "auto",
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        width: "100%",
-                        marginRight: "auto",
-                        fontWeight: "bold",
-                        color: "black",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {item.product}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        color: "black",
-                        opacity: "40%",
-                      }}
-                    >
-                      {item.orderId}
-                    </Typography>
-                  </Box>
-                  {/* Conditional Chip */}
-                  {item.status === 1 ? (
-                    <Chip
-                      label="Đang vận chuyển"
-                      sx={{
-                        backgroundColor: "rgba(219, 234, 254, 1)",
-                        color: "rgba(62, 92, 188, 1)",
-                      }}
-                    />
-                  ) : item.status === 2 ? (
-                    <Chip
-                      label="Chưa Xử Lý"
-                      sx={{
-                        backgroundColor: "rgba(220, 252, 231, 1)",
-                        color: "rgba(59, 129, 86, 1)",
-                      }}
-                    />
-                  ) : item.status === 3 ? (
-                    <Chip
-                      label="Đã hoàn thành"
-                      sx={{
-                        backgroundColor: "rgba(254, 249, 195, 1)",
-                        color: "rgba(139, 86, 23, 1)",
-                      }}
-                    />
-                  ) : (
-                    <Chip label="Không Xác Định" color="error" />
-                  )}
-                </Box>
-              </Button>
-            ))}
-          </Stack>
+      {/* Tab Quản Lý Đơn Hàng */}
+      {tabIndex === 4 && (
+        <Box sx={{ width: "100%" }}>
+          <DesignerOrders />
+        </Box>
+      )}
 
-          <Button variant="contained" color="success">
-            Xem toàn bộ đơn hàng
-          </Button>
-        </Card>
-      </Box>
+      {tabIndex !== 4 && (
+        <Box sx={{ width: "100%", display: "flex", gap: 3, my: 4 }}>
+          <Card
+            sx={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              p: 2,
+              border: "1px solid rgba(0,0,0,0.1)",
+              borderRadius: 3,
+              boxShadow: 2,
+            }}
+          >
+            {/* Header */}
+            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+              <LocalShippingOutlinedIcon color="success" />
+              <Typography variant="h6" fontWeight="bold" ml={1}>
+                Quản Lý Đơn Hàng
+              </Typography>
+            </Box>
+
+            {/* Danh sách đơn hàng */}
+            <Stack
+              spacing={1.5}
+              sx={{ flex: 1, overflowY: "auto", maxHeight: 280 }}
+            >
+              {orders.filter(
+                (item) => item.status.toLowerCase() !== "delivered"
+              ).length > 0 ? (
+                orders
+                  .filter((item) => item.status.toLowerCase() !== "delivered")
+                  .map((item, index) => (
+                    <Card
+                      key={index}
+                      variant="outlined"
+                      sx={{
+                        p: 1.5,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        borderColor: "rgba(0,0,0,0.08)",
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          fontWeight="bold"
+                          fontSize={14}
+                          color="black"
+                          sx={{ mb: 0.5 }}
+                        >
+                          Đơn #{item.orderId}
+                        </Typography>
+                        <Typography fontSize={12} color="text.secondary">
+                          {new Date(item.orderDate).toLocaleDateString("vi-VN")}
+                        </Typography>
+                        <Typography fontSize={12} color="text.secondary">
+                          {item.sellerName}
+                        </Typography>
+                      </Box>
+
+                      {/* Trạng thái */}
+                      {item.status.toLowerCase() === "shipped" ? (
+                        <Chip
+                          label="Đang vận chuyển"
+                          size="small"
+                          sx={{
+                            backgroundColor: "rgba(219, 234, 254, 1)",
+                            color: "rgba(62, 92, 188, 1)",
+                          }}
+                        />
+                      ) : item.status.toLowerCase() === "processing" ? (
+                        <Chip
+                          label="Chờ xử lý"
+                          size="small"
+                          sx={{
+                            backgroundColor: "rgba(220, 252, 231, 1)",
+                            color: "rgba(59, 129, 86, 1)",
+                          }}
+                        />
+                      ) : (
+                        <Chip
+                          label="Không xác định"
+                          size="small"
+                          color="error"
+                        />
+                      )}
+                    </Card>
+                  ))
+              ) : (
+                <Box
+                  sx={{
+                    p: 4,
+                    textAlign: "center",
+                    border: "1px dashed rgba(0,0,0,0.2)",
+                    borderRadius: 2,
+                  }}
+                >
+                  <Typography fontSize={14} color="text.secondary">
+                    Chưa có order
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
+
+            {/* Nút xem toàn bộ */}
+            <Button
+              variant="contained"
+              color="success"
+              sx={{ mt: 2, borderRadius: 2 }}
+              onClick={() => setTabIndex(4)}
+            >
+              Xem toàn bộ đơn hàng
+            </Button>
+          </Card>
+        </Box>
+      )}
     </Box>
   ) : (
     <Box

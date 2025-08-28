@@ -61,25 +61,17 @@ export interface TypeMaterial {
 }
 
 export interface MaterialInStored {
+  inventoryId: number;
   materialId: number;
-  persentageUsed: number;
-  meterUsed: number;
   name: string;
-  materialTypeName: string;
-  quantityAvailable: number;
-  sustainabilityCriteria: SustainabilityCriterion[];
-  materialDescription: string;
-  sustainabilityScore: number;
-  carbonFootprint: number;
-  carbonFootprintUnit: string;
-  waterUsage: number;
-  waterUsageUnit: string;
-  wasteDiverted: number;
-  wasteDivertedUnit: string;
-  certificationDetails: string;
-  supplierName: string;
+  imageUrl: string;
+  quantity: number;
+  status: string;
   pricePerUnit: number;
-  createdAt: string;
+  totalValue: number;
+  lastUpdated: string;
+  quantityAvailable: number;
+  supplierName: string;
 }
 
 export interface StoredMaterial {
@@ -195,6 +187,7 @@ export interface FullProductDetail {
   sizeId: number;
   sizeName: string;
   quantityAvailable: number;
+  designId: number;
 }
 
 export interface DesignResponse {
@@ -405,12 +398,10 @@ export class DesignService {
   /**
    * Get stored material
    */
-  static async getStoredMaterial(
-    designerId: string
-  ): Promise<StoredMaterial[]> {
+  static async getStoredMaterial(): Promise<MaterialInStored[]> {
     try {
-      const response = await apiClient.get<BaseApiResponse<StoredMaterial[]>>(
-        `/DesignerMaterialInventories/GetStoredMaterial/${designerId}`
+      const response = await apiClient.get<BaseApiResponse<MaterialInStored[]>>(
+        `/DesignerMaterialInventories/GetStoredMaterial`
       );
       return handleApiResponse(response);
     } catch (error) {
