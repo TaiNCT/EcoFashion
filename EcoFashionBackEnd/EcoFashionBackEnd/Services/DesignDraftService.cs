@@ -27,8 +27,6 @@ namespace EcoFashionBackEnd.Services
         private readonly IRepository<ItemType, int> _itemTypeRepository;
         private readonly IRepository<DesignFeature, int> _designFeatureRepository;
         private readonly IRepository<MaterialStock, int> _materialStockRepository;
-        private readonly AppDbContext _dbContext;
-
         private readonly CloudService _cloudService;
         private readonly IMapper _mapper;
 
@@ -39,7 +37,6 @@ namespace EcoFashionBackEnd.Services
             IRepository<Material, int> MaterialRepository,
             IRepository<DesignsVariant, int> designVariantRepository,
             IRepository<DesignerMaterialInventory, int> designerMaterialInventoryRepository,
-
             IRepository<DraftPart, int> draftPartRepository,
             IRepository<DraftSketch, int> draftSketchRepository,
             IRepository<Image, int> imageRepository,
@@ -47,8 +44,6 @@ namespace EcoFashionBackEnd.Services
             IRepository<ItemType, int> itemTypeRepository,
             IRepository<DesignFeature, int> designFeatureRepository,
             IRepository<MaterialStock, int> materialStockRepository,
-           AppDbContext dbContext,
-
             CloudService cloudService,
             IMapper mapper)
         {
