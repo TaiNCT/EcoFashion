@@ -535,57 +535,7 @@ namespace EcoFashionBackEnd.Services
             return fabricUsageData;
         }
 
-        public async Task<decimal> GetDesignerStockAsync(Guid designerId, DesignsMaterial dm)
-        {
-            // Log input
-            Console.WriteLine($"[DEBUG] DesignerId: {designerId}");
-            if (dm == null)
-            {
-                Console.WriteLine("[ERROR] dm (DesignsMaterial) null");
-                throw new ArgumentNullException(nameof(dm));
-            }
-
-            Console.WriteLine($"[DEBUG] dm.MaterialId: {dm.MaterialId}");
-
-            // Test repo
-            var baseQuery = _designerMaterialInventoryRepository.GetAll();
-            if (baseQuery == null)
-            {
-                Console.WriteLine("[ERROR] Repository.GetAll() trả về null");
-                throw new Exception("DesignerMaterialInventoryRepository.GetAll() null");
-            }
-
-            // Log số record trong Inventory
-            var totalCount = await baseQuery.CountAsync();
-            Console.WriteLine($"[DEBUG] Tổng số record trong DesignerMaterialInventory: {totalCount}");
-
-            // Query chính
-            var designerStock = await baseQuery
-                .AsNoTracking()
-                .Include(inv => inv.Warehouse)
-                .Where(inv => inv.MaterialId == dm.MaterialId
-                           && inv.Warehouse != null
-                           && inv.Warehouse.DesignerId == designerId
-                           && inv.Warehouse.WarehouseType == "Material")
-                .Select(inv => (decimal?)inv.Quantity)
-                .SingleOrDefaultAsync();
-
-            // Log kết quả
-            if (designerStock == null)
-            {
-                Console.WriteLine("[DEBUG] Không tìm thấy stock → default 0");
-            }
-            else
-            {
-                Console.WriteLine($"[DEBUG] Stock tìm được: {designerStock}");
-            }
-
-            return designerStock ?? 0;
-        }
-
-
-
-
+     
         public async Task<IEnumerable<ItemTypeDto>> GetAllItemTypesAsync()
         {
             return await _itemTypeRepository
