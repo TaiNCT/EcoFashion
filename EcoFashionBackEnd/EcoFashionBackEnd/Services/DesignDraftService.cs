@@ -60,7 +60,6 @@ namespace EcoFashionBackEnd.Services
             _itemTypeRepository = itemTypeRepository;
             _designFeatureRepository = designFeatureRepository;
             _materialStockRepository = materialStockRepository;
-            _dbContext = dbContext;
             _cloudService = cloudService;
             _mapper = mapper;
         }
