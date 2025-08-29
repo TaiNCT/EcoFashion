@@ -11,9 +11,15 @@ public class Program
     public static async Task Main(string[] args)
     {
         {
+            // 1. Add custom services (DbContext, Auth, Mail, Cloudinary, Vnpay, Repository, etc.)
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddInfrastructure(builder.Configuration);
+               // 2. Railway PORT config
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        builder.WebHost.UseUrls($"http://*:{port}");
 
+        // 3. Health check
+        builder.Services.AddHealthChecks();
             // Add services to the container.
             builder.Services.AddSwaggerGen(option => 
             {
@@ -44,70 +50,63 @@ public class Program
             });
 
 
-            builder.Services.AddCors(option =>
-            option.AddPolicy("CORS", builder =>
-                builder.WithOrigins("http://localhost:5173", "http://localhost:5174")
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials()));
+              // 5. CORS config
+       builder.Services.AddCors(option =>
+                option.AddPolicy("CORS", policy =>
+                    policy
+                        .WithOrigins(
+                            "http://localhost:5173",
+                            "http://localhost:5174",
+                            "https://ecofashionbackend.up.railway.app", // add BE domain
+                            "https://eco-fashion-frontend.vercel.app"               // add FE domain sau này
+                        )
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                ));
+            // 6. JSON config
+        builder.Services.AddControllers().AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+            options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        });
 
-
-
-            // Add JSON options to handle potential circular references
-            builder.Services.AddControllers().AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-                // Sử dụng camelCase cho JSON API để tương thích với frontend JavaScript/TypeScript
-                options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-            });
-
+            
             var app = builder.Build();
-
+                // 7. Health check endpoint
+        app.UseHealthChecks("/health");
             // Database migration and seeding
-            try
-            {
-                Console.WriteLine("Starting database initialization...");
-                await app.InitialiseDatabaseAsync();
-                Console.WriteLine("Database initialization completed successfully!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Database initialization failed: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            }
+           // 8. Database migration + seeding (chỉ chạy 1 lần duy nhất khi start app)
+        try
+        {
+            Console.WriteLine("Starting database initialization...");
+            await app.InitialiseDatabaseAsync();
+            Console.WriteLine("Database initialization completed successfully!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Database initialization failed: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        }
 
-            // Configure the HTTP request pipeline.
-            
-            // Enable Swagger for all environments
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
-            });
-            
-            // Database migration only in Development
-            if (app.Environment.IsDevelopment())
-            {
-                await using (var scope = app.Services.CreateAsyncScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                    await dbContext.Database.MigrateAsync();
-                }
-            }
+        // 9. Swagger
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        });
 
+        // 10. Middlewares
+        app.UseCors("CORS");
+        app.UseMiddleware<ExceptionMiddleware>();
 
-            app.UseHttpsRedirection();
-            app.UseCors("CORS");
-            app.UseMiddleware<ExceptionMiddleware>();
+        app.UseAuthentication();
+        app.UseAuthorization();
 
+        // 11. Controllers
+        app.MapControllers();
 
-            app.UseAuthentication();
-
-            app.UseAuthorization();
-
-            app.MapControllers();
-
-            app.Run();
+        app.Run();
         }
     }
 }
