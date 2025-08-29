@@ -12,7 +12,7 @@ export const designDraftFieldMapping = {
 
 export interface UpdateProductQuantity {
   designId: number;
-  variants: string;
+  variants?: string;
   images?: string[];
   files?: File[];
 }

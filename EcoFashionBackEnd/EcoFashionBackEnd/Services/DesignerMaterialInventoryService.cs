@@ -185,7 +185,7 @@ namespace EcoFashionBackEnd.Services
                          : inv.Quantity < 10 ? "Còn Ít"
                          : "Còn Hàng",
                 PricePerUnit = inv.Material?.PricePerUnit ?? 0,
-                TotalValue = (decimal)(inv.Quantity) * (inv.Material?.PricePerUnit ?? 0),
+                TotalValue = (decimal) inv.Cost,
                 LastUpdated = inv.LastBuyDate,
                 QuantityAvailable = inv.Material.QuantityAvailable,
                 SupplierName = inv.Material.Supplier.SupplierName,

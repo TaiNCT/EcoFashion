@@ -121,6 +121,7 @@ export interface DesignsVariants {
   quantity: number;
   ratio: number;
   sizeName: string;
+  sizeId: number;
   colorCode: string;
 }
 
@@ -186,12 +187,21 @@ export interface FullProductDetail {
   colorCode: string;
   sizeId: number;
   sizeName: string;
+  sizeRatio: number;
   quantityAvailable: number;
   designId: number;
 }
 
 export interface DesignResponse {
   design: Design;
+}
+
+export interface DesignMaterial {
+  materialId: number;
+  materialName: string;
+  requiredMeters: number;
+  designerStock: number;
+  supplierStock: number;
 }
 
 export const designFieldMapping = {
@@ -773,5 +783,22 @@ export class DesignService {
       return handleApiError(error);
     }
   };
+
+  /**
+   * Get Design Material
+   */
+  static async getDesignMaterialByDesignId(
+    designId: number
+  ): Promise<DesignMaterial[]> {
+    try {
+      const response = await apiClient.get(
+        `/DesignDraft/fabric-usage-each-Design/${designId}`
+      );
+
+      return handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
 }
 export default DesignService;
