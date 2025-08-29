@@ -439,7 +439,7 @@ export default function DesignerDashboard() {
       totalValue: new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",
-      }).format(inventory.pricePerUnit * inventory.quantity),
+      }).format(inventory.totalValue),
       creatAt: new Date(inventory.lastUpdated).toLocaleString("vi-VN", {
         day: "2-digit",
         month: "2-digit",
@@ -671,10 +671,7 @@ export default function DesignerDashboard() {
   ];
 
   const totalMaterials = storedMaterial.length;
-  const totalCost = storedMaterial.reduce(
-    (sum, m) => sum + m.pricePerUnit * m.quantity,
-    0
-  );
+  const totalCost = storedMaterial.reduce((sum, m) => sum + m.totalValue, 0);
   const lowStockCount = storedMaterial.filter(
     (m) => m.quantity > 0 && m.quantity < 30
   ).length;
@@ -3514,7 +3511,7 @@ export default function DesignerDashboard() {
                 borderColor: "rgba(0,0,0,0.1)",
                 textTransform: "none",
               }}
-              href="/designer/dashboard/create"
+              onClick={() => navigate("/designer/dashboard/create")}
             >
               <DesignServicesOutlinedIcon color="success" />
               <Box
