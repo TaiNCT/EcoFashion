@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   colors,
   Divider,
   FormControl,
@@ -567,8 +568,8 @@ export default function AddDesignDraft() {
     const files: File[] = formData.sketchImages || [];
     for (const file of files) {
       const ext = file.name.split(".").pop()?.toLowerCase();
-      if (ext !== "jpg" && ext !== "jpeg") {
-        toast.error("Chỉ chấp nhận file JPG/JPEG");
+      if (ext !== "png" && ext !== "jpeg") {
+        toast.error("Chỉ chấp nhận file PNG/JPEG");
         return;
       }
     }
@@ -720,14 +721,21 @@ export default function AddDesignDraft() {
               <Button
                 type="submit"
                 variant="outlined"
-                startIcon={<SaveOutlinedIcon />}
+                startIcon={
+                  loading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <SaveOutlinedIcon />
+                  )
+                }
                 sx={{
                   color: "black",
                   borderColor: "black",
                   textTransform: "none",
                 }}
+                disabled={loading}
               >
-                Lưu
+                {loading ? "Đang lưu..." : "Lưu"}
               </Button>
               <Tooltip title="Coming soon">
                 <Button
@@ -872,8 +880,8 @@ export default function AddDesignDraft() {
                           return "Cần thêm hình ảnh";
                         for (const file of files) {
                           const ext = file.name.split(".").pop()?.toLowerCase();
-                          if (ext !== "jpg" && ext !== "jpeg") {
-                            return "Chỉ chấp nhận file JPG/JPEG";
+                          if (ext !== "png" && ext !== "jpeg") {
+                            return "Chỉ chấp nhận file PNG/JPEG";
                           }
                         }
                         return true;
@@ -960,13 +968,7 @@ export default function AddDesignDraft() {
 
                             const intValue = parseInt(value, 10);
 
-                            if (!isNaN(intValue)) {
-                              if (intValue < 16000) {
-                                setLaborCost(16000); // nếu nhỏ hơn 16000 thì reset về 16000
-                              } else {
-                                setLaborCost(intValue);
-                              }
-                            }
+                            setLaborCost(intValue);
                           }}
                           inputProps={{ min: 16000, step: 1 }}
                         />

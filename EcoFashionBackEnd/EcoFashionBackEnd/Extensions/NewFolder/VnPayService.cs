@@ -58,11 +58,10 @@ namespace EcoFashionBackEnd.Extensions.NewFolder
             var txnRef = string.IsNullOrWhiteSpace(model.TxnRef)
                 ? $"{model.OrderId}_{DateTime.Now:yyyyMMddHHmmss}"
                 : model.TxnRef; // ưu tiên TxnRef từ service để đồng bộ DB
-            var scheme = context.Request.Scheme;
+         var scheme = context.Request.Scheme;
             var host = context.Request.Host;
             var callbackPath = "/api/wallet/deposit/callback";
             var returnUrl = $"{scheme}://{host}{callbackPath}";
-
             var vnpay = new VnPayLibrary();
             vnpay.AddRequestData("vnp_Version", _config["VnPay:Version"]);
             vnpay.AddRequestData("vnp_Command", _config["VnPay:Command"]);
@@ -76,7 +75,7 @@ namespace EcoFashionBackEnd.Extensions.NewFolder
             vnpay.AddRequestData("vnp_OrderType", "other");
 
             // Chỉ khác: callback URL mới
-            vnpay.AddRequestData("vnp_ReturnUrl", returnUrl);
+             vnpay.AddRequestData("vnp_ReturnUrl", returnUrl);
 
             vnpay.AddRequestData("vnp_TxnRef", txnRef);
 
@@ -93,7 +92,7 @@ namespace EcoFashionBackEnd.Extensions.NewFolder
             var txnRef = string.IsNullOrWhiteSpace(model.TxnRef)
                 ? $"{model.OrderId}_{DateTime.Now:yyyyMMddHHmmss}"
                 : model.TxnRef; // ưu tiên TxnRef từ service để đồng bộ DB
-            var scheme = context.Request.Scheme;
+  var scheme = context.Request.Scheme;
             var host = context.Request.Host;
             var callbackPath = "/api/wallet/withdrawal/callback";
             var returnUrl = $"{scheme}://{host}{callbackPath}";
