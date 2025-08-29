@@ -15,6 +15,7 @@ import { useWalletSummary } from "../../hooks/useWalletQueries";
 import {
   useInitiateDeposit,
   useRequestWithdraw,
+  useRespondWithdraw,
 } from "../../hooks/useWalletMutations";
 import { WALLET_CFG } from "../../config/wallet";
 import { toast } from "react-toastify";
@@ -168,6 +169,122 @@ const DepositModal: React.FC<{
   );
 };
 
+const WithdrawalModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onWithdrawal: (amount: number, description?: string) => void;
+  isLoading: boolean;
+}> = ({ isOpen, onClose, onWithdrawal, isLoading }) => {
+  const [amount, setAmount] = useState<number>(0);
+  const [description, setDescription] = useState(null);
+  const { data: walletData, error, refetch } = useWalletSummary();
+  if (!isOpen) return null;
+
+  const handleQuickAmount = (quickAmount: number) => {
+    setAmount(quickAmount);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (amount < WALLET_CFG.minDeposit || amount > walletData.wallet.balance) {
+      toast.error(
+        `Số tiền có thể rút phải từ ${WALLET_CFG.minDeposit.toLocaleString()} đến ${walletData.wallet.balance.toLocaleString()} (Toàn bộ Tài Khoản) VND`
+      );
+      return;
+    }
+    onWithdrawal(amount, description);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-md w-full p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Rút tiền khỏi ví
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Số tiền (VND)
+            </label>
+            <input
+              type="number"
+              value={amount || ""}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Nhập số tiền"
+              min={WALLET_CFG.minDeposit}
+              max={WALLET_CFG.maxDeposit}
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Tối thiểu: {WALLET_CFG.minDeposit.toLocaleString()} VND - Tối đa:{" "}
+              {WALLET_CFG.maxDeposit.toLocaleString()} VND
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Số tiền nhanh
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {WALLET_CFG.quickAmounts.map((quickAmount) => (
+                <button
+                  key={quickAmount}
+                  type="button"
+                  onClick={() => handleQuickAmount(quickAmount)}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-colors"
+                >
+                  {quickAmount.toLocaleString()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Ghi chú (không bắt buộc)
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Nhập ghi chú..."
+              rows={3}
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              disabled={isLoading}
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading || !amount}
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isLoading ? "Đang xử lý..." : "Rút tiền"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // Transaction Group Component
 const TransactionGroup: React.FC<{
   group: {
@@ -306,6 +423,7 @@ const WalletDashboardTailwind: React.FC = () => {
   const navigate = useNavigate();
   const [showBalance, setShowBalance] = useState(true);
   const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showWithdrawalModal, setShowwithdrawalModal] = useState(false);
 
   const { data: walletData, isLoading, error, refetch } = useWalletSummary();
   const { mutateAsync: deposit, isPending: isDepositLoading } =
@@ -316,6 +434,29 @@ const WalletDashboardTailwind: React.FC = () => {
       const result = await deposit({ amount, description });
       const paymentUrl =
         (result as any)?.paymentUrl || (result as any)?.PaymentUrl;
+
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+      } else {
+        toast.error("Không thể tạo liên kết thanh toán");
+      }
+    } catch (error) {
+      console.error("Deposit error:", error);
+    } finally {
+      setShowDepositModal(false);
+    }
+  };
+
+  const { mutateAsync: withdrawal } = useRequestWithdraw();
+  const { mutateAsync: respondWithdrawal, isPending: isWithdrawalLoading } =
+    useRespondWithdraw();
+
+  const handleWithdrawal = async (amount: number, description?: string) => {
+    try {
+      const result = await withdrawal({ amount, description });
+      const accept = await respondWithdrawal(result?.id);
+      const paymentUrl =
+        (accept as any)?.paymentUrl || (accept as any)?.PaymentUrl;
 
       if (paymentUrl) {
         window.location.href = paymentUrl;
@@ -415,11 +556,17 @@ const WalletDashboardTailwind: React.FC = () => {
             Nạp tiền
           </button>
           <button
-            disabled
-            className="flex items-center gap-2 px-6 py-3 bg-white/10 rounded-lg opacity-50 cursor-not-allowed"
+            onClick={() => setShowwithdrawalModal(true)}
+            disabled={walletData.wallet.balance === 0}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors
+            ${
+              walletData.wallet.balance === 0
+                ? "bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed"
+                : "bg-blue-500 text-white hover:bg-blue-700"
+            }`}
           >
             <MinusIcon className="w-5 h-5" />
-            Rút tiền (Sắp có)
+            Rút tiền
           </button>
         </div>
       </div>
@@ -460,7 +607,7 @@ const WalletDashboardTailwind: React.FC = () => {
             <div>
               <p className="text-sm text-blue-600 font-medium">Chênh lệch</p>
               <p className="text-xl font-bold text-blue-700">
-                {((income as number) + (expense as number)).toLocaleString(
+                {((income as number) - (expense as number)).toLocaleString(
                   "vi-VN"
                 )}{" "}
                 VND
@@ -599,6 +746,14 @@ const WalletDashboardTailwind: React.FC = () => {
         onClose={() => setShowDepositModal(false)}
         onDeposit={handleDeposit}
         isLoading={isDepositLoading}
+      />
+
+      {/* Deposit Modal */}
+      <WithdrawalModal
+        isOpen={showWithdrawalModal}
+        onClose={() => setShowwithdrawalModal(false)}
+        onWithdrawal={handleWithdrawal}
+        isLoading={isWithdrawalLoading}
       />
     </div>
   );

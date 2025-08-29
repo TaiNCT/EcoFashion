@@ -52,7 +52,7 @@ const PaymentResultModal: React.FC<{
   const getTitle = () => {
     switch (result.status) {
       case "success":
-        return "Nạp tiền thành công!";
+        return "Giao dịch thành công!";
       case "failed":
         return "Nạp tiền thất bại";
       case "cancelled":
