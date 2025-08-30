@@ -75,7 +75,7 @@ namespace EcoFashionBackEnd.Extensions.NewFolder
             vnpay.AddRequestData("vnp_OrderType", "other");
 
             // Chỉ khác: callback URL mới
-            vnpay.AddRequestData("vnp_ReturnUrl", "http://localhost:5148/api/wallet/deposit/callback");
+            vnpay.AddRequestData("vnp_ReturnUrl", returnUrl);
 
             vnpay.AddRequestData("vnp_TxnRef", txnRef);
 
@@ -109,7 +109,7 @@ namespace EcoFashionBackEnd.Extensions.NewFolder
             vnpay.AddRequestData("vnp_OrderType", "other");
 
             // ⚡ Khác chỗ này: callback URL cho withdrawal
-            vnpay.AddRequestData("vnp_ReturnUrl", "http://localhost:5148/api/wallet/withdrawal/callback");
+            vnpay.AddRequestData("vnp_ReturnUrl", returnUrl);
 
             vnpay.AddRequestData("vnp_TxnRef", txnRef);
 
