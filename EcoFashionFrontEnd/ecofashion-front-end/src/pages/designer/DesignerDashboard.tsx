@@ -231,17 +231,13 @@ export default function DesignerDashboard() {
       );
       setOrders(fetchedOrders || []);
 
-      const designData = await DesignService.getAllDesignByDesigner(
-        getDesignerId()
-      );
+      const designData = await DesignService.getAllDesignByDesigner();
       setDesigns(designData);
 
       const materialData = await DesignService.getStoredMaterial();
       setStoredMaterial(materialData);
 
-      const designProductData = await DesignService.getAllDesignProuct(
-        getDesignerId()
-      );
+      const designProductData = await DesignService.getAllDesignProuct();
       setDesignProduct(designProductData);
 
       const inventoryTransactionsData =
@@ -1038,9 +1034,7 @@ export default function DesignerDashboard() {
       const result = await DesignService.deleteDesign(designId);
       if (result) {
         //Reload lại danh sách từ server
-        const designData = await DesignService.getAllDesignByDesigner(
-          getDesignerId()
-        );
+        const designData = await DesignService.getAllDesignByDesigner();
         setDesigns(designData);
         toast.success("Xoá thành công!");
       } else {
@@ -1093,9 +1087,7 @@ export default function DesignerDashboard() {
 
   const reloadTab2 = async () => {
     try {
-      const designData = await DesignService.getAllDesignByDesigner(
-        getDesignerId()
-      );
+      const designData = await DesignService.getAllDesignByDesigner();
       setDesigns(designData);
     } catch (error) {
       console.error("Lỗi khi load lại tab 2:", error);
@@ -1419,10 +1411,7 @@ export default function DesignerDashboard() {
 
   const getDesingProductDetail = async (id: number) => {
     try {
-      const response = await DesignService.getDesignProductDetailsAsync(
-        id,
-        getDesignerId()
-      );
+      const response = await DesignService.getDesignProductDetailsAsync(id);
       setDesignProductDetail(response); // giả sử data là thông tin bạn cần hiển thị dialog
     } catch (error) {
       console.error(error);
@@ -1534,9 +1523,7 @@ export default function DesignerDashboard() {
 
   const reloadTabProduct = async () => {
     try {
-      const designProductData = await DesignService.getAllDesignProuct(
-        getDesignerId()
-      );
+      const designProductData = await DesignService.getAllDesignProuct();
       setDesignProduct(designProductData);
 
       const inventoryTransactionsData =
@@ -1761,8 +1748,7 @@ export default function DesignerDashboard() {
 
         const reloadTab = async () => {
           const response = await DesignService.getDesignProductDetailsAsync(
-            params.row.designId,
-            getDesignerId()
+            params.row.designId
           );
           setDesignProductDetail(response);
         };
