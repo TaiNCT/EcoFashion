@@ -160,7 +160,7 @@
 
             try
             {
-                var transaction = await _walletService.RequestWithdrawalAsync(userId, request.Amount, request.Description);
+                var transaction = await _walletService.RequestWithdrawalAsync(userId, request.Amount);
                 return Ok(transaction); // hoặc map sang DTO trước
             }
             catch (Exception ex)
