@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CreditCardIcon,
@@ -411,6 +411,14 @@ const WalletDashboardTailwind: React.FC = () => {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawalModal, setShowwithdrawalModal] = useState(false);
 
+  useEffect(() => {
+    const redirectUrl = localStorage.getItem("walletRedirect");
+    if (redirectUrl) {
+      localStorage.removeItem("walletRedirect");
+      window.location.href = redirectUrl; // quay về wallet
+    }
+  }, []);
+
   const { data: walletData, isLoading, error, refetch } = useWalletSummary();
   const { mutateAsync: deposit, isPending: isDepositLoading } =
     useInitiateDeposit();
@@ -447,14 +455,14 @@ const WalletDashboardTailwind: React.FC = () => {
       if (result.success) {
         // window.location.href = paymentUrl;
         toast.success("Xin chờ duyệt!");
-        setShowDepositModal(false);
+        setShowwithdrawalModal(false);
       } else {
         toast.error(result.errorMessage);
       }
     } catch (error) {
       toast.error(error);
     } finally {
-      setShowDepositModal(false);
+      setShowwithdrawalModal(false);
     }
   };
 

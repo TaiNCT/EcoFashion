@@ -130,50 +130,11 @@ namespace EcoFashionBackEnd.Services
             return response;
         }
 
-
-        //public async Task<WalletTransactionDto> RequestWithdrawalAsync(int userId, double amount, string? description = null)
-        //{
-        //    var wallet = await _walletRepository.GetAll()
-        //        .FirstOrDefaultAsync(w => w.UserId == userId);
-
-        //    if (wallet == null)
-        //        throw new Exception("Wallet not found");
-
-        //    if (wallet.Balance < amount)
-        //        throw new Exception("Insufficient balance");
-
-        //    var transaction = new WalletTransaction
-        //    {
-        //        WalletId = wallet.WalletId,
-        //        Amount = amount,
-        //        BalanceBefore = wallet.Balance,
-        //        BalanceAfter = wallet.Balance, // chưa trừ tiền
-        //        Type = TransactionType.Withdrawal,
-        //        Status = Entities.TransactionStatus.Pending,
-        //        Description = description ?? $"Yêu cầu rút {amount:N0} VND",
-        //        CreatedAt = DateTime.UtcNow
-        //    };
-
-        //    await _walletTransactionRepository.AddAsync(transaction);
-        //    await _walletTransactionRepository.Commit();
-
-        //    return new WalletTransactionDto
-        //    {
-        //        Id = transaction.Id,
-        //        Amount = transaction.Amount,
-        //        BalanceBefore = transaction.BalanceBefore,
-        //        BalanceAfter = transaction.BalanceAfter,
-        //        Type = transaction.Type,
-        //        Status = transaction.Status,
-        //        Description = transaction.Description,
-        //        CreatedAt = transaction.CreatedAt,
-        //        OrderId = transaction.OrderId,
-        //        OrderGroupId = transaction.OrderGroupId
-        //    }; 
-        //}
         public async Task<ApiResult<WalletTransactionDto>> RequestWithdrawalAsync(int userId, double amount, string? description = null)
         {
+            // 🔹 Lấy wallet, không track EF để tránh nhầm ID
             var wallet = await _walletRepository.GetAll()
+                .AsNoTracking()
                 .FirstOrDefaultAsync(w => w.UserId == userId);
 
             if (wallet == null)
@@ -182,18 +143,38 @@ namespace EcoFashionBackEnd.Services
             if (wallet.Balance < amount)
                 throw new Exception("Insufficient balance");
 
-            // 🔹 Check lần rút thành công gần nhất
-            var lastWithdrawal = await _walletTransactionRepository.GetAll()
+            //// 🔹 Kiểm tra lần rút gần nhất (fix grouping điều kiện)
+            //var lastWithdrawal = await _walletTransactionRepository.GetAll()
+            //    .Where(t => t.WalletId == wallet.WalletId
+            //                && t.Type == TransactionType.Withdrawal
+            //                && (t.Status == Entities.TransactionStatus.Success
+            //                    || t.Status == Entities.TransactionStatus.Pending))
+            //    .OrderByDescending(t => t.CreatedAt)
+            //    .FirstOrDefaultAsync();
+
+            //if (lastWithdrawal != null && lastWithdrawal.CreatedAt.AddDays(30) > DateTime.UtcNow)
+            //{
+            //    var remaining = (lastWithdrawal.CreatedAt.AddDays(30) - DateTime.UtcNow).Days;
+            //    return ApiResult<WalletTransactionDto>.Fail($"Bạn chỉ có thể rút tiền sau {remaining} ngày nữa.");
+            //}
+
+            // Lấy tháng hiện tại
+            var startOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+
+            // Kiểm tra xem đã có giao dịch rút tiền thành công trong tháng chưa
+            var existingWithdrawal = await _walletTransactionRepository.GetAll()
                 .Where(t => t.WalletId == wallet.WalletId
-                            && t.Type == TransactionType.Withdrawal 
-                            && t.Status == Entities.TransactionStatus.Success ||  t.Status == Entities.TransactionStatus.Pending)
+                            && t.Type == TransactionType.Withdrawal
+                            && (t.Status == Entities.TransactionStatus.Success
+                                || t.Status == Entities.TransactionStatus.Pending) 
+                            &&t.CreatedAt >= startOfMonth)
                 .OrderByDescending(t => t.CreatedAt)
                 .FirstOrDefaultAsync();
 
-            if (lastWithdrawal != null && lastWithdrawal.CreatedAt.AddDays(30) > DateTime.UtcNow)
+            if (existingWithdrawal != null)
             {
-                var remaining = (lastWithdrawal.CreatedAt.AddDays(30) - DateTime.UtcNow).Days;
-                return ApiResult<WalletTransactionDto>.Fail($"Bạn chỉ có thể rút tiền sau {remaining} ngày nữa.");
+                // Đã có giao dịch rút tiền thành công trong tháng này
+                return ApiResult<WalletTransactionDto>.Fail($"Bạn chỉ được rút tiền 1 lần mỗi tháng. Vui lòng thử lại vào tháng sau.");
             }
 
             // 🔹 Tạo transaction pending
@@ -212,6 +193,7 @@ namespace EcoFashionBackEnd.Services
             await _walletTransactionRepository.AddAsync(transaction);
             await _walletTransactionRepository.Commit();
 
+            // 🔹 Chuyển sang DTO
             var dto = new WalletTransactionDto
             {
                 Id = transaction.Id,

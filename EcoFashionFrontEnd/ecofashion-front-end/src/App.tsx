@@ -62,7 +62,7 @@ import VNPaySuccess from "./pages/payment/VNPaySuccess";
 import { useAuthStore } from "./store/authStore";
 import { useCartStore } from "./store/cartStore";
 import { ConfirmProvider } from "material-ui-confirm";
-
+import WalletWithdraw from "./pages/admin/WalletWithdraw";
 //import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -339,6 +339,7 @@ function App() {
           <Route path="material-types" element={<MaterialTypesAll />} />
           <Route path="materials" element={<MaterialsAll />} />
           <Route path="materials/pending" element={<MaterialsPending />} />
+          <Route path="walletWithdraw" element={<WalletWithdraw />} />
           <Route path="materials/approved" element={<MaterialsApproved />} />
           <Route path="analytics/inventory" element={<InventoryReport />} />
         </Route>

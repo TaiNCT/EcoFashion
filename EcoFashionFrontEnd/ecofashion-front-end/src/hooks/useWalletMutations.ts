@@ -34,6 +34,7 @@ export const useRequestWithdraw = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.wallet });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.walletSummary });
+      toast.success("Xin chờ duyệt!");
     },
     onError: (error: any) => {
       toast.error(
