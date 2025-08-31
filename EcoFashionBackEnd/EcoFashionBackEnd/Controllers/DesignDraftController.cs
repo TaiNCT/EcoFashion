@@ -149,7 +149,7 @@ public class DesignDraftController : ControllerBase
     //    }
     //}
 
-    [HttpGet("/fabric-usage-each-Design")]
+    [HttpGet("fabric-usage-each-Design/{designId}")]
     public async Task<IActionResult> GetFabricUsage(int designId)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);

@@ -71,7 +71,7 @@ namespace EcoFashionBackEnd.Services
                             MeterUsed = (decimal)dm.MeterUsed
                         })
                         .ToList(),
-                    ProductCount = d.Products.Count
+                    ProductCount = d.Products.Count,
                 })
                 .ToListAsync();
         }
@@ -275,7 +275,7 @@ namespace EcoFashionBackEnd.Services
                     DesignImageUrls = d.DesignImages
                         .Select(di => di.Image.ImageUrl)
                         .ToList(),
-
+                    CreateAt = d.CreatedAt,
                     // Keep material selection minimal
                     Materials = d.DesignsMaterials
                         .Select(dm => new MaterialDto
@@ -292,6 +292,7 @@ namespace EcoFashionBackEnd.Services
                             Id = dv.Id,
                             DesignId = dv.DesignId,
                             Quantity = dv.Quantity,
+                            SizeId = dv.SizeId,
                             SizeName = dv.Size.SizeName,
                             ColorCode = dv.ColorCode,
                             Ratio = d.ItemTypes.TypeSizeRatios
@@ -368,10 +369,19 @@ namespace EcoFashionBackEnd.Services
                     ColorCode = p.ColorCode,
                     SizeId = p.SizeId,
                     SizeName = p.Size.SizeName,
+                    SizeRatio = d.ItemTypes.TypeSizeRatios
+                        .Where(r => r.SizeId == p.SizeId)
+                        .Select(r => r.Ratio)
+                        .FirstOrDefault(),
+                    DesignId = p.DesignId,
                     QuantityAvailable = p.Inventories
                         .Where(pi => pi.WarehouseId == productWarehouseId)
                         .Select(pi => pi.QuantityAvailable)
-                        .FirstOrDefault()
+                        .FirstOrDefault(),
+                    LastUpdated = p.Inventories
+                        .Where(pi => pi.WarehouseId == productWarehouseId)
+                        .Select(pi => pi.LastUpdated)
+                        .FirstOrDefault(),
                 }))
                 .ToListAsync();
 

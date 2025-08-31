@@ -258,12 +258,17 @@ const MaterialDetailPage: React.FC = () => {
     }
 
     setQuantityError("");
-    await addToCart({ materialId: material.materialId || 0, quantity });
-
-    toast.success(
-      `Đã thêm ${quantity} mét ${material.name || "Nguyên liệu"
-      } vào giỏ hàng! 💡 Kiểm tra số lượng trong giỏ hàng.`
-    );
+    try {
+      await addToCart({ materialId: material.materialId || 0, quantity });
+      toast.success(
+        `Đã thêm ${quantity} mét ${
+          material.name || "Nguyên liệu"
+        } vào giỏ hàng! 💡 Kiểm tra số lượng trong giỏ hàng.`
+      );
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      toast.error("Không thể thêm sản phẩm vào giỏ hàng. Vui lòng Đăng Nhập!");
+    }
   };
 
   if (loading) {
