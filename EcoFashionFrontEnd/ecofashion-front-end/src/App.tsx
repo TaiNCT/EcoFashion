@@ -17,7 +17,7 @@ import ApplySupplier from "./pages/apply/ApplySupplier";
 import MyApplications from "./pages/apply/MyApplications";
 import DesignerProfile from "./pages/designer/DesignerProfile";
 import DesignerDetailedProfile from "./pages/designer/DesignerDetailedProfile";
-import DesginerDashboared from "./pages/designer/DesignerDashboard";
+import DesignerDashboared from "./pages/designer/DesignerDashboard";
 import SupplierProfile from "./pages/supplier/SupplierProfile";
 import SupplierDetailedProfile from "./pages/supplier/SupplierDetailedProfile";
 import SupplierDashboard from "./pages/supplier/SupplierDashboard";
@@ -64,8 +64,7 @@ import { useAuthStore } from "./store/authStore";
 import { useCartStore } from "./store/cartStore";
 import { ConfirmProvider } from "material-ui-confirm";
 import MaterialList from "./pages/material/MaterialList";
-
-
+import WalletWithdraw from "./pages/admin/WalletWithdraw";
 //import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -242,7 +241,7 @@ function App() {
           path="/designer/dashboard"
           element={
             <ProtectedRoute requiredRole={"designer"}>
-              <DesginerDashboared />
+              <DesignerDashboared />
             </ProtectedRoute>
           }
         />
@@ -344,6 +343,7 @@ function App() {
           <Route path="material-types" element={<MaterialTypesAll />} />
           <Route path="materials" element={<MaterialsAll />} />
           <Route path="materials/pending" element={<MaterialsPending />} />
+          <Route path="walletWithdraw" element={<WalletWithdraw />} />
           <Route path="materials/approved" element={<MaterialsApproved />} />
           <Route path="analytics/inventory" element={<InventoryReport />} />
         </Route>
