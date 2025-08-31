@@ -522,6 +522,37 @@ namespace EcoFashionBackEnd.Services
 
             return baseDescription;
         }
+
+
+        public async Task<List<GetWithdrawalRequestDto>> GetWithdrawalRequestsAsync()
+        {
+            
+            var pendingRequests = await _walletTransactionRepository.GetAll().AsNoTracking()
+
+                .Include(t => t.Wallet)
+                    .ThenInclude(w => w.User) 
+                                              
+                .Where(t => t.Type == TransactionType.Withdrawal && t.Status == Entities.TransactionStatus.Pending)
+                
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            return pendingRequests.Select(t => new GetWithdrawalRequestDto
+            {
+                TransactionId = t.Id,
+                Name = t.Wallet?.User?.FullName ?? "N/A", 
+                Amount = t.Amount,
+                BalanceBefore = t.BalanceBefore,
+                BalanceAfter = t.BalanceAfter,
+                Type = t.Type.ToString(),
+                Status = t.Status.ToString(),
+                Description = t.Description,
+                CreatedAt = t.CreatedAt,
+            }).ToList();
+        }
+
+
+
     }
 }
 

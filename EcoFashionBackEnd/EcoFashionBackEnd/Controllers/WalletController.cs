@@ -92,6 +92,16 @@
 
             return Ok(transaction);
         }
+        [HttpGet("withdrawal-requests")]
+        public async Task<IActionResult> GetWithdrawalRequests()
+        {
+            var requests = await _walletService.GetWithdrawalRequestsAsync();
+
+            if (requests == null || !requests.Any())
+                return Ok(ApiResult<List<GetWithdrawalRequestDto>>.Fail("No withdrawal requests found"));
+
+            return Ok(ApiResult<List<GetWithdrawalRequestDto>>.Succeed(requests));
+        }
 
 
         // taọ link deposit 
