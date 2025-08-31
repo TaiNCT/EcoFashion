@@ -217,8 +217,7 @@ export default function DesignDetail() {
         if (!product) return;
 
         const items = await DesignService.getDesignProductDetailsAsync(
-          Number(id),
-          designerId
+          Number(id)
         );
         const found = items.find((p) => p.productId === product.productId);
         if (!found) return;
@@ -415,8 +414,6 @@ export default function DesignDetail() {
   const handleIncrease = () => {
     setQuantity((prev) => prev + 1);
   };
-
-  
 
   return (
     <Box
