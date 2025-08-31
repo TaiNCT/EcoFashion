@@ -99,9 +99,14 @@ export default function OrdersDetails() {
             throw new Error('Designer ID not found.');
           }
 
+          console.log('🎨 Designer Info:', { designerId, designerName: currentDesignerProfile.designerName });
+
           // Get all orders for this designer
           const designerOrders = await ordersService.getOrdersByDesigner(designerId);
+          console.log('🛍️ Designer Orders:', designerOrders);
+
           const specificOrder = designerOrders.find(order => order.orderId === Number(orderId));
+          console.log('🎯 Specific Order:', { orderId: Number(orderId), specificOrder });
 
           if (specificOrder) {
             setData(specificOrder);
@@ -774,4 +779,20 @@ export default function OrdersDetails() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
