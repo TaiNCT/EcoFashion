@@ -400,10 +400,8 @@ namespace EcoFashionBackEnd.Services
 
         public async Task<List<DesignerUsageSummaryDto>> GetDesignerMaterialUsageAsync(Guid designerId)
         {
-            // Lấy tất cả MaterialType để đảm bảo có đủ 11 loại (kể cả usage = 0)
             var allTypes = await _materialTypeRepository.GetAll().ToListAsync();
 
-            // Query transaction usage
             var usageQuery = await _transactionRepository.GetAll()
                 .Include(t => t.MaterialInventory)
                     .ThenInclude(mi => mi.Material)
@@ -414,19 +412,27 @@ namespace EcoFashionBackEnd.Services
                 .ToListAsync();
 
             var groupedUsage = usageQuery
-                .GroupBy(t => t.MaterialInventory.Material.MaterialType.TypeName)
+               .GroupBy(t => new
+               {
+                   t.MaterialInventory.Material.MaterialType.TypeId,
+                   t.MaterialInventory.Material.MaterialType.TypeName
+               })
                 .Select(g => new
                 {
+                    TypeId = g.Key.TypeId,
                     TypeName = g.Key,
                     Total = g.Sum(x => Math.Abs(x.QuantityChanged))
                 })
-                .ToDictionary(x => x.TypeName, x => x.Total);
+                .ToDictionary(x => x.TypeId, x => x.Total);
 
-            // Map lại theo list MaterialType (đảm bảo đủ 11 rows)
+            
             var result = allTypes.Select(mt => new DesignerUsageSummaryDto
             {
+                TypeId = mt.TypeId, 
                 MaterialTypeName = mt.TypeName,
-                TotalUsedMeters = groupedUsage.ContainsKey(mt.TypeName) ? groupedUsage[mt.TypeName] : 0
+                TotalUsedMeters = groupedUsage.ContainsKey(mt.TypeId)
+                          ? groupedUsage[mt.TypeId]
+                          : 0
             }).ToList();
 
             return result;
