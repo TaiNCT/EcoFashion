@@ -77,6 +77,8 @@ import DesignService, {
 } from "../../services/api/designService";
 import { toast } from "react-toastify";
 import { useCartStore } from "../../store/cartStore";
+//image
+import DesignDefaultImage from "../../assets/pictures/fashion/design-default-image.jpg";
 
 const reviews = [
   {
@@ -363,7 +365,7 @@ export default function DesignDetail() {
       );
     } catch (error) {
       console.error("Error adding product to cart:", error);
-      toast.error("Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!");
+      toast.error("Không thể thêm sản phẩm vào giỏ hàng. Vui lòng Đăng Nhập!");
     }
   };
 
@@ -419,7 +421,10 @@ export default function DesignDetail() {
             <Box sx={{ position: "relative", marginBottom: 2 }}>
               <Box
                 component="img"
-                src={designDetail.designImages?.[currentIndex] ?? ""}
+                src={
+                  designDetail.designImages?.[currentIndex] ??
+                  DesignDefaultImage
+                }
                 alt={designDetail.name}
                 sx={{
                   width: "100%",
@@ -495,22 +500,6 @@ export default function DesignDetail() {
                 >
                   {designDetail.name}
                 </Typography>
-                {/* <Box
-                  sx={{ width: "30%", display: "flex", alignItems: "center" }}
-                >
-                  <Rating
-                    name="text-feedback"
-                    value={designDetail.productScore}
-                    readOnly
-                    precision={0.5}
-                    emptyIcon={
-                      <StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />
-                    }
-                  />
-                  <Box sx={{ ml: 2, fontSize: "20px" }}>
-                    {designDetail.productScore}
-                  </Box>
-                </Box> */}
               </Box>
               <Box
                 sx={{
@@ -572,41 +561,6 @@ export default function DesignDetail() {
               >
                 {formatPriceVND(designDetail.salePrice)}
               </Typography>
-              {/* )} */}
-              {/* {product.price.original && (
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <Typography
-                    component="div"
-                    sx={{ fontWeight: "bold", fontSize: "30px" }}
-                  >
-                    {formatPrice(product.price)}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      textDecoration: "line-through",
-                      color: "text.secondary",
-                      fontSize: "25px",
-                      marginLeft: "5px",
-                    }}
-                  >
-                    {formatOriginalPrice(product.price)}
-                  </Typography>
-                  {product.discountPercentage &&
-                    product.discountPercentage > 0 && (
-                      <Chip
-                        label={`-${product.discountPercentage}%`}
-                        size="small"
-                        sx={{
-                          bgcolor: "#f44336",
-                          color: "white",
-                          fontWeight: "bold",
-                          marginLeft: "5px",
-                        }}
-                      />
-                    )}
-                </Box>
-              )} */}
             </Box>
 
             {/* Material */}
@@ -732,9 +686,7 @@ export default function DesignDetail() {
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 Ký hiệu / Thông số (cm)
                               </TableCell>
-                              <TableCell sx={{ fontWeight: "bold" }}>
-                                XS
-                              </TableCell>
+
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 S
                               </TableCell>
@@ -747,9 +699,6 @@ export default function DesignDetail() {
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 XL
                               </TableCell>
-                              <TableCell sx={{ fontWeight: "bold" }}>
-                                XXL
-                              </TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -757,34 +706,29 @@ export default function DesignDetail() {
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 NGỰC
                               </TableCell>
-                              <TableCell>76 - 80</TableCell>
+
                               <TableCell>82 - 86</TableCell>
                               <TableCell>88 - 92</TableCell>
                               <TableCell>94 - 97</TableCell>
                               <TableCell>100 - 103</TableCell>
-                              <TableCell>106 - 109</TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 EO
                               </TableCell>
-                              <TableCell>62 - 66</TableCell>
                               <TableCell>68 - 72</TableCell>
                               <TableCell>74 - 78</TableCell>
                               <TableCell>92 - 96</TableCell>
                               <TableCell>98 - 102</TableCell>
-                              <TableCell>104 - 108</TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 MÔNG
                               </TableCell>
-                              <TableCell>80 - 84</TableCell>
                               <TableCell>86 - 90</TableCell>
                               <TableCell>92 - 96</TableCell>
                               <TableCell>98 - 102</TableCell>
                               <TableCell>104 - 108</TableCell>
-                              <TableCell>110 - 114</TableCell>
                             </TableRow>
                           </TableBody>
                         </Table>
@@ -812,9 +756,7 @@ export default function DesignDetail() {
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 Ký hiệu / Thông số (cm)
                               </TableCell>
-                              <TableCell sx={{ fontWeight: "bold" }}>
-                                XS
-                              </TableCell>
+
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 S
                               </TableCell>
@@ -827,9 +769,6 @@ export default function DesignDetail() {
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 XL
                               </TableCell>
-                              <TableCell sx={{ fontWeight: "bold" }}>
-                                XXL
-                              </TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -837,34 +776,28 @@ export default function DesignDetail() {
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 NGỰC
                               </TableCell>
-                              <TableCell>88 - 92</TableCell>
                               <TableCell>94 - 98</TableCell>
                               <TableCell>100 - 104</TableCell>
                               <TableCell>106 - 110</TableCell>
                               <TableCell>112 - 116</TableCell>
-                              <TableCell>118 - 122</TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 EO
                               </TableCell>
-                              <TableCell>73 - 77</TableCell>
                               <TableCell>79 - 83</TableCell>
                               <TableCell>85 - 89</TableCell>
                               <TableCell>91 - 95</TableCell>
                               <TableCell>97 - 101</TableCell>
-                              <TableCell>103 - 107</TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell sx={{ fontWeight: "bold" }}>
                                 MÔNG
                               </TableCell>
-                              <TableCell>88 - 94</TableCell>
                               <TableCell>96 - 99</TableCell>
                               <TableCell>101 - 103</TableCell>
                               <TableCell>105 - 107</TableCell>
                               <TableCell>109 - 113</TableCell>
-                              <TableCell>115 - 119</TableCell>
                             </TableRow>
                           </TableBody>
                         </Table>
@@ -912,7 +845,6 @@ export default function DesignDetail() {
               >
                 Thêm vào giỏ
               </Button>
-              <Button variant="outlined">Mua ngay</Button>
             </Box>
           </Grid>
         </Box>

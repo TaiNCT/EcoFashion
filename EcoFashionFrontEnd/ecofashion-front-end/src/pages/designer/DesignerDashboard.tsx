@@ -127,6 +127,7 @@ import InventoryTransactionsService, {
 import { useCartStore } from "../../store/cartStore";
 import { Description } from "@mui/icons-material";
 import { OrderModel, ordersService } from "../../services/api/ordersService";
+import { date } from "zod";
 // Register chart components
 ChartJS.register(
   LineElement,
@@ -167,24 +168,6 @@ export default function DesignerDashboard() {
       subtitle: "12 lượt theo dõi mới",
       icon: <GroupIcon />,
       color: "secondary.main",
-    },
-  ];
-
-  const orders1 = [
-    {
-      orderId: "ORD-01",
-      product: "Áo Khoác Denim Tái Chế",
-      status: 1, //1: Đang Vận Chuyển, 2: Chưa Xử Lý, 3: Đã Giao Hàng
-    },
-    {
-      orderId: "ORD-02",
-      product: "Túi Tote Tái Chế (2 cái)",
-      status: 2, //1: Đang Vận Chuyển, 2: Chưa Xử Lý, 3: Đã Giao Hàng
-    },
-    {
-      orderId: "ORD-03",
-      product: "Khăn Choàng Thân Với Môi Trường",
-      status: 3, //1: Đang Vận Chuyển, 2: Chưa Xử Lý, 3: Đã Giao Hàng
     },
   ];
 
@@ -253,6 +236,38 @@ export default function DesignerDashboard() {
       setPageLoading(false);
     }
   };
+
+  function formatDate(
+    dateString: string,
+    options?: Intl.DateTimeFormatOptions
+  ): string {
+    if (!dateString) return "";
+
+    // Trường hợp DB không có offset => parse "thô"
+    const raw = new Date(dateString);
+
+    // Coi chuỗi đó là UTC => ép thêm "Z"
+    const utcDate = new Date(dateString + "Z");
+
+    // Tính giờ Việt Nam của utcDate
+    const vietnamFromUTC = new Date(
+      utcDate.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
+    );
+
+    // Nếu raw == vietnamFromUTC => nghĩa là DB lưu giờ VN -> giữ nguyên
+    if (raw.getTime() === vietnamFromUTC.getTime()) {
+      return raw.toLocaleString("vi-VN", {
+        timeZone: "Asia/Ho_Chi_Minh",
+        ...options,
+      });
+    }
+
+    // Ngược lại, coi nó là UTC rồi convert sang VN
+    return vietnamFromUTC.toLocaleString("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh",
+      ...options,
+    });
+  }
 
   const reloadOrders = async () => {
     const fetchedOrders = await ordersService.getOrdersBySeller(
@@ -436,20 +451,47 @@ export default function DesignerDashboard() {
         style: "currency",
         currency: "VND",
       }).format(inventory.pricePerUnit * inventory.quantity),
-      creatAt: new Date(inventory.lastUpdated).toLocaleString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }),
+      createAt: inventory.lastUpdated,
+      imageUrl: inventory.imageUrl,
     }));
   };
   type MaterialRow = ReturnType<typeof generateMockMaterial>[number];
 
   const material_columns: GridColDef<MaterialRow>[] = [
     { field: "id", headerName: "ID", width: 90 },
+    {
+      field: "imageUrl",
+      headerName: "Chất Liệu",
+      width: 110,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <>
+            {params.row.imageUrl && (
+              <Box
+                sx={{
+                  display: "flex",
+                  height: "100%",
+                  width: "100%",
+                }}
+                onClick={() => handleClickOpen(params.row.imageUrl)}
+              >
+                <img
+                  src={params.row.imageUrl}
+                  alt="Chất Liệu"
+                  style={{
+                    width: 50,
+                    height: 50,
+                    objectFit: "cover",
+                    borderRadius: 8,
+                  }}
+                />
+              </Box>
+            )}
+          </>
+        );
+      },
+    },
     {
       field: "material",
       headerName: "Chất Liệu",
@@ -520,10 +562,41 @@ export default function DesignerDashboard() {
       flex: 1,
     },
     {
-      field: "creatAt",
-      headerName: "Ngày Cập Nhật",
-      width: 150,
-      flex: 1,
+      field: "createAt",
+      headerName: "Ngày Cập Nhật",
+      width: 220,
+      renderCell: (params) => {
+        const txDate = new Date(params.value as string);
+        const today = new Date();
+
+        const isToday =
+          txDate.getDate() === today.getDate() &&
+          txDate.getMonth() === today.getMonth() &&
+          txDate.getFullYear() === today.getFullYear();
+
+        return (
+          <>
+            {formatDate(params.value)}
+            {isToday && (
+              <Box
+                component="span"
+                sx={{
+                  ml: 1,
+                  px: 1,
+                  py: 0.2,
+                  borderRadius: "6px",
+                  fontSize: "0.75rem",
+                  fontWeight: "bold",
+                  color: "white",
+                  backgroundColor: "red",
+                }}
+              >
+                Mới
+              </Box>
+            )}
+          </>
+        );
+      },
     },
     {
       field: "quantityAvailable",
@@ -667,10 +740,7 @@ export default function DesignerDashboard() {
   ];
 
   const totalMaterials = storedMaterial.length;
-  const totalCost = storedMaterial.reduce(
-    (sum, m) => sum + m.pricePerUnit * m.quantity,
-    0
-  );
+  const totalCost = storedMaterial.reduce((sum, m) => sum + m.totalValue, 0);
   const lowStockCount = storedMaterial.filter(
     (m) => m.quantity > 0 && m.quantity < 30
   ).length;
@@ -741,6 +811,7 @@ export default function DesignerDashboard() {
       material: design.materials,
       typeName: design.itemTypeName,
       designVariants: design.designsVariants,
+      createAt: design.createAt,
     }));
   };
 
@@ -768,7 +839,7 @@ export default function DesignerDashboard() {
 
   //Open Dialog
   const [openEditDialog, setOpenEditDialog] = React.useState(false);
-  const [selectedItem, setSelectedItem] = React.useState<FashionRow | null>(
+  const [selectedItem, setSelectedItem] = React.useState<DesignsRow | null>(
     null
   );
 
@@ -792,12 +863,12 @@ export default function DesignerDashboard() {
     }
   };
 
-  const handleEdit = (item: FashionRow) => {
+  const handleEdit = (item: DesignsRow) => {
     setSelectedItem(item);
     setOpenEditDialog(true);
   };
 
-  type FashionRow = ReturnType<typeof generateMockDesigns>[number];
+  type DesignsRow = ReturnType<typeof generateMockDesigns>[number];
 
   //Open Draft Detail Dialog
   const [openDesignDraftDetailDialog, setOpenDesignDraftDetailDialog] =
@@ -806,7 +877,7 @@ export default function DesignerDashboard() {
   const [designDraftDetail, setDesignDraftDetail] =
     useState<DesignDraftDetails>();
 
-  const handleViewDesignDraftDetail = async (item: FashionRow) => {
+  const handleViewDesignDraftDetail = async (item: DesignsRow) => {
     setSelectedItem(item);
     setOpenDesignDraftDetailDialog(true);
   };
@@ -827,7 +898,7 @@ export default function DesignerDashboard() {
     }
   };
 
-  const fashion_columns: GridColDef<FashionRow>[] = [
+  const designs_columns: GridColDef<DesignsRow>[] = [
     { field: "id", headerName: "ID", width: 90 },
     {
       field: "image",
@@ -946,6 +1017,43 @@ export default function DesignerDashboard() {
               paddingBottom: 2,
             }}
           />
+        );
+      },
+    },
+    {
+      field: "createAt",
+      headerName: "Ngày Cập Nhật",
+      width: 220,
+      renderCell: (params) => {
+        const txDate = new Date(params.value as string);
+        const today = new Date();
+
+        const isToday =
+          txDate.getDate() === today.getDate() &&
+          txDate.getMonth() === today.getMonth() &&
+          txDate.getFullYear() === today.getFullYear();
+
+        return (
+          <>
+            {formatDate(params.value)}
+            {isToday && (
+              <Box
+                component="span"
+                sx={{
+                  ml: 1,
+                  px: 1,
+                  py: 0.2,
+                  borderRadius: "6px",
+                  fontSize: "0.75rem",
+                  fontWeight: "bold",
+                  color: "white",
+                  backgroundColor: "red",
+                }}
+              >
+                Mới
+              </Box>
+            )}
+          </>
         );
       },
     },
@@ -1243,6 +1351,7 @@ export default function DesignerDashboard() {
       description: design.description,
       careInstruction: design.careInstruction,
       designFeatures: design.designFeatures,
+      createAt: design.createAt,
     }));
   };
 
@@ -1252,36 +1361,57 @@ export default function DesignerDashboard() {
   const designProduct_columns: GridColDef<DesignProductRow>[] = [
     { field: "id", headerName: "ID", width: 90 },
     {
-      field: "image",
+      field: "imageUrl",
       headerName: "Sản Phẩm",
       width: 110,
       flex: 1,
       renderCell: (params) => {
-        const imageUrl =
-          params.row.image && params.row.image.length > 0
-            ? params.row.image[0] // ✅ chỉ lấy hình đầu tiên
-            : DesignDefaultImage;
-
         return (
-          <Box
-            sx={{
-              display: "flex",
-              height: "100%",
-              width: "100%",
-            }}
-            onClick={() => handleClickOpen(imageUrl)}
-          >
-            <img
-              src={imageUrl}
-              alt="Sản Phẩm"
-              style={{
-                width: 50,
-                height: 50,
-                objectFit: "cover",
-                borderRadius: 8,
-              }}
-            />
-          </Box>
+          <>
+            {params.row.image ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  height: "100%",
+                  width: "100%",
+                }}
+                onClick={() =>
+                  handleClickOpen(params.row.image[0] || DesignDefaultImage)
+                }
+              >
+                <img
+                  src={params.row.image[0] || DesignDefaultImage}
+                  alt="Chất Liệu"
+                  style={{
+                    width: 50,
+                    height: 50,
+                    objectFit: "cover",
+                    borderRadius: 8,
+                  }}
+                />
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  height: "100%",
+                  width: "100%",
+                }}
+                onClick={() => handleClickOpen(DesignDefaultImage)}
+              >
+                <img
+                  src={DesignDefaultImage}
+                  alt="Chất Liệu"
+                  style={{
+                    width: 50,
+                    height: 50,
+                    objectFit: "cover",
+                    borderRadius: 8,
+                  }}
+                />
+              </Box>
+            )}
+          </>
         );
       },
     },
@@ -1719,6 +1849,43 @@ export default function DesignerDashboard() {
           size="small"
         />
       ),
+    },
+    {
+      field: "lastUpdated",
+      headerName: "Ngày Cập Nhật",
+      width: 220,
+      renderCell: (params) => {
+        const txDate = new Date(params.value as string);
+        const today = new Date();
+
+        const isToday =
+          txDate.getDate() === today.getDate() &&
+          txDate.getMonth() === today.getMonth() &&
+          txDate.getFullYear() === today.getFullYear();
+
+        return (
+          <>
+            {formatDate(params.value)}
+            {isToday && (
+              <Box
+                component="span"
+                sx={{
+                  ml: 1,
+                  px: 1,
+                  py: 0.2,
+                  borderRadius: "6px",
+                  fontSize: "0.75rem",
+                  fontWeight: "bold",
+                  color: "white",
+                  backgroundColor: "red",
+                }}
+              >
+                Mới
+              </Box>
+            )}
+          </>
+        );
+      },
     },
     {
       field: "actions",
@@ -3117,7 +3284,7 @@ export default function DesignerDashboard() {
             <Dialog
               open={openViewProductDialog}
               onClose={() => setOpenViewProductDialog(false)}
-              maxWidth="sm"
+              maxWidth="md"
               fullWidth
             >
               <DialogTitle>Chi Tiết Sản Phẩm</DialogTitle>
@@ -3536,7 +3703,7 @@ export default function DesignerDashboard() {
           {/* Table */}
           <DataGrid
             rows={generateMockDesigns(designs)}
-            columns={fashion_columns}
+            columns={designs_columns}
             initialState={{
               pagination: {
                 paginationModel: {
@@ -4325,6 +4492,34 @@ export default function DesignerDashboard() {
               width: "100%", // or set a fixed px width like "800px"
             }}
           />
+          <BootstrapDialog
+            onClose={handleClose}
+            aria-labelledby="customized-dialog-title"
+            open={open}
+          >
+            <IconButton
+              aria-label="close"
+              onClick={handleClose}
+              sx={(theme) => ({
+                position: "absolute",
+                right: 8,
+                top: 8,
+                color: theme.palette.grey[500],
+              })}
+            >
+              <CloseIcon />
+            </IconButton>
+
+            <img
+              src={selectedImage || ""}
+              alt="Preview"
+              style={{
+                maxWidth: "100%",
+                maxHeight: "80vh",
+                borderRadius: 10,
+              }}
+            />
+          </BootstrapDialog>
         </Box>
       )}
 
@@ -4467,7 +4662,7 @@ export default function DesignerDashboard() {
                           Đơn #{item.orderId}
                         </Typography>
                         <Typography fontSize={12} color="text.secondary">
-                          {new Date(item.orderDate).toLocaleDateString("vi-VN")}
+                          {formatDate(item.orderDate)}
                         </Typography>
                         <Typography fontSize={12} color="text.secondary">
                           {item.sellerName}
@@ -4538,6 +4733,7 @@ export default function DesignerDashboard() {
         justifyContent: "center",
         alignItems: "center",
         minHeight: 200,
+        height: "100vh",
       }}
     >
       <CircularProgress />
