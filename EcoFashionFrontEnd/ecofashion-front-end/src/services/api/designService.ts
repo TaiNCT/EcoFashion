@@ -190,6 +190,7 @@ export interface FullProductDetail {
   sizeRatio: number;
   quantityAvailable: number;
   designId: number;
+  lastUpdated: string;
 }
 
 export interface DesignResponse {

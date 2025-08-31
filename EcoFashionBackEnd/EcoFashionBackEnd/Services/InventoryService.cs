@@ -89,7 +89,8 @@ namespace EcoFashionBackEnd.Services
                     {
                         ProductId = change.ProductId,
                         WarehouseId = change.WarehouseId,
-                        QuantityAvailable = change.TotalQuantity
+                        QuantityAvailable = change.TotalQuantity,
+                        LastUpdated = DateTime.UtcNow
                     };
 
                     await _productInventoryRepository.AddAsync(inventory);
@@ -99,6 +100,7 @@ namespace EcoFashionBackEnd.Services
                 {
                     // 🔄 Cập nhật
                     inventory.QuantityAvailable += change.TotalQuantity;
+                    inventory.LastUpdated = DateTime.UtcNow;
                     _productInventoryRepository.Update(inventory);
                     await _productInventoryRepository.Commit(); // 💡 commit để transaction chắc chắn thấy AfterQty
                 }
@@ -182,7 +184,6 @@ namespace EcoFashionBackEnd.Services
 
                 var originalQuantity = inventory.Quantity;
                 inventory.Quantity -= requiredQty;
-
 
                 var transaction = new MaterialInventoryTransaction
                 {

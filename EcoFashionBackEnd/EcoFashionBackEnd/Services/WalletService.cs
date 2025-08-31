@@ -131,7 +131,47 @@ namespace EcoFashionBackEnd.Services
         }
 
 
-        public async Task<WalletTransactionDto> RequestWithdrawalAsync(int userId, double amount, string? description = null)
+        //public async Task<WalletTransactionDto> RequestWithdrawalAsync(int userId, double amount, string? description = null)
+        //{
+        //    var wallet = await _walletRepository.GetAll()
+        //        .FirstOrDefaultAsync(w => w.UserId == userId);
+
+        //    if (wallet == null)
+        //        throw new Exception("Wallet not found");
+
+        //    if (wallet.Balance < amount)
+        //        throw new Exception("Insufficient balance");
+
+        //    var transaction = new WalletTransaction
+        //    {
+        //        WalletId = wallet.WalletId,
+        //        Amount = amount,
+        //        BalanceBefore = wallet.Balance,
+        //        BalanceAfter = wallet.Balance, // chưa trừ tiền
+        //        Type = TransactionType.Withdrawal,
+        //        Status = Entities.TransactionStatus.Pending,
+        //        Description = description ?? $"Yêu cầu rút {amount:N0} VND",
+        //        CreatedAt = DateTime.UtcNow
+        //    };
+
+        //    await _walletTransactionRepository.AddAsync(transaction);
+        //    await _walletTransactionRepository.Commit();
+
+        //    return new WalletTransactionDto
+        //    {
+        //        Id = transaction.Id,
+        //        Amount = transaction.Amount,
+        //        BalanceBefore = transaction.BalanceBefore,
+        //        BalanceAfter = transaction.BalanceAfter,
+        //        Type = transaction.Type,
+        //        Status = transaction.Status,
+        //        Description = transaction.Description,
+        //        CreatedAt = transaction.CreatedAt,
+        //        OrderId = transaction.OrderId,
+        //        OrderGroupId = transaction.OrderGroupId
+        //    }; 
+        //}
+        public async Task<ApiResult<WalletTransactionDto>> RequestWithdrawalAsync(int userId, double amount, string? description = null)
         {
             var wallet = await _walletRepository.GetAll()
                 .FirstOrDefaultAsync(w => w.UserId == userId);
@@ -142,6 +182,21 @@ namespace EcoFashionBackEnd.Services
             if (wallet.Balance < amount)
                 throw new Exception("Insufficient balance");
 
+            // 🔹 Check lần rút thành công gần nhất
+            var lastWithdrawal = await _walletTransactionRepository.GetAll()
+                .Where(t => t.WalletId == wallet.WalletId
+                            && t.Type == TransactionType.Withdrawal 
+                            && t.Status == Entities.TransactionStatus.Success ||  t.Status == Entities.TransactionStatus.Pending)
+                .OrderByDescending(t => t.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (lastWithdrawal != null && lastWithdrawal.CreatedAt.AddDays(30) > DateTime.UtcNow)
+            {
+                var remaining = (lastWithdrawal.CreatedAt.AddDays(30) - DateTime.UtcNow).Days;
+                return ApiResult<WalletTransactionDto>.Fail($"Bạn chỉ có thể rút tiền sau {remaining} ngày nữa.");
+            }
+
+            // 🔹 Tạo transaction pending
             var transaction = new WalletTransaction
             {
                 WalletId = wallet.WalletId,
@@ -157,7 +212,7 @@ namespace EcoFashionBackEnd.Services
             await _walletTransactionRepository.AddAsync(transaction);
             await _walletTransactionRepository.Commit();
 
-            return new WalletTransactionDto
+            var dto = new WalletTransactionDto
             {
                 Id = transaction.Id,
                 Amount = transaction.Amount,
@@ -169,7 +224,9 @@ namespace EcoFashionBackEnd.Services
                 CreatedAt = transaction.CreatedAt,
                 OrderId = transaction.OrderId,
                 OrderGroupId = transaction.OrderGroupId
-            }; 
+            };
+
+            return ApiResult<WalletTransactionDto>.Succeed(dto);
         }
 
 
@@ -197,6 +254,47 @@ namespace EcoFashionBackEnd.Services
 
             return ApiResult<object>.Succeed(new { PaymentUrl = paymentUrl });
         }
+
+        //public async Task<ApiResult<object>> CreateWithdrawalPaymentAsync(int walletTransactionId, int userId, HttpContext httpContext)
+        //{
+        //    var withdrawalRequest = await _walletTransactionRepository.GetByIdAsync(walletTransactionId);
+        //    if (withdrawalRequest == null)
+        //        return ApiResult<object>.Fail("Không tìm thấy yêu cầu rút tiền");
+
+        //    if (withdrawalRequest.Type != TransactionType.Withdrawal)
+        //        return ApiResult<object>.Fail("TransactionId không phải yêu cầu rút tiền");
+
+        //    if (withdrawalRequest.Status != Entities.TransactionStatus.Pending)
+        //        return ApiResult<object>.Fail("Yêu cầu này đã được xử lý rồi");
+
+        //    // 🔒 Check 30 ngày từ lần rút thành công gần nhất
+
+        //    var lastWithdrawal = await _walletTransactionRepository.GetAll()
+        //         .Include(t => t.Wallet)
+        //         .Where(t => t.Wallet.UserId == userId
+        //                     && t.Type == TransactionType.Withdrawal
+        //                     && t.Status == Entities.TransactionStatus.Success)
+        //         .OrderByDescending(t => t.CreatedAt)
+        //         .FirstOrDefaultAsync();
+
+        //    if (lastWithdrawal != null && lastWithdrawal.CreatedAt.AddDays(30) > DateTime.UtcNow)
+        //    {
+        //        var remaining = (lastWithdrawal.CreatedAt.AddDays(30) - DateTime.UtcNow).Days;
+        //        return ApiResult<object>.Fail($"Bạn chỉ có thể rút tiền sau {remaining} ngày nữa.");
+        //    }
+
+        //    // ❗ Không thay đổi trạng thái/số dư cho đến khi VNPay callback
+        //    var vnPayModel = new VnPaymentRequestModel
+        //    {
+        //        OrderId = withdrawalRequest.Id,
+        //        Amount = withdrawalRequest.Amount,
+        //        CreatedDate = DateTime.Now
+        //    };
+
+        //    var paymentUrl = await _vnPayService.CreateWithdrawalPaymentUrlAsync(httpContext, vnPayModel);
+
+        //    return ApiResult<object>.Succeed(new { PaymentUrl = paymentUrl });
+        //}
 
         public async Task<VnPaymentResponseModel> HandleVNPayWithdrawalReturnAsync(IQueryCollection collection)
         {

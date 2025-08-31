@@ -26,6 +26,11 @@ export interface WalletTransaction {
   status: "Pending" | "Success" | "Fail";
   orderId?: number;
   orderGroupId?: string;
+  // 🔹 Gợi ý thêm nếu backend có
+  success?: boolean;
+  updatedAt?: string; // khi trạng thái thay đổi
+  referenceCode?: string; // mã tham chiếu giao dịch
+  errorMessage?: string; // nếu giao dịch fail có lý do
 }
 
 export interface DepositRequest {
