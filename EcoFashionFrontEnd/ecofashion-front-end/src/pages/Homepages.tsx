@@ -158,7 +158,15 @@ export default function Homepage() {
               padding: 3,
             }}
           >
-            <Typography variant="h2" fontWeight="bold" gutterBottom>
+            <Typography
+              variant="h2"
+              fontWeight="bold"
+              gutterBottom
+              sx={{
+                fontFamily: "'Quicksand', sans-serif",
+                lineHeight: 1.3,
+              }}
+            >
               Kiến Tạo Phong Cách, Gắn Kết Cộng Đồng, Hướng Tới{" "}
               <span style={{ color: "#32e087" }}>Thời Trang Bền Vững</span>
             </Typography>
@@ -519,7 +527,7 @@ export default function Homepage() {
             navigate(`/material/${material.materialId}`);
           }}
           onViewMore={() => {
-            navigate("/materials")
+            navigate("/materials");
           }}
         />
       </Box>
