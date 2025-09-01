@@ -282,7 +282,7 @@ namespace EcoFashionBackEnd.Services
                         PerformedByUserId = userId,
                         TransactionType = "Import",
                         TransactionDate = DateTime.Now,
-                        Notes = $"Nhập kho vật liệu cho Designer từ đơn hàng #{orderId}"
+                        Notes = $"Nhập kho vật liệu cho Nhà Thiết Kế từ đơn hàng #{orderId}"
                     };
 
                     await _materialInventoryTransactionRepository.AddAsync(transactionNew);
@@ -309,7 +309,7 @@ namespace EcoFashionBackEnd.Services
                         PerformedByUserId = userId,
                         TransactionType = "Import",
                         TransactionDate = DateTime.Now,
-                        Notes = $"Nhập kho vật liệu cho Designer từ đơn hàng #{orderId}"
+                        Notes = $"Nhập kho vật liệu cho Nhà Thiết Kế từ đơn hàng #{orderId}"
                     };
 
                     await _materialInventoryTransactionRepository.AddAsync(transaction);
