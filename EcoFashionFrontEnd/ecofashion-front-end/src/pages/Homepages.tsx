@@ -152,7 +152,7 @@ export default function Homepage() {
         >
           <Box
             sx={{
-              width: "60%",
+              width: "80%",
               backgroundColor: "rgba(145, 136, 136, 0.42)",
               margin: "auto",
               padding: 3,
@@ -160,10 +160,10 @@ export default function Homepage() {
           >
             <Typography
               variant="h2"
-              fontWeight="bold"
-              gutterBottom
               sx={{
-                fontFamily: "'Quicksand', sans-serif",
+                fontFamily: "'Allura', cursive",
+                fontWeight: 400,
+                fontSize: "5rem",
                 lineHeight: 1.3,
               }}
             >
