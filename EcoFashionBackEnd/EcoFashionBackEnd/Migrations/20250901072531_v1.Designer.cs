@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250901043323_v1")]
+    [Migration("20250901072531_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -918,6 +918,8 @@ namespace EcoFashionBackEnd.Migrations
                     b.HasKey("TransactionId");
 
                     b.HasIndex("InventoryId");
+
+                    b.HasIndex("PerformedByUserId");
 
                     b.ToTable("MaterialInventoryTransactions");
                 });
@@ -2364,7 +2366,13 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("EcoFashionBackEnd.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("PerformedByUserId");
+
                     b.Navigation("MaterialInventory");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialStock", b =>

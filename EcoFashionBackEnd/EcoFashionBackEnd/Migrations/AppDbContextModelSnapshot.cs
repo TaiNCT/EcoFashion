@@ -916,6 +916,8 @@ namespace EcoFashionBackEnd.Migrations
 
                     b.HasIndex("InventoryId");
 
+                    b.HasIndex("PerformedByUserId");
+
                     b.ToTable("MaterialInventoryTransactions");
                 });
 
@@ -2361,7 +2363,13 @@ namespace EcoFashionBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("EcoFashionBackEnd.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("PerformedByUserId");
+
                     b.Navigation("MaterialInventory");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcoFashionBackEnd.Entities.MaterialStock", b =>
