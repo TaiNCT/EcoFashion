@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250901074055_init")]
+    [Migration("20250901150031_init")]
     partial class init
     {
         /// <inheritdoc />
