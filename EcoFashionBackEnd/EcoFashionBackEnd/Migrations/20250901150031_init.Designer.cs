@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoFashionBackEnd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250901072531_v1")]
-    partial class v1
+    [Migration("20250901150031_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
