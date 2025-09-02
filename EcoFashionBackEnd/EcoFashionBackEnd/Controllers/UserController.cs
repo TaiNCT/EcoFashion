@@ -148,5 +148,21 @@ namespace EcoFashionBackEnd.Controllers
                 return StatusCode(500, ApiResult<object>.Fail(ex.Message));
             }
         }
+
+        // Admin: get all users
+        [Authorize(Roles = "admin")]
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            try
+            {
+                var users = await _userService.GetAllUsersAsync();
+                return Ok(ApiResult<object>.Succeed(users));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex.Message));
+            }
+        }
     }
 }
