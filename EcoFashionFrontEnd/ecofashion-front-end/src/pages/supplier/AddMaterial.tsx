@@ -291,14 +291,10 @@ const MaterialTypeSelector: React.FC<{
 // Certifications use CriterionId 6+ to avoid conflicts
 const SUSTAINABILITY_CERTIFICATIONS = {
   // Available certifications - Map to "Organic Certification" (CriterionId: 4)
-  GRS: { criterionId: 4 },
-  RCS: { criterionId: 4 },
   GOTS: { criterionId: 4 },
   "OEKO-TEX": { criterionId: 4 },
   "CRADLE TO CRADLE": { criterionId: 4 },
   CARBONNEUTRAL: { criterionId: 4 },
-  "ISO 14067": { criterionId: 4 },
-  "PAS 2050": { criterionId: 4 },
 };
 
 type SustainabilityCertification = keyof typeof SUSTAINABILITY_CERTIFICATIONS;
@@ -464,24 +460,21 @@ const AddMaterial: React.FC = () => {
 
     setSelectedCertifications(newSelectedCertifications);
 
-    // Simple binary logic: Has certification = 100, No certification = 0
-    const hasCertification = newSelectedCertifications.size > 0;
-    const certificationScore = hasCertification ? 100 : 0;
+    // Tạo sustainability criteria cho từng chứng chỉ được chọn
+    const sustainabilityCriteria: SustainabilityCriterion[] = [];
 
-    // Send ONLY ONE entry for "Organic Certification" (CriterionId: 4) with binary score
-    const sustainabilityCriteria: SustainabilityCriterion[] = hasCertification
-      ? [
-        {
-          criterionId: 4, // Organic Certification from seeder
-          value: 100, // 100 = has certification, 0 = no certification
-        },
-      ]
-      : [];
+    // Nếu có ít nhất 1 chứng chỉ được chọn, tạo entry cho Organic Certification (CriterionId: 4)
+    if (newSelectedCertifications.size > 0) {
+      sustainabilityCriteria.push({
+        criterionId: 4, // Organic Certification from seeder - đại diện cho việc có chứng chỉ
+        value: 100, // 100 = has certification, 0 = no certification
+      });
+    }
 
     setValue("sustainabilityCriteria", sustainabilityCriteria);
 
     // ALSO set certificationDetails string for backend business logic
-    // Backend checks certificationDetails string for keywords like "GOTS", "CRADLE TO CRADLE", etc.
+    // Backend checks certificationDetails string for keywords like "GOTS", "OEKO-TEX", "CRADLE TO CRADLE", etc.
     const certificationNames = Array.from(newSelectedCertifications).join(", ");
     setValue("certificationDetails", certificationNames || "");
   };
@@ -493,8 +486,8 @@ const AddMaterial: React.FC = () => {
   ): SustainabilityCertification[] => {
     const allowed: SustainabilityCertification[] = [];
 
-    // New logic: only Cradle to Cradle for Waste Diverted >= 50%
-    if (wastePct >= 50) {
+    // Updated logic: only Cradle to Cradle for Waste Diverted >= 75%
+    if (wastePct >= 75) {
       allowed.push("CRADLE TO CRADLE");
     }
 
@@ -507,7 +500,7 @@ const AddMaterial: React.FC = () => {
     carbonPerMeter: number
   ): SustainabilityCertification[] => {
     const unlocked: SustainabilityCertification[] = [];
-    if (carbonPerMeter > 0 && carbonPerMeter <= 2) {
+    if (carbonPerMeter > 0 && carbonPerMeter <= 5) {
       unlocked.push("CARBONNEUTRAL");
     }
     return unlocked;
@@ -515,11 +508,8 @@ const AddMaterial: React.FC = () => {
   const getCarbonBasedSuggestedCertifications = (
     carbonPerMeter: number
   ): SustainabilityCertification[] => {
-    const suggested: SustainabilityCertification[] = [];
-    if (carbonPerMeter > 2 && carbonPerMeter <= 5) {
-      suggested.push("ISO 14067", "PAS 2050");
-    }
-    return suggested;
+    // Không còn chứng chỉ gợi ý nào
+    return [];
   };
 
   // Get certifications allowed by organic material type
@@ -541,6 +531,8 @@ const AddMaterial: React.FC = () => {
       ...getCombinedAllowedCertifications(Number(wasteDivertedValue) || 0),
       ...getCarbonBasedUnlockedCertifications(Number(carbonFootprintValue) || 0),
       ...getCarbonBasedSuggestedCertifications(Number(carbonFootprintValue) || 0),
+      // Thêm các chứng chỉ luôn có thể chọn
+      "OEKO-TEX"
     ]),
     [wasteDivertedValue, carbonFootprintValue, isOrganicMaterial]
   );
@@ -579,6 +571,39 @@ const AddMaterial: React.FC = () => {
   // Get all available certifications
   const getAllCertifications = (): SustainabilityCertification[] => {
     return Object.keys(SUSTAINABILITY_CERTIFICATIONS) as SustainabilityCertification[];
+  };
+
+  // Check if a certification is enabled based on current form data
+  const isCertificationEnabled = (certification: SustainabilityCertification): boolean => {
+    // Các chứng chỉ luôn có thể chọn
+    const alwaysAvailable: SustainabilityCertification[] = ["OEKO-TEX"];
+    if (alwaysAvailable.includes(certification)) {
+      return true;
+    }
+    return allowedCertificationSet.has(certification);
+  };
+
+  // Get the reason why a certification is disabled
+  const getDisabledReason = (certification: SustainabilityCertification): string => {
+    // Các chứng chỉ luôn có thể chọn không có lý do bị disable
+    const alwaysAvailable: SustainabilityCertification[] = ["OEKO-TEX"];
+    if (alwaysAvailable.includes(certification)) {
+      return "";
+    }
+
+    const wasteValue = Number(wasteDivertedValue) || 0;
+    const carbonValue = Number(carbonFootprintValue) || 0;
+
+    switch (certification) {
+      case "CRADLE TO CRADLE":
+        return wasteValue < 75 ? `Cần Waste Diverted ≥ 75% (hiện tại: ${wasteValue}%)` : "";
+      case "CARBONNEUTRAL":
+        return carbonValue > 5 ? `Cần Carbon Footprint ≤ 5 kgCO₂e/mét (hiện tại: ${carbonValue})` : "";
+      case "GOTS":
+        return !isOrganicMaterial ? "Cần chọn loại vật liệu Organic" : "";
+      default:
+        return "";
+    }
   };
 
   // Fetch transport details when country changes
@@ -1151,9 +1176,9 @@ const AddMaterial: React.FC = () => {
                         )}
                         {!errors.wasteDiverted && (
                           <p className="text-xs text-gray-500 mt-1">
-                            {Number(wasteDivertedValue) >= 50
+                            {Number(wasteDivertedValue) >= 75
                               ? "Đã mở từ Waste Diverted: Cradle to Cradle"
-                              : "Tăng Waste Diverted lên ≥50% để mở chứng chỉ Cradle to Cradle."}
+                              : "Tăng Waste Diverted lên ≥75% để mở chứng chỉ Cradle to Cradle."}
                             {isOrganicMaterial && (
                               <span className="text-green-600 font-medium">
                                 {" "} + GOTS (từ vật liệu Organic)
@@ -1488,15 +1513,23 @@ const AddMaterial: React.FC = () => {
                           <span className="text-red-500">*</span>
                         </label>
 
-                        {allowedCertificationSet.size === 0 && (
-                          <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-800">
-                            Hiện chưa có chứng chỉ nào khả dụng.
-                            <br /><strong>Cách mở khóa:</strong>
-                            <br />• Tăng Waste Diverted: Cradle to Cradle (mở khi ≥ 50%)
-                            <br />• Giảm Carbon Footprint: ≤ 2 kgCO₂e/mét (mở CarbonNeutral); ≤ 5 kgCO₂e/mét (gợi ý ISO 14067 / PAS 2050)
-                            <br />• Chọn loại vật liệu có chứa từ "Organic" để mở GOTS
+                        <div className="mb-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h5 className="text-sm font-semibold text-blue-800">Hướng dẫn mở khóa chứng chỉ</h5>
                           </div>
-                        )}
+                          <div className="text-xs text-blue-800 space-y-1">
+                            <p><strong>• CRADLE TO CRADLE:</strong> Cần Waste Diverted ≥ 75%</p>
+                            <p><strong>• CARBONNEUTRAL:</strong> Cần Carbon Footprint ≤ 5 kgCO₂e/mét</p>
+                            <p><strong>• GOTS:</strong> Cần chọn loại vật liệu có chứa từ "Organic"</p>
+                            <p><strong>• OEKO-TEX:</strong> Cần cấp link document dẫn chứng để xác thực</p>
+                          </div>
+                          <div className="mt-2 text-xs text-blue-700">
+                            💡 Chứng chỉ bị khóa sẽ hiển thị lý do cụ thể bên dưới mỗi mục
+                          </div>
+                        </div>
 
                         {/* Organic Material GOTS Certificate Info */}
                         {isOrganicMaterial && (
@@ -1586,79 +1619,87 @@ const AddMaterial: React.FC = () => {
 
                         {/* Chứng chỉ dựa trên các chỉ số bền vững */}
                         <div className="mb-4">
-                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <h4 className="text-3xl font-medium text-green-700 mb-2 flex items-center gap-2">
+                            <svg className="w-6 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
-                            Chứng chỉ dựa trên các chỉ số bền vững
+                            Các chứng chỉ bền vững có sẵn (vui lòng bỏ qua nếu không có)
                           </h4>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {Array.from(allowedCertificationSet)
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {getAllCertifications()
+                              .filter(cert => cert !== "GOTS") // GOTS sẽ được hiển thị riêng ở phần organic
                               .map((certificationDetails) => {
+                                const isEnabled = isCertificationEnabled(certificationDetails);
+                                const disabledReason = getDisabledReason(certificationDetails);
+
                                 // Determine certificate type and styling
-                                const getCertificateStyle = (cert: string) => {
+                                const getCertificateStyle = (cert: string, enabled: boolean) => {
+                                  const baseStyle = enabled ? "cursor-pointer" : "cursor-not-allowed opacity-60";
                                   switch (cert) {
-                                    case 'GRS':
-                                    case 'RCS':
-                                      return 'border-green-200 hover:bg-green-50 text-green-700';
                                     case 'OEKO-TEX':
-                                      return 'border-blue-200 hover:bg-blue-50 text-blue-700';
+                                      return `${baseStyle} border-blue-200 ${enabled ? 'hover:bg-blue-50' : 'bg-gray-50'} text-blue-700`;
                                     case 'CRADLE TO CRADLE':
-                                      return 'border-purple-200 hover:bg-purple-50 text-purple-700';
+                                      return `${baseStyle} border-purple-200 ${enabled ? 'hover:bg-purple-50' : 'bg-gray-50'} text-purple-700`;
                                     case 'CARBONNEUTRAL':
-                                      return 'border-red-200 hover:bg-red-50 text-red-700';
-                                    case 'ISO 14067':
-                                    case 'PAS 2050':
-                                      return 'border-orange-200 hover:bg-orange-50 text-orange-700';
+                                      return `${baseStyle} border-red-200 ${enabled ? 'hover:bg-red-50' : 'bg-gray-50'} text-red-700`;
                                     default:
-                                      return 'border-gray-200 hover:bg-gray-50 text-gray-700';
+                                      return `${baseStyle} border-gray-200 ${enabled ? 'hover:bg-gray-50' : 'bg-gray-100'} text-gray-700`;
                                   }
                                 };
 
                                 return (
-                                  <label
+                                  <div
                                     key={certificationDetails}
-                                    className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-all ${getCertificateStyle(certificationDetails)}`}
+                                    className={`relative group`}
                                   >
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedCertifications.has(
-                                        certificationDetails
-                                      )}
-                                      onChange={() =>
-                                        handleCertificationToggle(
+                                    <label
+                                      className={`flex items-start space-x-3 p-4 border rounded-lg transition-all ${getCertificateStyle(certificationDetails, isEnabled)}`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedCertifications.has(
                                           certificationDetails
-                                        )
-                                      }
-                                      className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-                                    />
-                                    <span className="text-sm font-medium">
-                                      {certificationDetails}
-                                    </span>
-                                  </label>
+                                        )}
+                                        onChange={() =>
+                                          isEnabled && handleCertificationToggle(
+                                            certificationDetails
+                                          )
+                                        }
+                                        disabled={!isEnabled}
+                                        className={`mt-0.5 rounded border-gray-300 text-brand-600 focus:ring-brand-500 ${!isEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                      />
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-medium">
+                                            {certificationDetails}
+                                          </span>
+                                          {isEnabled ? (
+                                            <span className="inline-block w-2 h-2 bg-green-500 rounded-full" title="Có thể chọn"></span>
+                                          ) : (
+                                            <span className="inline-block w-2 h-2 bg-gray-400 rounded-full" title="Chưa đủ điều kiện"></span>
+                                          )}
+                                        </div>
+                                        {!isEnabled && disabledReason && (
+                                          <p className="text-xs text-gray-500 mt-1">
+                                            🔒 {disabledReason}
+                                          </p>
+                                        )}
+                                        {isEnabled && !["OEKO-TEX"].includes(certificationDetails) && (
+                                          <p className="text-xs text-green-600 mt-1">
+                                            ✅ Đã đủ điều kiện để chọn
+                                          </p>
+                                        )}
+                                        {isEnabled && ["OEKO-TEX"].includes(certificationDetails) && (
+                                          <a href="https://www.oeko-tex.com/en/" className="text-xs text-blue-600 mt-1">
+                                            📋 https://www.oeko-tex.com/en/
+                                          </a>
+                                        )}
+                                      </div>
+                                    </label>
+                                  </div>
                                 );
                               })}
                           </div>
-                          {getCarbonBasedSuggestedCertifications(Number(carbonFootprintValue) || 0)
-                            .filter((c) => !allowedCertificationSet.has(c as SustainabilityCertification)).length > 0 && (
-                              <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                                <div className="text-xs text-orange-800 mb-2 font-medium">
-                                  Gợi ý chứng chỉ dựa trên Carbon Footprint
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                  {getCarbonBasedSuggestedCertifications(Number(carbonFootprintValue) || 0)
-                                    .filter((c) => !allowedCertificationSet.has(c as SustainabilityCertification))
-                                    .map((cert) => (
-                                      <span key={`suggest-${cert}`} className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800 border border-orange-200">
-                                        {cert}
-                                      </span>
-                                    ))}
-                                </div>
-                                <p className="text-[11px] text-orange-700 mt-2">
-                                  Đạt ≤ 2 kgCO₂e/mét sẽ mở khóa trực tiếp CarbonNeutral.
-                                </p>
-                              </div>
-                            )}
                           <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                             <h5 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1676,12 +1717,17 @@ const AddMaterial: React.FC = () => {
                                 </div>
                                 <p className="ml-4 mb-2 text-sm md:text-base text-gray-700">Lượng khí thải phát sinh để sản xuất 1 mét vật liệu.</p>
                                 <p className="ml-4 text-blue-700 text-sm md:text-base">
-                                  <strong>Gợi ý gán chứng chỉ lên vật liệu:</strong>
-                                  <br />• ≤ 2 kgCO₂e/mét: mở khóa CarbonNeutral
-                                  <br />• ≤ 5 kgCO₂e/mét: gợi ý mở khóa ISO 14067 / PAS 2050
+                                  <strong>Ngưỡng đề xuất để sử dụng chứng chỉ này:</strong>
+                                  <br />• ≤ 5 kgCO₂e/mét: mở khóa CarbonNeutral
                                   <br />• &gt; 5 kgCO₂e/mét: không hiển thị chứng chỉ liên quan
-                                  <br /><a href="https://www.carbonneutral.com/pdfs/The_CarbonNeutral_Protocol_Feb_2024.pdf" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-700">
+                                  <br />• <a href="https://www.carbonneutral.com/pdfs/The_CarbonNeutral_Protocol_Feb_2024.pdf" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-700">
                                     https://www.carbonneutral.com/pdfs/The_CarbonNeutral_Protocol_Feb_2024.pdf
+                                  </a>
+                                  <br />• <a href="https://www.ifeu.de/fileadmin/uploads/ifeu_paper/IFEU_2022_-_Environmental_Footprints_of_Cotton_and_Cotton_Fibres_final.pdf" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-700">
+                                    https://www.ifeu.de/fileadmin/uploads/ifeu_paper/IFEU_2022_-_Environmental_Footprints_of_Cotton_and_Cotton_Fibres_final.pdf
+                                  </a>
+                                  <br />• <a href="https://www.co2everything.com/category/clothes-and-fabrics" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-700">
+                                    https://www.co2everything.com/category/clothes-and-fabrics
                                   </a>
                                 </p>
                               </div>
@@ -1697,10 +1743,11 @@ const AddMaterial: React.FC = () => {
                                   mà được tái chế, tái sử dụng, hoặc thu hồi năng lượng.
                                 </p>
                                 <p className="ml-4 text-blue-700 text-sm md:text-base">
-                                  <strong>Chứng chỉ sử dụng:</strong> Cradle to Cradle (mở khi ≥ 50%)
+                                  <strong>Chứng chỉ sử dụng:</strong> Cradle to Cradle (mở khi ≥ 75%)
                                 </p>
                                 <a href="https://cdn.c2ccertified.org/resources/certification/standard/STD_C2C_Certified_V4.0_FINAL_031621.pdf" target="_blank" rel="noopener noreferrer" className="ml-4 text-blue-600 underline hover:text-blue-700 text-sm md:text-base">
-                                  https://cdn.c2ccertified.org/resources/certification/standard/STD_C2C_Certified_V4.0_FINAL_031621.pdf</a>
+                                  https://cdn.c2ccertified.org/resources/certification/standard/STD_C2C_Certified_V4.0_FINAL_031621.pdf</a><br />
+
                               </div>
 
                               {/* Specialized Certificates */}
@@ -1997,5 +2044,6 @@ const AddMaterial: React.FC = () => {
 };
 
 export default AddMaterial;
+
 
 
