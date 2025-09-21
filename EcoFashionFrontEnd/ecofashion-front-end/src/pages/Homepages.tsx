@@ -45,12 +45,28 @@ import { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 //Card
 
-
 import FashionsSection from "../components/fashion/FashionsSection";
 import { useNavigate } from "react-router-dom";
 import useMaterial from "../hooks/useMaterial";
 import MaterialsSection from "../components/materials/MaterialsSection";
 
+import {
+  SupplierService,
+  type SupplierSummary,
+} from "../services/api/supplierService";
+import { DesignerService } from "../services/api/designerService";
+type DesignerSummaryExtra = {
+  designerId: string;
+  designerName?: string;
+  avatarUrl?: string;
+  bio?: string;
+  bannerUrl?: string;
+  rating?: number;
+  reviewCount?: number;
+  createdAt: string;
+  taxNumber?: string;
+  identificationPictureOwner?: string;
+};
 
 const StyledInput = styled(InputBase)({
   borderRadius: 20,
@@ -59,11 +75,9 @@ const StyledInput = styled(InputBase)({
   flex: 1,
 });
 
-
 export default function Homepage() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
-
 
   // Materials Data using API
   const {
@@ -73,9 +87,10 @@ export default function Homepage() {
     error: materialsError,
   } = useMaterial();
 
-
   //Design Data
   const [designs, setDesigns] = useState<Design[]>([]);
+  const [designers, setDesigners] = useState<DesignerSummaryExtra[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierSummary[]>([]);
   //Loading
   const [loading, setLoading] = useState(true);
   //Error
@@ -86,21 +101,32 @@ export default function Homepage() {
   const pageSize = 12;
   const [page, setPage] = useState(currentPage);
 
-
   useEffect(() => {
     loadDesigners();
   }, []);
-
 
   const loadDesigners = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await DesignService.getAllDesignPagination(
+
+      const desginData = await DesignService.getAllDesignPagination(
         currentPage,
         pageSize
       );
-      setDesigns(data);
+      setDesigns(desginData);
+
+      const designerData = await DesignerService.getPublicDesigners(
+        currentPage,
+        pageSize
+      );
+      setDesigners(designerData);
+
+      const supplierData = await SupplierService.getPublicSuppliers(
+        currentPage,
+        pageSize
+      );
+      setSuppliers(supplierData);
     } catch (error: any) {
       const errorMessage =
         error.message || "Không thể tải danh sách nhà thiết kế";
@@ -111,16 +137,13 @@ export default function Homepage() {
     }
   };
 
-
   const CountUp = ({ end, duration = 1000 }) => {
     const [count, setCount] = useState(0);
-
 
     useEffect(() => {
       let start = 0;
       const totalSteps = end;
       const stepTime = Math.max(1, Math.floor(duration / totalSteps)); // ensure stepTime ≥ 1ms
-
 
       const timer = setInterval(() => {
         start += 1;
@@ -128,14 +151,11 @@ export default function Homepage() {
         if (start >= end) clearInterval(timer);
       }, stepTime);
 
-
       return () => clearInterval(timer);
     }, [end, duration]);
 
-
     return <>{count.toLocaleString()}</>;
   };
-
 
   return (
     <Box>
@@ -145,6 +165,7 @@ export default function Homepage() {
           height: "100vh",
           transition: "height 0.5s ease",
           display: "flex",
+          position: "relative",
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -152,7 +173,7 @@ export default function Homepage() {
         <img
           src={banner}
           alt="EcoFashion Banner"
-          style={{ width: "100%", height: "580", objectFit: "cover" }}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
         <Box
           sx={{
@@ -182,7 +203,7 @@ export default function Homepage() {
                   xs: "1.8rem",
                   sm: "2.5rem",
                   md: "3.5rem",
-                  lg: "5rem"
+                  lg: "5rem",
                 },
                 lineHeight: { xs: 1.2, md: 1.3 },
               }}
@@ -198,62 +219,12 @@ export default function Homepage() {
               fontSize: { xs: "16px", sm: "20px", md: "25px" },
               mb: { xs: 5, md: 10 },
               mt: { xs: 2, md: 0 },
-              px: { xs: 1, md: 0 }
+              px: { xs: 1, md: 0 },
             }}
           >
             Cùng Tham Gia Thay Đổi Ngành Thời Trang Với Vật Liệu Tái Chế Và
             Thiết Kế Thân Thiện Với Môi Trường
           </Typography>
-          {/* <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              bgcolor: "white",
-              p: 0.5,
-              width: "60%",
-              border: "1px solid black",
-              margin: "30px auto",
-            }}
-          >
-            <Box
-              sx={{
-                borderRight: "1px solid black",
-                height: "100%",
-              }}
-            >
-              <Select
-                defaultValue="all"
-                sx={{
-                  border: "none",
-                  fontSize: 14,
-                  minWidth: 100,
-                  "& fieldset": { border: "none" },
-                }}
-                MenuProps={{
-                  disableScrollLock: true,
-                }}
-              >
-                <MenuItem value="all">Tất cả</MenuItem>
-                <MenuItem value="products">Thời trang</MenuItem>
-                <MenuItem value="material">Vật liệu</MenuItem>
-              </Select>
-            </Box>
-            <Box
-              sx={{
-                width: "85%",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <StyledInput
-                placeholder="Tìm kiếm.."
-                fullWidth
-                sx={{ border: "none" }}
-              />
-              <SearchIcon sx={{ color: "black", margin: "auto" }} />
-            </Box>
-          </Box> */}
           {user ? (
             <Stack
               direction={{ xs: "column", sm: "row" }}
@@ -297,8 +268,11 @@ export default function Homepage() {
                   alignItems: "center",
                   textAlign: "center",
                   justifyContent: "center",
-                  width: "50%",
+                  width: { xs: "100%", sm: "50%" },
+                  marginTop: { xs: "20px", md: "30px" },
+                  py: { xs: 1.5, md: 1 },
                 }}
+                href="/materials"
               >
                 <Typography
                   sx={{
@@ -356,7 +330,6 @@ export default function Homepage() {
                 </Typography>
               </Button>
 
-
               <Button
                 variant="outlined"
                 sx={{
@@ -409,10 +382,18 @@ export default function Homepage() {
           sx={{ maxWidth: 1200, margin: "0 auto" }}
         >
           {[
-            { quantity: materials.length, unit: "+", label: "Vật Liệu" },
-            { quantity: designs.length, unit: "+", label: "Thiết Kế" },
-            { quantity: 1, unit: "+", label: "Nhà Thiết Kế" },
-            { quantity: 1, unit: "+", label: "Nhà Cung Cấp" },
+            { quantity: materials.length || 0, unit: "+", label: "Vật Liệu" },
+            { quantity: designs.length || 0, unit: "+", label: "Thiết Kế" },
+            {
+              quantity: designers.length || 0,
+              unit: "+",
+              label: "Nhà Thiết Kế",
+            },
+            {
+              quantity: suppliers.length || 0,
+              unit: "+",
+              label: "Nhà Cung Cấp",
+            },
           ].map((item, index) => (
             <Grid key={index} textAlign="center">
               <Typography
@@ -482,7 +463,6 @@ export default function Homepage() {
             </Stack>
           </Box>
 
-
           <Box>
             <Box
               component="img"
@@ -501,6 +481,7 @@ export default function Homepage() {
                   color: "rgba(52,168,83,1)",
                   textTransform: "none",
                 }}
+                href="/materials"
               >
                 Khám Phá
                 <svg
@@ -575,7 +556,6 @@ export default function Homepage() {
             thúc đẩy các nguyên tắc kinh tế tuần hoàn và thực hành bền vững.
           </Typography>
 
-
           <List sx={{ mt: 3 }}>
             {/* Item 1 */}
             <ListItem sx={{ alignItems: "flex-start", pl: 0 }}>
@@ -589,7 +569,6 @@ export default function Homepage() {
               </Box>
             </ListItem>
 
-
             {/* Item 2 */}
             <ListItem sx={{ alignItems: "flex-start", pl: 0 }}>
               <EcoIcon />
@@ -601,7 +580,6 @@ export default function Homepage() {
                 </Typography>
               </Box>
             </ListItem>
-
 
             {/* Item 3 */}
             <ListItem sx={{ alignItems: "flex-start", pl: 0 }}>
@@ -616,7 +594,6 @@ export default function Homepage() {
             </ListItem>
           </List>
 
-
           <Button
             variant="contained"
             sx={{
@@ -629,7 +606,6 @@ export default function Homepage() {
             Tìm hiểu thêm ➞
           </Button>
         </Grid>
-
 
         {/* Image Section */}
         <Grid display="flex" justifyContent="center">
@@ -666,7 +642,6 @@ export default function Homepage() {
             Dù bạn là nhà thiết kế, nhà cung cấp hay người có ý thức về Bảo Vệ
             Môi trường, cộng đồng của chúng tôi luôn có chỗ dành cho bạn.
           </Typography>
-
 
           <Stack
             direction="row"
@@ -709,6 +684,3 @@ export default function Homepage() {
     </Box>
   );
 }
-
-
-
