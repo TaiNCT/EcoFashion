@@ -1,3 +1,4 @@
+//file này dùng để nhập địa chỉ giao hàng
 import React, { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import ProvinceDistrictSelector from "./ProvinceDistrictSelector";
@@ -24,7 +25,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
   const { user } = useAuthStore();
   const [allowEditName, setAllowEditName] = useState(false);
   const [formData, setFormData] = useState({
-    senderName: address?.senderName || user?.fullName || "",
+    fullName: address ? "" : user?.fullName || "", // Use user's name for new address, empty for editing
     personalPhoneNumber: address?.personalPhoneNumber || user?.phone || "",
     city: address?.city || "",
     district: address?.district || "",
@@ -40,7 +41,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
     if (address) {
       // Editing existing address - populate all fields from address
       setFormData({
-        senderName: address.senderName || "",
+        fullName: user.fullName || "", // Show existing fullName if available
         personalPhoneNumber: address.personalPhoneNumber || "",
         city: address.city || "",
         district: address.district || "",
@@ -55,7 +56,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
       // Creating new address - use user info as defaults
       setFormData((prev) => ({
         ...prev,
-        senderName: user.fullName || "",
+        fullName: user.fullName || "",
         personalPhoneNumber: user.phone || "",
       }));
       setAllowEditName(false); // Reset edit name state
@@ -76,7 +77,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
 
     const submitData = {
       ...formData,
-      senderName: formData.senderName,
+      fullName: formData.fullName,
       city: formData.city,
       district: formData.district,
       addressLine: formData.addressLine,
@@ -135,8 +136,8 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={formData.senderName}
-                  onChange={(e) => handleChange("senderName", e.target.value)}
+                  value={formData.fullName}
+                  onChange={(e) => handleChange("fullName", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={user?.fullName || "Nhập họ và tên người nhận"}
                   disabled={!address && !!user?.fullName && !allowEditName} // Disable for new address if user has name and not allowing edit
@@ -286,7 +287,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
               type="submit"
               disabled={
                 isLoading ||
-                !formData.senderName ||
+                !formData.fullName ||
                 !formData.city ||
                 !formData.district ||
                 !formData.addressLine

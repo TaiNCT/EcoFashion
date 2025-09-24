@@ -1,3 +1,4 @@
+//file này dùng để chọn địa chỉ giao hàng trong quá trình thanh toán
 import React, { useState } from "react";
 import {
   MapPinIcon,
@@ -183,9 +184,9 @@ const AddressSelectorTailwind: React.FC<AddressSelectorProps> = ({
                     </div>
 
                     <div className="space-y-1 mb-2">
-                      {/* Dòng 1: Sender Name - Sử dụng SenderName từ address */}
+                      {/* Dòng 1: Full Name - Sử dụng User.fullName làm fallback */}
                       <p className="font-semibold text-gray-900 text-base">
-                        {address.senderName || user?.fullName || "Người nhận"}
+                        {user?.fullName || "Người nhận"}
                       </p>
 
                       {/* Dòng 2: Address Line */}
