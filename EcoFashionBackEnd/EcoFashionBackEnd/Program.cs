@@ -27,7 +27,7 @@ public class Program
     else
     {
         // Local dev (có thể chỉnh theo ý)
-        builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
+        builder.WebHost.UseUrls("http://localhost:5148", "https://localhost:5001");
     }
 
     // 3. Health check

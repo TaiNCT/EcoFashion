@@ -71,6 +71,8 @@ export default function Homepage() {
 
   //Design Data
   const [designs, setDesigns] = useState<Design[]>([]);
+  const [designers, setDesigners] = useState<DesignerSummaryExtra[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierSummary[]>([]);
   //Loading
   const [loading, setLoading] = useState(true);
   //Error
@@ -89,11 +91,24 @@ export default function Homepage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await DesignService.getAllDesignPagination(
+
+      const desginData = await DesignService.getAllDesignPagination(
         currentPage,
         pageSize
       );
-      setDesigns(data);
+      setDesigns(desginData);
+
+      const designerData = await DesignerService.getPublicDesigners(
+        currentPage,
+        pageSize
+      );
+      setDesigners(designerData);
+
+      const supplierData = await SupplierService.getPublicSuppliers(
+        currentPage,
+        pageSize
+      );
+      setSuppliers(supplierData);
     } catch (error: any) {
       const errorMessage =
         error.message || "Không thể tải danh sách nhà thiết kế";
