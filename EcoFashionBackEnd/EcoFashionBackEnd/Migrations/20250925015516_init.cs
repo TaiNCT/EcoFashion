@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EcoFashionBackEnd.Migrations
 {
     /// <inheritdoc />
-    public partial class v1 : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -448,6 +448,7 @@ namespace EcoFashionBackEnd.Migrations
                     District = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     PersonalPhoneNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     Country = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    SenderName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     IsDefault = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
