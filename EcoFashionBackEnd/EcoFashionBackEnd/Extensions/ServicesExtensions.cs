@@ -106,6 +106,7 @@ public static class ServicesExtensions
         services.AddScoped<MaterialInventoryService>();
         services.AddScoped<InventoryAnalyticsService>();
         services.AddScoped<ProductInventoryAnalyticsService>();
+        services.AddScoped<SupplierAnalyticsService>();
         //services.AddScoped<IVnPayService, VnPayService>();
         services.AddScoped<PaymentService>();
         services.AddScoped<IVnPayService, VnPayService>();
