@@ -379,11 +379,10 @@ namespace EcoFashionBackEnd.Services
                            t.CreatedAt.Month == currentMonth && 
                            t.CreatedAt.Year == currentYear)
                 .ToListAsync();
-
-            var deposited = monthlyTransactions.Where(t => t.Type == TransactionType.Deposit || t.Type == TransactionType.Refund)
-                                              .Sum(t => t.Amount);
+            var deposited = monthlyTransactions.Where(t => t.Type == TransactionType.Deposit || t.Type == TransactionType.Refund || (t.Type == TransactionType.Transfer && t.Amount > 0) || t.Type == TransactionType.PaymentReceived)
+                                   .Sum(t => t.Amount);
             var spent = monthlyTransactions
-                 .Where(t => t.Type == TransactionType.Payment || t.Type == TransactionType.Withdrawal)
+                 .Where(t => t.Type == TransactionType.Payment || t.Type == TransactionType.Withdrawal || (t.Type == TransactionType.Transfer && t.Amount < 0))
                  .Sum(t => t.Type == TransactionType.Withdrawal ? -t.Amount : t.Amount);
 
             return new

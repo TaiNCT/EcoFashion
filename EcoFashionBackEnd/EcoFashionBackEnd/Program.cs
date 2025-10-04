@@ -116,27 +116,30 @@ public class Program
         Console.WriteLine($"Stack trace: {ex.StackTrace}");
     }
 
-    // 9. Swagger
-    if (env.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI(c =>
+  
+        // 9. Swagger
+        var enableSwagger = builder.Configuration.GetValue<bool>("EnableSwagger");
+
+        if (enableSwagger)
         {
-            c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
-        });
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+            });
+        }
+
+        // 10. Middlewares
+        app.UseCors("CORS");
+        app.UseMiddleware<ExceptionMiddleware>();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        // 11. Controllers
+        app.MapControllers();
+
+        app.Run();
     }
-
-    // 10. Middlewares
-    app.UseCors("CORS");
-    app.UseMiddleware<ExceptionMiddleware>();
-
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    // 11. Controllers
-    app.MapControllers();
-
-    app.Run();
-}
 
 }
