@@ -74,6 +74,8 @@ public static class ServicesExtensions
         });
 
         services.AddScoped(typeof(IRepository<,>), typeof(GenericRepository<,>));
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IMaterialRepository, MaterialRepository>();
         services.AddScoped<IDatabaseInitialiser, DatabaseInitialiser>();
 
         services.AddScoped<UserService>();
